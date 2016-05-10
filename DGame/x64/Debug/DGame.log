@@ -1,0 +1,4 @@
+﻿  Game.cpp
+d:\studia\projekty\c++\dgame\dgame\game.cpp(17): warning C4018: '>': signed/unsigned mismatch
+d:\studia\projekty\c++\dgame\dgame\game.cpp(25): error C2677: binary '[': no global operator found which takes type 'glm::ivec2' (or there is no acceptable conversion)
+d:\studia\projekty\c++\dgame\dgame\game.cpp(26): error C2143: syntax error: missing ';' before '}'

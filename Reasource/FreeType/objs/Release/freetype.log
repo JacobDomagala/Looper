@@ -1,0 +1,69 @@
+﻿cl : Command line warning D9002: ignoring unknown option '/arch:SSE2'
+cl : Command line warning D9002: ignoring unknown option '/arch:SSE2'
+  autofit.c
+cl : Command line warning D9002: ignoring unknown option '/arch:SSE2'
+  ftbitmap.c
+cl : Command line warning D9002: ignoring unknown option '/arch:SSE2'
+  ftfstype.c
+cl : Command line warning D9002: ignoring unknown option '/arch:SSE2'
+  ftgasp.c
+  ftstroke.c
+  ftbbox.c
+  ftfntfmt.c
+  ftpfr.c
+  ftsynth.c
+  fttype1.c
+  ftwinfnt.c
+  ftlcdfil.c
+  ftgxval.c
+  ftotval.c
+  ftpatent.c
+cl : Command line warning D9002: ignoring unknown option '/arch:SSE2'
+cl : Command line warning D9002: ignoring unknown option '/arch:SSE2'
+cl : Command line warning D9002: ignoring unknown option '/arch:SSE2'
+  bdf.c
+  cff.c
+cl : Command line warning D9002: ignoring unknown option '/arch:SSE2'
+  ftbase.c
+cl : Command line warning D9002: ignoring unknown option '/arch:SSE2'
+  ftcache.c
+  ftglyph.c
+d:\studia\projekty\c++\resource\freetype-2.6.3\src\base\ftobjs.c(4736): warning C4702: unreachable code
+d:\studia\projekty\c++\resource\freetype-2.6.3\src\base\ftobjs.c(4737): warning C4702: unreachable code
+  ftgzip.c
+  ftinit.c
+  ftlzw.c
+  ftsystem.c
+  smooth.c
+  ftmm.c
+  pcf.c
+  pfr.c
+  psaux.c
+  pshinter.c
+d:\studia\projekty\c++\resource\freetype-2.6.3\src\psaux\t1decode.c(1360): warning C4267: '=': conversion from 'size_t' to 'FT_Int', possible loss of data (compiling source file ..\..\..\src\psaux\psaux.c)
+  psmodule.c
+  raster.c
+  sfnt.c
+  truetype.c
+  type1.c
+  type1cid.c
+d:\studia\projekty\c++\resource\freetype-2.6.3\src\truetype\ttgload.c(1653): warning C4312: 'type cast': conversion from 'unsigned long' to 'void *' of greater size (compiling source file ..\..\..\src\truetype\truetype.c)
+d:\studia\projekty\c++\resource\freetype-2.6.3\src\truetype\ttgload.c(1667): warning C4312: 'type cast': conversion from 'unsigned long' to 'void *' of greater size (compiling source file ..\..\..\src\truetype\truetype.c)
+d:\studia\projekty\c++\resource\freetype-2.6.3\src\type1\t1load.c(1458): warning C4244: '=': conversion from '__int64' to 'FT_Int', possible loss of data (compiling source file ..\..\..\src\type1\type1.c)
+d:\studia\projekty\c++\resource\freetype-2.6.3\src\type1\t1load.c(1621): warning C4244: '=': conversion from '__int64' to 'FT_Int', possible loss of data (compiling source file ..\..\..\src\type1\type1.c)
+d:\studia\projekty\c++\resource\freetype-2.6.3\src\type1\t1driver.c(264): warning C4267: '=': conversion from 'size_t' to 'FT_ULong', possible loss of data (compiling source file ..\..\..\src\type1\type1.c)
+d:\studia\projekty\c++\resource\freetype-2.6.3\src\type1\t1driver.c(284): warning C4267: '=': conversion from 'size_t' to 'FT_ULong', possible loss of data (compiling source file ..\..\..\src\type1\type1.c)
+d:\studia\projekty\c++\resource\freetype-2.6.3\src\type1\t1driver.c(316): warning C4267: '=': conversion from 'size_t' to 'FT_ULong', possible loss of data (compiling source file ..\..\..\src\type1\type1.c)
+d:\studia\projekty\c++\resource\freetype-2.6.3\src\type1\t1driver.c(346): warning C4267: '=': conversion from 'size_t' to 'FT_UInt', possible loss of data (compiling source file ..\..\..\src\type1\type1.c)
+d:\studia\projekty\c++\resource\freetype-2.6.3\src\type1\t1driver.c(553): warning C4267: '=': conversion from 'size_t' to 'FT_ULong', possible loss of data (compiling source file ..\..\..\src\type1\type1.c)
+d:\studia\projekty\c++\resource\freetype-2.6.3\src\type1\t1driver.c(559): warning C4267: '=': conversion from 'size_t' to 'FT_ULong', possible loss of data (compiling source file ..\..\..\src\type1\type1.c)
+d:\studia\projekty\c++\resource\freetype-2.6.3\src\type1\t1driver.c(565): warning C4267: '=': conversion from 'size_t' to 'FT_ULong', possible loss of data (compiling source file ..\..\..\src\type1\type1.c)
+d:\studia\projekty\c++\resource\freetype-2.6.3\src\type1\t1driver.c(571): warning C4267: '=': conversion from 'size_t' to 'FT_ULong', possible loss of data (compiling source file ..\..\..\src\type1\type1.c)
+d:\studia\projekty\c++\resource\freetype-2.6.3\src\type1\t1driver.c(577): warning C4267: '=': conversion from 'size_t' to 'FT_ULong', possible loss of data (compiling source file ..\..\..\src\type1\type1.c)
+  type42.c
+  winfnt.c
+d:\studia\projekty\c++\resource\freetype-2.6.3\src\type42\t42parse.c(821): warning C4244: '=': conversion from '__int64' to 'FT_Int', possible loss of data (compiling source file ..\..\..\src\type42\type42.c)
+d:\studia\projekty\c++\resource\freetype-2.6.3\src\truetype\ttgload.c(1782): warning C4701: potentially uninitialized local variable 'outline' used
+cl : Command line warning D9002: ignoring unknown option '/arch:SSE2'
+  ftdebug.c
+  freetype.vcxproj -> D:\Studia\Projekty\C++\Resource\freetype-2.6.3\builds\windows\vc2010\.\..\..\..\objs\vc2010\x64\freetype263.lib

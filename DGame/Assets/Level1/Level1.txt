@@ -1,0 +1,8 @@
+Size: 3000 3000
+Background: Level1.png
+Objects: 
+Particles:
+First_pass_shaders: DefaultShader
+Second_pass_shaders: AfterEffects
+Collision: Level1_Collision.png
+Player: 1600 -1500 128 128 Level1_Char.png DefaultShader
