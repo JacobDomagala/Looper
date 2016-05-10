@@ -2,51 +2,57 @@
 #include"Win_Window.h"
 
 extern Win_Window* window;
-glm::vec2 playerPos;
+glm::ivec2 playerPos;
 glm::ivec2 pixelPos;
-bool Game::CheckBlock(glm::ivec2& moveBy)
+glm::ivec2 Game::CheckBlock(glm::ivec2& moveBy)
 {
-	glm::ivec2 levelSize = currentLevel.GetSize();
+ 	glm::ivec2 levelSize = currentLevel.GetSize();
 	pixelPos = playerPos;
 	glm::ivec2 destination = pixelPos + moveBy;
-	glm::ivec2 distance = destination - pixelPos;
+	int distance = glm::length(static_cast<glm::vec2>(moveBy));
+	
 
 	uint32 linearDestination = static_cast<uint32>(floor(destination.x + destination.y*levelSize.x));
-	uint32 linearPosition = static_cast<uint32>(floor(pixelPos.x + pixelPos.y*levelSize.x));
+	uint32 linearPosition = static_cast<uint32>(floor(playerPos.x + playerPos.y*levelSize.x));
+	uint32 linearLevelSize = levelSize.x * levelSize.y;
 
-	if (linearDestination > levelSize.x * levelSize.y)
-		return false;
+	glm::ivec2 returnVal = glm::ivec2();
+	if (linearDestination > linearLevelSize)
+		return returnVal;
 
-	charFour* tmp = (charFour*)collision;
-	if (tmp[linearDestination].w != 0)
+	returnVal = moveBy;
+	charFour* tmpCollision = (charFour*)collision;
+	if (tmpCollision[linearDestination].w != 0)
 	{
-		for (int j = 0; j < distance.length(); ++j)
+		uint32 tmpPosition = linearPosition;
+		for (int j = -distance; j <= distance; ++j)
 		{
-			glm::ivec2 tmpDest = pixelPos + (moveBy / distance.length());
-			linearDestination = static_cast<uint32>(floor(tmpDest.x + tmpDest.y*levelSize.x));
-			if (tmp[linearDestination].w == 0)
+			for (int i = -distance; i <= distance; ++i)
 			{
+				tmpPosition = linearPosition + (i + j*levelSize.x);
+				if ((tmpPosition < linearLevelSize) && (tmpPosition >= 0) && (tmpCollision[tmpPosition].w == 0 ))
+				{
+ 					int yComp = tmpPosition / levelSize.x;
+					int xComp = tmpPosition - (yComp * levelSize.x);
 
+					returnVal = glm::ivec2(xComp, yComp) - pixelPos;
+					return returnVal;
+				}
 			}
 		}
 	}
-
-	
-	if (tmp[linearDestination].w == 0)
-		return true;
-
-	else return false;
+	else return returnVal;
 }
-bool Game::CheckBounds(glm::vec2& moveBy)
+bool Game::CheckBounds(glm::ivec2& moveBy)
 {
 	glm::ivec2 levelSize = currentLevel.GetSize();
 
-	// compute the player position relative to level
+	// compute the player's position relative to level
 	playerPos = currentLevel.GetLevelPosition() - player.GetGlobalPosition();
 	playerPos.y -= levelSize.y;
 	playerPos *= -1.0f;
 	
-	glm::vec2 destination = playerPos + moveBy;
+	glm::ivec2 destination = playerPos + moveBy;
 
 	if (destination.x > levelSize.x)
 	{
@@ -81,18 +87,19 @@ bool Game::CheckBounds(glm::vec2& moveBy)
 		}
 	}
 
-	if (CheckBlock(glm::ivec2(moveBy)))
-	{
-		player.Move(moveBy);
-		return true;
-	}
+	moveBy = CheckBlock(moveBy);
+	player.Move(moveBy);
+	return true;
+
 	return false;
 }
 void Game::KeyEvents(float deltaTime)
 {
 	float cameraMovement = 300.0f*deltaTime;
 	float playerMovement = 500.0f*deltaTime;
-	
+	glm::ivec2 playerMoveBy = glm::ivec2();
+	glm::ivec2 cameraMoveBy = glm::ivec2();
+
 	if (GetAsyncKeyState(VK_ESCAPE))
 	{
 		window->ShutDown();
@@ -108,37 +115,38 @@ void Game::KeyEvents(float deltaTime)
 	}
 	if (GetAsyncKeyState('W'))
 	{
-		if (CheckBounds(glm::vec2(0, -playerMovement)))
-		{
-			currentLevel.Move(glm::vec2(0, cameraMovement));	
-		}
+		playerMoveBy += glm::ivec2(0, -playerMovement);
+		cameraMoveBy += glm::ivec2(0, cameraMovement);
 	}
 	if (GetAsyncKeyState('S'))
 	{
-		if (CheckBounds(glm::vec2(0.0f, playerMovement)))
-		{
-			currentLevel.Move(glm::vec2(0.0f, -cameraMovement));
-		}
+		playerMoveBy += glm::ivec2(0.0f, playerMovement);
+		cameraMoveBy += glm::ivec2(0.0f, -cameraMovement);
 	}
 	if (GetAsyncKeyState('A'))
 	{
-		if (CheckBounds(glm::vec2(-playerMovement, 0.0f)))
-		{
-			currentLevel.Move(glm::vec2(cameraMovement, 0.0f));
-		}
+		playerMoveBy += glm::ivec2(-playerMovement, 0.0f);
+		cameraMoveBy += glm::ivec2(cameraMovement, 0.0f);
 	}
 	if (GetAsyncKeyState('D'))
 	{
-		if (CheckBounds(glm::vec2(playerMovement, 0.0f)))
-		{
-			currentLevel.Move(glm::vec2(-cameraMovement, 0.0f));
-		}
+		playerMoveBy += glm::ivec2(playerMovement, 0.0f);
+		cameraMoveBy += glm::ivec2(-cameraMovement, 0.0f);
+	}
+	if (GetAsyncKeyState('R'))
+	{
+		player.Move(glm::vec2(200, 400));
 	}
 	if (GetAsyncKeyState(VK_SPACE))
 	{
 		currentLevel.Move(-player.GetGlobalPosition());
 		player.Move(-player.GetGlobalPosition());
 	}
+	if(glm::length(glm::vec2(playerMoveBy)))
+		if (CheckBounds(playerMoveBy))
+		{
+			currentLevel.MoveCamera(cameraMoveBy);
+		}
 }
 
 void Game::MouseEvents(float deltaTime)
