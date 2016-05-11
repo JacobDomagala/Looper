@@ -1,8 +1,3 @@
 ﻿  Game.cpp
 d:\studia\projekty\c++\dgame\dgame\game.cpp(12): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-d:\studia\projekty\c++\dgame\dgame\game.cpp(61): warning C4244: '-=': conversion from 'float' to 'int', possible loss of data
-d:\studia\projekty\c++\dgame\dgame\game.cpp(69): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
-d:\studia\projekty\c++\dgame\dgame\game.cpp(77): warning C4244: '-=': conversion from 'float' to 'int', possible loss of data
-d:\studia\projekty\c++\dgame\dgame\game.cpp(85): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
-d:\studia\projekty\c++\dgame\dgame\game.cpp(45): warning C4715: 'Game::CheckBlock': not all control paths return a value
   DGame.vcxproj -> D:\Studia\Projekty\C++\DGame\x64\Debug\DGame.exe
