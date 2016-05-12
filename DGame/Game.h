@@ -32,8 +32,8 @@ class Game {
 	Player player;
 	
 	Font font;
-	glm::ivec2 CheckBlock(glm::ivec2& moveBy);
-	bool CheckBounds(glm::ivec2& moveBy);
+	glm::ivec2 CheckCollision(glm::ivec2& moveBy);
+	bool CheckMove(glm::ivec2& moveBy);
 	void KeyEvents(float deltaTime);
 	void MouseEvents(float deltaTime);
 
