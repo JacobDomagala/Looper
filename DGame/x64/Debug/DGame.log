@@ -1,3 +1,0 @@
-﻿  Game.cpp
-d:\studia\projekty\c++\dgame\dgame\game.cpp(11): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-  DGame.vcxproj -> D:\Studia\Projekty\C++\DGame\x64\Debug\DGame.exe

@@ -32,6 +32,9 @@ glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 		return returnVal;
 	}
 
+	// if you're standing in shit, this will take it into account
+	glm::ivec2 positionBias = glm::ivec2();
+
 	// if you stand where you're not supposed to due to fucking float -> int conversion (FeelsBadMan)
 	if (tmpCollision[linearPosition].w != 0)
 	{
@@ -47,12 +50,13 @@ glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 							int yComp = tmpPosition / levelSize.x;
 							int xComp = tmpPosition - (yComp * levelSize.x);
 
-							returnVal = glm::ivec2(xComp, yComp) - playerPos;
-							return returnVal;
+							positionBias = glm::ivec2(xComp, yComp) - playerPos;
+							goto next;
 						}
 					}
 				}
 	}
+next:
 
 	// if you couldn't get to shit, find closest in line point where you can go
 	for (int i = distance; i > 0; --i)
@@ -62,29 +66,52 @@ glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 		if (tmpPosition > 0 && tmpPosition < linearLevelSize && tmpCollision[tmpPosition].w == 0)
 		{
 			returnVal = tmpDest - playerPos;
+			returnVal += positionBias;
 			return returnVal;
 		}
 	}
 
 	// if you couldn't find anything in straight line, check the closest boundaries
-	//for (int j = distance; j > 0; --j)
-	//{
-	//	
-	//	for (int i = -1; i < 2; ++i)
-	//	{
-	//		glm::ivec2 tmpDirection = glm::ivec2(direction.x + i, direction.y);
-	//		glm::ivec2 tmpDest = playerPos + tmpDirection*j;
-	//	}
-	//	if (direction.x == 0)
-	//	{
+	for (int j = distance; j > 0; --j)
+	{
+		if (direction.x == 0)
+		{
+			for (int i = -2; i <= 2; ++i)
+			{
+				glm::ivec2 tmpDirection = glm::ivec2(direction.x + i, direction.y);
+				glm::ivec2 tmpDest = playerPos + tmpDirection*j;
 
-	//	}
-	//}
+				tmpPosition = static_cast<uint32>(floor(tmpDest.x + tmpDest.y*levelSize.x));
+				if (tmpPosition > 0 && tmpPosition < linearLevelSize && tmpCollision[tmpPosition].w == 0)
+				{
+					returnVal = tmpDest - playerPos;
+					returnVal += positionBias;
+					return returnVal;
+				}
+			}
+		}
+		else if (direction.y == 0)
+		{
+			for (int i = -2; i <= 2; ++i)
+			{
+				glm::ivec2 tmpDirection = glm::ivec2(direction.x, direction.y+i);
+				glm::ivec2 tmpDest = playerPos + tmpDirection*j;
+
+				tmpPosition = static_cast<uint32>(floor(tmpDest.x + tmpDest.y*levelSize.x));
+				if (tmpPosition > 0 && tmpPosition < linearLevelSize && tmpCollision[tmpPosition].w == 0)
+				{
+					returnVal = tmpDest - playerPos;
+					returnVal += positionBias;
+					return returnVal;
+				}
+			}
+		}
+	}
 
 
 
 	// worst case scenario you won't move
-	return glm::ivec2();
+	return glm::ivec2() + positionBias;
 }
 bool Game::CheckMove(glm::ivec2& moveBy)
 {
