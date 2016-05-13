@@ -36,27 +36,27 @@ glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 	glm::ivec2 positionBias = glm::ivec2();
 
 	// if you stand where you're not supposed to due to fucking float -> int conversion (FeelsBadMan)
-	if (tmpCollision[linearPosition].w != 0)
-	{
-		// the value of getting your out of shit < -5 ; 5 >
-		int tmpval = 5;
-		for (int j = -tmpval; j <= tmpval; ++j)
-				{
-					for (int i = -tmpval; i <= tmpval; ++i)
-					{
-						tmpPosition = linearPosition + (i + j*levelSize.x);
-						if ((tmpPosition < linearLevelSize) && (tmpPosition >= 0) && (tmpCollision[tmpPosition].w == 0 ))
-						{
-							int yComp = tmpPosition / levelSize.x;
-							int xComp = tmpPosition - (yComp * levelSize.x);
-
-							positionBias = glm::ivec2(xComp, yComp) - playerPos;
-							goto next;
-						}
-					}
-				}
-	}
-next:
+//	if (tmpCollision[linearPosition].w != 0)
+//	{
+//		// the value of getting you out of shit < -5 ; 5 >
+//		int tmpval = 5;
+//		for (int j = -tmpval; j <= tmpval; ++j)
+//				{
+//					for (int i = -tmpval; i <= tmpval; ++i)
+//					{
+//						tmpPosition = linearPosition + (i + j*levelSize.x);
+//						if ((tmpPosition < linearLevelSize) && (tmpPosition >= 0) && (tmpCollision[tmpPosition].w == 0 ))
+//						{
+//							int yComp = tmpPosition / levelSize.x;
+//							int xComp = tmpPosition - (yComp * levelSize.x);
+//
+//							positionBias = glm::ivec2(xComp, yComp) - playerPos;
+//							goto next;
+//						}
+//					}
+//				}
+//	}
+//next:
 
 	// if you couldn't get to shit, find closest in line point where you can go
 	for (int i = distance; i > 0; --i)
@@ -121,7 +121,6 @@ bool Game::CheckMove(glm::ivec2& moveBy)
 	playerPos = currentLevel.GetLevelPosition() - player.GetGlobalPosition();
 	playerPos.y -= levelSize.y;
 	playerPos *= -1;
-
 
 	glm::ivec2 destination = playerPos + moveBy;
 
@@ -219,11 +218,12 @@ void Game::KeyEvents(float deltaTime)
 		currentLevel.Move(-player.GetGlobalPosition());
 		player.Move(-player.GetGlobalPosition());
 	}
-	if(glm::length(glm::vec2(playerMoveBy)))
- 		if (CheckMove(playerMoveBy))
-		{
-			currentLevel.Move(cameraMoveBy);
-		}
+	if (glm::length(glm::vec2(playerMoveBy)))
+	{
+		currentLevel.Move(cameraMoveBy);
+		if (CheckMove(playerMoveBy) == false)
+			currentLevel.Move(-cameraMoveBy);
+	}
 }
 
 void Game::MouseEvents(float deltaTime)
@@ -372,6 +372,7 @@ Game::Game()
 void Game::ProcessInput(float deltaTime)
 {
 	this->deltaTime = deltaTime;
+
 	MouseEvents(deltaTime);
 	KeyEvents(deltaTime);
 }
