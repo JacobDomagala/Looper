@@ -10,7 +10,6 @@ class Level {
 	std::map<std::string, Texture> textures; 
 	Shaders shaders;
 
-	std::vector<char> collisionMap;
 	std::vector<GameObject> objects;
 	
 	glm::vec2 cameraPosition;
@@ -30,8 +29,7 @@ public:
 	void Load(const std::string& fileName);
 	void LoadPremade(const std::string& fileName, glm::ivec2 size);
 	void LoadShaders(const std::string& shaderName);
-	void LoadCollisionMap(const std::string& fileName);
-	bool CheckCollision(const glm::vec2& position) const;
+
 	void Move(const glm::vec2& moveBy);
 	void Draw();
 	

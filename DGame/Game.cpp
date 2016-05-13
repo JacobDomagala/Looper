@@ -19,7 +19,8 @@ glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 	uint32 linearLevelSize = levelSize.x * levelSize.y;
 
 	glm::ivec2 returnVal = glm::ivec2();
-	if (linearDestination > linearLevelSize || linearDestination < 0)
+	if (destination.x < 0 || destination.x > levelSize.x ||
+		destination.y < 0 || destination.y > levelSize.y)
 		return returnVal;
 
 	uint32 tmpPosition = linearPosition;
@@ -63,7 +64,8 @@ glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 	{
 		glm::ivec2 tmpDest = playerPos + direction*i;
 		tmpPosition = static_cast<uint32>(floor(tmpDest.x + tmpDest.y*levelSize.x));
-		if (tmpPosition > 0 && tmpPosition < linearLevelSize && tmpCollision[tmpPosition].w == 0)
+		if ((tmpPosition > 0) && (tmpPosition < linearLevelSize) && 
+			(tmpDest.x < levelSize.x) && (tmpDest.y < levelSize.y) && (tmpCollision[tmpPosition].w == 0))
 		{
 			returnVal = tmpDest - playerPos;
 			returnVal += positionBias;
@@ -82,7 +84,9 @@ glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 				glm::ivec2 tmpDest = playerPos + tmpDirection*j;
 
 				tmpPosition = static_cast<uint32>(floor(tmpDest.x + tmpDest.y*levelSize.x));
-				if (tmpPosition > 0 && tmpPosition < linearLevelSize && tmpCollision[tmpPosition].w == 0)
+				if ((tmpDest.x > 0) && (tmpDest.y > 0) && 
+					(tmpDest.x < levelSize.x) && (tmpDest.y < levelSize.y) && 
+					(tmpCollision[tmpPosition].w == 0))
 				{
 					returnVal = tmpDest - playerPos;
 					returnVal += positionBias;
@@ -98,7 +102,9 @@ glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 				glm::ivec2 tmpDest = playerPos + tmpDirection*j;
 
 				tmpPosition = static_cast<uint32>(floor(tmpDest.x + tmpDest.y*levelSize.x));
-				if (tmpPosition > 0 && tmpPosition < linearLevelSize && tmpCollision[tmpPosition].w == 0)
+				if ((tmpDest.x > 0) && (tmpDest.y > 0) &&
+					(tmpDest.x < levelSize.x) && (tmpDest.y < levelSize.y) &&
+					(tmpCollision[tmpPosition].w == 0))
 				{
 					returnVal = tmpDest - playerPos;
 					returnVal += positionBias;
@@ -108,60 +114,15 @@ glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 		}
 	}
 
-
-
 	// worst case scenario you won't move
 	return glm::ivec2() + positionBias;
 }
 bool Game::CheckMove(glm::ivec2& moveBy)
 {
-	glm::ivec2 levelSize = currentLevel.GetSize();
-
 	// compute the player's position relative to level
 	playerPos = currentLevel.GetLevelPosition() - player.GetGlobalPosition();
 	playerPos.y -= levelSize.y;
 	playerPos *= -1;
-
-	glm::ivec2 destination = playerPos + moveBy;
-
-	if (destination.x > levelSize.x)
-	{
-		while (destination.x >= levelSize.x)
-		{
-			moveBy.x -= 1;
-			destination = playerPos + moveBy;
-		}
-	}
-	if (destination.x < 0)
-	{
-		while (destination.x <= 0)
-		{
-			moveBy.x += 1;
-			destination = playerPos + moveBy;
-		}
-	}
-	if (destination.y > levelSize.y)
-	{
-		while (destination.y >= levelSize.y)
-		{
-			moveBy.y -= 1;
-			destination = playerPos + moveBy;
-		}
-	}
-	if (destination.y < 0)
-	{
-		while (destination.y <= 0)
-		{
-			moveBy.y += 1;
-			destination = playerPos + moveBy;
-		}
-	}
-
-	// set the position to in bounds of the map, so it won't fuck up the collision later
-	playerPos.x = playerPos.x >= 0 ? playerPos.x : 0;
-	playerPos.y = playerPos.y >= 0 ? playerPos.y : 0;
-	playerPos.x = playerPos.x < levelSize.x ? playerPos.x : levelSize.x - 1;
-	playerPos.y = playerPos.y < levelSize.y ? playerPos.y : levelSize.y - 1;
 
 	moveBy = CheckCollision(moveBy);
 	player.Move(moveBy);

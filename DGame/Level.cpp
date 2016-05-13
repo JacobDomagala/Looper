@@ -108,28 +108,7 @@ void Level::LoadShaders(const std::string& shaderName)
 	shaders.LoadShaders("Shaders//" + shaderName + "_vs.glsl", "Shaders//" + shaderName + "_fs.glsl");
 }
 
-void Level::LoadCollisionMap(const std::string& fileName)
-{
-	std::ifstream file(fileName);
-	if (!file)
-		window->ShowError("Error opening " + fileName, "Loading collision map");
-	
-	collisionMap.resize(levelSize.x * levelSize.y);
-	file.read(&collisionMap[0], levelSize.x * levelSize.y);
 
-	file.close();
-}
-bool Level::CheckCollision(const glm::vec2& position) const
-{
-	int linearPosition = position.x + position.y*levelSize.x;
-
-	if (linearPosition < 0 || linearPosition > levelSize.x * levelSize.y)
-		return false;
-
-	if (collisionMap[linearPosition] == 0)
-		return true;
-	else return false;
-}
 void Level::Move(const glm::vec2& moveBy)
 {
 	for (int i = 0; i < objects.size(); ++i)
@@ -169,7 +148,6 @@ void Level::Draw()
 void Level::SetPlayersPosition(const glm::vec2& position)
 {
 	playerPos = position;
-
 	playerPos /= tileSize;
 }
 
