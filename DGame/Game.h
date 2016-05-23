@@ -24,14 +24,19 @@ class Game {
 	// all maps
 	std::vector<std::string> levels;
 	Level currentLevel;
-	unsigned char* collision;
+	glm::ivec2 levelSize;
+
+	charFour* collision;
 
 	// state of the game 
 	GameState state;
 
 	Player player;
+	glm::ivec2 playerPos;
 	
 	Font font;
+
+	glm::ivec2 CheckBulletCollision();
 	glm::ivec2 CheckCollision(glm::ivec2& moveBy);
 	bool CheckMove(glm::ivec2& moveBy);
 	void KeyEvents(float deltaTime);
@@ -39,13 +44,14 @@ class Game {
 
 	// draws to framebuffer (texture)
 	void RenderFirstPass();
-
+	void RenderLine(glm::ivec2 collided);
 	// draws to screen 
 	void RenderSecondPass();
 	void LoadLevel(const std::string& levelName);
 	
 public:
 	Game();
+
 	void ProcessInput(float deltaTime);
 	void RenderText(const std::string& text, const glm::vec2& position, float scale, const glm::vec3& color);
 	void Render();

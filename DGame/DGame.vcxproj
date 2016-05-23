@@ -181,6 +181,8 @@
     <ClInclude Include="Win_Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="lineFragment.glsl" />
+    <None Include="lineVertex.glsl" />
     <None Include="Shaders\AfterEffects_fs.glsl" />
     <None Include="Shaders\AfterEffects_vs.glsl" />
     <None Include="Shaders\DefaultShader_fs.glsl" />

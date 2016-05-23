@@ -109,5 +109,7 @@
     <None Include="Shaders\DefaultShader_vs.glsl" />
     <None Include="Shaders\Font_fs.glsl" />
     <None Include="Shaders\Font_vs.glsl" />
+    <None Include="lineVertex.glsl" />
+    <None Include="lineFragment.glsl" />
   </ItemGroup>
 </Project>

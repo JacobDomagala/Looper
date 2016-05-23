@@ -11,8 +11,7 @@ private:
 	HDC       hdc;
 
 	glm::mat4 projectionMatrix;
-	
-	
+	glm::vec2 cursorPos;
 	
 public:
 	static bool isRunning;
@@ -29,11 +28,25 @@ public:
 									  static_cast<float>(-HEIGHT / 2.0f),
 									  -1.0f, 1.0f);
 	}
+	void SetCursor(const glm::vec2 position) { cursorPos = position; }
+	glm::vec2 GetCursor() const 
+	{
+		POINT cursor;
+		GetCursorPos(&cursor);
+		ScreenToClient(windowHandle, &cursor);
+		return glm::vec2(cursor.x, cursor.y); 
+	}
+	glm::vec2 GetCursorNormalized() const 
+	{
+		glm::vec4 tmpCursor = projectionMatrix * glm::vec4(cursorPos, 0.0f, 1.0f);
+		return glm::vec2(tmpCursor.x, tmpCursor.y);
+	}
 	void Createwindow();
 	void SetUpOpenGL();
 
 	const glm::mat4& GetProjection() { return projectionMatrix; }
 	void SetProjection(const glm::mat4& projection) { projectionMatrix = projection; }
+
 
 	void ShutDown() 
 	{ 

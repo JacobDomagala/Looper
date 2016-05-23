@@ -5,8 +5,9 @@
 
 extern Win_Window* window;
 
+
 Player::Player(const glm::vec2& position, const std::string& name):
-	position(position),
+	globalPosition(position),
 	name(name)
 {
 	angle = 2.0f;
@@ -16,7 +17,7 @@ Player::Player(const glm::vec2& position, const std::string& name):
 void Player::CreateSprite(const glm::vec2& position, glm::ivec2 size, const std::string& fileName)
 {
 	sprite.SetSpriteTextured(position, size, fileName);
-	this->position = sprite.GetCenteredPosition();
+	this->globalPosition = sprite.GetCenteredPosition();
 	//translateVal = this->position;
 	program.LoadDefault();
 }
@@ -31,35 +32,47 @@ void Player::LoadShaders(const Shaders& program)
 
 glm::vec2 Player::GetGlobalPosition() const
 {
-	return position;
+	return globalPosition;
 }
 
 glm::vec2 Player::GetScreenPosition() const 
 {
-	glm::vec4 screenPosition = window->GetProjection() * glm::vec4(position, 0.0f, 1.0f);
+	glm::vec4 screenPosition = window->GetProjection() * glm::vec4(globalPosition, 0.0f, 1.0f);
 	return glm::vec2(screenPosition.x, screenPosition.y);
+}
+glm::ivec2 Player::GetScreenPositionPixels() const
+{
+	glm::vec4 screenPosition = window->GetProjection() * glm::vec4(globalPosition, 0.0f, 1.0f);
+	glm::vec2 tmpPos = (glm::vec2(screenPosition.x, screenPosition.y) + glm::vec2(1.0f,1.0f)) / glm::vec2(2.0f, 2.0f);
+	tmpPos.x *= WIDTH;
+	tmpPos.y *= -HEIGHT;
+	tmpPos.y += HEIGHT;
+
+	return tmpPos;
 }
 void Player::Move(const glm::vec2& moveBy)
 {
 	sprite.Translate(moveBy);
-	position += moveBy;
+	globalPosition += moveBy;
 }
 
 void Player::Draw()
 {
 #pragma region CURSOR_MATH
-	POINT cursorPos;
-	GetCursorPos(&cursorPos);
-	ScreenToClient(window->GetWindowHandle(), &cursorPos);
-	glm::vec2 center(WIDTH / 2.0f, HEIGHT / 2.0f);
-	cursorPos.x -= static_cast<LONG>(center.x);
-	cursorPos.y -= static_cast<LONG>(center.y);
-	float cursorX = cursorPos.x / center.x;
-	float cursorY = cursorPos.y / center.y;
+	//POINT cursorPos;
+	//GetCursorPos(&cursorPos);
+	//ScreenToClient(window->GetWindowHandle(), &cursorPos);
+	//glm::vec2 center(WIDTH / 2.0f, HEIGHT / 2.0f);
+	//cursorPos.x -= static_cast<LONG>(center.x);
+	//cursorPos.y -= static_cast<LONG>(center.y);
+	//float cursorX = cursorPos.x / center.x;
+	//float cursorY = cursorPos.y / center.y;
 
-	glm::vec4 tmpCursor = window->GetProjection() * glm::vec4(cursorPos.x, cursorPos.y, 0.0f, 1.0f);
-	glm::vec4 tmpPos = window->GetProjection() * glm::vec4(position, 0.0f, 1.0f);
-	angle = -glm::degrees(glm::atan(tmpPos.y - tmpCursor.y, tmpPos.x - tmpCursor.x));
+	glm::vec2 cursorPos = window->GetCursorNormalized();
+
+	//glm::vec4 tmpCursor = window->GetProjection() * glm::vec4(cursorPos.x, cursorPos.y, 0.0f, 1.0f);
+	glm::vec4 tmpPos = window->GetProjection() * glm::vec4(globalPosition, 0.0f, 1.0f);
+	angle = -glm::degrees(glm::atan(tmpPos.y - cursorPos.y, tmpPos.x - cursorPos.x));
 
 #pragma endregion
 
@@ -67,39 +80,15 @@ void Player::Draw()
 //	sprite.Translate(translateVal);
 	sprite.Render(program);
 
-#pragma region LINIA
+	
 
-	//glm:: mat4 modelMatrix = glm::scale(glm::mat4(), glm::vec3(1.0f, 1.0f, 1.0f));
-	//GLuint lineVertexArray;
-	//GLuint lineVertexBuffer;
-	//glGenVertexArrays(1, &lineVertexArray);
-	//glGenBuffers(1, &lineVertexBuffer);
-	//glBindVertexArray(lineVertexArray);
-	//glBindBuffer(GL_ARRAY_BUFFER, lineVertexBuffer);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 2, 0, GL_DYNAMIC_DRAW);
-	//glEnableVertexAttribArray(0);
-	//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
-	//
-	//
-	////OutputDebugStringA((std::to_string(cursorX)+" "+std::to_string(cursorY)+"\n").c_str());
-	//
-	//glm::vec2 lineVerteces[2] = {
-	//	glm::vec2(position.x,position.y),
-	//	glm::vec2(cursorPos.x, cursorPos.y)
-	//};
-	//glBindVertexArray(lineVertexArray);
-	//glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(glm::vec2) * 2, lineVerteces);
-	//
-	//program.UseProgram();
-	//program.SetUniformFloatMat4(modelMatrix, "modelMatrix");
-	//program.SetUniformFloatVec4(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), "color");
-	//
-	//glDrawArrays(GL_LINES, 0, 2);
-	//glBindVertexArray(0);
-	//glDeleteBuffers(1, &lineVertexBuffer);
-	//glDeleteVertexArrays(1, &lineVertexArray);
+}
 
-#pragma endregion
+void Player::Shoot()
+{
+	glm::vec2 cursorPos = window->GetCursor();
+	glm::vec2 direction = cursorPos - localPosition;
+	currentWeapon.Shoot(direction);
 }
 Player::~Player()
 {
