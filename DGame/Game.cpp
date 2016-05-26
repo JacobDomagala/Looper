@@ -13,17 +13,92 @@ void swap(float& first, float& second)
 	first = second;
 	second = tmp;
 }
-
-void Game::RenderLine(glm::ivec2 collided)
+glm::ivec2 Game::CorrectPosition()
 {
-	collided = glm::vec2(window->GetProjection() * glm::vec4(collided, 0.0f, 1.0f));
-#pragma region LINIA
+	
+	uint32 linearPosition = static_cast<uint32>(floor(playerPos.x + playerPos.y*levelSize.x));
+	uint32 linearLevelSize = levelSize.x * levelSize.y;
+
+	charFour* tmpCollision = collision;
+	
+	glm::ivec2 tmpPosition = playerPos;
+	glm::ivec2 returnVal = glm::ivec2();
+	
+	if (playerPos.x < 0)
+	{
+		returnVal.x = -playerPos.x;
+		return returnVal;
+	}
+	if (playerPos.x >= levelSize.x)
+	{
+		returnVal.x = (levelSize.x-1) - playerPos.x;
+		return returnVal;
+	}
+	if (playerPos.y < 0)
+	{
+		returnVal.y = -playerPos.y;
+		return returnVal;
+	}
+	if (playerPos.y >= levelSize.y)
+	{
+		returnVal.y = (levelSize.y-1) - playerPos.y;
+		return returnVal;
+	}
+	//if you stand where you're not supposed to due to fucking float -> int conversion (FeelsBadMan)
+		if (tmpCollision[linearPosition].w != 0)
+		{
+			// the value of getting you out of shit < -5 ; 5 >
+			int tmpval = 6;
+			for (int j = -tmpval; j <= tmpval; ++j)
+					{
+						for (int i = -tmpval; i <= tmpval; ++i)
+						{
+							tmpPosition = playerPos + glm::ivec2(i, j);
+							linearPosition = static_cast<uint32>(floor(tmpPosition.x + tmpPosition.y*levelSize.x));
+							if ((tmpPosition.x > 0) && (tmpPosition.x < levelSize.x) &&
+								(tmpPosition.y > 0) && (tmpPosition.y < levelSize.y) && 
+								(tmpCollision[linearPosition].w == 0 ))
+							{
+								int yComp = tmpPosition.y;
+								int xComp = tmpPosition.x;
+								glm::ivec2 returnVal = glm::ivec2(xComp, yComp) - playerPos;
+								return returnVal;
+							}
+						}
+					}
+		}
+		return glm::ivec2(0, 0);
+}
+glm::vec2 Game::GetLocalVec(glm::vec2 local)
+{
+	glm::vec2 returnVal;
+	returnVal = currentLevel.GetLevelPosition() - local;
+	returnVal.y -= levelSize.y;
+	returnVal *= -1;
+
+	return returnVal;
+}
+
+glm::vec2 Game::GetGlobalVec(glm::vec2 local)
+{
+	glm::vec2 returnVal = local;
+	returnVal *= -1;
+	returnVal.y += levelSize.y;
+	returnVal = currentLevel.GetLevelPosition() - returnVal;
+
+	return returnVal;
+}
+
+void Game::RenderLine(glm::ivec2 collided, glm::vec3 color)
+{
+	glm::vec2 lineCollided = GetGlobalVec(collided);
+		
 	Shaders lineShader;
 	lineShader.LoadShaders("lineVertex.glsl", "lineFragment.glsl");
 
 	glm::vec2 vertices[2] = {
-		glm::vec2(collided),
-		glm::vec2(playerPos)
+		glm::vec2(player.GetGlobalPosition()),
+		glm::vec2(lineCollided)
 	};
 	glm::mat4 modelMatrix = glm::scale(glm::mat4(), glm::vec3(1.0f, 1.0f, 1.0f));
 	GLuint lineVertexArray;
@@ -39,13 +114,12 @@ void Game::RenderLine(glm::ivec2 collided)
 	lineShader.UseProgram();
 	lineShader.SetUniformFloatMat4(modelMatrix, "modelMatrix");
 	lineShader.SetUniformFloatMat4(window->GetProjection(), "projectionMatrix");
+	lineShader.SetUniformFloatVec4(glm::vec4(color, 1.0f), "color");
 
 	glDrawArrays(GL_LINES, 0, 2);
 	glBindVertexArray(0);
 	glDeleteBuffers(1, &lineVertexBuffer);
 	glDeleteVertexArrays(1, &lineVertexArray);
-	
-#pragma endregion
 }
 glm::ivec2 Game::CheckBulletCollision()
 {
@@ -78,8 +152,8 @@ glm::ivec2 Game::CheckBulletCollision()
 	int y = static_cast<int>(y1);
 
 	const int maxX = (int)x2;
-              	   
-	for (int x = static_cast<int>(x1); x < levelSize.x; x++)
+	int range = levelSize.x;
+	for (int x = static_cast<int>(x1); x < maxX + range; x++)
 	{
 		if (steep)
 		{
@@ -141,7 +215,7 @@ glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 
 	uint32 tmpPosition = linearPosition;
 	returnVal = moveBy;
-	charFour* tmpCollision = (charFour*)collision;
+	charFour* tmpCollision = collision;
 
 	// if you can move to destination (FeelsGoodMan)
 	if (tmpCollision[linearDestination].w == 0)
@@ -153,27 +227,27 @@ glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 	glm::ivec2 positionBias = glm::ivec2();
 
 	// if you stand where you're not supposed to due to fucking float -> int conversion (FeelsBadMan)
-//	if (tmpCollision[linearPosition].w != 0)
-//	{
-//		// the value of getting you out of shit < -5 ; 5 >
-//		int tmpval = 5;
-//		for (int j = -tmpval; j <= tmpval; ++j)
-//				{
-//					for (int i = -tmpval; i <= tmpval; ++i)
-//					{
-//						tmpPosition = linearPosition + (i + j*levelSize.x);
-//						if ((tmpPosition < linearLevelSize) && (tmpPosition >= 0) && (tmpCollision[tmpPosition].w == 0 ))
-//						{
-//							int yComp = tmpPosition / levelSize.x;
-//							int xComp = tmpPosition - (yComp * levelSize.x);
-//
-//							positionBias = glm::ivec2(xComp, yComp) - playerPos;
-//							goto next;
-//						}
-//					}
-//				}
-//	}
-//next:
+	if (tmpCollision[linearPosition].w != 0)
+	{
+		// the value of getting you out of shit < -5 ; 5 >
+		int tmpval = 5;
+		for (int j = -tmpval; j <= tmpval; ++j)
+				{
+					for (int i = -tmpval; i <= tmpval; ++i)
+					{
+						tmpPosition = linearPosition + (i + j*levelSize.x);
+						if ((tmpPosition < linearLevelSize) && (tmpPosition >= 0) && (tmpCollision[tmpPosition].w == 0 ))
+						{
+							int yComp = tmpPosition / levelSize.x;
+							int xComp = tmpPosition - (yComp * levelSize.x);
+
+							positionBias = glm::ivec2(xComp, yComp) - playerPos;
+							goto next;
+						}
+					}
+				}
+	}
+next:
 
 	// if you couldn't get to shit, find closest in line point where you can go
 	for (int i = distance; i > 0; --i)
@@ -236,9 +310,6 @@ glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 bool Game::CheckMove(glm::ivec2& moveBy)
 {
 	// compute the player's position relative to level
-	playerPos = currentLevel.GetLevelPosition() - player.GetGlobalPosition();
-	playerPos.y -= levelSize.y;
-	playerPos *= -1;
 
 	moveBy = CheckCollision(moveBy);
 	player.Move(moveBy);
@@ -320,15 +391,17 @@ void Game::MouseEvents(float deltaTime)
 	destination = player.GetScreenPosition() * glm::vec2(WIDTH / 2, HEIGHT / 2);
 	cursor = window->GetCursor();
 	//debug1 = cursor - destination;
+
 	//PRIMARY FIRE
 	if (GetAsyncKeyState(VK_LBUTTON))
 	{
-		
+		primaryFire = true;
 		player.Shoot();
 	}
 	//ALTERNATIVE FIRE
 	if (GetAsyncKeyState(VK_RBUTTON))
 	{
+		alternativeFire = true;
 		player.Shoot();
 	}
 	if (cursorX > 0.8f)
@@ -356,22 +429,32 @@ void Game::RenderFirstPass()
 {
 	frameBuffer.BeginDrawingToTexture();
 	currentLevel.Draw();
+	
+	playerPos = GetLocalVec(player.GetGlobalPosition());
+	glm::ivec2 correction = CorrectPosition();
+ 	player.Move(correction);
+	correction = glm::ivec2();
+	
 	player.Draw();
 	frameBuffer.EndFrawingToTexture();
 }
 void Game::RenderSecondPass()
 {
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	//RenderLine();
-	glm::ivec2 debug2 = CheckBulletCollision();
-	debug1 = player.GetScreenPositionPixels();
+	//glm::ivec2 debug2 = CheckBulletCollision();
 	//RenderLine(debug2);
+	if (alternativeFire || primaryFire)
+	{
+		glm::vec2 tmp = CheckBulletCollision();
+		glm::vec3 color = alternativeFire ? glm::vec3(0.0f, 1.0f, 0.0f) : glm::vec3(1.0f, 0.0f, 0.0f);
+		RenderLine(tmp, color);
+		alternativeFire = primaryFire = false;
+	}
 	RenderText(std::to_string(deltaTime * 1000) + " ms", glm::vec2(static_cast<float>(-WIDTH / 2), static_cast<float>(-HEIGHT / 2) + 20), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f)); 
-	glm::vec2 playerLocal = player.GetScreenPosition();
-	//font.RenderText(std::to_string(playerPos.x) + " " + std::to_string(playerPos.y), 20, 20, 1, glm::vec3(1, .4, .6));
-	font.RenderText(std::to_string(debug2.x) + " " + std::to_string(debug2.y), 20, 60, 1, glm::vec3(1, .4, .6));
-	font.RenderText(std::to_string(cursor.x) + " " + std::to_string(cursor.y), 20, 140, 1, glm::vec3(1, .4, .6));
-	font.RenderText(std::to_string(debug1.x) + " " + std::to_string(debug1.y), 20, 100, 1, glm::vec3(1, .4, .6));
+	font.RenderText(std::to_string(playerPos.x) + " " + std::to_string(playerPos.y), 20, 20, 1, glm::vec3(1, .4, .6));
+	//font.RenderText(std::to_string(debug2.x) + " " + std::to_string(debug2.y), 20, 60, 1, glm::vec3(1, .4, .6));
+	//font.RenderText(std::to_string(cursor.x) + " " + std::to_string(cursor.y), 20, 140, 1, glm::vec3(1, .4, .6));
+	//font.RenderText(std::to_string(debug1.x) + " " + std::to_string(debug1.y), 20, 100, 1, glm::vec3(1, .4, .6));
 }
 void Game::LoadLevel(const std::string& levelName)
 { 

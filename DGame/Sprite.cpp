@@ -47,7 +47,7 @@ void Sprite::SetSpriteTextured(const glm::vec2& position, glm::ivec2 size, const
 		glm::vec4(0.0f,          0.0f,          0.0f, 1.0f),
 		glm::vec4(0.0f,          0.0f - size.y, 0.0f, 0.0f),
 
-		glm::vec4(0.0f + size.x, 0.0f,		   1.0f, 1.0f),
+		glm::vec4(0.0f + size.x, 0.0f,		    1.0f, 1.0f),
 		glm::vec4(0.0f,          0.0f - size.y, 0.0f, 0.0f),
 		glm::vec4(0.0f + size.x, 0.0f - size.y, 1.0f, 0.0f)
 	};

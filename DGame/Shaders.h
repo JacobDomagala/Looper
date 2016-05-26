@@ -11,7 +11,6 @@ class Shaders {
 	GLuint fragmentShaderID;
 	static GLuint activeProgramID;
 	
-
 	std::string ReadShaderFile(const std::string& fileName);
 	
 	void CheckCompileStatus(GLuint shaderID);
@@ -20,7 +19,10 @@ public:
 	static GLuint numberBound;
 
 	Shaders() { }
-	~Shaders() { int i = 6; i; }
+	~Shaders() 
+	{
+		glDeleteProgram(programID);
+	}
 	
 	GLuint GetProgram() const;
 	void UseProgram() const;

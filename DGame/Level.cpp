@@ -154,7 +154,7 @@ void Level::SetPlayersPosition(const glm::vec2& position)
 void Level::MoveCamera(const glm::vec2 moveBy)
 {
 	cameraPosition -= moveBy;
-	cameraTilePos = GetTilePosition(cameraPosition);
+	//cameraTilePos = GetTilePosition(cameraPosition);
 }
 
 glm::ivec2 Level::CheckMoveCamera(const glm::vec2& moveBy) const

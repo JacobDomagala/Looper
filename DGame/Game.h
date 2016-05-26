@@ -35,19 +35,28 @@ class Game {
 	glm::ivec2 playerPos;
 	
 	Font font;
+	bool primaryFire;
+	bool alternativeFire;
+	// Helper functions
+	glm::vec2 GetLocalVec(glm::vec2 local);
+	glm::vec2 GetGlobalVec(glm::vec2 local);
 
 	glm::ivec2 CheckBulletCollision();
 	glm::ivec2 CheckCollision(glm::ivec2& moveBy);
+	glm::ivec2 CorrectPosition();
 	bool CheckMove(glm::ivec2& moveBy);
 	void KeyEvents(float deltaTime);
 	void MouseEvents(float deltaTime);
 
 	// draws to framebuffer (texture)
 	void RenderFirstPass();
-	void RenderLine(glm::ivec2 collided);
+	
 	// draws to screen 
 	void RenderSecondPass();
 	void LoadLevel(const std::string& levelName);
+
+//DEBUG
+	void RenderLine(glm::ivec2 collided, glm::vec3 color);
 	
 public:
 	Game();
