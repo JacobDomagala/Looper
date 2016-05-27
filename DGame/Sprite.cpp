@@ -33,9 +33,10 @@ void Sprite::SetSprite(const glm::vec2& position , glm::ivec2 size)
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
 	glBindVertexArray(0);
 }
-void Sprite::SetSpriteTextured(const glm::vec2& position, glm::ivec2 size, const std::string& fileName)
+charFour* Sprite::SetSpriteTextured(const glm::vec2& position, glm::ivec2 size, const std::string& fileName)
 {
-	texture.LoadTextureFromFile(fileName);
+	charFour* returnPtr;
+	returnPtr = texture.LoadTextureFromFile(fileName);
 
 	glGenVertexArrays(1, &vertexArrayBuffer);
 	glGenBuffers(1, &vertexBuffer);
@@ -65,6 +66,8 @@ void Sprite::SetSpriteTextured(const glm::vec2& position, glm::ivec2 size, const
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
 	glBindVertexArray(0);
+
+	return returnPtr;
 }
 
 void Sprite::Render(const Shaders& program)
@@ -73,6 +76,7 @@ void Sprite::Render(const Shaders& program)
 	glBindVertexArray(vertexArrayBuffer);
 
 	glm::mat4 modelMatrix;
+
 	modelMatrix = glm::translate(modelMatrix, translateVal);
 	modelMatrix = glm::translate(modelMatrix, glm::vec3((size.x / 2.0f)* scaleVal.x, (size.y / -2.0f) * scaleVal.y, 0.0f));
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));

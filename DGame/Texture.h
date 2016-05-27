@@ -12,9 +12,12 @@ class Texture {
 public:
 	static int boundCount;
 	Texture() { }
-	~Texture() { }
+	~Texture() 
+	{
+		
+	}
 	
-	void LoadTextureFromFile(const std::string& fileName = "Assets//Default.png", 
+	charFour* LoadTextureFromFile(const std::string& fileName = "Assets//Default.png", 
 							 GLenum wrapMode = GL_REPEAT, GLenum filter = GL_LINEAR);
 	void LoadTextureFromMemory(int width, int height, uint8* data, 
 							   GLenum wrapMode = GL_REPEAT, GLenum filter = GL_LINEAR);

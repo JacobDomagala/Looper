@@ -11,12 +11,7 @@ enum class GameState: char {
 	EDITOR
 };
 
-struct charFour {
-	uint8 x;
-	uint8 y;
-	uint8 z;
-	uint8 w;
-};
+
 class Game {
 	// framebuffer for first pass
 	Framebuffer frameBuffer;
@@ -37,9 +32,7 @@ class Game {
 	Font font;
 	bool primaryFire;
 	bool alternativeFire;
-	// Helper functions
-	glm::vec2 GetLocalVec(glm::vec2 local);
-	glm::vec2 GetGlobalVec(glm::vec2 local);
+
 
 	glm::ivec2 CheckBulletCollision();
 	glm::ivec2 CheckCollision(glm::ivec2& moveBy);

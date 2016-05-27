@@ -18,7 +18,7 @@ class Font {
 public:
 	Font() { }
 	~Font() { }
-	void SetFont(const std::string& fileName = "C:\\Windows\\Fonts\\arial.ttf");
+	void SetFont(const std::string& fileName = "Assets/segoeui.ttf");
 	void RenderText(std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color);
 };
 

@@ -92,6 +92,49 @@ Level::~Level()
 //	file.close();
 //}
 
+glm::vec2 Level::GetLocalVec(glm::vec2 local)
+{
+	glm::vec2 returnVal;
+	returnVal = background.GetPosition() - local;
+	returnVal.y -= levelSize.y;
+	returnVal *= -1;
+
+	return returnVal;
+}
+glm::vec2 Level::GetGlobalVec(glm::vec2 local)
+{
+	glm::vec2 returnVal = local;
+	returnVal *= -1;
+	returnVal.y += levelSize.y;
+	returnVal = background.GetPosition() - returnVal;
+
+	return returnVal;
+}
+bool Level::CheckPosition(const glm::vec2& pos)
+{
+	if (objects.empty())
+		return true;
+
+	for (auto& obj : objects)
+	{
+		glm::vec2 objPos = obj.GetLocalPosition();
+		glm::vec2 objSize = obj.GetSize();
+		if (pos.x > objPos.x && pos.x < (objPos.x + objSize.x) &&
+			pos.y > objPos.y - objSize.y && pos.y < objPos.y)
+		{
+ 			bool result = obj.CheckCollision(pos);
+			
+			if (!result)
+			{
+				obj.SetColor(glm::vec3(1.0f, 0.0f, 0.0f));
+				return false;
+			}
+			return true;
+		}
+	}
+	return true;
+}
+
 void Level::LoadPremade(const std::string& fileName, glm::ivec2 size)
 {
 	locked = false;
@@ -108,12 +151,19 @@ void Level::LoadShaders(const std::string& shaderName)
 	shaders.LoadShaders("Shaders//" + shaderName + "_vs.glsl", "Shaders//" + shaderName + "_fs.glsl");
 }
 
+void Level::AddGameObject(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite)
+{
+	GameObject tmpObj(pos, size, sprite);
+	tmpObj.SetLocalPosition(glm::vec2(pos.x, -pos.y));
+	objects.push_back(tmpObj);
+
+}
 
 void Level::Move(const glm::vec2& moveBy)
 {
-	for (int i = 0; i < objects.size(); ++i)
+	for (auto& obj : objects)
 	{
-		objects[i].Move(moveBy);
+		obj.Move(moveBy);
 	}
 	background.Translate(moveBy);
 	MoveCamera(moveBy);
@@ -121,28 +171,34 @@ void Level::Move(const glm::vec2& moveBy)
 void Level::Draw()
 {
 	background.Render(shaders);
-	/*if (!objects.empty())
+	if (!objects.empty())
 	{
-		int xBegin = cameraTilePos.x - ceil(tilesToDrawX / 2.0f);
-		int yBegin = cameraTilePos.y - ceil(tilesToDrawY / 2.0f);
+		/*	int xBegin = cameraTilePos.x - ceil(tilesToDrawX / 2.0f);
+			int yBegin = cameraTilePos.y - ceil(tilesToDrawY / 2.0f);*/
 
-		int xEnd = xBegin + tilesToDrawX;
-		int yEnd = yBegin + tilesToDrawY;
+			//int xEnd = xBegin + tilesToDrawX;
+			//int yEnd = yBegin + tilesToDrawY;
 
-		xBegin = xBegin >= 0 ? xBegin : 0;
-		yBegin = yBegin >= 0 ? yBegin : 0;
-		xEnd = xEnd <= levelWidth ? xEnd : levelWidth;
-		yEnd = yEnd <= levelHeight ? yEnd : levelHeight;
+			//xBegin = xBegin >= 0 ? xBegin : 0;
+			//yBegin = yBegin >= 0 ? yBegin : 0;
+			//xEnd = xEnd <= levelSize.x ? xEnd : levelSize.x;
+			//yEnd = yEnd <= levelSize.y ? yEnd : levelSize.y;
 
-		for (int j = yBegin; j < yEnd; ++j)
+			//for (int j = yBegin; j < yEnd; ++j)
+			//{
+			//	for (int i = xBegin; i < xEnd; ++i)
+			//	{
+			//		int index = i + j*levelSize.x;
+			//		objects[index].Render(shaders["GeneralShader"]);
+			//	}
+			//}
+		for (auto& obj : objects)
 		{
-			for (int i = xBegin; i < xEnd; ++i)
-			{
-				int index = i + j*levelWidth;
-				objects[index].Render(shaders["GeneralShader"]);
-			}
+			obj.SetLocalPosition(GetLocalVec(obj.GetPosition()));
+			obj.Render(shaders);
+			obj.SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
 		}
-	}*/
+	}
 }
 
 void Level::SetPlayersPosition(const glm::vec2& position)

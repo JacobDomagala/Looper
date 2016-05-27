@@ -1,2 +1,3 @@
-Levels: Level1 Level2 Level3
+Levels: Level1
+Font: segoeui
 TopKek:

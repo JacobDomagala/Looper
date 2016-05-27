@@ -22,17 +22,22 @@ class Level {
 	glm::ivec2 numTuilesOnScreen;
 	glm::ivec2 tilesToDraw;
 	glm::ivec2 levelSize;
+	
 public:
 	Level();
 	~Level();
 
+	// Helper functions
+	glm::vec2 GetLocalVec(glm::vec2 local);
+	glm::vec2 GetGlobalVec(glm::vec2 local);
+
 	void Load(const std::string& fileName);
 	void LoadPremade(const std::string& fileName, glm::ivec2 size);
 	void LoadShaders(const std::string& shaderName);
-
+	void AddGameObject(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite);
 	void Move(const glm::vec2& moveBy);
 	void Draw();
-	
+	bool CheckPosition(const glm::vec2& pos);
 	void LockCamera() { locked = true; }
 	void UnlockCamera() { locked = false; }
 	bool IsCameraLocked() const { return locked; }

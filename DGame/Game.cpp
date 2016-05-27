@@ -1,5 +1,6 @@
 #include "Game.h"
 #include"Win_Window.h"
+#include"Enemy.h"
 
 extern Win_Window* window;
 glm::vec2 destination;
@@ -69,29 +70,10 @@ glm::ivec2 Game::CorrectPosition()
 		}
 		return glm::ivec2(0, 0);
 }
-glm::vec2 Game::GetLocalVec(glm::vec2 local)
-{
-	glm::vec2 returnVal;
-	returnVal = currentLevel.GetLevelPosition() - local;
-	returnVal.y -= levelSize.y;
-	returnVal *= -1;
-
-	return returnVal;
-}
-
-glm::vec2 Game::GetGlobalVec(glm::vec2 local)
-{
-	glm::vec2 returnVal = local;
-	returnVal *= -1;
-	returnVal.y += levelSize.y;
-	returnVal = currentLevel.GetLevelPosition() - returnVal;
-
-	return returnVal;
-}
 
 void Game::RenderLine(glm::ivec2 collided, glm::vec3 color)
 {
-	glm::vec2 lineCollided = GetGlobalVec(collided);
+	glm::vec2 lineCollided = currentLevel.GetGlobalVec(collided);
 		
 	Shaders lineShader;
 	lineShader.LoadShaders("lineVertex.glsl", "lineFragment.glsl");
@@ -164,6 +146,9 @@ glm::ivec2 Game::CheckBulletCollision()
 			else
 				tmpPos = playerPos - glm::ivec2(y - y1, x - x1);
 			
+			if (!currentLevel.CheckPosition(tmpPos))
+				return tmpPos;
+
 			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
 				tmpPos.y == 0 || tmpPos.y == levelSize.y ||
 				collision[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
@@ -179,6 +164,9 @@ glm::ivec2 Game::CheckBulletCollision()
 			else
 				tmpPos = playerPos - glm::ivec2(x - x1, y - y1);
 			
+			if (!currentLevel.CheckPosition(tmpPos))
+				return tmpPos;
+
 			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
 				tmpPos.y == 0 || tmpPos.y == levelSize.y ||
 				collision[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
@@ -227,27 +215,27 @@ glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 	glm::ivec2 positionBias = glm::ivec2();
 
 	// if you stand where you're not supposed to due to fucking float -> int conversion (FeelsBadMan)
-	if (tmpCollision[linearPosition].w != 0)
-	{
-		// the value of getting you out of shit < -5 ; 5 >
-		int tmpval = 5;
-		for (int j = -tmpval; j <= tmpval; ++j)
-				{
-					for (int i = -tmpval; i <= tmpval; ++i)
-					{
-						tmpPosition = linearPosition + (i + j*levelSize.x);
-						if ((tmpPosition < linearLevelSize) && (tmpPosition >= 0) && (tmpCollision[tmpPosition].w == 0 ))
-						{
-							int yComp = tmpPosition / levelSize.x;
-							int xComp = tmpPosition - (yComp * levelSize.x);
-
-							positionBias = glm::ivec2(xComp, yComp) - playerPos;
-							goto next;
-						}
-					}
-				}
-	}
-next:
+//	if (tmpCollision[linearPosition].w != 0)
+//	{
+//		// the value of getting you out of shit < -5 ; 5 >
+//		int tmpval = 5;
+//		for (int j = -tmpval; j <= tmpval; ++j)
+//				{
+//					for (int i = -tmpval; i <= tmpval; ++i)
+//					{
+//						tmpPosition = linearPosition + (i + j*levelSize.x);
+//						if ((tmpPosition < linearLevelSize) && (tmpPosition >= 0) && (tmpCollision[tmpPosition].w == 0 ))
+//						{
+//							int yComp = tmpPosition / levelSize.x;
+//							int xComp = tmpPosition - (yComp * levelSize.x);
+//
+//							positionBias = glm::ivec2(xComp, yComp) - playerPos;
+//							goto next;
+//						}
+//					}
+//				}
+//	}
+//next:
 
 	// if you couldn't get to shit, find closest in line point where you can go
 	for (int i = distance; i > 0; --i)
@@ -373,7 +361,6 @@ void Game::KeyEvents(float deltaTime)
 			currentLevel.Move(-cameraMoveBy);
 	}
 }
-
 void Game::MouseEvents(float deltaTime)
 {
 	float cameraMovement = 600.0f*deltaTime;
@@ -430,7 +417,7 @@ void Game::RenderFirstPass()
 	frameBuffer.BeginDrawingToTexture();
 	currentLevel.Draw();
 	
-	playerPos = GetLocalVec(player.GetGlobalPosition());
+	playerPos = currentLevel.GetLocalVec(player.GetGlobalPosition());
 	glm::ivec2 correction = CorrectPosition();
  	player.Move(correction);
 	correction = glm::ivec2();
@@ -521,6 +508,25 @@ void Game::LoadLevel(const std::string& levelName)
 			player.LoadShaders(tmp);
 			playerPos = glm::ivec2(playerX, -playerY);
 		}
+		else if (tmp == "Enemies:")
+		{
+			int numEnemies;
+			levelFile >> numEnemies;
+			for (int i = 0; i < numEnemies; ++i)
+			{
+				int enemyX, enemyY;
+				levelFile >> enemyX;
+				levelFile >> enemyY;
+
+				int enemyWidth, enemyHeight;
+				levelFile >> enemyWidth;
+				levelFile >> enemyHeight;
+
+				levelFile >> tmp;
+				currentLevel.AddGameObject(glm::vec2(enemyX, enemyY), glm::ivec2(enemyWidth, enemyHeight), folderPath + tmp);
+				levelFile >> tmp;
+			}
+		}
 	}
 
 	currentLevel.LoadPremade(folderPath + background, glm::ivec2(levelWidth, levelHeight));
@@ -533,8 +539,6 @@ void Game::LoadLevel(const std::string& levelName)
 
 Game::Game()
 {
-	font.SetFont();
-
 	std::ifstream initFile("Assets\\GameInit.txt");
 	if (!initFile)
 		window->ShowError("Can't open Assets/GameInit.txt", "Game Initializing");
@@ -550,6 +554,11 @@ Game::Game()
 				initFile >> tmp;
 				levels.push_back(tmp);
 			}
+		}
+		else if (tmp == "Font:")
+		{
+			initFile >> tmp;
+			font.SetFont(tmp);
 		}
 
 	}

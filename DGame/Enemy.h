@@ -1,8 +1,13 @@
 #pragma once
 #include"Common.h"
 #include"Weapon.h"
-class Enemy {
-	glm::vec2 position;
+#include"GameObject.h"
+
+class Enemy : public GameObject{
+
+	int maxHP;
+	int currentHP;
+
 	Weapon weapon;
 public:
 	Enemy();

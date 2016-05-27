@@ -13,8 +13,9 @@ void Font::SetFont(const std::string& fileName)
 		window->ShowError("Error initializing FreeType!", "FreeType Error!");
 
 	FT_Face face;
-	if (FT_New_Face(ft, fileName.c_str(), 0, &face))
-		window->ShowError("Error loading font " + fileName, "FreeType Error!");
+	std::string filePath = "Assets/" + fileName + ".ttf";
+	if (FT_New_Face(ft, filePath.c_str(), 0, &face))
+		window->ShowError("Error loading font " + filePath, "FreeType Error!");
 
 	// Set size to load glyphs as
 	FT_Set_Pixel_Sizes(face, 0, 48);

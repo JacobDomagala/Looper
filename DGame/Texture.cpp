@@ -7,8 +7,10 @@ int Texture::unitCounter = 0;
 int Texture::nowBound = 0;
 int Texture::boundCount = 0;
 
-void Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenum filter)
+charFour* Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenum filter)
 {
+	//NOTE: WE'RE NOT FREEING THE POINTER MEMORY!!!
+	charFour* returnPtr;
 	fileData = SOIL_load_image(fileName.c_str(), &width, &height, NULL, SOIL_LOAD_RGBA);
 	if (!fileData)
 		window->ShowError(std::string("Can't load the file ") + fileName, "SOIL error!");
@@ -23,8 +25,11 @@ void Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, 
 	glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_S, wrapMode);
 	glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_T, wrapMode);
 
-	SOIL_free_image_data(fileData);
+	returnPtr = (charFour*)fileData;
+	//SOIL_free_image_data(fileData);
 	unit = unitCounter++;
+
+	return returnPtr;
 }
 void Texture::LoadTextureFromMemory(int width, int height, uint8* data, GLenum wrapMode, GLenum filter)
 {
