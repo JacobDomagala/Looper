@@ -1,7 +1,10 @@
 #include "Level.h"
 #include"Shaders.h"
+#include"Player.h"
 #include"Win_Window.h"
 #include"Timer.h"
+#include"Enemy.h"
+#include"Game.h"
 
 extern Win_Window* window;
 Level::Level()
@@ -10,6 +13,10 @@ Level::Level()
 
 Level::~Level()
 {
+	for (auto& obj : objects)
+	{
+		delete obj;
+	}
 }
 
 //void Level::Load(const std::string& fileName)
@@ -110,23 +117,27 @@ glm::vec2 Level::GetGlobalVec(glm::vec2 local)
 
 	return returnVal;
 }
-bool Level::CheckPosition(const glm::vec2& pos)
+bool Level::CheckPosition(const glm::vec2& pos, Player& player)
 {
 	if (objects.empty())
 		return true;
-
+	
 	for (auto& obj : objects)
 	{
-		glm::vec2 objPos = obj.GetLocalPosition();
-		glm::vec2 objSize = obj.GetSize();
+		
+		glm::vec2 objPos = obj->GetLocalPosition();
+		glm::vec2 objSize = obj->GetSize();
 		if (pos.x > objPos.x && pos.x < (objPos.x + objSize.x) &&
 			pos.y > objPos.y - objSize.y && pos.y < objPos.y)
 		{
- 			bool result = obj.CheckCollision(pos);
+ 			bool result = obj->CheckCollision(pos);
 			
 			if (!result)
 			{
-				obj.SetColor(glm::vec3(1.0f, 0.0f, 0.0f));
+				
+				obj->Hit(player.GetWeaponDmg());
+				obj->SetColor(glm::vec3(1.0f, 0.0f, 0.0f));
+				
 				return false;
 			}
 			return true;
@@ -153,17 +164,16 @@ void Level::LoadShaders(const std::string& shaderName)
 
 void Level::AddGameObject(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite)
 {
-	GameObject tmpObj(pos, size, sprite);
-	tmpObj.SetLocalPosition(glm::vec2(pos.x, -pos.y));
+	Enemy* tmpObj = new Enemy(pos, size, sprite);
+	tmpObj->SetLocalPosition(glm::vec2(pos.x, -pos.y));
 	objects.push_back(tmpObj);
-
 }
 
 void Level::Move(const glm::vec2& moveBy)
 {
 	for (auto& obj : objects)
 	{
-		obj.Move(moveBy);
+		obj->Move(moveBy);
 	}
 	background.Translate(moveBy);
 	MoveCamera(moveBy);
@@ -194,9 +204,13 @@ void Level::Draw()
 			//}
 		for (auto& obj : objects)
 		{
-			obj.SetLocalPosition(GetLocalVec(obj.GetPosition()));
-			obj.Render(shaders);
-			obj.SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
+			if (obj->GetState())
+			{
+				Game::DrawLine(obj->GetCenterPosition(), Game::player.GetGlobalPosition(), glm::vec3(1.0f, 0.0f, 0.0f));
+				obj->SetLocalPosition(GetLocalVec(obj->GetPosition()));
+				obj->Render(shaders);
+				obj->SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
+			}
 		}
 	}
 }

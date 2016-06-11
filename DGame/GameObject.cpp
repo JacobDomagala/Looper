@@ -1,9 +1,12 @@
 #include "GameObject.h"
 
+
 GameObject::GameObject(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite)
 {
 	collision = this->sprite.SetSpriteTextured(pos, size, sprite);
 	this->position = pos;
+	centeredPosition = this->sprite.GetCenteredPosition();
+	drawMe = true;
 }
 
 bool GameObject::CheckCollision(const glm::ivec2& position) const

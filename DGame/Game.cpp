@@ -1,11 +1,16 @@
 #include "Game.h"
-#include"Win_Window.h"
 #include"Enemy.h"
 
-extern Win_Window* window;
+
+std::vector<std::shared_ptr<DebugObject>> Game::debugObjs;
+Player Game::player;
+
+extern Timer* globalTimer;
+
 glm::vec2 destination;
 glm::vec2 cursor;
 glm::vec2 debug1;
+static float delta = 0.0f;
 #define myCeil(x) x < 0 ? floor(x) : ceil(x)
 
 void swap(float& first, float& second)
@@ -70,7 +75,11 @@ glm::ivec2 Game::CorrectPosition()
 		}
 		return glm::ivec2(0, 0);
 }
-
+void Game::DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color)
+{
+	std::shared_ptr<DebugObject> tmp(new Line(from, to, color));
+	debugObjs.push_back(tmp);
+}
 void Game::RenderLine(glm::ivec2 collided, glm::vec3 color)
 {
 	glm::vec2 lineCollided = currentLevel.GetGlobalVec(collided);
@@ -103,7 +112,7 @@ void Game::RenderLine(glm::ivec2 collided, glm::vec3 color)
 	glDeleteBuffers(1, &lineVertexBuffer);
 	glDeleteVertexArrays(1, &lineVertexArray);
 }
-glm::ivec2 Game::CheckBulletCollision()
+glm::ivec2 Game::CheckBulletCollision(int range)
 {
 	float x1, x2, y1, y2;
 	x1 = player.GetScreenPositionPixels().x;
@@ -134,7 +143,7 @@ glm::ivec2 Game::CheckBulletCollision()
 	int y = static_cast<int>(y1);
 
 	const int maxX = (int)x2;
-	int range = levelSize.x;
+
 	for (int x = static_cast<int>(x1); x < maxX + range; x++)
 	{
 		if (steep)
@@ -146,7 +155,7 @@ glm::ivec2 Game::CheckBulletCollision()
 			else
 				tmpPos = playerPos - glm::ivec2(y - y1, x - x1);
 			
-			if (!currentLevel.CheckPosition(tmpPos))
+			if (!currentLevel.CheckPosition(tmpPos, player))
 				return tmpPos;
 
 			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
@@ -164,7 +173,7 @@ glm::ivec2 Game::CheckBulletCollision()
 			else
 				tmpPos = playerPos - glm::ivec2(x - x1, y - y1);
 			
-			if (!currentLevel.CheckPosition(tmpPos))
+			if (!currentLevel.CheckPosition(tmpPos, player))
 				return tmpPos;
 
 			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
@@ -321,6 +330,14 @@ void Game::KeyEvents(float deltaTime)
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
+	if (GetAsyncKeyState('1'))
+	{
+		player.ChangeWepon(1);
+	}
+	if (GetAsyncKeyState('2'))
+	{
+		player.ChangeWepon(2);
+	}
 	if (GetAsyncKeyState('P'))
 	{
 		glDisable(GL_BLEND);
@@ -378,19 +395,33 @@ void Game::MouseEvents(float deltaTime)
 	destination = player.GetScreenPosition() * glm::vec2(WIDTH / 2, HEIGHT / 2);
 	cursor = window->GetCursor();
 	//debug1 = cursor - destination;
-
+	
+	
 	//PRIMARY FIRE
 	if (GetAsyncKeyState(VK_LBUTTON))
 	{
-		primaryFire = true;
-		player.Shoot();
+		timer.ToggleTimer();
+		
+		delta += timer.GetDeltaTime();
+		if (delta >= player.GetReloadTime())
+			primaryFire = false;
+
+		if (!primaryFire)
+		{
+			player.Shoot();
+			glm::vec2 tmp = CheckBulletCollision(player.GetWeaponRange());
+			primaryFire = true;
+			delta = 0.0f;
+		}
 	}
+	
 	//ALTERNATIVE FIRE
-	if (GetAsyncKeyState(VK_RBUTTON))
+ 	if (GetAsyncKeyState(VK_RBUTTON))
 	{
 		alternativeFire = true;
 		player.Shoot();
 	}
+
 	if (cursorX > 0.8f)
 	{
 		currentLevel.Move(glm::vec2(-cameraMovement, 0.0f));
@@ -429,16 +460,14 @@ void Game::RenderSecondPass()
 {
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	//glm::ivec2 debug2 = CheckBulletCollision();
-	//RenderLine(debug2);
-	if (alternativeFire || primaryFire)
+	for (auto& obj : debugObjs)
 	{
-		glm::vec2 tmp = CheckBulletCollision();
-		glm::vec3 color = alternativeFire ? glm::vec3(0.0f, 1.0f, 0.0f) : glm::vec3(1.0f, 0.0f, 0.0f);
-		RenderLine(tmp, color);
-		alternativeFire = primaryFire = false;
+		obj->Draw();
 	}
+	debugObjs.clear();
+
 	RenderText(std::to_string(deltaTime * 1000) + " ms", glm::vec2(static_cast<float>(-WIDTH / 2), static_cast<float>(-HEIGHT / 2) + 20), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f)); 
-	font.RenderText(std::to_string(playerPos.x) + " " + std::to_string(playerPos.y), 20, 20, 1, glm::vec3(1, .4, .6));
+	//font.RenderText(std::to_string(playerPos.x) + " " + std::to_string(playerPos.y), 20, 20, 1, glm::vec3(1, .4, .6));
 	//font.RenderText(std::to_string(debug2.x) + " " + std::to_string(debug2.y), 20, 60, 1, glm::vec3(1, .4, .6));
 	//font.RenderText(std::to_string(cursor.x) + " " + std::to_string(cursor.y), 20, 140, 1, glm::vec3(1, .4, .6));
 	//font.RenderText(std::to_string(debug1.x) + " " + std::to_string(debug1.y), 20, 100, 1, glm::vec3(1, .4, .6));

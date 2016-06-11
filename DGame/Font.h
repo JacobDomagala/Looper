@@ -12,7 +12,7 @@ struct Character {
 
 class Font {
 	GLuint VAO, VBO;
-	std::map<GLchar, Character> Characters;
+	std::unordered_map<GLchar, Character> Characters;
 	Shaders program;
 	Texture texture;
 public:

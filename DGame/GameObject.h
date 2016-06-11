@@ -2,17 +2,17 @@
 #include"Common.h"
 #include"Sprite.h"
 #include"Shaders.h"
-#include"Timer.h"
 
 
 class GameObject {
 protected:
 	glm::vec2 position;
+	glm::vec2 centeredPosition;
 	glm::ivec2 localPosition;
 	Sprite sprite;
 	Shaders program;
-	Timer tmpTimer;
-	
+
+	bool drawMe;
 	charFour* collision;
 
 	glm::mat4 translateMatrix;
@@ -20,6 +20,8 @@ protected:
 	glm::mat4 rotateMatrix;
 	glm::mat4 scaleMatrix;
 public:
+	virtual void Hit(int dmg) {}
+	virtual bool GetState() { return drawMe; }
 	GameObject() {}
 	GameObject(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite);
 	~GameObject() {}
@@ -40,7 +42,7 @@ public:
 	{
 		this->position = position; 
 	}
-	glm::vec2 GetPosition() 
+	inline glm::vec2 GetPosition() 
 	{
 		return position; 
 	}
@@ -50,7 +52,7 @@ public:
 	}
 	glm::vec2 GetCenterPosition()
 	{
-		return sprite.GetCenteredPosition();
+		return centeredPosition;
 	}
 	void SetShaders(const Shaders& program) 
 	{
@@ -74,6 +76,7 @@ public:
 	{
 		sprite.Translate(moveBy);
 		position += moveBy;
+		centeredPosition += moveBy;
 		//localPosition += moveBy;
 	}
 	virtual void Render(const Shaders& program) 

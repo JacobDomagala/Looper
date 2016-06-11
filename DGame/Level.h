@@ -3,14 +3,15 @@
 #include"GameObject.h"
 
 class Shaders;
+class Player;
 
 class Level {
 	//IN PROGRESS
 	Sprite background;
-	std::map<std::string, Texture> textures; 
+	std::unordered_map<std::string, Texture> textures;
 	Shaders shaders;
 
-	std::vector<GameObject> objects;
+	std::vector<GameObject*> objects;
 	
 	glm::vec2 cameraPosition;
 	glm::ivec2 cameraTilePos;
@@ -37,7 +38,7 @@ public:
 	void AddGameObject(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite);
 	void Move(const glm::vec2& moveBy);
 	void Draw();
-	bool CheckPosition(const glm::vec2& pos);
+	bool CheckPosition(const glm::vec2& pos, Player& player);
 	void LockCamera() { locked = true; }
 	void UnlockCamera() { locked = false; }
 	bool IsCameraLocked() const { return locked; }

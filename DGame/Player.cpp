@@ -10,8 +10,15 @@ Player::Player(const glm::vec2& position, const std::string& name):
 	globalPosition(position),
 	name(name)
 {
+	maxHP = currentHP = 100;
 	angle = 2.0f;
 	translateVal = position;
+
+	// not freeing the memory!
+	currentWeapon = new SniperRifle;
+	Weapon* tmp = new Glock;
+	weapons[0] = currentWeapon;
+	weapons[1] = tmp;
 }
 
 void Player::CreateSprite(const glm::vec2& position, glm::ivec2 size, const std::string& fileName)
@@ -88,7 +95,7 @@ void Player::Shoot()
 {
 	glm::vec2 cursorPos = window->GetCursor();
 	glm::vec2 direction = cursorPos - localPosition;
-	currentWeapon.Shoot(direction);
+	currentWeapon->Shoot(direction);
 }
 Player::~Player()
 {

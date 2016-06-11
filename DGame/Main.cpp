@@ -2,8 +2,9 @@
 #include"Timer.h"
 #include"Game.h"
 
-
+Timer* globalTimer;
 Win_Window* window;
+
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -12,10 +13,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	window->Createwindow();
 	window->SetUpOpenGL();
 	
-	Timer timer;
+	globalTimer = new Timer();
 	Game game;
 
-	float oldTime = timer.GetGlobalTime();
+	float oldTime = globalTimer->GetGlobalTime();
 	
 	MSG msg;
 	float frames = 0.0f;
@@ -29,8 +30,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			TranslateMessage(&msg);
 			DispatchMessageW(&msg);
 		}
-		timer.ToggleTimer();
-		float newTime = timer.GetGlobalTime();
+		globalTimer->ToggleTimer();
+		float newTime = globalTimer->GetGlobalTime();
 
 		//DEBUG TIMER
 		Timer tmpTimer;
@@ -54,9 +55,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			window->Swapwindow();
 			frames++;
 		}
-		frameTimer += timer.GetDeltaTime();
+		frameTimer += globalTimer->GetDeltaTime();
 	}
 
 	delete(window);
+	delete(globalTimer);
+
 	return EXIT_SUCCESS;
 }

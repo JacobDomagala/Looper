@@ -11,8 +11,12 @@ class Player {
 	glm::vec2   globalPosition;
 	Sprite      sprite;
 	Shaders     program;
-	Weapon* weapons;
-	Weapon currentWeapon;
+
+	Weapon* weapons[3];
+	Weapon* currentWeapon;
+
+	int maxHP;
+	int currentHP;
 	
 	GLuint vertexArrayBuffer;
 	GLuint vertexBuffer;
@@ -38,6 +42,10 @@ public:
 					  const std::string& fileName = ".\\Default.png");
 	void SetGlobalPosition(const glm::vec2& position) { this->globalPosition = position; }// translateVal = position;
 
+	float GetReloadTime() const { return currentWeapon->GetReloadTime(); }
+	void ChangeWepon(int idx) { currentWeapon = weapons[idx - 1]; }
+	int GetWeaponRange() const { return currentWeapon->GetRange(); }
+	int GetWeaponDmg() const { return currentWeapon->GetDamage(); }
 	void Draw();
 	void Shoot();
 	
