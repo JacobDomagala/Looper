@@ -7,6 +7,10 @@
 #include"Game.h"
 
 extern Win_Window* window;
+
+Sprite Level::background;
+glm::ivec2 Level::levelSize;
+
 Level::Level()
 {
 }
@@ -99,16 +103,18 @@ Level::~Level()
 //	file.close();
 //}
 
-glm::vec2 Level::GetLocalVec(glm::vec2 local)
+glm::vec2 Level::GetLocalVec(glm::vec2 global) 
 {
 	glm::vec2 returnVal;
-	returnVal = background.GetPosition() - local;
+	returnVal = background.GetPosition() - global;
+	//returnVal.y = abs(returnVal.y);
+
 	returnVal.y -= levelSize.y;
 	returnVal *= -1;
 
 	return returnVal;
 }
-glm::vec2 Level::GetGlobalVec(glm::vec2 local)
+glm::vec2 Level::GetGlobalVec(glm::vec2 local) 
 {
 	glm::vec2 returnVal = local;
 	returnVal *= -1;
@@ -117,14 +123,13 @@ glm::vec2 Level::GetGlobalVec(glm::vec2 local)
 
 	return returnVal;
 }
-bool Level::CheckPosition(const glm::vec2& pos, Player& player)
+bool Level::CheckCollision(const glm::vec2& pos, Player& player)
 {
 	if (objects.empty())
 		return true;
 	
 	for (auto& obj : objects)
 	{
-		
 		glm::vec2 objPos = obj->GetLocalPosition();
 		glm::vec2 objSize = obj->GetSize();
 		if (pos.x > objPos.x && pos.x < (objPos.x + objSize.x) &&
@@ -134,7 +139,6 @@ bool Level::CheckPosition(const glm::vec2& pos, Player& player)
 			
 			if (!result)
 			{
-				
 				obj->Hit(player.GetWeaponDmg());
 				obj->SetColor(glm::vec3(1.0f, 0.0f, 0.0f));
 				
@@ -165,7 +169,9 @@ void Level::LoadShaders(const std::string& shaderName)
 void Level::AddGameObject(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite)
 {
 	Enemy* tmpObj = new Enemy(pos, size, sprite);
-	tmpObj->SetLocalPosition(glm::vec2(pos.x, -pos.y));
+	glm::ivec2 tmpPos = tmpObj->GetCenteredGlobalPosition();
+	tmpPos.y *= -1;
+	tmpObj->SetCenteredLocalPosition(tmpPos);
 	objects.push_back(tmpObj);
 }
 
@@ -206,15 +212,26 @@ void Level::Draw()
 		{
 			if (obj->GetState())
 			{
-				Game::DrawLine(obj->GetCenterPosition(), Game::player.GetGlobalPosition(), glm::vec3(1.0f, 0.0f, 0.0f));
-				obj->SetLocalPosition(GetLocalVec(obj->GetPosition()));
+				glm::vec2 tmpL = obj->GetCenteredGlobalPosition() - Game::player.GetCenteredGlobalPosition();
+				float tmpLF = glm::length(tmpL);
+				if (tmpLF <= 500.0f)
+					obj->Shoot();
+				obj->SetCenteredLocalPosition(GetLocalVec(obj->GetCenteredGlobalPosition()));
+				obj->SetLocalPosition(GetLocalVec(obj->GetGlobalPosition()));
 				obj->Render(shaders);
 				obj->SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
+				//obj->SetPlayerPos(Game::player.GetCenteredGlobalPosition());
 			}
 		}
 	}
 }
-
+void Level::MoveObjs(glm::vec2 moveBy, bool isCameraMovement)
+{
+	for (auto& obj : objects)
+	{
+		obj->Move(moveBy, isCameraMovement);
+	}
+}
 void Level::SetPlayersPosition(const glm::vec2& position)
 {
 	playerPos = position;

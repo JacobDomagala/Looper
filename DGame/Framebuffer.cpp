@@ -44,7 +44,7 @@ void Framebuffer::BeginDrawingToTexture()
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void Framebuffer::EndFrawingToTexture()
+void Framebuffer::EndDrawingToTexture()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); 
 	

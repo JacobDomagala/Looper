@@ -12,6 +12,6 @@ public:
 
 	void LoadShaders(const std::string& shaderName);
 	void BeginDrawingToTexture();
-	void EndFrawingToTexture();
+	void EndDrawingToTexture();
 };
 

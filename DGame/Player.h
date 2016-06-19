@@ -5,10 +5,15 @@
 #include"GameObject.h"
 #include"Weapon.h"
 
+class Enemy;
+
 class Player {
 	std::string name;
-	glm::vec2   localPosition;
+	glm::ivec2   localPosition;
+	glm::ivec2   centeredLocalPosition;
 	glm::vec2   globalPosition;
+	glm::vec2   centeredGlobalPosition;
+
 	Sprite      sprite;
 	Shaders     program;
 
@@ -18,6 +23,7 @@ class Player {
 	int maxHP;
 	int currentHP;
 	
+	charFour* collision;
 	GLuint vertexArrayBuffer;
 	GLuint vertexBuffer;
 
@@ -27,25 +33,35 @@ class Player {
 	glm::mat4 rotateMatrix;
 	glm::mat4 scaleMatrix;
 public:
-	Player(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
+	Player(glm::vec2 position = glm::vec2(0.0f, 0.0f),
 		   const std::string& name = "Anonymous");
 	~Player(); 
-	
+
+	bool CheckCollisionSprite(glm::ivec2 position) const;
+	bool CheckCollision(glm::vec2 pos, GameObject* obj);
+
 	void LoadShaders(const std::string& shaderFile);
 	void LoadShaders(const Shaders& program);
+
+	void SetLocalPosition(glm::ivec2 pos); 
+	void SetCenteredLocalPosition(glm::ivec2 pos);
+	void SetGlobalPosition(glm::vec2 position);
 	glm::vec2 GetGlobalPosition() const;
+	glm::vec2 GetCenteredGlobalPosition() const;
 	glm::vec2 GetScreenPosition() const;
 	glm::ivec2 GetScreenPositionPixels() const;
-	void Move(const glm::vec2& vector);
-	void CreateSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f), 
+	glm::ivec2 GetLocalPosition() const;
+	glm::ivec2 GetCenteredLocalPosition() const;
+
+	void Move(glm::vec2 vector);
+	void CreateSprite(glm::vec2 position = glm::vec2(0.0f, 0.0f), 
 					  glm::ivec2 size = glm::ivec2(32,32), 
 					  const std::string& fileName = ".\\Default.png");
-	void SetGlobalPosition(const glm::vec2& position) { this->globalPosition = position; }// translateVal = position;
 
-	float GetReloadTime() const { return currentWeapon->GetReloadTime(); }
-	void ChangeWepon(int idx) { currentWeapon = weapons[idx - 1]; }
-	int GetWeaponRange() const { return currentWeapon->GetRange(); }
-	int GetWeaponDmg() const { return currentWeapon->GetDamage(); }
+	float GetReloadTime() const;
+	void ChangeWepon(int idx);
+	int GetWeaponRange() const;
+	int GetWeaponDmg() const;
 	void Draw();
 	void Shoot();
 	

@@ -13,6 +13,7 @@ enum class GameState: char {
 	EDITOR
 };
 
+#pragma region DEBUG
 class DebugObject {
 public:
 	virtual void Draw() = 0;
@@ -63,7 +64,9 @@ public:
 	{
 
 	}
-}		;
+};
+#pragma endregion
+
 class Game {
 	Timer timer;
 	// framebuffer for first pass
@@ -71,10 +74,10 @@ class Game {
 	float deltaTime;
 	// all maps
 	std::vector<std::string> levels;
-	Level currentLevel;
-	glm::ivec2 levelSize;
+	static Level currentLevel;
+	static glm::ivec2 levelSize;
 
-	charFour* collision;
+	static charFour* collision;
 	float shotLasttime;
 	// state of the game 
 	GameState state;
@@ -82,7 +85,7 @@ class Game {
 	
 	glm::ivec2 playerPos;
 	
-	Font font;
+	static Font font;
 	bool primaryFire;
 	bool alternativeFire;
 
@@ -107,10 +110,13 @@ class Game {
 	
 public:
 	Game();
+
 	static Player player;
-	static void DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color);
+	static glm::ivec2 CheckBulletCollision(Player* from, int range);
+	static glm::ivec2 CheckBulletCollision(GameObject* from, int range);
+	static void DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f));
 	void ProcessInput(float deltaTime);
-	void RenderText(const std::string& text, const glm::vec2& position, float scale, const glm::vec3& color);
+	static void RenderText(std::string text, const glm::vec2& position, float scale, const glm::vec3& color);
 	void Render();
 };
 

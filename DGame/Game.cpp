@@ -4,6 +4,10 @@
 
 std::vector<std::shared_ptr<DebugObject>> Game::debugObjs;
 Player Game::player;
+Level Game::currentLevel;
+glm::ivec2 Game::levelSize;
+charFour* Game::collision;
+Font Game::font;
 
 extern Timer* globalTimer;
 
@@ -88,7 +92,7 @@ void Game::RenderLine(glm::ivec2 collided, glm::vec3 color)
 	lineShader.LoadShaders("lineVertex.glsl", "lineFragment.glsl");
 
 	glm::vec2 vertices[2] = {
-		glm::vec2(player.GetGlobalPosition()),
+		glm::vec2(player.GetCenteredGlobalPosition()),
 		glm::vec2(lineCollided)
 	};
 	glm::mat4 modelMatrix = glm::scale(glm::mat4(), glm::vec3(1.0f, 1.0f, 1.0f));
@@ -112,8 +116,170 @@ void Game::RenderLine(glm::ivec2 collided, glm::vec3 color)
 	glDeleteBuffers(1, &lineVertexBuffer);
 	glDeleteVertexArrays(1, &lineVertexArray);
 }
+glm::ivec2 Game::CheckBulletCollision(Player* from, int range)
+{
+	float x1, x2, y1, y2;
+	x1 = from->GetScreenPositionPixels().x;
+	y1 = from->GetScreenPositionPixels().y;
+	x2 = window->GetCursor().x;
+	y2 = window->GetCursor().y;
+
+	bool wasGreater = false;
+	const bool steep = (fabs(y2 - y1) > fabs(x2 - x1));
+	if (steep)
+	{
+		swap(x1, y1);
+		swap(x2, y2);
+	}
+
+	if (x1 > x2)
+	{
+		wasGreater = true;
+		swap(x1, x2);
+		swap(y1, y2);
+	}
+
+	const float dx = x2 - x1;
+	const float dy = fabs(y2 - y1);
+
+	float error = dx / 2.0f;
+	const int ystep = (y1 < y2) ? 1 : -1;
+	int y = static_cast<int>(y1);
+
+	const int maxX = (int)x2;
+
+	for (int x = static_cast<int>(x1); x < maxX + range; x++)
+	{
+		if (steep)
+		{
+			//y,x 
+			glm::ivec2 tmpPos = glm::ivec2();
+			if (!wasGreater)
+				tmpPos = from->GetLocalPosition() + glm::ivec2(y - y1, x - x1);
+			else
+				tmpPos = from->GetLocalPosition() - glm::ivec2(y - y1, x - x1);
+
+			if (!currentLevel.CheckCollision(tmpPos, *from))
+			return tmpPos;
+
+			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
+				tmpPos.y == 0 || tmpPos.y == levelSize.y ||
+				collision[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
+				return tmpPos;
+
+		}
+		else
+		{
+			//x,y
+			glm::ivec2 tmpPos = glm::ivec2();
+			if (!wasGreater)
+				tmpPos = from->GetLocalPosition() + glm::ivec2(x - x1, y - y1);
+			else
+				tmpPos = from->GetLocalPosition() - glm::ivec2(x - x1, y - y1);
+
+			if (!currentLevel.CheckCollision(tmpPos, *from))
+			return tmpPos;
+
+			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
+				tmpPos.y == 0 || tmpPos.y == levelSize.y ||
+				collision[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
+				return tmpPos;
+
+		}
+
+		error -= dy;
+		if (error < 0)
+		{
+			y += ystep;
+			error += dx;
+		}
+	}
+	return glm::ivec2();
+}
+glm::ivec2 Game::CheckBulletCollision(GameObject* from, int range)
+{
+	float x1, x2, y1, y2;
+	x1 = from->GetScreenPositionPixels().x;
+	y1 = from->GetScreenPositionPixels().y;
+	x2 = player.GetScreenPositionPixels().x;
+	y2 = player.GetScreenPositionPixels().y;
+	 
+	bool wasGreater = false;
+	const bool steep = (fabs(y2 - y1) > fabs(x2 - x1));
+	if (steep)
+	{
+		swap(x1, y1);
+		swap(x2, y2);
+	}
+
+	if (x1 > x2)
+	{
+		wasGreater = true;
+		swap(x1, x2);
+		swap(y1, y2);
+	}
+
+	const float dx = x2 - x1;
+	const float dy = fabs(y2 - y1);
+
+	float error = dx / 2.0f;
+	const int ystep = (y1 < y2) ? 1 : -1;
+	int y = static_cast<int>(y1);
+
+	const int maxX = (int)x2;
+
+	for (int x = static_cast<int>(x1); x < maxX + range; x++)
+	{
+		if (steep)
+		{
+			//y,x 
+			glm::ivec2 tmpPos = glm::ivec2();
+			if (!wasGreater)
+				tmpPos = from->GetCenteredLocalPosition() + glm::ivec2(y - y1, x - x1);
+			else
+				tmpPos = from->GetCenteredLocalPosition() - glm::ivec2(y - y1, x - x1);
+
+			/*if (!player.CheckCollision(tmpPos, from))
+				return tmpPos;*/
+
+			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
+				tmpPos.y == 0 || tmpPos.y == levelSize.y ||
+				collision[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
+				return tmpPos;
+
+		}
+		else
+		{
+			//x,y
+			glm::ivec2 tmpPos = glm::ivec2();
+			if (!wasGreater)
+				tmpPos = from->GetCenteredLocalPosition() + glm::ivec2(x - x1, y - y1);
+			else
+				tmpPos = from->GetCenteredLocalPosition() - glm::ivec2(x - x1, y - y1);
+
+			/*if (!player.CheckCollision(tmpPos, from))
+				return tmpPos;*/
+
+			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
+				tmpPos.y == 0 || tmpPos.y == levelSize.y ||
+				collision[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
+				return tmpPos;
+
+		}
+
+		error -= dy;
+		if (error < 0)
+		{
+			y += ystep;
+			error += dx;
+		}
+	}
+	return glm::ivec2();
+}
 glm::ivec2 Game::CheckBulletCollision(int range)
 {
+	//Enemy* tmpe = (Enemy*)currentLevel.objects[0];
+
 	float x1, x2, y1, y2;
 	x1 = player.GetScreenPositionPixels().x;
 	y1 = player.GetScreenPositionPixels().y;
@@ -151,11 +317,11 @@ glm::ivec2 Game::CheckBulletCollision(int range)
 			//y,x 
 			glm::ivec2 tmpPos = glm::ivec2();
 			if(!wasGreater)
-				tmpPos = playerPos + glm::ivec2(y-y1, x-x1);
+				tmpPos = player.GetCenteredLocalPosition() + glm::ivec2(y-y1, x-x1);
 			else
-				tmpPos = playerPos - glm::ivec2(y - y1, x - x1);
+				tmpPos = player.GetCenteredLocalPosition() - glm::ivec2(y - y1, x - x1);
 			
-			if (!currentLevel.CheckPosition(tmpPos, player))
+			if (!currentLevel.CheckCollision(tmpPos, player))
 				return tmpPos;
 
 			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
@@ -169,11 +335,11 @@ glm::ivec2 Game::CheckBulletCollision(int range)
 			//x,y
 			glm::ivec2 tmpPos = glm::ivec2();
 			if (!wasGreater)
-				tmpPos = playerPos + glm::ivec2(x - x1, y - y1);
+				tmpPos = player.GetCenteredLocalPosition() + glm::ivec2(x - x1, y - y1);
 			else
-				tmpPos = playerPos - glm::ivec2(x - x1, y - y1);
+				tmpPos = player.GetCenteredLocalPosition() - glm::ivec2(x - x1, y - y1);
 			
-			if (!currentLevel.CheckPosition(tmpPos, player))
+			if (!currentLevel.CheckCollision(tmpPos, player))
 				return tmpPos;
 
 			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
@@ -195,8 +361,12 @@ glm::ivec2 Game::CheckBulletCollision(int range)
 glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 {
 	glm::ivec2 destination = playerPos + moveBy;
-	int distance = glm::length(static_cast<glm::vec2>(moveBy));
+	glm::ivec2 returnVal = glm::ivec2();
+	if (destination.x < 0 || destination.x > levelSize.x ||
+		destination.y < 0 || destination.y > levelSize.y)
+		return returnVal;
 
+	int distance = glm::length(static_cast<glm::vec2>(moveBy));
 
 	glm::vec2 tmpDirection = glm::normalize(glm::vec2(moveBy));
 	glm::ivec2 direction = glm::ivec2(ceil(tmpDirection.x), ceil(tmpDirection.y));
@@ -204,11 +374,6 @@ glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 	uint32 linearDestination = static_cast<uint32>(floor(destination.x + destination.y*levelSize.x));
 	uint32 linearPosition = static_cast<uint32>(floor(playerPos.x + playerPos.y*levelSize.x));
 	uint32 linearLevelSize = levelSize.x * levelSize.y;
-
-	glm::ivec2 returnVal = glm::ivec2();
-	if (destination.x < 0 || destination.x > levelSize.x ||
-		destination.y < 0 || destination.y > levelSize.y)
-		return returnVal;
 
 	uint32 tmpPosition = linearPosition;
 	returnVal = moveBy;
@@ -252,7 +417,8 @@ glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 		glm::ivec2 tmpDest = playerPos + direction*i;
 		tmpPosition = static_cast<uint32>(floor(tmpDest.x + tmpDest.y*levelSize.x));
 		if ((tmpPosition > 0) && (tmpPosition < linearLevelSize) && 
-			(tmpDest.x < levelSize.x) && (tmpDest.y < levelSize.y) && (tmpCollision[tmpPosition].w == 0))
+			(tmpDest.x < levelSize.x) && (tmpDest.y < levelSize.y) && 
+			(tmpCollision[tmpPosition].w == 0))
 		{
 			returnVal = tmpDest - playerPos;
 			returnVal += positionBias;
@@ -316,11 +482,27 @@ bool Game::CheckMove(glm::ivec2& moveBy)
 }
 void Game::KeyEvents(float deltaTime)
 {
-	float cameraMovement = 300.0f*deltaTime;
-	float playerMovement = 500.0f*deltaTime;
+	float cameraMovement = int(300.0f*deltaTime);
+	float playerMovement = int(500.0f*deltaTime);
 	glm::ivec2 playerMoveBy = glm::ivec2();
 	glm::ivec2 cameraMoveBy = glm::ivec2();
 
+	if (GetAsyncKeyState(VK_UP))
+	{
+		currentLevel.MoveObjs(glm::vec2(0.0f, 2.0f), false);
+	}
+	if (GetAsyncKeyState(VK_DOWN))
+	{
+		currentLevel.MoveObjs(glm::vec2(0.0f, -2.0f), false);
+	}
+	if (GetAsyncKeyState(VK_LEFT))
+	{
+		currentLevel.MoveObjs(glm::vec2(2.0f, 0.0f));
+	}
+	if (GetAsyncKeyState(VK_RIGHT))
+	{
+		currentLevel.MoveObjs(glm::vec2(-2.0f, 0.0f));
+	}
 	if (GetAsyncKeyState(VK_ESCAPE))
 	{
 		window->ShutDown();
@@ -368,8 +550,8 @@ void Game::KeyEvents(float deltaTime)
 	}
 	if (GetAsyncKeyState(VK_SPACE))
 	{
-		currentLevel.Move(-player.GetGlobalPosition());
-		player.Move(-player.GetGlobalPosition());
+		currentLevel.Move(-player.GetCenteredGlobalPosition());
+		player.Move(-player.GetCenteredGlobalPosition());
 	}
 	if (glm::length(glm::vec2(playerMoveBy)))
 	{
@@ -380,8 +562,9 @@ void Game::KeyEvents(float deltaTime)
 }
 void Game::MouseEvents(float deltaTime)
 {
-	float cameraMovement = 600.0f*deltaTime;
-	
+	float cameraMovement = int(600.0f*deltaTime);
+	glm::ivec2 cameraMoveBy = glm::ivec2();
+
 	POINT tmpCursor;
 	GetCursorPos(&tmpCursor);
 	ScreenToClient(window->GetWindowHandle(), &tmpCursor);
@@ -391,12 +574,14 @@ void Game::MouseEvents(float deltaTime)
 	float cursorX = tmpCursor.x / center.x;
 	float cursorY = tmpCursor.y / center.y;
 	window->SetCursor(glm::vec2(tmpCursor.x, tmpCursor.y));
-	//glm::ivec2 tmp = CheckBulletCollision(glm::vec2(cursorX, -cursorY));
+	
 	destination = player.GetScreenPosition() * glm::vec2(WIDTH / 2, HEIGHT / 2);
 	cursor = window->GetCursor();
 	//debug1 = cursor - destination;
 	
+	glm::vec2 tmp = CheckBulletCollision(player.GetWeaponRange());
 	
+	DrawLine(currentLevel.GetGlobalVec(player.GetCenteredLocalPosition()), currentLevel.GetGlobalVec(tmp), glm::vec3(0.0f, 1.0f, 0.0f));
 	//PRIMARY FIRE
 	if (GetAsyncKeyState(VK_LBUTTON))
 	{
@@ -410,6 +595,7 @@ void Game::MouseEvents(float deltaTime)
 		{
 			player.Shoot();
 			glm::vec2 tmp = CheckBulletCollision(player.GetWeaponRange());
+			//DrawLine(player.GetGlobalPosition(), currentLevel.GetGlobalVec(tmp));
 			primaryFire = true;
 			delta = 0.0f;
 		}
@@ -424,23 +610,32 @@ void Game::MouseEvents(float deltaTime)
 
 	if (cursorX > 0.8f)
 	{
-		currentLevel.Move(glm::vec2(-cameraMovement, 0.0f));
-		player.Move(glm::vec2(-cameraMovement, 0.0f));
+		cameraMoveBy += glm::vec2(-cameraMovement, 0.0f);
+		//currentLevel.Move(glm::vec2(-cameraMovement, 0.0f));
+		//player.Move(glm::vec2(-cameraMovement, 0.0f));
 	}
 	else if (cursorX < -0.8f)
 	{
-		currentLevel.Move(glm::vec2(cameraMovement, 0.0f));
-		player.Move(glm::vec2(cameraMovement, 0.0f));
+		cameraMoveBy += glm::vec2(cameraMovement, 0.0f);
+		//currentLevel.Move(glm::vec2(cameraMovement, 0.0f));
+		//player.Move(glm::vec2(cameraMovement, 0.0f));
 	}
 	if (cursorY > 0.8f)
 	{
-		currentLevel.Move(glm::vec2(0.0f, -cameraMovement));
-		player.Move(glm::vec2(0.0f, -cameraMovement));
+		cameraMoveBy += glm::vec2(0.0f, -cameraMovement);
+		//currentLevel.Move(glm::vec2(0.0f, -cameraMovement));
+		//player.Move(glm::vec2(0.0f, -cameraMovement));
 	}
 	else if (cursorY < -0.8f)
 	{
-		currentLevel.Move(glm::vec2(0.0f, cameraMovement));
-		player.Move(glm::vec2(0.0f, cameraMovement));
+		cameraMoveBy += glm::vec2(0.0f, cameraMovement);
+		//currentLevel.Move(glm::vec2(0.0f, cameraMovement));
+		//player.Move(glm::vec2(0.0f, cameraMovement));
+	}
+	if (glm::length(glm::vec2(cameraMoveBy)))
+	{
+		currentLevel.Move(cameraMoveBy);
+		player.Move(cameraMoveBy);
 	}
 }
 void Game::RenderFirstPass()
@@ -448,27 +643,31 @@ void Game::RenderFirstPass()
 	frameBuffer.BeginDrawingToTexture();
 	currentLevel.Draw();
 	
-	playerPos = currentLevel.GetLocalVec(player.GetGlobalPosition());
+	playerPos = currentLevel.GetLocalVec(player.GetCenteredGlobalPosition());
+	
 	glm::ivec2 correction = CorrectPosition();
+	//debug1 = correction;
+	
  	player.Move(correction);
-	correction = glm::ivec2();
+	player.SetCenteredLocalPosition(playerPos);
+	//correction = glm::ivec2();
 	
 	player.Draw();
-	frameBuffer.EndFrawingToTexture();
+	frameBuffer.EndDrawingToTexture();
 }
 void Game::RenderSecondPass()
 {
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	//glm::ivec2 debug2 = CheckBulletCollision();
+	glm::ivec2 debug2 = player.GetCenteredLocalPosition();
 	for (auto& obj : debugObjs)
 	{
 		obj->Draw();
 	}
 	debugObjs.clear();
-
+	
 	RenderText(std::to_string(deltaTime * 1000) + " ms", glm::vec2(static_cast<float>(-WIDTH / 2), static_cast<float>(-HEIGHT / 2) + 20), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f)); 
 	//font.RenderText(std::to_string(playerPos.x) + " " + std::to_string(playerPos.y), 20, 20, 1, glm::vec3(1, .4, .6));
-	//font.RenderText(std::to_string(debug2.x) + " " + std::to_string(debug2.y), 20, 60, 1, glm::vec3(1, .4, .6));
+	font.RenderText(std::to_string(debug2.x) + " " + std::to_string(debug2.y), 20, 60, 1, glm::vec3(1, .4, .6));
 	//font.RenderText(std::to_string(cursor.x) + " " + std::to_string(cursor.y), 20, 140, 1, glm::vec3(1, .4, .6));
 	//font.RenderText(std::to_string(debug1.x) + " " + std::to_string(debug1.y), 20, 100, 1, glm::vec3(1, .4, .6));
 }
@@ -562,8 +761,8 @@ void Game::LoadLevel(const std::string& levelName)
 	//currentLevel.LoadCollisionMap(folderPath + collisionMap);
 	levelSize = currentLevel.GetSize();
 
-	currentLevel.Move(-player.GetGlobalPosition());
-	player.Move(-player.GetGlobalPosition());
+	currentLevel.Move(-player.GetCenteredGlobalPosition());
+	player.Move(-player.GetCenteredGlobalPosition());
 }
 
 Game::Game()
@@ -606,7 +805,7 @@ void Game::ProcessInput(float deltaTime)
 	KeyEvents(deltaTime);
 }
 
-void Game::RenderText(const std::string& text, const glm::vec2& position, float scale, const glm::vec3& color)
+void Game::RenderText(std::string text, const glm::vec2& position, float scale, const glm::vec3& color)
 {
 	font.RenderText(text, position.x, position.y, scale, color);
 }

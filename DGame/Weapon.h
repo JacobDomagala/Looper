@@ -43,7 +43,7 @@ class Glock : public Weapon {
 public:
 	Glock()
 	{
-		range = 100;
+		range = 3000;
 		dmg = 10;
 		name = "Glock";
 		hasAmmo = true;
