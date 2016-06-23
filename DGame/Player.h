@@ -8,11 +8,20 @@
 class Enemy;
 
 class Player {
+	// name of the player
 	std::string name;
-	glm::ivec2   localPosition;
-	glm::ivec2   centeredLocalPosition;
-	glm::vec2   globalPosition;
-	glm::vec2   centeredGlobalPosition;
+
+	// local position with origin in upper left corner
+	glm::ivec2 localPosition;
+
+	// local position with origin in the center of sprite
+	glm::ivec2 centeredLocalPosition;
+
+	// global position in the origin in the upper left corner
+	glm::vec2  globalPosition;
+
+	// global position in the origin in the center of sprite
+	glm::vec2  centeredGlobalPosition;
 
 	Sprite      sprite;
 	Shaders     program;

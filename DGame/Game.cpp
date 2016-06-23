@@ -239,8 +239,8 @@ glm::ivec2 Game::CheckBulletCollision(GameObject* from, int range)
 			else
 				tmpPos = from->GetCenteredLocalPosition() - glm::ivec2(y - y1, x - x1);
 
-			/*if (!player.CheckCollision(tmpPos, from))
-				return tmpPos;*/
+			if (!player.CheckCollision(tmpPos, from))
+				return tmpPos;
 
 			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
 				tmpPos.y == 0 || tmpPos.y == levelSize.y ||
@@ -257,8 +257,8 @@ glm::ivec2 Game::CheckBulletCollision(GameObject* from, int range)
 			else
 				tmpPos = from->GetCenteredLocalPosition() - glm::ivec2(x - x1, y - y1);
 
-			/*if (!player.CheckCollision(tmpPos, from))
-				return tmpPos;*/
+			if (!player.CheckCollision(tmpPos, from))
+				return tmpPos;
 
 			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
 				tmpPos.y == 0 || tmpPos.y == levelSize.y ||

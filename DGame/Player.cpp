@@ -39,23 +39,23 @@ void Player::LoadShaders(const Shaders& program)
 {
 	this->program = program;	
 }
-bool Player::CheckCollisionSprite(glm::ivec2 position) const
+bool Player::CheckCollisionSprite(glm::ivec2 localPos) const
 {
-	glm::ivec2 tmpPos = glm::ivec2(localPosition.x, localPosition.y); //128
-	glm::ivec2 tmp = position - tmpPos;
-	int width = 128; //128
+	//glm::ivec2 tmpPos = glm::ivec2(localPosition.x, localPosition.y); //128
+	glm::ivec2 tmp = localPos - localPosition;
+	int width = sprite.GetSize().x; //128
 	if (collision[tmp.x + tmp.y*width].w != 0)
 		return false;
 
 	return true;
 }
-bool Player::CheckCollision(glm::vec2 pos, GameObject* obj)
+bool Player::CheckCollision(glm::vec2 localPos, GameObject* obj)
 {
-	glm::vec2 size = sprite.GetSize();
-		if (pos.x >= localPosition.x && pos.x <= (localPosition.x + size.x) &&
-			pos.y >= localPosition.y - size.y && pos.y <= localPosition.y)
+	glm::ivec2 size = sprite.GetSize();
+	if (localPos.x >= localPosition.x && localPos.x <= (localPosition.x + size.x) &&
+		localPos.y <= localPosition.y + size.y && localPos.y >= localPosition.y)
 		{
-			bool result = CheckCollisionSprite(pos);
+			bool result = CheckCollisionSprite(localPos);
 			//bool result = false;
 			if (!result)
 			{
