@@ -123,28 +123,22 @@ glm::vec2 Level::GetGlobalVec(glm::vec2 local)
 
 	return returnVal;
 }
-bool Level::CheckCollision(const glm::vec2& pos, Player& player)
+bool Level::CheckCollision(const glm::ivec2& localPos, Player& player)
 {
 	if (objects.empty())
 		return true;
 	
 	for (auto& obj : objects)
 	{
+		float length = glm::length(glm::vec2(localPos - obj->GetCenteredLocalPosition()));
 		glm::vec2 objPos = obj->GetLocalPosition();
 		glm::vec2 objSize = obj->GetSize();
-		if (pos.x > objPos.x && pos.x < (objPos.x + objSize.x) &&
-			pos.y > objPos.y - objSize.y && pos.y < objPos.y)
+		if(length < objSize.x/2.5f)
 		{
- 			bool result = obj->CheckCollision(pos);
+			obj->Hit(player.GetWeaponDmg());
+			obj->SetColor(glm::vec3(1.0f, 0.0f, 0.0f));
 			
-			if (!result)
-			{
-				obj->Hit(player.GetWeaponDmg());
-				obj->SetColor(glm::vec3(1.0f, 0.0f, 0.0f));
-				
-				return false;
-			}
-			return true;
+			return false;
 		}
 	}
 	return true;
@@ -208,21 +202,34 @@ void Level::Draw()
 			//		objects[index].Render(shaders["GeneralShader"]);
 			//	}
 			//}
+		
 		for (auto& obj : objects)
 		{
 			if (obj->GetState())
 			{
+				
 				glm::vec2 tmpL = obj->GetCenteredGlobalPosition() - Game::player.GetCenteredGlobalPosition();
 				float tmpLF = glm::length(tmpL);
+
 				if (tmpLF <= 500.0f)
+				{
 					obj->Shoot();
+				}
+				else
+					((Enemy*)obj)->ClearPositions();
+
+				if (tmpLF <= 800.0f)
+					obj->SetPlayerPos(Game::player.GetCenteredLocalPosition());
+				
+				
 				obj->SetCenteredLocalPosition(GetLocalVec(obj->GetCenteredGlobalPosition()));
 				obj->SetLocalPosition(GetLocalVec(obj->GetGlobalPosition()));
 				obj->Render(shaders);
 				obj->SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
-				//obj->SetPlayerPos(Game::player.GetCenteredGlobalPosition());
+				
 			}
 		}
+
 	}
 }
 void Level::MoveObjs(glm::vec2 moveBy, bool isCameraMovement)

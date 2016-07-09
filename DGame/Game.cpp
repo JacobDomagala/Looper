@@ -8,7 +8,7 @@ Level Game::currentLevel;
 glm::ivec2 Game::levelSize;
 charFour* Game::collision;
 Font Game::font;
-
+Timer Game::timer;
 extern Timer* globalTimer;
 
 glm::vec2 destination;
@@ -22,6 +22,16 @@ void swap(float& first, float& second)
 	float tmp = first;
 	first = second;
 	second = tmp;
+}
+glm::ivec2 GlobalToScreen(glm::vec2 globalPos)
+{
+	glm::vec4 screenPosition = window->GetProjection() * glm::vec4(globalPos, 0.0f, 1.0f);
+	glm::vec2 tmpPos = (glm::vec2(screenPosition.x, screenPosition.y) + glm::vec2(1.0f, 1.0f)) / glm::vec2(2.0f, 2.0f);
+	tmpPos.x *= WIDTH;
+	tmpPos.y *= -HEIGHT;
+	tmpPos.y += HEIGHT;
+
+	return tmpPos;
 }
 glm::ivec2 Game::CorrectPosition()
 {
@@ -57,7 +67,7 @@ glm::ivec2 Game::CorrectPosition()
 	//if you stand where you're not supposed to due to fucking float -> int conversion (FeelsBadMan)
 		if (tmpCollision[linearPosition].w != 0)
 		{
-			// the value of getting you out of shit < -5 ; 5 >
+			// the value of getting you out of shit < -6 ; 5 >
 			int tmpval = 6;
 			for (int j = -tmpval; j <= tmpval; ++j)
 					{
@@ -116,13 +126,16 @@ void Game::RenderLine(glm::ivec2 collided, glm::vec3 color)
 	glDeleteBuffers(1, &lineVertexBuffer);
 	glDeleteVertexArrays(1, &lineVertexArray);
 }
-glm::ivec2 Game::CheckBulletCollision(Player* from, int range)
+glm::ivec2 Game::CheckBulletCollision(GameObject* from, glm::vec2 globalFrom, int range)
 {
+	
+	glm::ivec2 fromPixels = GlobalToScreen(globalFrom);
+	glm::ivec2 fromLocal = currentLevel.GetLocalVec(globalFrom);
 	float x1, x2, y1, y2;
 	x1 = from->GetScreenPositionPixels().x;
 	y1 = from->GetScreenPositionPixels().y;
-	x2 = window->GetCursor().x;
-	y2 = window->GetCursor().y;
+	x2 = fromPixels.x;
+	y2 = fromPixels.y;
 
 	bool wasGreater = false;
 	const bool steep = (fabs(y2 - y1) > fabs(x2 - x1));
@@ -147,6 +160,7 @@ glm::ivec2 Game::CheckBulletCollision(Player* from, int range)
 	int y = static_cast<int>(y1);
 
 	const int maxX = (int)x2;
+	
 
 	for (int x = static_cast<int>(x1); x < maxX + range; x++)
 	{
@@ -155,17 +169,20 @@ glm::ivec2 Game::CheckBulletCollision(Player* from, int range)
 			//y,x 
 			glm::ivec2 tmpPos = glm::ivec2();
 			if (!wasGreater)
-				tmpPos = from->GetLocalPosition() + glm::ivec2(y - y1, x - x1);
+				tmpPos = from->GetCenteredLocalPosition() + glm::ivec2(y - y1, x - x1);
 			else
-				tmpPos = from->GetLocalPosition() - glm::ivec2(y - y1, x - x1);
+				tmpPos = from->GetCenteredLocalPosition() - glm::ivec2(y - y1, x - x1);
 
-			if (!currentLevel.CheckCollision(tmpPos, *from))
-			return tmpPos;
+			
+			if (!player.CheckCollision(tmpPos, from))
+			{
+				return tmpPos;
+			}
 
 			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
 				tmpPos.y == 0 || tmpPos.y == levelSize.y ||
 				collision[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
-				return tmpPos;
+					return tmpPos;
 
 		}
 		else
@@ -173,17 +190,17 @@ glm::ivec2 Game::CheckBulletCollision(Player* from, int range)
 			//x,y
 			glm::ivec2 tmpPos = glm::ivec2();
 			if (!wasGreater)
-				tmpPos = from->GetLocalPosition() + glm::ivec2(x - x1, y - y1);
+				tmpPos = from->GetCenteredLocalPosition() + glm::ivec2(x - x1, y - y1);
 			else
-				tmpPos = from->GetLocalPosition() - glm::ivec2(x - x1, y - y1);
+				tmpPos = from->GetCenteredLocalPosition() - glm::ivec2(x - x1, y - y1);
 
-			if (!currentLevel.CheckCollision(tmpPos, *from))
-			return tmpPos;
+			if (!player.CheckCollision(tmpPos, from))
+				return tmpPos;
 
 			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
 				tmpPos.y == 0 || tmpPos.y == levelSize.y ||
 				collision[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
-				return tmpPos;
+					return tmpPos;
 
 		}
 
@@ -472,8 +489,6 @@ glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 }
 bool Game::CheckMove(glm::ivec2& moveBy)
 {
-	// compute the player's position relative to level
-
 	moveBy = CheckCollision(moveBy);
 	player.Move(moveBy);
 	if (glm::length(glm::vec2(moveBy)))
@@ -640,8 +655,13 @@ void Game::MouseEvents(float deltaTime)
 }
 void Game::RenderFirstPass()
 {
+	
 	frameBuffer.BeginDrawingToTexture();
+	
+	
 	currentLevel.Draw();
+	
+	
 	
 	playerPos = currentLevel.GetLocalVec(player.GetCenteredGlobalPosition());
 	
@@ -649,8 +669,9 @@ void Game::RenderFirstPass()
 	//debug1 = correction;
 	
  	player.Move(correction);
+	playerPos += correction;
 	player.SetCenteredLocalPosition(playerPos);
-	//correction = glm::ivec2();
+	correction = glm::ivec2();
 	
 	player.Draw();
 	frameBuffer.EndDrawingToTexture();

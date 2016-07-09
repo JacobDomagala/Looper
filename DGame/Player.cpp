@@ -39,39 +39,23 @@ void Player::LoadShaders(const Shaders& program)
 {
 	this->program = program;	
 }
-bool Player::CheckCollisionSprite(glm::ivec2 localPos) const
-{
-	//glm::ivec2 tmpPos = glm::ivec2(localPosition.x, localPosition.y); //128
-	glm::ivec2 tmp = localPos - localPosition;
-	int width = sprite.GetSize().x; //128
-	if (collision[tmp.x + tmp.y*width].w != 0)
-		return false;
 
-	return true;
-}
-bool Player::CheckCollision(glm::vec2 localPos, GameObject* obj)
+bool Player::CheckCollision(glm::ivec2 localPos, GameObject* obj)
 {
 	glm::ivec2 size = sprite.GetSize();
-	if (localPos.x >= localPosition.x && localPos.x <= (localPosition.x + size.x) &&
-		localPos.y <= localPosition.y + size.y && localPos.y >= localPosition.y)
+	float length = glm::length(glm::vec2(localPos - centeredLocalPosition));
+	if(length < size.x/2.5f)
 		{
-			bool result = CheckCollisionSprite(localPos);
-			//bool result = false;
-			if (!result)
-			{
-				currentHP -= ((Enemy*)obj)->GetDmg();
-				sprite.SetColor(glm::vec3(1.0f, 0.0f, 0.0f));
-
-				return false;
-			}
-			return true;
+			currentHP -= ((Enemy*)obj)->GetDmg();
+			sprite.SetColor(glm::vec3(1.0f, 0.0f, 0.0f));
+			return false;
 		}
-	
 	return true;
 }
  glm::vec2 Player::GetGlobalPosition() const
 {
 	return globalPosition;
+	
 }
  glm::vec2 Player::GetCenteredGlobalPosition() const
 {
@@ -128,7 +112,12 @@ void Player::Draw()
 	angle = -glm::degrees(glm::atan(tmpPos.y - cursorPos.y, tmpPos.x - cursorPos.x));
 
 #pragma endregion
-
+	
+	/*for(int j = 0;j<128;++j)
+		for (int i = 0; i < 128; ++i)
+		{
+			collision[i + j * 128] = glm::rotate(glm::mat4(), angle, glm::vec4(collision[i + j * 128]));
+		}*/
 	sprite.Rotate(angle+90.0f);
 //	sprite.Translate(translateVal);
 	sprite.Render(program);
@@ -156,6 +145,8 @@ void Player::SetCenteredLocalPosition(glm::ivec2 pos)
 {
 	centeredLocalPosition = pos;
 	localPosition = glm::ivec2(centeredLocalPosition.x - sprite.GetSize().x/2, centeredLocalPosition.y - sprite.GetSize().y/2);
+	globalPosition = Level::GetGlobalVec(localPosition);
+	centeredGlobalPosition = Level::GetGlobalVec(centeredLocalPosition);
 }
 
 void Player::SetGlobalPosition(glm::vec2 pos)

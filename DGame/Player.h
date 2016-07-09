@@ -4,10 +4,10 @@
 #include"Sprite.h"
 #include"GameObject.h"
 #include"Weapon.h"
-
 class Enemy;
 
 class Player {
+
 	// name of the player
 	std::string name;
 
@@ -32,22 +32,22 @@ class Player {
 	int maxHP;
 	int currentHP;
 	
+	//leaking memory, GET RID OF IT
 	charFour* collision;
 	GLuint vertexArrayBuffer;
 	GLuint vertexBuffer;
 
 	float angle;
-	glm::mat4 translateMatrix;
+	//glm::mat4 translateMatrix;
 	glm::vec2 translateVal;
-	glm::mat4 rotateMatrix;
-	glm::mat4 scaleMatrix;
+	//glm::mat4 rotateMatrix;
+	//glm::mat4 scaleMatrix;
 public:
 	Player(glm::vec2 position = glm::vec2(0.0f, 0.0f),
 		   const std::string& name = "Anonymous");
 	~Player(); 
 
-	bool CheckCollisionSprite(glm::ivec2 position) const;
-	bool CheckCollision(glm::vec2 pos, GameObject* obj);
+	bool CheckCollision(glm::ivec2 pos, GameObject* obj);
 
 	void LoadShaders(const std::string& shaderFile);
 	void LoadShaders(const Shaders& program);

@@ -5,5 +5,8 @@ Particles:
 First_pass_shaders: DefaultShader
 Second_pass_shaders: AfterEffects
 Collision: Level1_Collision.png
-Player: 1600 -1500 128 128 Default128.png DefaultShader
-Enemies: 1 1500 -1400 128 128 Default128.png DefaultShader
+Player: 1600 -1500 128 128 Level1_char.png DefaultShader
+Enemies: 4 1500 -1400 128 128 Default128.png DefaultShader
+2500 -1400 128 128 Default128.png DefaultShader
+500 -1400 128 128 Default128.png DefaultShader
+1800 -1400 128 128 Default128.png DefaultShader

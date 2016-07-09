@@ -1,12 +1,12 @@
 #pragma once
 #include"Common.h"
 #include"GameObject.h"
-
 class Shaders;
 class Player;
 
 class Level {
 	//IN PROGRESS
+
 	static Sprite background;
 	std::unordered_map<std::string, Texture> textures;
 	Shaders shaders;
@@ -39,7 +39,7 @@ public:
 	void Move(const glm::vec2& moveBy);
 	void Draw();
 
-	bool CheckCollision(const glm::vec2& pos, Player& player);
+	bool CheckCollision(const glm::ivec2& localPos, Player& player);
 	void LockCamera() { locked = true; }
 	void UnlockCamera() { locked = false; }
 	bool IsCameraLocked() const { return locked; }

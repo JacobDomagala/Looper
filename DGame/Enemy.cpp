@@ -25,7 +25,8 @@ Enemy::Enemy(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite)
 	centeredGlobalPosition = this->sprite.GetCenteredPosition();
 	localPosition = glm::ivec2(pos.x, -pos.y);
 	drawMe = true;
-	currentIndex = 0;
+	positionIdx = 0;
+	shootIdx = 0;
 	maxHP = 100;
 	currentHP = 100;
 	weapon = new Glock();
@@ -33,18 +34,34 @@ Enemy::Enemy(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite)
 
 void Enemy::SetPlayerPos(glm::vec2 pos)
 {
-	if(currentIndex != 49)
-		playerPositions[currentIndex++] = pos;
-	else
+//	playerPositions = pos;
+	timer.ToggleAndAccumulate();
+	//Game::RenderText(std::to_string(timer.GetAccumulator()), glm::vec2(69, 69), 1.0f);
+	if (timer.GetAccumulator() > 1.0f)
 	{
-		currentIndex = 1;
-		playerPositions[0] = pos;
+		timer.ResetAccumulator();
+	/*	if (positionIdx < arrayLen)
+			playerPositions[positionIdx++] = pos;
+		else
+		{
+			positionIdx = 0;
+			playerPositions[0] = pos;
+		}*/
+		playerPositions = pos;
 	}
 }
 
 void Enemy::Shoot()
 {
-	glm::ivec2 collided = Game::CheckBulletCollision(this, weapon->GetRange());
+	if (playerPositions == glm::vec2(0,0))
+		return;
+	// to prevent blank shooting to 0,0
+	//if (shootIdx == positionIdx)
+	//	return;
+	
+	glm::vec2 globalTmp = Level::GetGlobalVec(playerPositions);
+	glm::ivec2 collided = Game::CheckBulletCollision(this, globalTmp, weapon->GetRange());
+	
 	//float len = glm::length(Game::player.GetGlobalPosition() - glm::vec2(centeredGlobalPosition));
 	//Game::RenderText(std::to_string(collided.x) + "  " + std::to_string(collided.y), glm::vec2(0, 0), 1.0f, glm::vec3(1.0f, 0.0f, 1.0f));
 	//Game::RenderText(std::to_string(len), glm::vec2(0, 100), 1.0f, glm::vec3(1.0f, 0.0f, 1.0f));
@@ -55,7 +72,12 @@ void Enemy::Shoot()
 	}
 	//Game::DrawLine(centeredGlobalPosition, Game::player.GetGlobalPosition());
 }
-
+void Enemy::ClearPositions()
+{
+	shootIdx = 0;
+	positionIdx = 0;
+	playerPositions = glm::vec2();
+}
 Enemy::~Enemy()
 {
 }

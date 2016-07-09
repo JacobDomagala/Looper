@@ -31,7 +31,6 @@ public:
 	GameObject() {}
 	GameObject(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite);
 	~GameObject() {}
-	bool CheckCollision(const glm::ivec2& position) const;
 	void SetColor(const glm::vec3& color)
 	{
 		sprite.SetColor(color);
