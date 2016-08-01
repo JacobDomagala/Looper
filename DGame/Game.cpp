@@ -655,14 +655,9 @@ void Game::MouseEvents(float deltaTime)
 }
 void Game::RenderFirstPass()
 {
-	
 	frameBuffer.BeginDrawingToTexture();
 	
-	
 	currentLevel.Draw();
-	
-	
-	
 	playerPos = currentLevel.GetLocalVec(player.GetCenteredGlobalPosition());
 	
 	glm::ivec2 correction = CorrectPosition();

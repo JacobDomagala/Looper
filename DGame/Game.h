@@ -14,6 +14,13 @@ enum class GameState: char {
 };
 
 #pragma region DEBUG
+/*
+//
+////PLZ DON'T MIND ME I'M JUST FOR DEBUG PURPOSES
+//
+*/
+
+// THIS CLASS EXISTS ONLY IF WE WOULD NEED SOMETHING ELSE THAN LINE AS DEBUG OBJECT
 class DebugObject {
 public:
 	virtual void Draw() = 0;

@@ -32,10 +32,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 		globalTimer->ToggleTimer();
 		float newTime = globalTimer->GetGlobalTime();
-
-		//DEBUG TIMER
-		Timer tmpTimer;
-		tmpTimer.ToggleTimer();
 		
 		if (newTime - oldTime > TARGET_TIME)
 		{

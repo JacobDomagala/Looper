@@ -205,25 +205,26 @@ void Level::Draw()
 		
 		for (auto& obj : objects)
 		{
-			if (obj->GetState())
+			Enemy* objE = (Enemy*)obj;
+			if (objE->GetState())
 			{
 				
-				glm::vec2 tmpL = obj->GetCenteredGlobalPosition() - Game::player.GetCenteredGlobalPosition();
+				glm::vec2 tmpL = objE->GetCenteredGlobalPosition() - Game::player.GetCenteredGlobalPosition();
 				float tmpLF = glm::length(tmpL);
 
 				if (tmpLF <= 500.0f)
 				{
-					obj->Shoot();
+					objE->Shoot();
 				}
 				else
-					((Enemy*)obj)->ClearPositions();
+					((Enemy*)objE)->ClearPositions();
 
 				if (tmpLF <= 800.0f)
-					obj->SetPlayerPos(Game::player.GetCenteredLocalPosition());
+					objE->SetPlayerPos(Game::player.GetCenteredLocalPosition());
 				
 				
-				obj->SetCenteredLocalPosition(GetLocalVec(obj->GetCenteredGlobalPosition()));
-				obj->SetLocalPosition(GetLocalVec(obj->GetGlobalPosition()));
+				obj->SetCenteredLocalPosition(GetLocalVec(objE->GetCenteredGlobalPosition()));
+				obj->SetLocalPosition(GetLocalVec(objE->GetGlobalPosition()));
 				obj->Render(shaders);
 				obj->SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
 				

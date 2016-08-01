@@ -26,7 +26,7 @@ charFour* Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapM
 	glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_T, wrapMode);
 
 	returnPtr = (charFour*)fileData;
-	//SOIL_free_image_data(fileData);
+	SOIL_free_image_data(fileData);
 	unit = unitCounter++;
 
 	return returnPtr;

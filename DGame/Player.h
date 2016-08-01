@@ -61,7 +61,10 @@ public:
 	glm::ivec2 GetScreenPositionPixels() const;
 	glm::ivec2 GetLocalPosition() const;
 	glm::ivec2 GetCenteredLocalPosition() const;
-
+	glm::ivec2 GetSize()const
+	{
+		return sprite.GetSize();
+	}
 	void Move(glm::vec2 vector);
 	void CreateSprite(glm::vec2 position = glm::vec2(0.0f, 0.0f), 
 					  glm::ivec2 size = glm::ivec2(32,32), 

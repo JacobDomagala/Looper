@@ -103,12 +103,12 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>D:\Studia\Projekty\C++\DGame\Reasource\FreeType\include;D:\Studia\Projekty\C++\DGame\Reasource\GLM\glm\glm;D:\Studia\Projekty\C++\DGame\Reasource\GLEW\glew-1.12.0\include\GL;D:\Studia\Projekty\C++\DGame\Reasource\Simple OpenGL Image Library\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\..\Reasource\FreeType\include;.\..\Reasource\GLM\glm\glm;.\..\Reasource\GLEW\glew-1.12.0\include\GL;.\..\Reasource\Simple OpenGL Image Library\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\Studia\Projekty\C++\DGame\Reasource\FreeType\objs;D:\Studia\Projekty\C++\DGame\Reasource\Simple OpenGL Image Library\lib;D:\Studia\Projekty\C++\DGame\Reasource\GLEW\glew-1.12.0\lib\Release\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>.\..\Reasource\FreeType\objs;.\..\Reasource\Simple OpenGL Image Library\lib;.\..\Reasource\GLEW\glew-1.12.0;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>freetype263.lib;freetype263d.lib;SOIL.lib;openGL32.lib;glew32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

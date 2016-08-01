@@ -28,7 +28,7 @@ Enemy::Enemy(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite)
 	positionIdx = 0;
 	shootIdx = 0;
 	maxHP = 100;
-	currentHP = 100;
+	currentHP = maxHP;
 	weapon = new Glock();
 }
 
@@ -37,7 +37,7 @@ void Enemy::SetPlayerPos(glm::vec2 pos)
 //	playerPositions = pos;
 	timer.ToggleAndAccumulate();
 	//Game::RenderText(std::to_string(timer.GetAccumulator()), glm::vec2(69, 69), 1.0f);
-	if (timer.GetAccumulator() > 1.0f)
+	if (timer.GetAccumulator() > 0.5f)
 	{
 		timer.ResetAccumulator();
 	/*	if (positionIdx < arrayLen)
@@ -48,6 +48,13 @@ void Enemy::SetPlayerPos(glm::vec2 pos)
 			playerPositions[0] = pos;
 		}*/
 		playerPositions = pos;
+
+		// MAKE IT LOOK LIKE HE'S HAVING TROUBLE HITTING YOU
+		// player size should be in L1 cache after first call
+		int xOffset = rand() % Game::player.GetSize().x + (-Game::player.GetSize().x/2);
+		int yOffset = rand() % Game::player.GetSize().y + (-Game::player.GetSize().y/2);
+		glm::ivec2 offsetVal(xOffset, yOffset);
+		playerPositions += offsetVal;
 	}
 }
 
