@@ -1,39 +1,50 @@
 #include"Win_Window.h"
 
+std::unordered_map<unsigned char, bool> Win_Window::keyMap;
+//bool Win_Window::leftMouseKeyPressed;
+//bool Win_Window::rightMouseKeyPressed;
 
-bool Win_Window::isRunning = FALSE;
-
-LRESULT CALLBACK MainWinProc(HWND hWind, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK Win_Window::MainWinProc(HWND hWind, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT returnVal = 0;
 	switch (uMsg)
 	{
 	case WM_KEYDOWN:
+	{
+		keyMap[wParam] = true;
+	}break;
 	case WM_KEYUP:
-		{
-			uint32 vKey = wParam;
-			bool wasDown = ((lParam & (1 << 30)) != 0);
-			bool isDown =  ((lParam & (1 << 31)) == 0);
-			
-		if (wasDown != isDown)
-				if (vKey == 'W')
-				{
-					
-				}			
+	{
+		keyMap[wParam] = false;
 	}break;
 	case WM_LBUTTONDOWN:
-		break;
+	{
+		keyMap[wParam] = true;
+	}
+	break;
 	case WM_LBUTTONUP:
-		break;
+	{
+		keyMap[wParam] = false;
+	}
+	break;
 	case WM_RBUTTONDOWN:
-		break;
+	{
+		keyMap[wParam] = true;
+	}
+	break;
 	case WM_RBUTTONUP:
-		break;
+	{
+		keyMap[wParam] = true;
+	}
+	break;
 	case WM_SIZE:
-		break;
+	{
+	}
+	break;
 	case WM_DESTROY:
-		Win_Window::isRunning = false;
-		break;
+	{
+	}
+	break;
 	default:
 		returnVal = DefWindowProc(hWind, uMsg, wParam, lParam);
 	}

@@ -1,23 +1,23 @@
 #include "Texture.h"
-#include"Win_Window.h"
-#include"Shaders.h"
+#include "Win_Window.h"
+#include "Shaders.h"
+
 extern Win_Window* window;
 
 int Texture::unitCounter = 0;
 int Texture::nowBound = 0;
 int Texture::boundCount = 0;
 
-charFour* Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenum filter)
+std::shared_ptr<byte_vec4> Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenum filter)
 {
-	//NOTE: WE'RE NOT FREEING THE POINTER MEMORY!!!
-	charFour* returnPtr;
-	fileData = SOIL_load_image(fileName.c_str(), &width, &height, NULL, SOIL_LOAD_RGBA);
-	if (!fileData)
+	std::shared_ptr<byte_vec4> returnPtr(reinterpret_cast<byte_vec4*>(SOIL_load_image(fileName.c_str(), &width, &height, NULL, SOIL_LOAD_RGBA)));
+	
+	if (!returnPtr)
 		window->ShowError(std::string("Can't load the file ") + fileName, "SOIL error!");
 
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, fileData);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, reinterpret_cast<uint8*>(returnPtr.get()));
 	glGenerateMipmap(GL_TEXTURE_2D);
 	
 	glSamplerParameteri(samplerID, GL_TEXTURE_MAG_FILTER, filter);
@@ -25,8 +25,6 @@ charFour* Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapM
 	glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_S, wrapMode);
 	glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_T, wrapMode);
 
-	returnPtr = (charFour*)fileData;
-	SOIL_free_image_data(fileData);
 	unit = unitCounter++;
 
 	return returnPtr;

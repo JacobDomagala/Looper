@@ -16,7 +16,7 @@ protected:
 	Shaders program;
 
 	bool drawMe;
-	charFour* collision;
+	std::shared_ptr<byte_vec4> collision;
 
 	glm::mat4 translateMatrix;
 	glm::vec2 translateVal;

@@ -1,12 +1,15 @@
 #pragma once
-#include"Common.h"
-#include"Level.h"
-#include"Player.h"
-#include"Font.h"
-#include"Framebuffer.h"
-#include"Timer.h"
-#include"Win_Window.h"
+
+#include "Common.h"
+#include "Level.h"
+#include "Player.h"
+#include "Font.h"
+#include "Framebuffer.h"
+#include "Timer.h"
+#include "Win_Window.h"
+
 extern Win_Window* window;
+
 enum class GameState: char {
 	MENU = 0,
 	GAME,
@@ -75,27 +78,29 @@ public:
 #pragma endregion
 
 class Game {
+
+	static std::array<unsigned char, 256> keyMap;
 	static Timer timer;
+	static Level currentLevel;
+	static glm::ivec2 levelSize;
+	static std::shared_ptr<byte_vec4> collision;
+	static Font font;
+
+	float cameraSpeed;
 	// framebuffer for first pass
 	Framebuffer frameBuffer;
 	float deltaTime;
 	// all maps
 	std::vector<std::string> levels;
-	static Level currentLevel;
-	static glm::ivec2 levelSize;
-
-	static charFour* collision;
+	
 	float shotLasttime;
 	// state of the game 
 	GameState state;
 
-	
 	glm::ivec2 playerPos;
 	
-	static Font font;
 	bool primaryFire;
 	bool alternativeFire;
-
 
 	glm::ivec2 CheckBulletCollision(int range);
 	glm::ivec2 CheckCollision(glm::ivec2& moveBy);

@@ -17,7 +17,7 @@ public:
 		
 	}
 	
-	charFour* LoadTextureFromFile(const std::string& fileName = "Assets//Default.png", 
+	std::shared_ptr<byte_vec4> LoadTextureFromFile(const std::string& fileName = "Assets//Default.png", 
 							 GLenum wrapMode = GL_REPEAT, GLenum filter = GL_LINEAR);
 	void LoadTextureFromMemory(int width, int height, uint8* data, 
 							   GLenum wrapMode = GL_REPEAT, GLenum filter = GL_LINEAR);

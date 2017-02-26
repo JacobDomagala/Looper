@@ -4,24 +4,25 @@
 #include"Shaders.h"
 
 class Sprite {
-	Texture   texture;
+	Texture texture;
 	glm::vec4 color;
 	glm::vec2 centeredPosition;
 	glm::vec2 position;
-	GLuint    vertexArrayBuffer;
-	GLuint    vertexBuffer;
+	GLuint vertexArrayBuffer;
+	GLuint vertexBuffer;
 
 	glm::ivec2 size;
 
 	glm::vec3 translateVal;
+	glm::vec3 velocity;
 	glm::vec2 scaleVal;
-	float     angle;
+	float angle;
 public:
 	Sprite() { }
 	~Sprite() { }
 
 	void SetSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f), glm::ivec2 size = glm::ivec2(10, 10));
-	charFour* SetSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f), glm::ivec2 size = glm::ivec2(10, 10), const std::string& fileName = ".\\Default.png");
+	std::shared_ptr<byte_vec4> SetSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f), glm::ivec2 size = glm::ivec2(10, 10), const std::string& fileName = ".\\Default.png");
 	glm::vec2 GetCenteredPosition() const { return centeredPosition; }
 	glm::vec2 GetPosition() const { return position; }
 	glm::ivec2 GetSize() const { return size; }

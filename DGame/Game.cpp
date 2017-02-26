@@ -1,12 +1,11 @@
 #include "Game.h"
-#include"Enemy.h"
-
+#include "Enemy.h"
 
 std::vector<std::shared_ptr<DebugObject>> Game::debugObjs;
 Player Game::player;
 Level Game::currentLevel;
 glm::ivec2 Game::levelSize;
-charFour* Game::collision;
+std::shared_ptr<byte_vec4> Game::collision;
 Font Game::font;
 Timer Game::timer;
 extern Timer* globalTimer;
@@ -17,7 +16,7 @@ glm::vec2 debug1;
 static float delta = 0.0f;
 #define myCeil(x) x < 0 ? floor(x) : ceil(x)
 
-void swap(float& first, float& second)
+static void swap(float& first, float& second)
 {
 	float tmp = first;
 	first = second;
@@ -34,12 +33,11 @@ glm::ivec2 GlobalToScreen(glm::vec2 globalPos)
 	return tmpPos;
 }
 glm::ivec2 Game::CorrectPosition()
-{
-	
+{	
 	uint32 linearPosition = static_cast<uint32>(floor(playerPos.x + playerPos.y*levelSize.x));
 	uint32 linearLevelSize = levelSize.x * levelSize.y;
 
-	charFour* tmpCollision = collision;
+	byte_vec4* tmpCollision = collision.get();
 	
 	glm::ivec2 tmpPosition = playerPos;
 	glm::ivec2 returnVal = glm::ivec2();
@@ -128,7 +126,6 @@ void Game::RenderLine(glm::ivec2 collided, glm::vec3 color)
 }
 glm::ivec2 Game::CheckBulletCollision(GameObject* from, glm::vec2 globalFrom, int range)
 {
-	
 	glm::ivec2 fromPixels = GlobalToScreen(globalFrom);
 	glm::ivec2 fromLocal = currentLevel.GetLocalVec(globalFrom);
 	float x1, x2, y1, y2;
@@ -161,7 +158,6 @@ glm::ivec2 Game::CheckBulletCollision(GameObject* from, glm::vec2 globalFrom, in
 
 	const int maxX = (int)x2;
 	
-
 	for (int x = static_cast<int>(x1); x < maxX + range; x++)
 	{
 		if (steep)
@@ -173,7 +169,6 @@ glm::ivec2 Game::CheckBulletCollision(GameObject* from, glm::vec2 globalFrom, in
 			else
 				tmpPos = from->GetCenteredLocalPosition() - glm::ivec2(y - y1, x - x1);
 
-			
 			if (!player.CheckCollision(tmpPos, from))
 			{
 				return tmpPos;
@@ -181,9 +176,8 @@ glm::ivec2 Game::CheckBulletCollision(GameObject* from, glm::vec2 globalFrom, in
 
 			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
 				tmpPos.y == 0 || tmpPos.y == levelSize.y ||
-				collision[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
+				collision.get()[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
 					return tmpPos;
-
 		}
 		else
 		{
@@ -199,9 +193,8 @@ glm::ivec2 Game::CheckBulletCollision(GameObject* from, glm::vec2 globalFrom, in
 
 			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
 				tmpPos.y == 0 || tmpPos.y == levelSize.y ||
-				collision[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
+				collision.get()[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
 					return tmpPos;
-
 		}
 
 		error -= dy;
@@ -261,9 +254,8 @@ glm::ivec2 Game::CheckBulletCollision(GameObject* from, int range)
 
 			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
 				tmpPos.y == 0 || tmpPos.y == levelSize.y ||
-				collision[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
+				collision.get()[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
 				return tmpPos;
-
 		}
 		else
 		{
@@ -279,9 +271,8 @@ glm::ivec2 Game::CheckBulletCollision(GameObject* from, int range)
 
 			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
 				tmpPos.y == 0 || tmpPos.y == levelSize.y ||
-				collision[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
+				collision.get()[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
 				return tmpPos;
-
 		}
 
 		error -= dy;
@@ -343,9 +334,8 @@ glm::ivec2 Game::CheckBulletCollision(int range)
 
 			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
 				tmpPos.y == 0 || tmpPos.y == levelSize.y ||
-				collision[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
+				collision.get()[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
 					return tmpPos;
-			
 		}
 		else
 		{
@@ -361,9 +351,8 @@ glm::ivec2 Game::CheckBulletCollision(int range)
 
 			if (tmpPos.x == 0 || tmpPos.x == levelSize.x ||
 				tmpPos.y == 0 || tmpPos.y == levelSize.y ||
-				collision[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
+				collision.get()[tmpPos.x + tmpPos.y*levelSize.x].w != 0)
 					return tmpPos;
-			
 		}
 
 		error -= dy;
@@ -394,7 +383,7 @@ glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 
 	uint32 tmpPosition = linearPosition;
 	returnVal = moveBy;
-	charFour* tmpCollision = collision;
+	byte_vec4* tmpCollision = collision.get();
 
 	// if you can move to destination (FeelsGoodMan)
 	if (tmpCollision[linearDestination].w == 0)
@@ -497,73 +486,73 @@ bool Game::CheckMove(glm::ivec2& moveBy)
 }
 void Game::KeyEvents(float deltaTime)
 {
-	float cameraMovement = int(300.0f*deltaTime);
-	float playerMovement = int(500.0f*deltaTime);
+	float cameraMovement = static_cast<int>(300.0f*deltaTime);
+	float playerMovement = static_cast<int>(500.0f*deltaTime);
 	glm::ivec2 playerMoveBy = glm::ivec2();
 	glm::ivec2 cameraMoveBy = glm::ivec2();
 
-	if (GetAsyncKeyState(VK_UP))
+	if (Win_Window::keyMap[VK_UP])
 	{
 		currentLevel.MoveObjs(glm::vec2(0.0f, 2.0f), false);
 	}
-	if (GetAsyncKeyState(VK_DOWN))
+	if (Win_Window::keyMap[VK_DOWN])
 	{
 		currentLevel.MoveObjs(glm::vec2(0.0f, -2.0f), false);
 	}
-	if (GetAsyncKeyState(VK_LEFT))
+	if (Win_Window::keyMap[VK_LEFT])
 	{
 		currentLevel.MoveObjs(glm::vec2(2.0f, 0.0f));
 	}
-	if (GetAsyncKeyState(VK_RIGHT))
+	if (Win_Window::keyMap[VK_RIGHT])
 	{
 		currentLevel.MoveObjs(glm::vec2(-2.0f, 0.0f));
 	}
-	if (GetAsyncKeyState(VK_ESCAPE))
+	if (Win_Window::keyMap[VK_ESCAPE])
 	{
 		window->ShutDown();
 	}
-	if (GetAsyncKeyState('O'))
+	if (Win_Window::keyMap['O'])
 	{
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
-	if (GetAsyncKeyState('1'))
+	if (Win_Window::keyMap['1'])
 	{
 		player.ChangeWepon(1);
 	}
-	if (GetAsyncKeyState('2'))
+	if (Win_Window::keyMap['2'])
 	{
 		player.ChangeWepon(2);
 	}
-	if (GetAsyncKeyState('P'))
+	if (Win_Window::keyMap['P'])
 	{
 		glDisable(GL_BLEND);
 	}
-	if (GetAsyncKeyState('W'))
+	if (Win_Window::keyMap['W'])
 	{
 		playerMoveBy += glm::ivec2(0, -playerMovement);
 		cameraMoveBy += glm::ivec2(0, cameraMovement);
 	}
-	if (GetAsyncKeyState('S'))
+	if (Win_Window::keyMap['S'])
 	{
 		playerMoveBy += glm::ivec2(0, playerMovement);
 		cameraMoveBy += glm::ivec2(0, -cameraMovement);
 	}
-	if (GetAsyncKeyState('A'))
+	if (Win_Window::keyMap['A'])
 	{
 		playerMoveBy += glm::ivec2(-playerMovement, 0);
 		cameraMoveBy += glm::ivec2(cameraMovement, 0);
 	}
-	if (GetAsyncKeyState('D'))
+	if (Win_Window::keyMap['D'])
 	{
 		playerMoveBy += glm::ivec2(playerMovement, 0);
 		cameraMoveBy += glm::ivec2(-cameraMovement, 0);
 	}
-	if (GetAsyncKeyState('R'))
+	if (Win_Window::keyMap['R'])
 	{
 		player.Move(glm::vec2(200, 400));
 	}
-	if (GetAsyncKeyState(VK_SPACE))
+	if (Win_Window::keyMap[VK_SPACE])
 	{
 		currentLevel.Move(-player.GetCenteredGlobalPosition());
 		player.Move(-player.GetCenteredGlobalPosition());
@@ -577,28 +566,16 @@ void Game::KeyEvents(float deltaTime)
 }
 void Game::MouseEvents(float deltaTime)
 {
-	float cameraMovement = int(600.0f*deltaTime);
+	float cameraMovement = floor(cameraSpeed*deltaTime);
 	glm::ivec2 cameraMoveBy = glm::ivec2();
-
-	POINT tmpCursor;
-	GetCursorPos(&tmpCursor);
-	ScreenToClient(window->GetWindowHandle(), &tmpCursor);
-	glm::vec2 center(WIDTH / 2.0f, HEIGHT / 2.0f);
-	tmpCursor.x -= static_cast<LONG>(center.x);
-	tmpCursor.y -= static_cast<LONG>(center.y);
-	float cursorX = tmpCursor.x / center.x;
-	float cursorY = tmpCursor.y / center.y;
-	window->SetCursor(glm::vec2(tmpCursor.x, tmpCursor.y));
 	
-	destination = player.GetScreenPosition() * glm::vec2(WIDTH / 2, HEIGHT / 2);
-	cursor = window->GetCursor();
-	//debug1 = cursor - destination;
-	
-	glm::vec2 tmp = CheckBulletCollision(player.GetWeaponRange());
+	cursor = window->GetCursorNormalized();
+ 	glm::vec2 tmp = CheckBulletCollision(player.GetWeaponRange());
 	
 	DrawLine(currentLevel.GetGlobalVec(player.GetCenteredLocalPosition()), currentLevel.GetGlobalVec(tmp), glm::vec3(0.0f, 1.0f, 0.0f));
+
 	//PRIMARY FIRE
-	if (GetAsyncKeyState(VK_LBUTTON))
+	if (Win_Window::keyMap[VK_LBUTTON])
 	{
 		timer.ToggleTimer();
 		
@@ -617,35 +594,34 @@ void Game::MouseEvents(float deltaTime)
 	}
 	
 	//ALTERNATIVE FIRE
- 	if (GetAsyncKeyState(VK_RBUTTON))
+ 	if (Win_Window::keyMap[VK_RBUTTON])
 	{
 		alternativeFire = true;
 		player.Shoot();
 	}
 
-	if (cursorX > 0.8f)
+	// TODO: Find some easier formula for this?
+	int multiplier = 6;
+	
+	if (cursor.x > 0.8f)
 	{
-		cameraMoveBy += glm::vec2(-cameraMovement, 0.0f);
-		//currentLevel.Move(glm::vec2(-cameraMovement, 0.0f));
-		//player.Move(glm::vec2(-cameraMovement, 0.0f));
+		float someX = (cursor.x - 0.8f)*multiplier;
+		cameraMoveBy += glm::vec2(-cameraMovement*someX, 0.0f);
 	}
-	else if (cursorX < -0.8f)
+	else if (cursor.x < -0.8f)
 	{
-		cameraMoveBy += glm::vec2(cameraMovement, 0.0f);
-		//currentLevel.Move(glm::vec2(cameraMovement, 0.0f));
-		//player.Move(glm::vec2(cameraMovement, 0.0f));
+		float someX = (cursor.x + 0.8f)*multiplier;
+		cameraMoveBy += glm::vec2(-cameraMovement*someX, 0.0f);
 	}
-	if (cursorY > 0.8f)
+	if (cursor.y > 0.8f)
 	{
-		cameraMoveBy += glm::vec2(0.0f, -cameraMovement);
-		//currentLevel.Move(glm::vec2(0.0f, -cameraMovement));
-		//player.Move(glm::vec2(0.0f, -cameraMovement));
+		float someY = (cursor.y - 0.8f)*multiplier;
+		cameraMoveBy += glm::vec2(0.0f, -cameraMovement*someY);
 	}
-	else if (cursorY < -0.8f)
+	else if (cursor.y < -0.8f)
 	{
-		cameraMoveBy += glm::vec2(0.0f, cameraMovement);
-		//currentLevel.Move(glm::vec2(0.0f, cameraMovement));
-		//player.Move(glm::vec2(0.0f, cameraMovement));
+		float someY = (cursor.y + 0.8f)*multiplier;
+		cameraMoveBy += glm::vec2(0.0f, -cameraMovement*someY);
 	}
 	if (glm::length(glm::vec2(cameraMoveBy)))
 	{
@@ -660,9 +636,10 @@ void Game::RenderFirstPass()
 	currentLevel.Draw();
 	playerPos = currentLevel.GetLocalVec(player.GetCenteredGlobalPosition());
 	
-	glm::ivec2 correction = CorrectPosition();
+	//glm::ivec2 correction = CorrectPosition();
 	//debug1 = correction;
-	
+	glm::ivec2 correction;
+
  	player.Move(correction);
 	playerPos += correction;
 	player.SetCenteredLocalPosition(playerPos);
@@ -733,8 +710,8 @@ void Game::LoadLevel(const std::string& levelName)
 		{
 			levelFile >> collisionMap;
 			int width, height;
-			unsigned char* tmpCollision = SOIL_load_image((folderPath + collisionMap).c_str(), &width, &height, NULL, SOIL_LOAD_RGBA);
-			collision = (charFour*)tmpCollision;
+			byte_vec4* tmpCollision = reinterpret_cast<byte_vec4*>(SOIL_load_image((folderPath + collisionMap).c_str(), &width, &height, NULL, SOIL_LOAD_RGBA));
+			collision = std::shared_ptr<byte_vec4>(tmpCollision);
 		}
 		else if (tmp == "Player:")
 		{
@@ -781,7 +758,8 @@ void Game::LoadLevel(const std::string& levelName)
 	player.Move(-player.GetCenteredGlobalPosition());
 }
 
-Game::Game()
+Game::Game():
+	cameraSpeed(600.0f)
 {
 	std::ifstream initFile("Assets\\GameInit.txt");
 	if (!initFile)

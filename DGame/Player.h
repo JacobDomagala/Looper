@@ -1,9 +1,11 @@
 #pragma once
-#include"Common.h"
-#include"Shaders.h"
-#include"Sprite.h"
-#include"GameObject.h"
-#include"Weapon.h"
+
+#include "Common.h"
+#include "Shaders.h"
+#include "Sprite.h"
+#include "GameObject.h"
+#include "Weapon.h"
+
 class Enemy;
 
 class Player {
@@ -23,8 +25,8 @@ class Player {
 	// global position in the origin in the center of sprite
 	glm::vec2  centeredGlobalPosition;
 
-	Sprite      sprite;
-	Shaders     program;
+	Sprite sprite;
+	Shaders program;
 
 	Weapon* weapons[3];
 	Weapon* currentWeapon;
@@ -33,7 +35,7 @@ class Player {
 	int currentHP;
 	
 	//leaking memory, GET RID OF IT
-	charFour* collision;
+	std::shared_ptr<byte_vec4> collision;
 	GLuint vertexArrayBuffer;
 	GLuint vertexBuffer;
 
@@ -55,16 +57,18 @@ public:
 	void SetLocalPosition(glm::ivec2 pos); 
 	void SetCenteredLocalPosition(glm::ivec2 pos);
 	void SetGlobalPosition(glm::vec2 position);
+
 	glm::vec2 GetGlobalPosition() const;
 	glm::vec2 GetCenteredGlobalPosition() const;
 	glm::vec2 GetScreenPosition() const;
 	glm::ivec2 GetScreenPositionPixels() const;
 	glm::ivec2 GetLocalPosition() const;
 	glm::ivec2 GetCenteredLocalPosition() const;
-	glm::ivec2 GetSize()const
+	glm::ivec2 GetSize() const
 	{
 		return sprite.GetSize();
 	}
+	
 	void Move(glm::vec2 vector);
 	void CreateSprite(glm::vec2 position = glm::vec2(0.0f, 0.0f), 
 					  glm::ivec2 size = glm::ivec2(32,32), 
@@ -76,6 +80,5 @@ public:
 	int GetWeaponDmg() const;
 	void Draw();
 	void Shoot();
-	
 };
 

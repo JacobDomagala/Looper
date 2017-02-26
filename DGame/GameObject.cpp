@@ -1,5 +1,5 @@
-#include"GameObject.h"
-#include"Win_Window.h"
+#include "GameObject.h"
+#include "Win_Window.h"
 
 extern Win_Window* window;
 

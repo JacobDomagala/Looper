@@ -104,12 +104,13 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>.\..\Reasource\FreeType\include;.\..\Reasource\GLM\glm\glm;.\..\Reasource\GLEW\glew-1.12.0\include\GL;.\..\Reasource\Simple OpenGL Image Library\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>.\..\Reasource\FreeType\objs;.\..\Reasource\Simple OpenGL Image Library\lib;.\..\Reasource\GLEW\glew-1.12.0;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>freetype263.lib;freetype263d.lib;SOIL.lib;openGL32.lib;glew32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>.\..\Reasource\FreeType\obj;.\..\Reasource\Simple OpenGL Image Library\lib;.\..\Reasource\GLEW\glew-1.12.0;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>freetype27.lib;freetype27d.lib;SOIL.lib;openGL32.lib;glew32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

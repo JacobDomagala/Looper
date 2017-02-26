@@ -1,10 +1,9 @@
-#include"Win_Window.h"
-#include"Timer.h"
-#include"Game.h"
+#include "Win_Window.h"
+#include "Timer.h"
+#include "Game.h"
 
 Timer* globalTimer;
 Win_Window* window;
-
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {

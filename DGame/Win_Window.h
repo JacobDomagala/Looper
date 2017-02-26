@@ -1,9 +1,7 @@
 #pragma once
-#include"Common.h"
-
+#include "Common.h"
 
 class Win_Window {
-private:
 	WNDCLASS  windowClass;
 	HWND      windowHandle;
 	HINSTANCE hInstance;
@@ -14,12 +12,20 @@ private:
 	glm::vec2 cursorPos;
 	
 public:
-	static bool isRunning;
+	static std::unordered_map<uint8, bool> keyMap;
+	//static bool leftMouseKeyPressed;
+	//static bool rightMouseKeyPressed;
+
+	bool isRunning;
 	int drawWidth;
 	int drawHeight;
 	int xBias;
 	int yBias;
-	Win_Window(HINSTANCE hInstance) : hInstance(hInstance) 
+
+	static LRESULT CALLBACK MainWinProc(HWND hWind, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	
+	Win_Window(HINSTANCE hInstance) :
+		hInstance(hInstance) 
 	{
 		isRunning = true; 
 		projectionMatrix = glm::ortho(static_cast<float>(-WIDTH / 2.0f), 
@@ -29,17 +35,31 @@ public:
 									  -1.0f, 1.0f);
 	}
 	void SetCursor(const glm::vec2 position) { cursorPos = position; }
-	glm::vec2 GetCursor() const 
+	glm::vec2 GetCursor() 
 	{
 		POINT cursor;
 		GetCursorPos(&cursor);
 		ScreenToClient(windowHandle, &cursor);
-		return glm::vec2(cursor.x, cursor.y); 
+		cursorPos.x = static_cast<float>(cursor.x);
+		cursorPos.y = static_cast<float>(cursor.y);
+		
+		return cursorPos;
 	}
-	glm::vec2 GetCursorNormalized() const 
+	glm::vec2 GetCursorNormalized() 
 	{
-		glm::vec4 tmpCursor = projectionMatrix * glm::vec4(cursorPos, 0.0f, 1.0f);
-		return glm::vec2(tmpCursor.x, tmpCursor.y);
+		POINT tmpCursor;
+		GetCursorPos(&tmpCursor);
+		ScreenToClient(windowHandle, &tmpCursor);
+		
+		glm::vec2 center(WIDTH / 2.0f, HEIGHT / 2.0f);
+		
+		tmpCursor.x -= static_cast<LONG>(center.x);
+		tmpCursor.y -= static_cast<LONG>(center.y);
+		
+		float cursorX = tmpCursor.x / center.x;
+		float cursorY = tmpCursor.y / center.y;
+
+		return glm::vec2(cursorX, cursorY);
 	}
 	void Createwindow();
 	void SetUpOpenGL();
