@@ -40,24 +40,42 @@ public:
 		POINT cursor;
 		GetCursorPos(&cursor);
 		ScreenToClient(windowHandle, &cursor);
-		cursorPos.x = static_cast<float>(cursor.x);
-		cursorPos.y = static_cast<float>(cursor.y);
-		
-		return cursorPos;
+
+		cursorPos = glm::vec2(cursor.x, cursor.y);
+
+		return glm::vec2(cursor.x, cursor.y);
+		//cursorPos.x = static_cast<float>(cursor.x);
+		//cursorPos.y = static_cast<float>(cursor.y);
+		//
+		//return cursorPos;
 	}
+
+	glm::vec2 GetCursorScreenPosition()
+	{
+		POINT cursor;
+		GetCursorPos(&cursor);
+		ScreenToClient(windowHandle, &cursor);
+		cursorPos = glm::vec2(cursor.x, cursor.y);
+		cursorPos -= glm::vec2(static_cast<float>(WIDTH / 2.0f), static_cast<float>(HEIGHT / 2.0f));
+
+		glm::vec4 tmpCursor = projectionMatrix * glm::vec4(cursorPos, 0.0f, 1.0f);
+		return glm::vec2(tmpCursor.x, tmpCursor.y);
+	}
+
 	glm::vec2 GetCursorNormalized() 
 	{
-		POINT tmpCursor;
-		GetCursorPos(&tmpCursor);
-		ScreenToClient(windowHandle, &tmpCursor);
+		POINT cursor;
+		GetCursorPos(&cursor);
+		ScreenToClient(windowHandle, &cursor);
+		cursorPos = glm::vec2(cursor.x, cursor.y);
 		
 		glm::vec2 center(WIDTH / 2.0f, HEIGHT / 2.0f);
 		
-		tmpCursor.x -= static_cast<LONG>(center.x);
-		tmpCursor.y -= static_cast<LONG>(center.y);
+		cursor.x -= static_cast<LONG>(center.x);
+		cursor.y -= static_cast<LONG>(center.y);
 		
-		float cursorX = tmpCursor.x / center.x;
-		float cursorY = tmpCursor.y / center.y;
+		float cursorX = cursor.x / center.x;
+		float cursorY = cursor.y / center.y;
 
 		return glm::vec2(cursorX, cursorY);
 	}

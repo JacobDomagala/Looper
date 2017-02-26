@@ -568,8 +568,8 @@ void Game::MouseEvents(float deltaTime)
 {
 	float cameraMovement = floor(cameraSpeed*deltaTime);
 	glm::ivec2 cameraMoveBy = glm::ivec2();
-	
-	cursor = window->GetCursorNormalized();
+
+	cursor = window->GetCursorScreenPosition();
  	glm::vec2 tmp = CheckBulletCollision(player.GetWeaponRange());
 	
 	DrawLine(currentLevel.GetGlobalVec(player.GetCenteredLocalPosition()), currentLevel.GetGlobalVec(tmp), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -613,15 +613,15 @@ void Game::MouseEvents(float deltaTime)
 		float someX = (cursor.x + 0.8f)*multiplier;
 		cameraMoveBy += glm::vec2(-cameraMovement*someX, 0.0f);
 	}
-	if (cursor.y > 0.8f)
+	if (cursor.y < -0.8f)
 	{
 		float someY = (cursor.y - 0.8f)*multiplier;
-		cameraMoveBy += glm::vec2(0.0f, -cameraMovement*someY);
+		cameraMoveBy += glm::vec2(0.0f, cameraMovement*someY);
 	}
-	else if (cursor.y < -0.8f)
+	else if (cursor.y > 0.8f)
 	{
 		float someY = (cursor.y + 0.8f)*multiplier;
-		cameraMoveBy += glm::vec2(0.0f, -cameraMovement*someY);
+		cameraMoveBy += glm::vec2(0.0f, cameraMovement*someY);
 	}
 	if (glm::length(glm::vec2(cameraMoveBy)))
 	{

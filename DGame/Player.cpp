@@ -105,11 +105,11 @@ void Player::Draw()
 	//float cursorX = cursorPos.x / center.x;
 	//float cursorY = cursorPos.y / center.y;
 
-	glm::vec2 cursorPos = window->GetCursorNormalized();
+	glm::vec2 cursorScreenPos = window->GetCursorScreenPosition();
 
 	//glm::vec4 tmpCursor = window->GetProjection() * glm::vec4(cursorPos.x, cursorPos.y, 0.0f, 1.0f);
-	glm::vec4 tmpPos = window->GetProjection() * glm::vec4(centeredGlobalPosition, 0.0f, 1.0f);
-	angle = -glm::degrees(glm::atan(tmpPos.y - cursorPos.y, tmpPos.x - cursorPos.x));
+	glm::vec4 screenPosition = window->GetProjection() * glm::vec4(centeredGlobalPosition, 0.0f, 1.0f);
+	angle = -glm::degrees(glm::atan(screenPosition.y - cursorScreenPos.y, screenPosition.x - cursorScreenPos.x));
 
 #pragma endregion
 	
