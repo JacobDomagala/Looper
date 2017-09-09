@@ -27,6 +27,7 @@ std::shared_ptr<byte_vec4> Texture::LoadTextureFromFile(const std::string& fileN
 
 	return returnPtr;
 }
+
 void Texture::LoadTextureFromMemory(int width, int height, uint8* data, GLenum wrapMode, GLenum filter)
 {
 	glGenTextures(1, &textureID);
@@ -40,6 +41,7 @@ void Texture::LoadTextureFromMemory(int width, int height, uint8* data, GLenum w
 	glSamplerParameteri(samplerID, GL_TEXTURE_WRAP_T, wrapMode);
 	unit = unitCounter++;
 }
+
 void Texture::Use(GLuint program)
 {
 	if (nowBound != unit)

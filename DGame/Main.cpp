@@ -3,13 +3,9 @@
 #include "Game.h"
 
 Timer* globalTimer;
-//Win_Window* Win_Window::GetInstance();
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	//GetModuleHandle(0) for geting hInstance!!
-	//Win_Window::GetInstance() = new Win_Window(hInstance);
-
 	Win_Window::GetInstance()->Createwindow();
 	Win_Window::GetInstance()->SetUpOpenGL();
 	
@@ -54,7 +50,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		frameTimer += globalTimer->GetDeltaTime();
 	}
 
-	//delete(Win_Window::GetInstance());
+	delete(Win_Window::GetInstance());
 	delete(globalTimer);
 
 	return EXIT_SUCCESS;

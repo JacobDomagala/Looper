@@ -8,8 +8,8 @@
 
 class Enemy;
 
-class Player {
-
+class Player 
+{
 	// name of the player
 	std::string name;
 
@@ -48,7 +48,7 @@ class Player {
 public:
 	Player(glm::vec2 position = glm::vec2(0.0f, 0.0f),
 		   const std::string& name = "Anonymous");
-	~Player(); 
+	~Player() = default;
 
 	bool CheckCollision(glm::ivec2 pos, GameObject* obj);
 

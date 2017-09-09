@@ -22,6 +22,7 @@ static void swap(float& first, float& second)
 	first = second;
 	second = tmp;
 }
+
 glm::ivec2 GlobalToScreen(glm::vec2 globalPos)
 {
 	glm::vec4 screenPosition = Win_Window::GetInstance()->GetProjection() * glm::vec4(globalPos, 0.0f, 1.0f);
@@ -32,6 +33,40 @@ glm::ivec2 GlobalToScreen(glm::vec2 globalPos)
 
 	return tmpPos;
 }
+
+Game::Game() :
+	cameraSpeed(600.0f)
+{
+	std::ifstream initFile("Assets\\GameInit.txt");
+	if (!initFile)
+		Win_Window::GetInstance()->ShowError("Can't open Assets/GameInit.txt", "Game Initializing");
+
+	while (!initFile.eof())
+	{
+		std::string tmp = "";
+		initFile >> tmp;
+		if (tmp == "Levels:")
+		{
+			while (initFile.peek() != '\n' && initFile.peek() != EOF)
+			{
+				initFile >> tmp;
+				levels.push_back(tmp);
+			}
+		}
+		else if (tmp == "Font:")
+		{
+			initFile >> tmp;
+			font.SetFont(tmp);
+		}
+
+	}
+
+	initFile.close();
+
+	LoadLevel(levels[0]);
+	state = GameState::GAME;
+}
+
 glm::ivec2 Game::CorrectPosition()
 {	
 	uint32 linearPosition = static_cast<uint32>(floor(playerPos.x + playerPos.y*levelSize.x));
@@ -87,11 +122,13 @@ glm::ivec2 Game::CorrectPosition()
 		}
 		return glm::ivec2(0, 0);
 }
+
 void Game::DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color)
 {
 	std::shared_ptr<DebugObject> tmp(new Line(from, to, color));
 	debugObjs.push_back(tmp);
 }
+
 void Game::RenderLine(glm::ivec2 collided, glm::vec3 color)
 {
 	glm::vec2 lineCollided = currentLevel.GetGlobalVec(collided);
@@ -124,6 +161,7 @@ void Game::RenderLine(glm::ivec2 collided, glm::vec3 color)
 	glDeleteBuffers(1, &lineVertexBuffer);
 	glDeleteVertexArrays(1, &lineVertexArray);
 }
+
 glm::ivec2 Game::CheckBulletCollision(GameObject* from, glm::vec2 globalFrom, int range)
 {
 	glm::ivec2 fromPixels = GlobalToScreen(globalFrom);
@@ -206,6 +244,7 @@ glm::ivec2 Game::CheckBulletCollision(GameObject* from, glm::vec2 globalFrom, in
 	}
 	return glm::ivec2();
 }
+
 glm::ivec2 Game::CheckBulletCollision(GameObject* from, int range)
 {
 	float x1, x2, y1, y2;
@@ -284,6 +323,7 @@ glm::ivec2 Game::CheckBulletCollision(GameObject* from, int range)
 	}
 	return glm::ivec2();
 }
+
 glm::ivec2 Game::CheckBulletCollision(int range)
 {
 	//Enemy* tmpe = (Enemy*)currentLevel.objects[0];
@@ -364,6 +404,7 @@ glm::ivec2 Game::CheckBulletCollision(int range)
 	}
 	return glm::ivec2();
 }
+
 glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 {
 	glm::ivec2 destination = playerPos + moveBy;
@@ -476,6 +517,7 @@ glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 	// worst case scenario you won't move
 	return glm::ivec2() + positionBias;
 }
+
 bool Game::CheckMove(glm::ivec2& moveBy)
 {
 	moveBy = CheckCollision(moveBy);
@@ -484,6 +526,7 @@ bool Game::CheckMove(glm::ivec2& moveBy)
 		return true;
 	else return false;
 }
+
 void Game::KeyEvents(float deltaTime)
 {
 	int cameraMovement = static_cast<int>(300.0f*deltaTime);
@@ -768,39 +811,6 @@ void Game::LoadLevel(const std::string& levelName)
 
 	currentLevel.Move(-player.GetCenteredGlobalPosition());
 	player.Move(-player.GetCenteredGlobalPosition());
-}
-
-Game::Game():
-	cameraSpeed(600.0f)
-{
-	std::ifstream initFile("Assets\\GameInit.txt");
-	if (!initFile)
-		Win_Window::GetInstance()->ShowError("Can't open Assets/GameInit.txt", "Game Initializing");
-
-	while (!initFile.eof())
-	{
-		std::string tmp = "";
-		initFile >> tmp;
-		if (tmp == "Levels:")
-		{
-			while (initFile.peek() != '\n' && initFile.peek() != EOF)
-			{
-				initFile >> tmp;
-				levels.push_back(tmp);
-			}
-		}
-		else if (tmp == "Font:")
-		{
-			initFile >> tmp;
-			font.SetFont(tmp);
-		}
-
-	}
-
-	initFile.close();
-
-	LoadLevel(levels[0]);
-	state = GameState::GAME;
 }
 
 void Game::ProcessInput(float deltaTime)

@@ -26,11 +26,6 @@ Framebuffer::Framebuffer()
 	shaders.LoadShaders("Shaders//AfterEffects_vs.glsl", "Shaders//AfterEffects_fs.glsl");
 }
 
-
-Framebuffer::~Framebuffer()
-{
-}
-
 void Framebuffer::LoadShaders(const std::string& shaderName)
 {
 	shaders.LoadShaders("Shaders//" + shaderName + "_vs.glsl", "Shaders//" + shaderName + "_fs.glsl");

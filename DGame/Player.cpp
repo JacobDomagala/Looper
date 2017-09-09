@@ -1,10 +1,9 @@
 #include "Player.h"
-#include"Win_Window.h"
-#include"Enemy.h"
-#include"Game.h"
+#include "Win_Window.h"
+#include "Enemy.h"
+#include "Game.h"
 
 #define ARRAY_COUNT(X) sizeof(X)/sizeof(X[0])
-
 
 Player::Player(glm::vec2 position, const std::string& name):
 	globalPosition(position),
@@ -18,11 +17,6 @@ Player::Player(glm::vec2 position, const std::string& name):
 	std::shared_ptr<Weapon> tmp(new Glock());
 	weapons[0] = currentWeapon;
 	weapons[1] = tmp;
-}
-
-Player::~Player()
-{
-
 }
 
 void Player::CreateSprite(glm::vec2 position, glm::ivec2 size, const std::string& fileName)

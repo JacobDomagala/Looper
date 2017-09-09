@@ -1,9 +1,11 @@
 #pragma once
-#include"Common.h"
-#include"Texture.h"
-#include"Shaders.h"
 
-class Sprite {
+#include "Common.h"
+#include "Texture.h"
+#include "Shaders.h"
+
+class Sprite 
+{
 	Texture texture;
 	glm::vec4 color;
 	glm::vec2 centeredPosition;
@@ -17,9 +19,10 @@ class Sprite {
 	glm::vec3 velocity;
 	glm::vec2 scaleVal;
 	float angle;
+
 public:
-	Sprite() { }
-	~Sprite() { }
+	Sprite() = default;
+	~Sprite() = default;
 
 	void SetSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f), glm::ivec2 size = glm::ivec2(10, 10));
 	std::shared_ptr<byte_vec4> SetSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f), glm::ivec2 size = glm::ivec2(10, 10), const std::string& fileName = ".\\Default.png");

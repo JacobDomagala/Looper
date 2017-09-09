@@ -1,11 +1,9 @@
 #include "Font.h"
-#include"Win_Window.h"
-#include"Texture.h"
-
+#include "Win_Window.h"
+#include "Texture.h"
 
 void Font::SetFont(const std::string& fileName)
 {
-
 	program.LoadShaders("Shaders//Font_vs.glsl", "Shaders//Font_fs.glsl");
 	FT_Library ft;
 	if (FT_Init_FreeType(&ft))
@@ -69,6 +67,7 @@ void Font::SetFont(const std::string& fileName)
 	glBindVertexArray(0);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 }
+
 void Font::RenderText(std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color)
 {
 	// Activate corresponding render state	

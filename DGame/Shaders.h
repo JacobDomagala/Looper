@@ -1,11 +1,15 @@
 #pragma once
-#include"Common.h"
 
-enum class ShaderType : uint8{
+#include "Common.h"
+
+enum class ShaderType : uint8
+{
 	VERTEX_SHADER,
 	FRAGMENT_SHADER
 };
-class Shaders {
+
+class Shaders 
+{
 	GLuint programID;
 	GLuint vertexShaderID;
 	GLuint fragmentShaderID;
@@ -15,10 +19,11 @@ class Shaders {
 	
 	void CheckCompileStatus(GLuint shaderID);
 	void CheckLinkStatus(GLuint programID);
+
 public:
 	static GLuint numberBound;
 
-	Shaders() { }
+	Shaders() = default;
 	~Shaders() 
 	{
 		glDeleteProgram(programID);

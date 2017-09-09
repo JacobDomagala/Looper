@@ -1,5 +1,5 @@
 #include "Sprite.h"
-#include"Win_Window.h"
+#include "Win_Window.h"
 
 void Sprite::SetSprite(const glm::vec2& position , glm::ivec2 size)
 {
@@ -32,6 +32,7 @@ void Sprite::SetSprite(const glm::vec2& position , glm::ivec2 size)
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
 	glBindVertexArray(0);
 }
+
 std::shared_ptr<byte_vec4> Sprite::SetSpriteTextured(const glm::vec2& position, glm::ivec2 size, const std::string& fileName)
 {
 	std::shared_ptr<byte_vec4> returnPtr = texture.LoadTextureFromFile(fileName);

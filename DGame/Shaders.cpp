@@ -1,5 +1,5 @@
 #include "Shaders.h"
-#include"Win_Window.h"
+#include "Win_Window.h"
 
 GLuint Shaders::activeProgramID = 0;
 GLuint Shaders::numberBound = 0;
@@ -93,6 +93,7 @@ void Shaders::CheckCompileStatus(GLuint shaderID)
 		delete[] (log);
 	}
 }
+
 void Shaders::CheckLinkStatus(GLuint programID)
 {
 	GLint isLinked = 0;
@@ -117,16 +118,19 @@ void Shaders::SetUniformFloat(float value, const std::string& name) const
 	GLint location = glGetUniformLocation(programID, name.c_str());
 	glUniform1f(location, value);
 }
+
 void Shaders::SetUniformFloatVec2(const glm::vec2& value, const std::string& name) const
 {
 	GLint location = glGetUniformLocation(programID, name.c_str());
 	glUniform2fv(location, 1, glm::value_ptr(value));
 }
+
 void Shaders::SetUniformFloatVec4(const glm::vec4& value, const std::string& name) const
 {
 	GLint location = glGetUniformLocation(programID, name.c_str());
 	glUniform4fv(location, 1, glm::value_ptr(value));
 }
+
 void Shaders::SetUniformFloatMat4(const glm::mat4& value, const std::string& name) const
 {
 	GLint location = glGetUniformLocation(programID, name.c_str());

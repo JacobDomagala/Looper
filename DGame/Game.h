@@ -8,8 +8,8 @@
 #include "Timer.h"
 #include "Win_Window.h"
 
-
-enum class GameState: char {
+enum class GameState: char 
+{
 	MENU = 0,
 	GAME,
 	EDITOR
@@ -127,6 +127,7 @@ class Game
 	
 public:
 	Game();
+	~Game() = default;
 
 	static Player player;
 	static glm::ivec2 CheckBulletCollision(GameObject* from, glm::vec2 fromr, int range);

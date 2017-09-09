@@ -1,4 +1,4 @@
-#include"Win_Window.h"
+#include "Win_Window.h"
 
 std::unordered_map<WPARAM, bool> Win_Window::keyMap;
 //bool Win_Window::leftMouseKeyPressed;
@@ -79,6 +79,7 @@ void Win_Window::Createwindow()
 	GetClientRect(windowHandle, &rect);
 	int i = 6;
 }
+
 void Win_Window::SetUpOpenGL()
 {
 	hdc = GetDC(windowHandle);

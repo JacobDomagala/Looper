@@ -1,7 +1,9 @@
 #pragma once
-#include"Common.h"
 
-class Weapon {
+#include "Common.h"
+
+class Weapon 
+{
 protected:
 	int range;
 	int dmg;
@@ -9,20 +11,21 @@ protected:
 	bool hasAmmo;
 	std::string name;
 	float reloadTime;
-public:
 
+public:
+	Weapon() = default;
+	virtual ~Weapon() = default;
+	
 	virtual std::string GetName() const { return name; }
 	virtual int GetAmmoNum() const { return ammoNum; }
 	virtual float GetReloadTime() const { return reloadTime; }
 	virtual int GetRange() const { return range; }
 	virtual int GetDamage() const { return dmg; }
-	void Shoot(const glm::vec2& direction) {}
-	Weapon();
-	virtual ~Weapon();
+	virtual void Shoot(const glm::vec2& direction) {}
 };
 
-class SniperRifle : public Weapon {
-
+class SniperRifle : public Weapon 
+{
 
 public:
 	SniperRifle()
@@ -34,12 +37,11 @@ public:
 		ammoNum = 10;
 		reloadTime = 1.0f;
 	}
-	~SniperRifle() {}
+	virtual ~SniperRifle() = default;
 };
 
-class Glock : public Weapon {
-
-
+class Glock : public Weapon 
+{
 public:
 	Glock()
 	{
@@ -50,5 +52,5 @@ public:
 		ammoNum = 20;
 		reloadTime = 0.3f;
 	}
-	~Glock() {}
+	virtual ~Glock() = default;
 };

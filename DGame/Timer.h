@@ -1,7 +1,9 @@
 #pragma once
-#include"Common.h"
 
-class Timer {
+#include "Common.h"
+
+class Timer 
+{
 	LARGE_INTEGER frequency;
 	LARGE_INTEGER counter;
 	double deltaTime;
@@ -10,6 +12,7 @@ class Timer {
 
 public:
 	Timer();
+	~Timer() = default;
 
 	void ToggleTimer();
 

@@ -1,7 +1,9 @@
 #pragma once
+
 #include "Common.h"
 
-class Win_Window {
+class Win_Window 
+{
 	WNDCLASS  windowClass;
 	HWND      windowHandle;
 	HINSTANCE hInstance;
@@ -23,12 +25,12 @@ class Win_Window {
 	}
 
 public:
-
 	static Win_Window* GetInstance()
 	{
 		static Win_Window* window;
 		if (window == nullptr)
 		{
+			//GetModuleHandle(0) for geting hInstance
 			window = new Win_Window(GetModuleHandle(0));
 		}
 
@@ -48,7 +50,6 @@ public:
 	int yBias;
 
 	static LRESULT CALLBACK MainWinProc(HWND hWind, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	
 	
 	void SetCursor(const glm::vec2 position) { cursorPos = position; }
 	glm::vec2 GetCursor() 
