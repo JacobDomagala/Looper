@@ -162,7 +162,7 @@ void Game::RenderLine(glm::ivec2 collided, glm::vec3 color)
 	glDeleteVertexArrays(1, &lineVertexArray);
 }
 
-glm::ivec2 Game::CheckBulletCollision(GameObject* from, glm::vec2 globalFrom, int range)
+glm::ivec2 Game::CheckBulletCollision(Enemy* from, glm::vec2 globalFrom, int range)
 {
 	glm::ivec2 fromPixels = GlobalToScreen(globalFrom);
 	glm::ivec2 fromLocal = currentLevel.GetLocalVec(globalFrom);
@@ -245,7 +245,7 @@ glm::ivec2 Game::CheckBulletCollision(GameObject* from, glm::vec2 globalFrom, in
 	return glm::ivec2();
 }
 
-glm::ivec2 Game::CheckBulletCollision(GameObject* from, int range)
+glm::ivec2 Game::CheckBulletCollision(Enemy* from, int range)
 {
 	float x1, x2, y1, y2;
 	x1 = from->GetScreenPositionPixels().x;
@@ -705,7 +705,7 @@ void Game::RenderFirstPass()
 void Game::RenderSecondPass()
 {
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	glm::ivec2 debug2 = player.GetCenteredGlobalPosition();
+	glm::ivec2 debug2 = player.GetCenteredLocalPosition();
 	for (auto& obj : debugObjs)
 	{
 		obj->Draw();

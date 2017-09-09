@@ -3,7 +3,6 @@
 #include "Level.h"
 
 GameObject::GameObject(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite):
-	
 	m_globalPosition(pos),
 	m_localPosition(Level::GetLocalVec(glm::ivec2(pos.x, -pos.y))),
 	m_visible(true)

@@ -6,7 +6,7 @@
 
 extern Timer* globalTimer;
 
-Enemy::Enemy(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite):
+Enemy::Enemy(const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite):
 	GameObject(pos, size, sprite),
 	maxHP(100),
 	currentHP(maxHP),
@@ -20,7 +20,7 @@ void Enemy::DealWithPlayer()
 {
 	// calculate distance between enemy and player
 	float length = glm::length(m_centeredGlobalPosition - Game::player.GetCenteredGlobalPosition());
-	Game::RenderText(std::to_string(length) + " length     " + std::to_string(m_centeredGlobalPosition.x) + "   " + std::to_string(m_centeredGlobalPosition.y), glm::vec2(static_cast<float>(-WIDTH / 2), static_cast<float>(-HEIGHT / 2)), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));
+	
 	// TODO: change this check with enemy's 'vision range'
 	// player is enemy's sight of vision
 	if (length <= 500.0f)
@@ -52,7 +52,7 @@ bool Enemy::Visible() const
 	return true;
 }
 
-void Enemy::SetPlayerPos(glm::vec2 playerPos)
+void Enemy::SetPlayerPos(const glm::vec2& playerPos)
 {
 	timer.ToggleAndAccumulate();
 	

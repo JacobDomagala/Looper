@@ -26,19 +26,20 @@ class Enemy : public GameObject
 	bool combatStarted;
 
 public:
-	Enemy(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite);
+	Enemy(const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite);
 	virtual ~Enemy() = default;
 	
 	virtual bool Visible() const override;
 	virtual void Hit(int dmg) override;
+	virtual void DealWithPlayer() override;
 
 	int GetDmg() const 
 	{ 
 		return weapon->GetDamage(); 
 	}
-	virtual void DealWithPlayer() override;
+	
 	void Shoot();
 	void ClearPositions();
-	void SetPlayerPos(glm::vec2 pos);
+	void SetPlayerPos(const glm::vec2& pos);
 };
 

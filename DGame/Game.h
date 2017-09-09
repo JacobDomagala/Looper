@@ -130,8 +130,8 @@ public:
 	~Game() = default;
 
 	static Player player;
-	static glm::ivec2 CheckBulletCollision(GameObject* from, glm::vec2 fromr, int range);
-	static glm::ivec2 CheckBulletCollision(GameObject* from, int range);
+	static glm::ivec2 CheckBulletCollision(Enemy* from, glm::vec2 fromr, int range);
+	static glm::ivec2 CheckBulletCollision(Enemy* from, int range);
 	static void DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f));
 	void ProcessInput(float deltaTime);
 	static void RenderText(std::string text, const glm::vec2& position, float scale, const glm::vec3& color = glm::vec3(1.0f, 1.0f, 1.0f));
