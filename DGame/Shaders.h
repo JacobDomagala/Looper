@@ -2,14 +2,14 @@
 
 #include "Common.h"
 
-enum class ShaderType : uint8
-{
-	VERTEX_SHADER,
-	FRAGMENT_SHADER
-};
-
 class Shaders 
 {
+	enum class ShaderType : uint8 
+	{
+		VERTEX_SHADER,
+		FRAGMENT_SHADER
+	};
+
 	GLuint programID;
 	GLuint vertexShaderID;
 	GLuint fragmentShaderID;

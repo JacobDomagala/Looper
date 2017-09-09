@@ -4,114 +4,99 @@
 
 class Win_Window 
 {
-	WNDCLASS  windowClass;
-	HWND      windowHandle;
-	HINSTANCE hInstance;
-	HGLRC     hrc;
-	HDC       hdc;
+	// Win32 specific members
+	WNDCLASS  m_windowClass;
+	HWND      m_windowHandle;
+	HINSTANCE m_hInstance;
+	HGLRC     m_hrc;
+	HDC       m_hdc;
 
-	glm::mat4 projectionMatrix;
-	glm::vec2 cursorPos;
-	
-	Win_Window(HINSTANCE hInstance) :
-		hInstance(hInstance)
-	{
-		isRunning = true;
-		projectionMatrix = glm::ortho(static_cast<float>(-WIDTH / 2.0f),
-									  static_cast<float>(WIDTH / 2.0f),
-									  static_cast<float>(HEIGHT / 2.0f),
-									  static_cast<float>(-HEIGHT / 2.0f),
-									  -1.0f, 1.0f);
-	}
+	// projection matrix for OpenGL
+	glm::mat4 m_projectionMatrix;
+
+	// cursor position 
+	glm::vec2 m_cursorPos;
+
+	// is windows active
+	bool m_isRunning;
+
+	// key map
+	static std::unordered_map<WPARAM, bool> keyMap;
+
+	// private constructor
+	Win_Window(HINSTANCE hInstance);
 
 public:
-	static Win_Window* GetInstance()
-	{
-		static Win_Window* window;
-		if (window == nullptr)
-		{
-			//GetModuleHandle(0) for geting hInstance
-			window = new Win_Window(GetModuleHandle(0));
-		}
+	// singleton for window
+	static Win_Window* GetInstance();
 
-		return window;
-	}
+	// Win32 callback function
+	static LRESULT CALLBACK MainWinProc(HWND hWind, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+	// deleted copy constructor
 	Win_Window(Win_Window&) = delete;
 
-	static std::unordered_map<WPARAM, bool> keyMap;
-	//static bool leftMouseKeyPressed;
-	//static bool rightMouseKeyPressed;
+	// return true if given key is pressed
+	static bool GetKeyState(WPARAM keyValue)
+	{
+		return keyMap[keyValue];
+	}
 
-	bool isRunning;
-	int drawWidth;
-	int drawHeight;
-	int xBias;
-	int yBias;
+	// return true if the window is active
+	bool IsRunning() const
+	{
+		return m_isRunning;
+	}
 
-	static LRESULT CALLBACK MainWinProc(HWND hWind, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	// set cursos position
+	void SetCursor(const glm::vec2 position) 
+	{ 
+		m_cursorPos = position; 
+	}
+
+	// update and get curson position in Win32 coords
+	glm::vec2 GetCursor();
 	
-	void SetCursor(const glm::vec2 position) { cursorPos = position; }
-	glm::vec2 GetCursor() 
-	{
-		POINT cursor;
-		GetCursorPos(&cursor);
-		ScreenToClient(windowHandle, &cursor);
-		cursorPos.x = static_cast<float>(cursor.x);
-		cursorPos.y = static_cast<float>(cursor.y);
-		
-		return cursorPos;
-	}
-	
-	glm::vec2 GetCursorScreenPosition()
-	{
-		POINT cursor;
-		GetCursorPos(&cursor);
-		ScreenToClient(windowHandle, &cursor);
-		cursorPos = glm::vec2(cursor.x, cursor.y);
-		cursorPos -= glm::vec2(static_cast<float>(WIDTH / 2.0f), static_cast<float>(HEIGHT / 2.0f));
-		
-		glm::vec4 tmpCursor = projectionMatrix * glm::vec4(cursorPos, 0.0f, 1.0f);
-		return glm::vec2(tmpCursor.x, tmpCursor.y);
-	}
+	// update and get cursor position <-1, 1> 
+	// with positive 'y' is up
+	glm::vec2 GetCursorScreenPosition();
 
-	glm::vec2 GetCursorNormalized() 
-	{
-		POINT tmpCursor;
-		GetCursorPos(&tmpCursor);
-		ScreenToClient(windowHandle, &tmpCursor);
-		
-		glm::vec2 center(WIDTH / 2.0f, HEIGHT / 2.0f);
-		
-		tmpCursor.x -= static_cast<LONG>(center.x);
-		tmpCursor.y -= static_cast<LONG>(center.y);
-		
-		float cursorX = tmpCursor.x / center.x;
-		float cursorY = tmpCursor.y / center.y;
+	// update and get cursor position <-1, 1>
+	// with positive 'y' is down
+	glm::vec2 GetCursorNormalized();
 
-		return glm::vec2(cursorX, cursorY);
-	}
+	// create Win32 window
 	void Createwindow();
+
+	// initialize OpenGL
 	void SetUpOpenGL();
 
-	const glm::mat4& GetProjection() { return projectionMatrix; }
-	void SetProjection(const glm::mat4& projection) { projectionMatrix = projection; }
-
-
-	void ShutDown() 
+	// set projection matrix for OpenGL
+	void SetProjection(const glm::mat4& projection) 
 	{ 
-		isRunning = false; 
-		DestroyWindow(windowHandle);
-		exit(EXIT_SUCCESS);
+		m_projectionMatrix = projection; 
 	}
-	
-	void Swapwindow() { SwapBuffers(hdc); }
-	HWND GetWindowHandle() { return windowHandle; }
-	void ShowError(const std::string& errorMessage, const std::string& errorTitle)
+
+	// get projection matrix
+	const glm::mat4& GetProjection() const
+	{ 
+		return m_projectionMatrix; 
+	}
+
+	// get window handle
+	HWND GetWindowHandle()
 	{
-		MessageBoxExA(windowHandle, errorMessage.c_str(), errorTitle.c_str(), MB_OK, 0);
-		ShutDown();
+		return m_windowHandle;
 	}
+
+	// destroy window
+	void ShutDown();
+	
+	// swap render buffers
+	void Swapwindow();
+
+	// create pop-up message box with error and shut down 
+	void ShowError(const std::string& errorMessage, const std::string& errorTitle);
 };
 
 

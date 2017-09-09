@@ -175,16 +175,14 @@ void Level::Draw()
 
 	if (!objects.empty())
 	{	
-		//for (auto& obj : objects)
-		//{
-		//	if (obj->Visible())
-		//	{
-		//		obj->DealWithPlayer();
-		//		obj->Render(shaders);
-		//	}
-		//}
-		objects[0]->DealWithPlayer();
-		objects[0]->Render(shaders);
+		for (auto& obj : objects)
+		{
+			if (obj->Visible())
+			{
+				obj->DealWithPlayer();
+				obj->Render(shaders);
+			}
+		}
 	}
 }
 

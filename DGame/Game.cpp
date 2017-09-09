@@ -534,68 +534,68 @@ void Game::KeyEvents(float deltaTime)
 	glm::ivec2 playerMoveBy = glm::ivec2();
 	glm::ivec2 cameraMoveBy = glm::ivec2();
 
-	if (Win_Window::keyMap[VK_UP])
+	if (Win_Window::GetKeyState(VK_UP))
 	{
 		currentLevel.MoveObjs(glm::vec2(0.0f, 2.0f), false);
 	}
-	if (Win_Window::keyMap[VK_DOWN])
+	if (Win_Window::GetKeyState(VK_DOWN))
 	{
 		currentLevel.MoveObjs(glm::vec2(0.0f, -2.0f), false);
 	}
-	if (Win_Window::keyMap[VK_LEFT])
+	if (Win_Window::GetKeyState(VK_LEFT))
 	{
 		currentLevel.MoveObjs(glm::vec2(2.0f, 0.0f));
 	}
-	if (Win_Window::keyMap[VK_RIGHT])
+	if (Win_Window::GetKeyState(VK_RIGHT))
 	{
 		currentLevel.MoveObjs(glm::vec2(-2.0f, 0.0f));
 	}
-	if (Win_Window::keyMap[VK_ESCAPE])
+	if (Win_Window::GetKeyState(VK_ESCAPE))
 	{
 		Win_Window::GetInstance()->ShutDown();
 	}
-	if (Win_Window::keyMap['O'])
+	if (Win_Window::GetKeyState('O'))
 	{
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
-	if (Win_Window::keyMap['1'])
+	if (Win_Window::GetKeyState('1'))
 	{
 		player.ChangeWepon(1);
 	}
-	if (Win_Window::keyMap['2'])
+	if (Win_Window::GetKeyState('2'))
 	{
 		player.ChangeWepon(2);
 	}
-	if (Win_Window::keyMap['P'])
+	if (Win_Window::GetKeyState('P'))
 	{
 		glDisable(GL_BLEND);
 	}
-	if (Win_Window::keyMap['W'])
+	if (Win_Window::GetKeyState('W'))
 	{
 		playerMoveBy += glm::ivec2(0, -playerMovement);
 		cameraMoveBy += glm::ivec2(0, cameraMovement);
 	}
-	if (Win_Window::keyMap['S'])
+	if (Win_Window::GetKeyState('S'))
 	{
 		playerMoveBy += glm::ivec2(0, playerMovement);
 		cameraMoveBy += glm::ivec2(0, -cameraMovement);
 	}
-	if (Win_Window::keyMap['A'])
+	if (Win_Window::GetKeyState('A'))
 	{
 		playerMoveBy += glm::ivec2(-playerMovement, 0);
 		cameraMoveBy += glm::ivec2(cameraMovement, 0);
 	}
-	if (Win_Window::keyMap['D'])
+	if (Win_Window::GetKeyState('D'))
 	{
 		playerMoveBy += glm::ivec2(playerMovement, 0);
 		cameraMoveBy += glm::ivec2(-cameraMovement, 0);
 	}
-	if (Win_Window::keyMap['R'])
+	if (Win_Window::GetKeyState('R'))
 	{
 		player.Move(glm::vec2(200, 400));
 	}
-	if (Win_Window::keyMap[VK_SPACE])
+	if (Win_Window::GetKeyState(VK_SPACE))
 	{
 		currentLevel.Move(-player.GetCenteredGlobalPosition());
 		player.Move(-player.GetCenteredGlobalPosition());
@@ -619,7 +619,7 @@ void Game::MouseEvents(float deltaTime)
 	DrawLine(currentLevel.GetGlobalVec(player.GetCenteredLocalPosition()), currentLevel.GetGlobalVec(tmp), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	//PRIMARY FIRE
-	if (Win_Window::keyMap[VK_LBUTTON])
+	if (Win_Window::GetKeyState(VK_LBUTTON))
 	{
 		timer.ToggleTimer();
 		
@@ -638,7 +638,7 @@ void Game::MouseEvents(float deltaTime)
 	}
 	
 	//ALTERNATIVE FIRE
- 	if (Win_Window::keyMap[VK_RBUTTON])
+ 	if (Win_Window::GetKeyState(VK_RBUTTON))
 	{
 		alternativeFire = true;
 		player.Shoot();

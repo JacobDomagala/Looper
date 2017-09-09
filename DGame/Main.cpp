@@ -19,7 +19,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	float frameTimer = 0.0f;
 	int framesLastSecond = 0;
 
-	while (Win_Window::GetInstance()->isRunning)
+	while (Win_Window::GetInstance()->IsRunning())
 	{
 		if (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
 		{
