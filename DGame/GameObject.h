@@ -1,10 +1,11 @@
 #pragma once
-#include"Common.h"
-#include"Sprite.h"
-#include"Shaders.h"
 
+#include "Common.h"
+#include "Sprite.h"
+#include "Shaders.h"
 
-class GameObject {
+class GameObject 
+{
 protected:
 	glm::vec2 globalPosition;
 	glm::vec2 centeredGlobalPosition;
@@ -22,11 +23,12 @@ protected:
 	glm::vec2 translateVal;
 	glm::mat4 rotateMatrix;
 	glm::mat4 scaleMatrix;
+
 public:
 	// Constructors and destructors
-	GameObject() {}
+	GameObject() = default;
 	GameObject(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite);
-	~GameObject() {}
+	virtual ~GameObject() = default;
 	
 	virtual void Hit(int dmg) {}
 	virtual bool GetState() { return drawMe; }

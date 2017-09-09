@@ -24,60 +24,74 @@ glm::vec2 GameObject::GetScreenPositionPixels()
 	tmpPos.y += HEIGHT;
 	return tmpPos;
 }
+
 void GameObject::SetColor(const glm::vec3& color)
 {
 	sprite.SetColor(color);
 }
+
 glm::vec2 GameObject::GetSize()
 {
 	return sprite.GetSize();
 }
+
 glm::ivec2 GameObject::GetCenteredLocalPosition()
 {
 	return centeredLocalPosition;
 }
+
 void GameObject::SetCenteredLocalPosition(glm::ivec2 pos)
 {
 	centeredLocalPosition = pos;
 }
+
 void GameObject::SetLocalPosition(const glm::ivec2& position)
 {
 	localPosition = position;
 }
+
 void GameObject::SetGlobalPosition(const glm::vec2& position)
 {
 	globalPosition = position;
 }
+
 glm::vec2 GameObject::GetGlobalPosition()
 {
 	return globalPosition;
 }
+
 glm::ivec2 GameObject::GetLocalPosition()
 {
 	return localPosition;
 }
+
 glm::vec2 GameObject::GetCenteredGlobalPosition()
 {
 	return centeredGlobalPosition;
 }
+
 void GameObject::SetShaders(const Shaders& program)
 {
 	this->program = program;
 }
+
 void GameObject::SetTexture(Texture texture)
 {
 	sprite.SetTexture(texture);
 }
+
 void GameObject::CreateSprite(const glm::vec2& position, glm::ivec2 size)
 {
 	sprite.SetSprite(position, size);
 	globalPosition = sprite.GetCenteredPosition();
 }
+
 void GameObject::CreateSpriteTextured(const glm::vec2& position, glm::ivec2 size, const std::string& fileName)
 {
 	collision = sprite.SetSpriteTextured(position, size, fileName);
 	globalPosition = sprite.GetCenteredPosition();
 }
+
 void GameObject::Move(const glm::vec2& moveBy, bool isCameraMovement)
 {
 	sprite.Translate(moveBy);
@@ -90,6 +104,7 @@ void GameObject::Move(const glm::vec2& moveBy, bool isCameraMovement)
 	//}
 
 }
+
 void GameObject::Render(const Shaders& program)
 {
 	sprite.Render(program);

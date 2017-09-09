@@ -41,14 +41,17 @@ void Font::SetFont(const std::string& fileName)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		// Now store character for later use
+
 		Character character = {
 			texture,
 			glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
 			glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
-			face->glyph->advance.x
+			static_cast<GLuint>(face->glyph->advance.x)
 		};
+
 		Characters.insert(std::pair<GLchar, Character>(c, character));
 	}
+
 	glBindTexture(GL_TEXTURE_2D, 0);
 	// Destroy FreeType once we're finished
 	FT_Done_Face(face);

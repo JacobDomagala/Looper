@@ -1,6 +1,6 @@
 #include"Win_Window.h"
 
-std::unordered_map<unsigned char, bool> Win_Window::keyMap;
+std::unordered_map<WPARAM, bool> Win_Window::keyMap;
 //bool Win_Window::leftMouseKeyPressed;
 //bool Win_Window::rightMouseKeyPressed;
 

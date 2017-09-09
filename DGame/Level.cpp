@@ -1,25 +1,13 @@
 #include "Level.h"
-#include"Shaders.h"
-#include"Player.h"
-#include"Win_Window.h"
-#include"Timer.h"
-#include"Enemy.h"
-#include"Game.h"
+#include "Shaders.h"
+#include "Player.h"
+#include "Win_Window.h"
+#include "Timer.h"
+#include "Enemy.h"
+#include "Game.h"
 
 Sprite Level::background;
 glm::ivec2 Level::levelSize;
-
-Level::Level()
-{
-}
-
-Level::~Level()
-{
-	for (auto& obj : objects)
-	{
-		delete obj;
-	}
-}
 
 //void Level::Load(const std::string& fileName)
 //{
@@ -123,6 +111,7 @@ glm::vec2 Level::GetGlobalVec(glm::vec2 local)
 
 	return returnVal;
 }
+
 bool Level::CheckCollision(const glm::ivec2& localPos, Player& player)
 {
 	if (objects.empty())
@@ -162,11 +151,11 @@ void Level::LoadShaders(const std::string& shaderName)
 
 void Level::AddGameObject(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite)
 {
-	Enemy* tmpObj = new Enemy(pos, size, sprite);
+	std::unique_ptr<Enemy> tmpObj = std::make_unique<Enemy>(pos, size, sprite);
 	glm::ivec2 tmpPos = tmpObj->GetCenteredGlobalPosition();
 	tmpPos.y *= -1;
 	tmpObj->SetCenteredLocalPosition(tmpPos);
-	objects.push_back(tmpObj);
+	objects.push_back(std::move(tmpObj));
 }
 
 void Level::Move(const glm::vec2& moveBy)
@@ -178,6 +167,7 @@ void Level::Move(const glm::vec2& moveBy)
 	background.Translate(moveBy);
 	MoveCamera(moveBy);
 }
+
 void Level::Draw()
 {
 	background.Render(shaders);
@@ -203,36 +193,37 @@ void Level::Draw()
 			//	}
 			//}
 		
-		for (auto& obj : objects)
-		{
-			Enemy* objE = (Enemy*)obj;
-			if (objE->GetState())
-			{
-				
-				glm::vec2 tmpL = objE->GetCenteredGlobalPosition() - Game::player.GetCenteredGlobalPosition();
-				float tmpLF = glm::length(tmpL);
+		//for (auto& obj : objects)
+		//{
+		//	Enemy* objE = std::dynamic_pointer_cast<Enemy*>(obj.get());
+		//	if (objE->GetState())
+		//	{
+		//		
+		//		glm::vec2 tmpL = objE->GetCenteredGlobalPosition() - Game::player.GetCenteredGlobalPosition();
+		//		float tmpLF = glm::length(tmpL);
 
-				if (tmpLF <= 500.0f)
-				{
-					objE->Shoot();
-				}
-				else
-					((Enemy*)objE)->ClearPositions();
+		//		if (tmpLF <= 500.0f)
+		//		{
+		//			objE->Shoot();
+		//		}
+		//		else
+		//			((Enemy*)objE)->ClearPositions();
 
-				if (tmpLF <= 800.0f)
-					objE->SetPlayerPos(Game::player.GetCenteredLocalPosition());
-				
-				
-				obj->SetCenteredLocalPosition(GetLocalVec(objE->GetCenteredGlobalPosition()));
-				obj->SetLocalPosition(GetLocalVec(objE->GetGlobalPosition()));
-				obj->Render(shaders);
-				obj->SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
-				
-			}
-		}
+		//		if (tmpLF <= 800.0f)
+		//			objE->SetPlayerPos(Game::player.GetCenteredLocalPosition());
+		//		
+		//		
+		//		obj->SetCenteredLocalPosition(GetLocalVec(objE->GetCenteredGlobalPosition()));
+		//		obj->SetLocalPosition(GetLocalVec(objE->GetGlobalPosition()));
+		//		obj->Render(shaders);
+		//		obj->SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
+		//		
+		//	}
+		//}
 
 	}
 }
+
 void Level::MoveObjs(glm::vec2 moveBy, bool isCameraMovement)
 {
 	for (auto& obj : objects)
@@ -240,6 +231,7 @@ void Level::MoveObjs(glm::vec2 moveBy, bool isCameraMovement)
 		obj->Move(moveBy, isCameraMovement);
 	}
 }
+
 void Level::SetPlayersPosition(const glm::vec2& position)
 {
 	playerPos = position;
@@ -259,13 +251,14 @@ glm::ivec2 Level::CheckMoveCamera(const glm::vec2& moveBy) const
 
 	return GetTilePosition(tmp);
 }
+
 glm::ivec2 Level::GetTilePosition(const glm::vec2& position) const
 {
 	float tmpX = position.x;
 	float tmpY = position.y;
 
-	int tileX = ceil(tmpX / static_cast<float>(tileSize.x));
-	int tileY = ceil(tmpY / static_cast<float>(tileSize.y));
+	int tileX = static_cast<int>(ceilf(tmpX / static_cast<float>(tileSize.x)));
+	int tileY = static_cast<int>(ceilf(tmpY / static_cast<float>(tileSize.y)));
 
 	return glm::ivec2(tileX, tileY);
 }

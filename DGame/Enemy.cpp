@@ -1,10 +1,24 @@
 #include "Enemy.h"
-#include"Timer.h"
-#include"Game.h"
-#include"Level.h"
-#include"Weapon.h"
+#include "Timer.h"
+#include "Game.h"
+#include "Level.h"
+#include "Weapon.h"
 
 extern Timer* globalTimer;
+
+Enemy::Enemy(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite)
+{
+	collision = this->sprite.SetSpriteTextured(pos, size, sprite);
+	globalPosition = pos;
+	centeredGlobalPosition = this->sprite.GetCenteredPosition();
+	localPosition = glm::ivec2(pos.x, -pos.y);
+	drawMe = true;
+	positionIdx = 0;
+	shootIdx = 0;
+	maxHP = 100;
+	currentHP = maxHP;
+	weapon = std::make_shared<Glock>();
+}
 
 void Enemy::Hit(int dmg)
 {
@@ -17,19 +31,6 @@ bool Enemy::GetState()
 		return false;
 
 	return true;
-}
-Enemy::Enemy(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite)
-{
-	collision = this->sprite.SetSpriteTextured(pos, size, sprite);
-	globalPosition = pos;
-	centeredGlobalPosition = this->sprite.GetCenteredPosition();
-	localPosition = glm::ivec2(pos.x, -pos.y);
-	drawMe = true;
-	positionIdx = 0;
-	shootIdx = 0;
-	maxHP = 100;
-	currentHP = maxHP;
-	weapon = new Glock();
 }
 
 void Enemy::SetPlayerPos(glm::vec2 pos)
@@ -79,12 +80,12 @@ void Enemy::Shoot()
 	}
 	//Game::DrawLine(centeredGlobalPosition, Game::player.GetGlobalPosition());
 }
+
 void Enemy::ClearPositions()
 {
 	shootIdx = 0;
 	positionIdx = 0;
 	playerPositions = glm::vec2();
 }
-Enemy::~Enemy()
-{
-}
+
+

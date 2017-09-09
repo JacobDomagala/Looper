@@ -37,7 +37,7 @@ public:
 
 	Win_Window(Win_Window&) = delete;
 
-	static std::unordered_map<uint8, bool> keyMap;
+	static std::unordered_map<WPARAM, bool> keyMap;
 	//static bool leftMouseKeyPressed;
 	//static bool rightMouseKeyPressed;
 

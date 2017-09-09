@@ -1,17 +1,18 @@
 #pragma once
-#include"Common.h"
-#include"GameObject.h"
+
+#include "Common.h"
+#include "GameObject.h"
+
 class Shaders;
 class Player;
 
-class Level {
+class Level 
+{
 	//IN PROGRESS
 
 	static Sprite background;
 	std::unordered_map<std::string, Texture> textures;
 	Shaders shaders;
-
-
 	
 	glm::vec2 cameraPosition;
 	glm::ivec2 cameraTilePos;
@@ -25,9 +26,11 @@ class Level {
 	static glm::ivec2 levelSize;
 	
 public:
-	Level();
-	~Level();
-	std::vector<GameObject*> objects;
+	Level() = default;
+	~Level() = default;
+
+	std::vector<std::unique_ptr<GameObject>> objects;
+	
 	// Helper functions
 	static glm::vec2 GetLocalVec(glm::vec2 local) ;
 	static glm::vec2 GetGlobalVec(glm::vec2 local) ;

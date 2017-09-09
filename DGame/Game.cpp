@@ -131,8 +131,8 @@ glm::ivec2 Game::CheckBulletCollision(GameObject* from, glm::vec2 globalFrom, in
 	float x1, x2, y1, y2;
 	x1 = from->GetScreenPositionPixels().x;
 	y1 = from->GetScreenPositionPixels().y;
-	x2 = fromPixels.x;
-	y2 = fromPixels.y;
+	x2 = static_cast<float>(fromPixels.x);
+	y2 = static_cast<float>(fromPixels.y);
 
 	bool wasGreater = false;
 	const bool steep = (fabs(y2 - y1) > fabs(x2 - x1));
@@ -211,8 +211,8 @@ glm::ivec2 Game::CheckBulletCollision(GameObject* from, int range)
 	float x1, x2, y1, y2;
 	x1 = from->GetScreenPositionPixels().x;
 	y1 = from->GetScreenPositionPixels().y;
-	x2 = player.GetScreenPositionPixels().x;
-	y2 = player.GetScreenPositionPixels().y;
+	x2 = static_cast<float>(player.GetScreenPositionPixels().x);
+	y2 = static_cast<float>(player.GetScreenPositionPixels().y);
 	 
 	bool wasGreater = false;
 	const bool steep = (fabs(y2 - y1) > fabs(x2 - x1));
@@ -289,8 +289,8 @@ glm::ivec2 Game::CheckBulletCollision(int range)
 	//Enemy* tmpe = (Enemy*)currentLevel.objects[0];
 
 	float x1, x2, y1, y2;
-	x1 = player.GetScreenPositionPixels().x;
-	y1 = player.GetScreenPositionPixels().y;
+	x1 = static_cast<float>(player.GetScreenPositionPixels().x);
+	y1 = static_cast<float>(player.GetScreenPositionPixels().y);
 	x2 = Win_Window::GetInstance()->GetCursor().x;
 	y2 = Win_Window::GetInstance()->GetCursor().y;
 
@@ -372,7 +372,7 @@ glm::ivec2 Game::CheckCollision(glm::ivec2& moveBy)
 		destination.y < 0 || destination.y > levelSize.y)
 		return returnVal;
 
-	int distance = glm::length(static_cast<glm::vec2>(moveBy));
+	int distance = static_cast<int>(glm::length(static_cast<glm::vec2>(moveBy)));
 
 	glm::vec2 tmpDirection = glm::normalize(glm::vec2(moveBy));
 	glm::ivec2 direction = glm::ivec2(ceil(tmpDirection.x), ceil(tmpDirection.y));
@@ -486,8 +486,8 @@ bool Game::CheckMove(glm::ivec2& moveBy)
 }
 void Game::KeyEvents(float deltaTime)
 {
-	float cameraMovement = static_cast<int>(300.0f*deltaTime);
-	float playerMovement = static_cast<int>(500.0f*deltaTime);
+	int cameraMovement = static_cast<int>(300.0f*deltaTime);
+	int playerMovement = static_cast<int>(500.0f*deltaTime);
 	glm::ivec2 playerMoveBy = glm::ivec2();
 	glm::ivec2 cameraMoveBy = glm::ivec2();
 

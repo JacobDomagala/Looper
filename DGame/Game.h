@@ -23,14 +23,15 @@ enum class GameState: char {
 */
 
 // THIS CLASS EXISTS ONLY IF WE WOULD NEED SOMETHING ELSE THAN LINE AS DEBUG OBJECT
-class DebugObject {
+class DebugObject 
+{
 public:
 	virtual void Draw() = 0;
-	virtual ~DebugObject() {}
+	virtual ~DebugObject() = default;
 };
 
-class Line : public DebugObject {
-	
+class Line : public DebugObject 
+{	
 	glm::vec2 beg;
 	glm::vec2 end;
 	glm::vec3 color;
@@ -42,10 +43,9 @@ public:
 		end = to;
 		this->color = color;
 	}
-	virtual ~Line()
-	{
 
-	}
+	virtual ~Line() = default;
+
 	void Draw() override
 	{
 		Shaders lineShader;
@@ -55,9 +55,12 @@ public:
 			beg,
 			end
 		};
+
 		glm::mat4 modelMatrix = glm::scale(glm::mat4(), glm::vec3(1.0f, 1.0f, 1.0f));
+
 		GLuint lineVertexArray;
 		GLuint lineVertexBuffer;
+
 		glGenVertexArrays(1, &lineVertexArray);
 		glGenBuffers(1, &lineVertexBuffer);
 		glBindVertexArray(lineVertexArray);
@@ -79,8 +82,8 @@ public:
 };
 #pragma endregion
 
-class Game {
-
+class Game 
+{
 	static std::array<unsigned char, 256> keyMap;
 	static Timer timer;
 	static Level currentLevel;
