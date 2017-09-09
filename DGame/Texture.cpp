@@ -2,8 +2,6 @@
 #include "Win_Window.h"
 #include "Shaders.h"
 
-extern Win_Window* window;
-
 int Texture::unitCounter = 0;
 int Texture::nowBound = 0;
 int Texture::boundCount = 0;
@@ -13,7 +11,7 @@ std::shared_ptr<byte_vec4> Texture::LoadTextureFromFile(const std::string& fileN
 	std::shared_ptr<byte_vec4> returnPtr(reinterpret_cast<byte_vec4*>(SOIL_load_image(fileName.c_str(), &width, &height, NULL, SOIL_LOAD_RGBA)));
 	
 	if (!returnPtr)
-		window->ShowError(std::string("Can't load the file ") + fileName, "SOIL error!");
+		Win_Window::GetInstance()->ShowError(std::string("Can't load the file ") + fileName, "SOIL error!");
 
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);

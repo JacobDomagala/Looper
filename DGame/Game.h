@@ -8,7 +8,6 @@
 #include "Timer.h"
 #include "Win_Window.h"
 
-extern Win_Window* window;
 
 enum class GameState: char {
 	MENU = 0,
@@ -29,16 +28,23 @@ public:
 	virtual void Draw() = 0;
 	virtual ~DebugObject() {}
 };
+
 class Line : public DebugObject {
+	
 	glm::vec2 beg;
 	glm::vec2 end;
 	glm::vec3 color;
+
 public:
 	Line(glm::vec2 from, glm::vec2 to, glm::vec3 color)
 	{
 		beg = from;
 		end = to;
 		this->color = color;
+	}
+	virtual ~Line()
+	{
+
 	}
 	void Draw() override
 	{
@@ -62,17 +68,13 @@ public:
 
 		lineShader.UseProgram();
 		lineShader.SetUniformFloatMat4(modelMatrix, "modelMatrix");
-		lineShader.SetUniformFloatMat4(window->GetProjection(), "projectionMatrix");
+		lineShader.SetUniformFloatMat4(Win_Window::GetInstance()->GetProjection(), "projectionMatrix");
 		lineShader.SetUniformFloatVec4(glm::vec4(color, 1.0f), "color");
 
 		glDrawArrays(GL_LINES, 0, 2);
 		glBindVertexArray(0);
 		glDeleteBuffers(1, &lineVertexBuffer);
 		glDeleteVertexArrays(1, &lineVertexArray);
-	}
-	~Line()
-	{
-
 	}
 };
 #pragma endregion

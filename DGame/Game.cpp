@@ -24,7 +24,7 @@ static void swap(float& first, float& second)
 }
 glm::ivec2 GlobalToScreen(glm::vec2 globalPos)
 {
-	glm::vec4 screenPosition = window->GetProjection() * glm::vec4(globalPos, 0.0f, 1.0f);
+	glm::vec4 screenPosition = Win_Window::GetInstance()->GetProjection() * glm::vec4(globalPos, 0.0f, 1.0f);
 	glm::vec2 tmpPos = (glm::vec2(screenPosition.x, screenPosition.y) + glm::vec2(1.0f, 1.0f)) / glm::vec2(2.0f, 2.0f);
 	tmpPos.x *= WIDTH;
 	tmpPos.y *= -HEIGHT;
@@ -116,7 +116,7 @@ void Game::RenderLine(glm::ivec2 collided, glm::vec3 color)
 
 	lineShader.UseProgram();
 	lineShader.SetUniformFloatMat4(modelMatrix, "modelMatrix");
-	lineShader.SetUniformFloatMat4(window->GetProjection(), "projectionMatrix");
+	lineShader.SetUniformFloatMat4(Win_Window::GetInstance()->GetProjection(), "projectionMatrix");
 	lineShader.SetUniformFloatVec4(glm::vec4(color, 1.0f), "color");
 
 	glDrawArrays(GL_LINES, 0, 2);
@@ -291,8 +291,8 @@ glm::ivec2 Game::CheckBulletCollision(int range)
 	float x1, x2, y1, y2;
 	x1 = player.GetScreenPositionPixels().x;
 	y1 = player.GetScreenPositionPixels().y;
-	x2 = window->GetCursor().x;
-	y2 = window->GetCursor().y;
+	x2 = Win_Window::GetInstance()->GetCursor().x;
+	y2 = Win_Window::GetInstance()->GetCursor().y;
 
 	bool wasGreater = false;
 	const bool steep = (fabs(y2 - y1) > fabs(x2 - x1));
@@ -509,7 +509,7 @@ void Game::KeyEvents(float deltaTime)
 	}
 	if (Win_Window::keyMap[VK_ESCAPE])
 	{
-		window->ShutDown();
+		Win_Window::GetInstance()->ShutDown();
 	}
 	if (Win_Window::keyMap['O'])
 	{
@@ -564,12 +564,13 @@ void Game::KeyEvents(float deltaTime)
 			currentLevel.Move(-cameraMoveBy);
 	}
 }
+
 void Game::MouseEvents(float deltaTime)
 {
 	float cameraMovement = floor(cameraSpeed*deltaTime);
 	glm::ivec2 cameraMoveBy = glm::ivec2();
-
-	cursor = window->GetCursorScreenPosition();
+	
+	cursor = Win_Window::GetInstance()->GetCursorNormalized();
  	glm::vec2 tmp = CheckBulletCollision(player.GetWeaponRange());
 	
 	DrawLine(currentLevel.GetGlobalVec(player.GetCenteredLocalPosition()), currentLevel.GetGlobalVec(tmp), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -601,27 +602,33 @@ void Game::MouseEvents(float deltaTime)
 	}
 
 	// TODO: Find some easier formula for this?
-	int multiplier = 6;
-	
-	if (cursor.x > 0.8f)
+
+
+	// value to control how fast should camera move
+	int multiplier = 3;
+
+	// cursor's position from center of the screen to trigger camera movement
+	float borderValue = 0.2f;
+
+	if (cursor.x > borderValue)
 	{
-		float someX = (cursor.x - 0.8f)*multiplier;
+		float someX = (cursor.x - borderValue)*multiplier;
 		cameraMoveBy += glm::vec2(-cameraMovement*someX, 0.0f);
 	}
-	else if (cursor.x < -0.8f)
+	else if (cursor.x < -borderValue)
 	{
-		float someX = (cursor.x + 0.8f)*multiplier;
+		float someX = (cursor.x + borderValue)*multiplier;
 		cameraMoveBy += glm::vec2(-cameraMovement*someX, 0.0f);
 	}
-	if (cursor.y < -0.8f)
+	if (cursor.y > borderValue)
 	{
-		float someY = (cursor.y - 0.8f)*multiplier;
-		cameraMoveBy += glm::vec2(0.0f, cameraMovement*someY);
+		float someY = (cursor.y - borderValue)*multiplier;
+		cameraMoveBy += glm::vec2(0.0f, -cameraMovement*someY);
 	}
-	else if (cursor.y > 0.8f)
+	else if (cursor.y < -borderValue)
 	{
-		float someY = (cursor.y + 0.8f)*multiplier;
-		cameraMoveBy += glm::vec2(0.0f, cameraMovement*someY);
+		float someY = (cursor.y + borderValue)*multiplier;
+		cameraMoveBy += glm::vec2(0.0f, -cameraMovement*someY);
 	}
 	if (glm::length(glm::vec2(cameraMoveBy)))
 	{
@@ -629,25 +636,29 @@ void Game::MouseEvents(float deltaTime)
 		player.Move(cameraMoveBy);
 	}
 }
+
 void Game::RenderFirstPass()
 {
 	frameBuffer.BeginDrawingToTexture();
 	
 	currentLevel.Draw();
+
+	// player's position on the map
 	playerPos = currentLevel.GetLocalVec(player.GetCenteredGlobalPosition());
+		
+	glm::ivec2 correction = CorrectPosition();
 	
-	//glm::ivec2 correction = CorrectPosition();
 	//debug1 = correction;
-	glm::ivec2 correction;
+	//glm::ivec2 correction;
 
  	player.Move(correction);
 	playerPos += correction;
 	player.SetCenteredLocalPosition(playerPos);
-	correction = glm::ivec2();
 	
 	player.Draw();
 	frameBuffer.EndDrawingToTexture();
 }
+
 void Game::RenderSecondPass()
 {
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -664,12 +675,13 @@ void Game::RenderSecondPass()
 	//font.RenderText(std::to_string(cursor.x) + " " + std::to_string(cursor.y), 20, 140, 1, glm::vec3(1, .4, .6));
 	//font.RenderText(std::to_string(debug1.x) + " " + std::to_string(debug1.y), 20, 100, 1, glm::vec3(1, .4, .6));
 }
+
 void Game::LoadLevel(const std::string& levelName)
 { 
 	std::string folderPath = "Assets\\" + levelName + "\\";
 	std::ifstream levelFile(folderPath + levelName + ".txt");
 	if (!levelFile)
-		window->ShowError("Can't open " + folderPath + levelName + ".txt", "Level loading");
+		Win_Window::GetInstance()->ShowError("Can't open " + folderPath + levelName + ".txt", "Level loading");
 	
 	int levelWidth, levelHeight;
 	std::string background;
@@ -763,7 +775,7 @@ Game::Game():
 {
 	std::ifstream initFile("Assets\\GameInit.txt");
 	if (!initFile)
-		window->ShowError("Can't open Assets/GameInit.txt", "Game Initializing");
+		Win_Window::GetInstance()->ShowError("Can't open Assets/GameInit.txt", "Game Initializing");
 
 	while (!initFile.eof())
 	{
@@ -787,14 +799,14 @@ Game::Game():
 
 	initFile.close();
 
-	LoadLevel("Level1");
+	LoadLevel(levels[0]);
 	state = GameState::GAME;
 }
 
 void Game::ProcessInput(float deltaTime)
 {
 	this->deltaTime = deltaTime;
-	
+
 	MouseEvents(deltaTime);
 	KeyEvents(deltaTime);
 }

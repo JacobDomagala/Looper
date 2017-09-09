@@ -7,6 +7,7 @@ class Timer {
 	double deltaTime;
 	double globalTime;
 	double accumulator;
+
 public:
 	Timer();
 

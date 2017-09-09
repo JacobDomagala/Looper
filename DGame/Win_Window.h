@@ -11,7 +11,32 @@ class Win_Window {
 	glm::mat4 projectionMatrix;
 	glm::vec2 cursorPos;
 	
+	Win_Window(HINSTANCE hInstance) :
+		hInstance(hInstance)
+	{
+		isRunning = true;
+		projectionMatrix = glm::ortho(static_cast<float>(-WIDTH / 2.0f),
+									  static_cast<float>(WIDTH / 2.0f),
+									  static_cast<float>(HEIGHT / 2.0f),
+									  static_cast<float>(-HEIGHT / 2.0f),
+									  -1.0f, 1.0f);
+	}
+
 public:
+
+	static Win_Window* GetInstance()
+	{
+		static Win_Window* window;
+		if (window == nullptr)
+		{
+			window = new Win_Window(GetModuleHandle(0));
+		}
+
+		return window;
+	}
+
+	Win_Window(Win_Window&) = delete;
+
 	static std::unordered_map<uint8, bool> keyMap;
 	//static bool leftMouseKeyPressed;
 	//static bool rightMouseKeyPressed;
@@ -24,32 +49,19 @@ public:
 
 	static LRESULT CALLBACK MainWinProc(HWND hWind, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	
-	Win_Window(HINSTANCE hInstance) :
-		hInstance(hInstance) 
-	{
-		isRunning = true; 
-		projectionMatrix = glm::ortho(static_cast<float>(-WIDTH / 2.0f), 
-									  static_cast<float>(WIDTH/2.0f),
-									  static_cast<float>(HEIGHT/2.0f), 
-									  static_cast<float>(-HEIGHT / 2.0f),
-									  -1.0f, 1.0f);
-	}
+	
 	void SetCursor(const glm::vec2 position) { cursorPos = position; }
 	glm::vec2 GetCursor() 
 	{
 		POINT cursor;
 		GetCursorPos(&cursor);
 		ScreenToClient(windowHandle, &cursor);
-
-		cursorPos = glm::vec2(cursor.x, cursor.y);
-
-		return glm::vec2(cursor.x, cursor.y);
-		//cursorPos.x = static_cast<float>(cursor.x);
-		//cursorPos.y = static_cast<float>(cursor.y);
-		//
-		//return cursorPos;
+		cursorPos.x = static_cast<float>(cursor.x);
+		cursorPos.y = static_cast<float>(cursor.y);
+		
+		return cursorPos;
 	}
-
+	
 	glm::vec2 GetCursorScreenPosition()
 	{
 		POINT cursor;
@@ -57,25 +69,24 @@ public:
 		ScreenToClient(windowHandle, &cursor);
 		cursorPos = glm::vec2(cursor.x, cursor.y);
 		cursorPos -= glm::vec2(static_cast<float>(WIDTH / 2.0f), static_cast<float>(HEIGHT / 2.0f));
-
+		
 		glm::vec4 tmpCursor = projectionMatrix * glm::vec4(cursorPos, 0.0f, 1.0f);
 		return glm::vec2(tmpCursor.x, tmpCursor.y);
 	}
 
 	glm::vec2 GetCursorNormalized() 
 	{
-		POINT cursor;
-		GetCursorPos(&cursor);
-		ScreenToClient(windowHandle, &cursor);
-		cursorPos = glm::vec2(cursor.x, cursor.y);
+		POINT tmpCursor;
+		GetCursorPos(&tmpCursor);
+		ScreenToClient(windowHandle, &tmpCursor);
 		
 		glm::vec2 center(WIDTH / 2.0f, HEIGHT / 2.0f);
 		
-		cursor.x -= static_cast<LONG>(center.x);
-		cursor.y -= static_cast<LONG>(center.y);
+		tmpCursor.x -= static_cast<LONG>(center.x);
+		tmpCursor.y -= static_cast<LONG>(center.y);
 		
-		float cursorX = cursor.x / center.x;
-		float cursorY = cursor.y / center.y;
+		float cursorX = tmpCursor.x / center.x;
+		float cursorY = tmpCursor.y / center.y;
 
 		return glm::vec2(cursorX, cursorY);
 	}

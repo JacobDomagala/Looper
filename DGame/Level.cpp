@@ -6,8 +6,6 @@
 #include"Enemy.h"
 #include"Game.h"
 
-extern Win_Window* window;
-
 Sprite Level::background;
 glm::ivec2 Level::levelSize;
 
@@ -33,7 +31,7 @@ Level::~Level()
 //
 //	std::ifstream initFile("Assets/LevelInit.txt");
 //	if (!initFile.good())
-//		window->ShowError("Can't open file " + fileName, "Level loading error");
+//		Win_Window::GetInstance()->ShowError("Can't open file " + fileName, "Level loading error");
 //
 //	while (!initFile.eof())
 //	{
@@ -56,7 +54,7 @@ Level::~Level()
 //
 //	std::ifstream file(fileName);
 //	if (!file.good())
-//		window->ShowError("Can't open file " + fileName, "Level loading error");
+//		Win_Window::GetInstance()->ShowError("Can't open file " + fileName, "Level loading error");
 //	
 //
 //	// find end of line 
@@ -109,11 +107,13 @@ glm::vec2 Level::GetLocalVec(glm::vec2 global)
 	returnVal = background.GetPosition() - global;
 	//returnVal.y = abs(returnVal.y);
 
+	// change to 0.0 in top left 
 	returnVal.y -= levelSize.y;
 	returnVal *= -1;
 
 	return returnVal;
 }
+
 glm::vec2 Level::GetGlobalVec(glm::vec2 local) 
 {
 	glm::vec2 returnVal = local;

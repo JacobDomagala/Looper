@@ -7,6 +7,7 @@ Timer::Timer()
 	globalTime = 0;
 	deltaTime = 0;
 }
+
 void Timer::ToggleTimer()
 {
 	LARGE_INTEGER tmp;

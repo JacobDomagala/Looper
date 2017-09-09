@@ -28,8 +28,8 @@ class Player {
 	Sprite sprite;
 	Shaders program;
 
-	Weapon* weapons[3];
-	Weapon* currentWeapon;
+	std::shared_ptr<Weapon> weapons[3];
+	std::shared_ptr<Weapon> currentWeapon;
 
 	int maxHP;
 	int currentHP;
@@ -44,6 +44,7 @@ class Player {
 	glm::vec2 translateVal;
 	//glm::mat4 rotateMatrix;
 	//glm::mat4 scaleMatrix;
+
 public:
 	Player(glm::vec2 position = glm::vec2(0.0f, 0.0f),
 		   const std::string& name = "Anonymous");
