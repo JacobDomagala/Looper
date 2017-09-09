@@ -6,26 +6,45 @@
 
 extern Timer* globalTimer;
 
-Enemy::Enemy(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite)
+Enemy::Enemy(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite):
+	GameObject(pos, size, sprite),
+	maxHP(100),
+	currentHP(maxHP),
+	weapon(std::make_shared<Glock>()),
+	combatStarted(false)
+{ 
+
+}
+
+void Enemy::DealWithPlayer()
 {
-	collision = this->sprite.SetSpriteTextured(pos, size, sprite);
-	globalPosition = pos;
-	centeredGlobalPosition = this->sprite.GetCenteredPosition();
-	localPosition = glm::ivec2(pos.x, -pos.y);
-	drawMe = true;
-	positionIdx = 0;
-	shootIdx = 0;
-	maxHP = 100;
-	currentHP = maxHP;
-	weapon = std::make_shared<Glock>();
+	// calculate distance between enemy and player
+	float length = glm::length(m_centeredGlobalPosition - Game::player.GetCenteredGlobalPosition());
+	Game::RenderText(std::to_string(length) + " length     " + std::to_string(m_centeredGlobalPosition.x) + "   " + std::to_string(m_centeredGlobalPosition.y), glm::vec2(static_cast<float>(-WIDTH / 2), static_cast<float>(-HEIGHT / 2)), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));
+	// TODO: change this check with enemy's 'vision range'
+	// player is enemy's sight of vision
+	if (length <= 500.0f)
+	{
+		Shoot(); 
+		SetPlayerPos(Game::player.GetCenteredLocalPosition());
+	}
+	// player is out of range, clear enemy's 'memory' 
+	else
+	{
+		ClearPositions();
+	}
+
+	SetCenteredLocalPosition(Level::GetLocalVec(m_centeredGlobalPosition));
+	SetLocalPosition(Level::GetLocalVec(m_globalPosition));
 }
 
 void Enemy::Hit(int dmg)
 {
 	//currentHP -= dmg;
+	SetColor({ 1.0f, 0.0f, 0.0f });
 }
 
-bool Enemy::GetState()
+bool Enemy::Visible() const
 {
 	if (currentHP <= 0)
 		return false;
@@ -33,59 +52,45 @@ bool Enemy::GetState()
 	return true;
 }
 
-void Enemy::SetPlayerPos(glm::vec2 pos)
+void Enemy::SetPlayerPos(glm::vec2 playerPos)
 {
-//	playerPositions = pos;
 	timer.ToggleAndAccumulate();
-	//Game::RenderText(std::to_string(timer.GetAccumulator()), glm::vec2(69, 69), 1.0f);
+	
+	// make an enemy more human-like, prevent him from being perfect shooter
+	// every half a second his aim will move a bit
 	if (timer.GetAccumulator() > 0.5f)
 	{
 		timer.ResetAccumulator();
-	/*	if (positionIdx < arrayLen)
-			playerPositions[positionIdx++] = pos;
-		else
-		{
-			positionIdx = 0;
-			playerPositions[0] = pos;
-		}*/
-		playerPositions = pos;
 
-		// MAKE IT LOOK LIKE HE'S HAVING TROUBLE HITTING YOU
-		// player size should be in L1 cache after first call
+		// compute small offset value which simulates the 'aim wiggle'
 		int xOffset = rand() % Game::player.GetSize().x + (-Game::player.GetSize().x/2);
 		int yOffset = rand() % Game::player.GetSize().y + (-Game::player.GetSize().y/2);
-		glm::ivec2 offsetVal(xOffset, yOffset);
-		playerPositions += offsetVal;
+
+		playerPosition = (playerPos + glm::vec2(xOffset, yOffset));
+		combatStarted = true;
 	}
 }
 
 void Enemy::Shoot()
 {
-	if (playerPositions == glm::vec2(0,0))
-		return;
-	// to prevent blank shooting to 0,0
-	//if (shootIdx == positionIdx)
-	//	return;
-	
-	glm::vec2 globalTmp = Level::GetGlobalVec(playerPositions);
-	glm::ivec2 collided = Game::CheckBulletCollision(this, globalTmp, weapon->GetRange());
-	
-	//float len = glm::length(Game::player.GetGlobalPosition() - glm::vec2(centeredGlobalPosition));
-	//Game::RenderText(std::to_string(collided.x) + "  " + std::to_string(collided.y), glm::vec2(0, 0), 1.0f, glm::vec3(1.0f, 0.0f, 1.0f));
-	//Game::RenderText(std::to_string(len), glm::vec2(0, 100), 1.0f, glm::vec3(1.0f, 0.0f, 1.0f));
-	if (collided != glm::ivec2(0, 0))
+	// prevent enemy shooting to some random position
+	if (combatStarted)
 	{
-		collided = Level::GetGlobalVec(collided);
-		Game::DrawLine(centeredGlobalPosition, collided);
+		glm::ivec2 collided = Game::CheckBulletCollision(this, Level::GetGlobalVec(playerPosition), weapon->GetRange());
+
+		// if we hit anything draw a line 
+		if (collided != glm::ivec2(0, 0))
+		{
+			Game::DrawLine(m_centeredGlobalPosition, Level::GetGlobalVec(collided));
+		}
 	}
-	//Game::DrawLine(centeredGlobalPosition, Game::player.GetGlobalPosition());
 }
 
 void Enemy::ClearPositions()
 {
-	shootIdx = 0;
-	positionIdx = 0;
-	playerPositions = glm::vec2();
+	playerPosition = glm::vec2(0.0f, 0.0f);
+	timer.ResetAccumulator();
+	combatStarted = false;
 }
 
 

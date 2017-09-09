@@ -122,13 +122,15 @@ bool Level::CheckCollision(const glm::ivec2& localPos, Player& player)
 		float length = glm::length(glm::vec2(localPos - obj->GetCenteredLocalPosition()));
 		glm::vec2 objPos = obj->GetLocalPosition();
 		glm::vec2 objSize = obj->GetSize();
+
 		if(length < objSize.x/2.5f)
 		{
 			obj->Hit(player.GetWeaponDmg());
-			obj->SetColor(glm::vec3(1.0f, 0.0f, 0.0f));
-			
+
 			return false;
 		}
+
+		obj->SetColor({ 1.0f, 1.0f, 1.0f });
 	}
 	return true;
 }
@@ -151,11 +153,8 @@ void Level::LoadShaders(const std::string& shaderName)
 
 void Level::AddGameObject(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite)
 {
-	std::unique_ptr<Enemy> tmpObj = std::make_unique<Enemy>(pos, size, sprite);
-	glm::ivec2 tmpPos = tmpObj->GetCenteredGlobalPosition();
-	tmpPos.y *= -1;
-	tmpObj->SetCenteredLocalPosition(tmpPos);
-	objects.push_back(std::move(tmpObj));
+	std::unique_ptr<GameObject> object = std::make_unique<Enemy>(pos, size, sprite);
+	objects.push_back(std::move(object));
 }
 
 void Level::Move(const glm::vec2& moveBy)
@@ -164,63 +163,28 @@ void Level::Move(const glm::vec2& moveBy)
 	{
 		obj->Move(moveBy);
 	}
+
 	background.Translate(moveBy);
 	MoveCamera(moveBy);
 }
 
 void Level::Draw()
 {
+	// draw background
 	background.Render(shaders);
+
 	if (!objects.empty())
-	{
-		/*	int xBegin = cameraTilePos.x - ceil(tilesToDrawX / 2.0f);
-			int yBegin = cameraTilePos.y - ceil(tilesToDrawY / 2.0f);*/
-
-			//int xEnd = xBegin + tilesToDrawX;
-			//int yEnd = yBegin + tilesToDrawY;
-
-			//xBegin = xBegin >= 0 ? xBegin : 0;
-			//yBegin = yBegin >= 0 ? yBegin : 0;
-			//xEnd = xEnd <= levelSize.x ? xEnd : levelSize.x;
-			//yEnd = yEnd <= levelSize.y ? yEnd : levelSize.y;
-
-			//for (int j = yBegin; j < yEnd; ++j)
-			//{
-			//	for (int i = xBegin; i < xEnd; ++i)
-			//	{
-			//		int index = i + j*levelSize.x;
-			//		objects[index].Render(shaders["GeneralShader"]);
-			//	}
-			//}
-		
+	{	
 		//for (auto& obj : objects)
 		//{
-		//	Enemy* objE = std::dynamic_pointer_cast<Enemy*>(obj.get());
-		//	if (objE->GetState())
+		//	if (obj->Visible())
 		//	{
-		//		
-		//		glm::vec2 tmpL = objE->GetCenteredGlobalPosition() - Game::player.GetCenteredGlobalPosition();
-		//		float tmpLF = glm::length(tmpL);
-
-		//		if (tmpLF <= 500.0f)
-		//		{
-		//			objE->Shoot();
-		//		}
-		//		else
-		//			((Enemy*)objE)->ClearPositions();
-
-		//		if (tmpLF <= 800.0f)
-		//			objE->SetPlayerPos(Game::player.GetCenteredLocalPosition());
-		//		
-		//		
-		//		obj->SetCenteredLocalPosition(GetLocalVec(objE->GetCenteredGlobalPosition()));
-		//		obj->SetLocalPosition(GetLocalVec(objE->GetGlobalPosition()));
+		//		obj->DealWithPlayer();
 		//		obj->Render(shaders);
-		//		obj->SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
-		//		
 		//	}
 		//}
-
+		objects[0]->DealWithPlayer();
+		objects[0]->Render(shaders);
 	}
 }
 

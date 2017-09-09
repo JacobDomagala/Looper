@@ -6,12 +6,14 @@ int Texture::unitCounter = 0;
 int Texture::nowBound = 0;
 int Texture::boundCount = 0;
 
-std::shared_ptr<byte_vec4> Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenum filter)
+std::unique_ptr<byte_vec4> Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenum filter)
 {
-	std::shared_ptr<byte_vec4> returnPtr(reinterpret_cast<byte_vec4*>(SOIL_load_image(fileName.c_str(), &width, &height, NULL, SOIL_LOAD_RGBA)));
+	std::unique_ptr<byte_vec4> returnPtr(reinterpret_cast<byte_vec4*>(SOIL_load_image(fileName.c_str(), &width, &height, NULL, SOIL_LOAD_RGBA)));
 	
-	if (!returnPtr)
+	if (returnPtr == nullptr)
+	{
 		Win_Window::GetInstance()->ShowError(std::string("Can't load the file ") + fileName, "SOIL error!");
+	}
 
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
@@ -25,7 +27,7 @@ std::shared_ptr<byte_vec4> Texture::LoadTextureFromFile(const std::string& fileN
 
 	unit = unitCounter++;
 
-	return returnPtr;
+	return std::move(returnPtr);
 }
 
 void Texture::LoadTextureFromMemory(int width, int height, uint8* data, GLenum wrapMode, GLenum filter)

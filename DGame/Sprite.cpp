@@ -33,9 +33,9 @@ void Sprite::SetSprite(const glm::vec2& position , glm::ivec2 size)
 	glBindVertexArray(0);
 }
 
-std::shared_ptr<byte_vec4> Sprite::SetSpriteTextured(const glm::vec2& position, glm::ivec2 size, const std::string& fileName)
+std::unique_ptr<byte_vec4> Sprite::SetSpriteTextured(const glm::vec2& position, glm::ivec2 size, const std::string& fileName)
 {
-	std::shared_ptr<byte_vec4> returnPtr = texture.LoadTextureFromFile(fileName);
+	std::unique_ptr<byte_vec4> returnPtr = texture.LoadTextureFromFile(fileName);
 
 	glGenVertexArrays(1, &vertexArrayBuffer);
 	glGenBuffers(1, &vertexBuffer);
@@ -51,6 +51,7 @@ std::shared_ptr<byte_vec4> Sprite::SetSpriteTextured(const glm::vec2& position, 
 		glm::vec4(0.0f,          0.0f - size.y, 0.0f, 0.0f),
 		glm::vec4(0.0f + size.x, 0.0f - size.y, 1.0f, 0.0f)
 	};
+
 	this->centeredPosition.x = position.x + (size.x / 2.0f);
 	this->centeredPosition.y = position.y - (size.y / 2.0f);
 	this->position = position;

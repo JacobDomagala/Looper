@@ -7,48 +7,63 @@
 class GameObject 
 {
 protected:
-	glm::vec2 globalPosition;
-	glm::vec2 centeredGlobalPosition;
+	// global position (in OpenGL coords)
+	glm::vec2 m_globalPosition;
+
+	// center of global's position (in OpenGL coords)
+	glm::vec2 m_centeredGlobalPosition;
 	
-	glm::ivec2 localPosition;
-	glm::ivec2 centeredLocalPosition;
+	// local position (map coords)
+	glm::ivec2 m_localPosition;
 
-	Sprite sprite;
-	Shaders program;
+	// center of local's position (map coords)
+	glm::ivec2 m_centeredLocalPosition;
 
-	bool drawMe;
-	std::shared_ptr<byte_vec4> collision;
+	// object's sprite
+	Sprite m_sprite;
 
-	glm::mat4 translateMatrix;
-	glm::vec2 translateVal;
-	glm::mat4 rotateMatrix;
-	glm::mat4 scaleMatrix;
+	// object's shaders 
+	Shaders m_program;
+
+	// should this object be visible
+	bool m_visible;
+
+	// byte array of sprite used for collision
+	std::unique_ptr<byte_vec4> m_collision;
+
+	// matrices for transforming object
+	glm::mat4 m_translateMatrix;
+	glm::vec2 m_translateVal;
+	glm::mat4 m_rotateMatrix;
+	glm::mat4 m_scaleMatrix;
 
 public:
 	// Constructors and destructors
-	GameObject() = default;
 	GameObject(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite);
 	virtual ~GameObject() = default;
 	
 	virtual void Hit(int dmg) {}
-	virtual bool GetState() { return drawMe; }
+	virtual bool Visible() const
+	{ 
+		return m_visible; 
+	}
+	virtual void DealWithPlayer() {}
+	// SETERS
+	virtual void SetColor(const glm::vec3& color);
+	virtual void SetCenteredLocalPosition(glm::ivec2 pos);
+	virtual void SetLocalPosition(const glm::ivec2& position);
+	virtual void SetGlobalPosition(const glm::vec2& position);
+	virtual void SetShaders(const Shaders& program);
+	virtual void SetTexture(Texture texture);
+
+	// GETERS
+	virtual glm::vec2 GetSize() const;						//Get size of object
+	virtual glm::ivec2 GetCenteredLocalPosition() const;	//Get cenetered position in local(level wise) coords
+	virtual glm::vec2 GetCenteredGlobalPosition() const;	//Get centered position in global(OpenGL) coords
+	virtual glm::vec2 GetGlobalPosition() const;			//Get position in global (OpenGL) coords
+	virtual glm::ivec2 GetLocalPosition() const;			//Get position in local (level wise) coords
+	virtual glm::vec2 GetScreenPositionPixels() const;	    //Get position in (0,0) to (WIDTH, HEIGHT) screen coords (0,0 BEING TOP LEFT CORNER)
 	
-	////SETERS
-	glm::vec2 GetSize();				    //Get size of object
-	glm::ivec2 GetCenteredLocalPosition();  //Get cenetered position in local(level wise) coords
-	glm::vec2 GetCenteredGlobalPosition();	//Get centered position in global(OpenGL) coords
-	glm::vec2 GetGlobalPosition();			//Get position in global (OpenGL) coords
-	glm::ivec2 GetLocalPosition();			//Get position in local (level wise) coords
-	glm::vec2 GetScreenPositionPixels();	//Get position in (0,0) to (WIDTH, HEIGHT) screen coords (0,0 BEING TOP LEFT CORNER)
-
-	////GETERS
-	void SetColor(const glm::vec3& color);
-	void SetCenteredLocalPosition(glm::ivec2 pos);
-	void SetLocalPosition(const glm::ivec2& position);
-	void SetGlobalPosition(const glm::vec2& position);
-	void SetShaders(const Shaders& program);
-	void SetTexture(Texture texture);
-
 	//Create sprite with default texture
 	virtual void CreateSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f), glm::ivec2 size = glm::ivec2(10, 10));
 	

@@ -6,6 +6,7 @@ class Timer
 {
 	LARGE_INTEGER frequency;
 	LARGE_INTEGER counter;
+
 	double deltaTime;
 	double globalTime;
 	double accumulator;

@@ -705,7 +705,7 @@ void Game::RenderFirstPass()
 void Game::RenderSecondPass()
 {
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	glm::ivec2 debug2 = player.GetCenteredLocalPosition();
+	glm::ivec2 debug2 = player.GetCenteredGlobalPosition();
 	for (auto& obj : debugObjs)
 	{
 		obj->Draw();

@@ -42,7 +42,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				frameTimer = 0.0f;
 				frames = 0.0f;
 			}
-			game.RenderText(std::to_string(framesLastSecond) + " FPS", glm::vec2(static_cast<float>(-WIDTH/2), static_cast<float>(-HEIGHT/2)), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));
+			//game.RenderText(std::to_string(framesLastSecond) + " FPS", glm::vec2(static_cast<float>(-WIDTH/2), static_cast<float>(-HEIGHT/2)), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));
 			
 			Win_Window::GetInstance()->Swapwindow();
 			frames++;
