@@ -125,7 +125,7 @@ class Game
 	void LoadLevel(const std::string& levelName);
 
 //DEBUG
-	static std::vector<std::shared_ptr<DebugObject>> debugObjs;
+	static std::vector<std::unique_ptr<DebugObject>> debugObjs;
 	void RenderLine(glm::ivec2 collided, glm::vec3 color);
 	
 public:

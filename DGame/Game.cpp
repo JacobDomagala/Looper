@@ -1,7 +1,7 @@
 #include "Game.h"
 #include "Enemy.h"
 
-std::vector<std::shared_ptr<DebugObject>> Game::debugObjs;
+std::vector<std::unique_ptr<DebugObject>> Game::debugObjs;
 Player Game::player;
 Level Game::currentLevel;
 glm::ivec2 Game::levelSize;
@@ -117,7 +117,7 @@ glm::ivec2 Game::CorrectPosition()
 
 void Game::DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color)
 {
-	debugObjs.push_back(std::make_shared<Line>(from, to, color));
+	debugObjs.push_back(std::make_unique<Line>(from, to, color));
 }
 
 void Game::RenderLine(glm::ivec2 collided, glm::vec3 color)
