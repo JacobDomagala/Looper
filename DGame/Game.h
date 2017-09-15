@@ -88,7 +88,7 @@ class Game
 
 	static Level currentLevel;
 	static glm::ivec2 levelSize;
-	static std::shared_ptr<byte_vec4> collision;
+	static std::unique_ptr<byte_vec4> collision;
 	static Font font;
 
 	float cameraSpeed;

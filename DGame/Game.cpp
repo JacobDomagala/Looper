@@ -5,7 +5,7 @@ std::vector<std::shared_ptr<DebugObject>> Game::debugObjs;
 Player Game::player;
 Level Game::currentLevel;
 glm::ivec2 Game::levelSize;
-std::shared_ptr<byte_vec4> Game::collision;
+std::unique_ptr<byte_vec4> Game::collision;
 Font Game::font;
 
 glm::vec2 destination;
@@ -117,8 +117,7 @@ glm::ivec2 Game::CorrectPosition()
 
 void Game::DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color)
 {
-	std::shared_ptr<DebugObject> tmp(new Line(from, to, color));
-	debugObjs.push_back(tmp);
+	debugObjs.push_back(std::make_shared<Line>(from, to, color));
 }
 
 void Game::RenderLine(glm::ivec2 collided, glm::vec3 color)
@@ -758,7 +757,7 @@ void Game::LoadLevel(const std::string& levelName)
 			levelFile >> collisionMap;
 			int width, height;
 			byte_vec4* tmpCollision = reinterpret_cast<byte_vec4*>(SOIL_load_image((folderPath + collisionMap).c_str(), &width, &height, NULL, SOIL_LOAD_RGBA));
-			collision = std::shared_ptr<byte_vec4>(tmpCollision);
+			collision = std::unique_ptr<byte_vec4>(tmpCollision);
 		}
 		else if (tmp == "Player:")
 		{
