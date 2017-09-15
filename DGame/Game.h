@@ -65,7 +65,7 @@ public:
 
 		lineShader.UseProgram();
 		lineShader.SetUniformFloatMat4(modelMatrix, "modelMatrix");
-		lineShader.SetUniformFloatMat4(Win_Window::GetInstance()->GetProjection(), "projectionMatrix");
+		lineShader.SetUniformFloatMat4(Win_Window::GetInstance().GetProjection(), "projectionMatrix");
 		lineShader.SetUniformFloatVec4(glm::vec4(m_color, 1.0f), "color");
 
 		glDrawArrays(GL_LINES, 0, 2);

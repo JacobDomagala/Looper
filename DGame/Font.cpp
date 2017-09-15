@@ -7,12 +7,12 @@ void Font::SetFont(const std::string& fileName)
 	program.LoadShaders("Shaders//Font_vs.glsl", "Shaders//Font_fs.glsl");
 	FT_Library ft;
 	if (FT_Init_FreeType(&ft))
-		Win_Window::GetInstance()->ShowError("Error initializing FreeType!", "FreeType Error!");
+		Win_Window::GetInstance().ShowError("Error initializing FreeType!", "FreeType Error!");
 
 	FT_Face face;
 	std::string filePath = "Assets/" + fileName + ".ttf";
 	if (FT_New_Face(ft, filePath.c_str(), 0, &face))
-		Win_Window::GetInstance()->ShowError("Error loading font " + filePath, "FreeType Error!");
+		Win_Window::GetInstance().ShowError("Error loading font " + filePath, "FreeType Error!");
 
 	// Set size to load glyphs as
 	FT_Set_Pixel_Sizes(face, 0, 48);
@@ -25,7 +25,7 @@ void Font::SetFont(const std::string& fileName)
 	{
 		// Load character glyph 
 		if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-			Win_Window::GetInstance()->ShowError("Error loading font face!", "FreeType Error!");
+			Win_Window::GetInstance().ShowError("Error loading font face!", "FreeType Error!");
 
 		// Generate texture
 		GLuint texture;
@@ -73,7 +73,7 @@ void Font::RenderText(std::string text, GLfloat x, GLfloat y, GLfloat scale, glm
 	// Activate corresponding render state	
 	program.UseProgram();
 	program.SetUniformFloatVec4(glm::vec4(color, 1.0f), "color");
-	program.SetUniformFloatMat4(Win_Window::GetInstance()->GetProjection(), "projectionMatrix");
+	program.SetUniformFloatMat4(Win_Window::GetInstance().GetProjection(), "projectionMatrix");
 	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(VAO);
 

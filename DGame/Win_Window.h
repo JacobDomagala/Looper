@@ -28,7 +28,7 @@ class Win_Window
 
 public:
 	// singleton for window
-	static Win_Window* GetInstance();
+	static Win_Window& GetInstance();
 
 	// Win32 callback function
 	static LRESULT CALLBACK MainWinProc(HWND hWind, UINT uMsg, WPARAM wParam, LPARAM lParam);

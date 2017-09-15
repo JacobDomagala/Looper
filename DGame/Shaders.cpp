@@ -31,7 +31,7 @@ std::string Shaders::ReadShaderFile(const std::string& fileName)
 	fileHandle.open(fileName, std::ifstream::in);
 	if (!fileHandle.is_open())
 	{
-		Win_Window::GetInstance()->ShowError(fileName + " can't be opened!", "Opening shader file");
+		Win_Window::GetInstance().ShowError(fileName + " can't be opened!", "Opening shader file");
 	}
 	
 	while (!fileHandle.eof())
@@ -87,7 +87,7 @@ void Shaders::CheckCompileStatus(GLuint shaderID)
 
 		char* log = new char[maxLength];
 		glGetShaderInfoLog(shaderID, maxLength, &maxLength, &log[0]);
-		Win_Window::GetInstance()->ShowError(log, "Compiling OpenGL program");
+		Win_Window::GetInstance().ShowError(log, "Compiling OpenGL program");
 		glDeleteShader(shaderID); 
 
 		delete[] (log);
@@ -105,7 +105,7 @@ void Shaders::CheckLinkStatus(GLuint programID)
 
 		char* log = new char[maxLength];
 		glGetProgramInfoLog(programID, maxLength, &maxLength, &log[0]);
-		Win_Window::GetInstance()->ShowError(log, "Linking OpenGL program");
+		Win_Window::GetInstance().ShowError(log, "Linking OpenGL program");
 
 		glDeleteProgram(programID);
 

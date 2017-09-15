@@ -85,7 +85,7 @@ void Sprite::Render(const Shaders& program)
 
 	m_texture.Use(program.GetProgram());
 	program.SetUniformFloatVec4(m_color, "color");
-	program.SetUniformFloatMat4(Win_Window::GetInstance()->GetProjection(), "projectionMatrix");
+	program.SetUniformFloatMat4(Win_Window::GetInstance().GetProjection(), "projectionMatrix");
 	program.SetUniformFloatMat4(modelMatrix, "modelMatrix");
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);

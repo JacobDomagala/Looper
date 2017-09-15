@@ -16,7 +16,7 @@ static float delta = 0.0f;
 
 static glm::ivec2 GlobalToScreen(glm::vec2 globalPos)
 {
-	glm::vec4 screenPosition = Win_Window::GetInstance()->GetProjection() * glm::vec4(globalPos, 0.0f, 1.0f);
+	glm::vec4 screenPosition = Win_Window::GetInstance().GetProjection() * glm::vec4(globalPos, 0.0f, 1.0f);
 	glm::vec2 tmpPos = (glm::vec2(screenPosition.x, screenPosition.y) + glm::vec2(1.0f, 1.0f)) / glm::vec2(2.0f, 2.0f);
 
 	tmpPos.x *= WIDTH;
@@ -49,7 +49,7 @@ void Game::Init()
 
 	if (!initFile)
 	{
-		Win_Window::GetInstance()->ShowError("Can't open Assets/GameInit.txt", "Game Initializing");
+		Win_Window::GetInstance().ShowError("Can't open Assets/GameInit.txt", "Game Initializing");
 	}
 
 	while (!initFile.eof())
@@ -163,7 +163,7 @@ void Game::RenderLine(glm::ivec2 collided, glm::vec3 color)
 
 	lineShader.UseProgram();
 	lineShader.SetUniformFloatMat4(modelMatrix, "modelMatrix");
-	lineShader.SetUniformFloatMat4(Win_Window::GetInstance()->GetProjection(), "projectionMatrix");
+	lineShader.SetUniformFloatMat4(Win_Window::GetInstance().GetProjection(), "projectionMatrix");
 	lineShader.SetUniformFloatVec4(glm::vec4(color, 1.0f), "color");
 
 	glDrawArrays(GL_LINES, 0, 2);
@@ -341,8 +341,8 @@ glm::ivec2 Game::CheckBulletCollision(int range)
 	float x1, x2, y1, y2;
 	x1 = static_cast<float>(player.GetScreenPositionPixels().x);
 	y1 = static_cast<float>(player.GetScreenPositionPixels().y);
-	x2 = Win_Window::GetInstance()->GetCursor().x;
-	y2 = Win_Window::GetInstance()->GetCursor().y;
+	x2 = Win_Window::GetInstance().GetCursor().x;
+	y2 = Win_Window::GetInstance().GetCursor().y;
 
 	bool wasGreater = false;
 	const bool steep = (fabs(y2 - y1) > fabs(x2 - x1));
@@ -562,7 +562,7 @@ void Game::KeyEvents(float deltaTime)
 	}
 	if (Win_Window::GetKeyState(VK_ESCAPE))
 	{
-		Win_Window::GetInstance()->ShutDown();
+		Win_Window::GetInstance().ShutDown();
 	}
 	if (Win_Window::GetKeyState('O'))
 	{
@@ -623,7 +623,7 @@ void Game::MouseEvents(float deltaTime)
 	float cameraMovement = floor(cameraSpeed*deltaTime);
 	glm::ivec2 cameraMoveBy = glm::ivec2();
 	
-	cursor = Win_Window::GetInstance()->GetCursorNormalized();
+	cursor = Win_Window::GetInstance().GetCursorNormalized();
  	glm::vec2 tmp = CheckBulletCollision(player.GetWeaponRange());
 	
 	DrawLine(currentLevel.GetGlobalVec(player.GetCenteredLocalPosition()), currentLevel.GetGlobalVec(tmp), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -735,7 +735,7 @@ void Game::LoadLevel(const std::string& levelName)
 	std::ifstream levelFile(folderPath + levelName + ".txt");
 	if (!levelFile)
 	{
-		Win_Window::GetInstance()->ShowError("Can't open " + folderPath + levelName + ".txt", "Level loading");
+		Win_Window::GetInstance().ShowError("Can't open " + folderPath + levelName + ".txt", "Level loading");
 	}
 	
 	int levelWidth, levelHeight;

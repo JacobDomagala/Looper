@@ -19,7 +19,7 @@
 //
 //	std::ifstream initFile("Assets/LevelInit.txt");
 //	if (!initFile.good())
-//		Win_Window::GetInstance()->ShowError("Can't open file " + fileName, "Level loading error");
+//		Win_Window::GetInstance().ShowError("Can't open file " + fileName, "Level loading error");
 //
 //	while (!initFile.eof())
 //	{
@@ -42,7 +42,7 @@
 //
 //	std::ifstream file(fileName);
 //	if (!file.good())
-//		Win_Window::GetInstance()->ShowError("Can't open file " + fileName, "Level loading error");
+//		Win_Window::GetInstance().ShowError("Can't open file " + fileName, "Level loading error");
 //	
 //
 //	// find end of line 

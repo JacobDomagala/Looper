@@ -12,7 +12,7 @@ std::unique_ptr<byte_vec4> Texture::LoadTextureFromFile(const std::string& fileN
 	
 	if (returnPtr == nullptr)
 	{
-		Win_Window::GetInstance()->ShowError(std::string("Can't load the file ") + fileName, "SOIL error!");
+		Win_Window::GetInstance().ShowError(std::string("Can't load the file ") + fileName, "SOIL error!");
 	}
 
 	glGenTextures(1, &m_textureID);

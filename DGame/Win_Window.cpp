@@ -14,7 +14,7 @@ Win_Window::Win_Window(HINSTANCE hInstance) :
 
 }
 
-Win_Window* Win_Window::GetInstance()
+Win_Window& Win_Window::GetInstance()
 {
 	static Win_Window* window;
 	if (window == nullptr)
@@ -23,7 +23,7 @@ Win_Window* Win_Window::GetInstance()
 		window = new Win_Window(GetModuleHandle(0));
 	}
 
-	return window;
+	return *window;
 }
 
 LRESULT CALLBACK Win_Window::MainWinProc(HWND hWind, UINT uMsg, WPARAM wParam, LPARAM lParam)
