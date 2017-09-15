@@ -130,8 +130,8 @@ void Player::SetCenteredLocalPosition(glm::ivec2 pos)
 {
 	m_centeredLocalPosition = pos;
 	m_localPosition = glm::ivec2(m_centeredLocalPosition.x - m_sprite.GetSize().x/2, m_centeredLocalPosition.y - m_sprite.GetSize().y/2);
-	m_globalPosition = Level::GetGlobalVec(m_localPosition);
-	m_centeredGlobalPosition = Level::GetGlobalVec(m_centeredLocalPosition);
+	m_globalPosition = Game::GetInstance().GetLevel().GetGlobalVec(m_localPosition);
+	m_centeredGlobalPosition = Game::GetInstance().GetLevel().GetGlobalVec(m_centeredLocalPosition);
 }
 
 void Player::SetGlobalPosition(glm::vec2 pos)

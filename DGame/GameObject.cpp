@@ -1,15 +1,16 @@
 #include "GameObject.h"
 #include "Win_Window.h"
-#include "Level.h"
+//#include "Level.h"
+#include "Game.h"
 
 GameObject::GameObject(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite):
 	m_globalPosition(pos),
-	m_localPosition(Level::GetLocalVec(glm::ivec2(pos.x, -pos.y))),
+	m_localPosition(Game::GetInstance().GetLevel().GetLocalVec(glm::ivec2(pos.x, -pos.y))),
 	m_visible(true)
 {
 	m_collision = m_sprite.SetSpriteTextured(pos, size, sprite);
 	m_centeredGlobalPosition = m_sprite.GetCenteredPosition();
-	m_centeredLocalPosition = Level::GetLocalVec(m_centeredGlobalPosition);
+	m_centeredLocalPosition = Game::GetInstance().GetLevel().GetLocalVec(m_centeredGlobalPosition);
 }
 
 glm::vec2 GameObject::GetScreenPositionPixels() const

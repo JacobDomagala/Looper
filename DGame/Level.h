@@ -10,7 +10,7 @@ class Level
 {
 	//IN PROGRESS
 
-	static Sprite background;
+	Sprite background;
 	std::unordered_map<std::string, Texture> textures;
 	Shaders shaders;
 	
@@ -23,17 +23,19 @@ class Level
 	glm::ivec2 tileSize;
 	glm::ivec2 numTuilesOnScreen;
 	glm::ivec2 tilesToDraw;
-	static glm::ivec2 levelSize;
-	
+
+	glm::ivec2 levelSize;
+	std::vector<std::unique_ptr<GameObject>> objects;
 public:
 	Level() = default;
 	~Level() = default;
 
-	std::vector<std::unique_ptr<GameObject>> objects;
-	
-	// Helper functions
-	static glm::vec2 GetLocalVec(glm::vec2 local) ;
-	static glm::vec2 GetGlobalVec(glm::vec2 local) ;
+	// Convert from OpenGL position to map position
+	glm::vec2 GetLocalVec(const glm::vec2& local) const;
+
+	// Convert from map position to OpenGL
+	glm::vec2 GetGlobalVec(const glm::vec2& local) const;
+
 	void MoveObjs(glm::vec2 moveBy, bool isCameraMovement = true);
 	void Load(const std::string& fileName);
 	void LoadPremade(const std::string& fileName, glm::ivec2 size);

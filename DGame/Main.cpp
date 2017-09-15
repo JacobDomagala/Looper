@@ -10,7 +10,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	Win_Window::GetInstance()->SetUpOpenGL();
 	
 	globalTimer = new Timer();
-	Game game;
+	Game::GetInstance().Init();
 
 	float oldTime = globalTimer->GetGlobalTime();
 	
@@ -32,17 +32,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		if (newTime - oldTime > TARGET_TIME)
 		{
 			float dt = newTime - oldTime;
-			game.ProcessInput(dt);
+			Game::GetInstance().ProcessInput(dt);
 
 			oldTime = newTime;
-			game.Render();
+			Game::GetInstance().Render();
 			if (frameTimer > 1.0f)
 			{
 				framesLastSecond = static_cast<int>(frames);
 				frameTimer = 0.0f;
 				frames = 0.0f;
 			}
-			game.RenderText(std::to_string(framesLastSecond) + " FPS", glm::vec2(static_cast<float>(-WIDTH/2), static_cast<float>(-HEIGHT/2)), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));
+			Game::GetInstance().RenderText(std::to_string(framesLastSecond) + " FPS", glm::vec2(static_cast<float>(-WIDTH/2), static_cast<float>(-HEIGHT/2)), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));
 			
 			Win_Window::GetInstance()->Swapwindow();
 			frames++;

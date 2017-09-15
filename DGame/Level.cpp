@@ -6,8 +6,8 @@
 #include "Enemy.h"
 #include "Game.h"
 
-Sprite Level::background;
-glm::ivec2 Level::levelSize;
+//Sprite Level::background;
+//glm::ivec2 Level::levelSize;
 
 //void Level::Load(const std::string& fileName)
 //{
@@ -89,22 +89,22 @@ glm::ivec2 Level::levelSize;
 //	file.close();
 //}
 
-glm::vec2 Level::GetLocalVec(glm::vec2 global) 
+glm::vec2 Level::GetLocalVec(const glm::vec2& global) const
 {
-	glm::vec2 returnVal;
-	returnVal = background.GetPosition() - global;
-	//returnVal.y = abs(returnVal.y);
+	// get the vector relative to map's position
+	glm::vec2 returnVal { background.GetPosition() - global };
 
-	// change to 0.0 in top left 
+	// change 'y' to originate in top left 
 	returnVal.y -= levelSize.y;
 	returnVal *= -1;
 
 	return returnVal;
 }
 
-glm::vec2 Level::GetGlobalVec(glm::vec2 local) 
+glm::vec2 Level::GetGlobalVec(const glm::vec2& local) const
 {
 	glm::vec2 returnVal = local;
+
 	returnVal *= -1;
 	returnVal.y += levelSize.y;
 	returnVal = background.GetPosition() - returnVal;

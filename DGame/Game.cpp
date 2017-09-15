@@ -1,12 +1,12 @@
 #include "Game.h"
 #include "Enemy.h"
 
-std::vector<std::unique_ptr<DebugObject>> Game::debugObjs;
-Player Game::player;
-Level Game::currentLevel;
-glm::ivec2 Game::levelSize;
-std::unique_ptr<byte_vec4> Game::collision;
-Font Game::font;
+//std::vector<std::unique_ptr<DebugObject>> Game::debugObjs;
+//Player Game::player;
+//Level Game::currentLevel;
+//glm::ivec2 Game::levelSize;
+//std::unique_ptr<byte_vec4> Game::collision;
+//Font Game::font;
 
 glm::vec2 destination;
 glm::vec2 cursor;
@@ -29,9 +29,28 @@ static glm::ivec2 GlobalToScreen(glm::vec2 globalPos)
 Game::Game() :
 	cameraSpeed(600.0f)
 {
+}
+
+Game& Game::GetInstance()
+{
+	static Game* gamePtr;
+
+	if (gamePtr == nullptr)
+	{
+		gamePtr = new Game();
+	}
+
+	return *gamePtr;
+}
+
+void Game::Init()
+{
 	std::ifstream initFile("Assets\\GameInit.txt");
+
 	if (!initFile)
+	{
 		Win_Window::GetInstance()->ShowError("Can't open Assets/GameInit.txt", "Game Initializing");
+	}
 
 	while (!initFile.eof())
 	{
@@ -711,11 +730,13 @@ void Game::RenderSecondPass()
 }
 
 void Game::LoadLevel(const std::string& levelName)
-{ 
+{
 	std::string folderPath = "Assets\\" + levelName + "\\";
 	std::ifstream levelFile(folderPath + levelName + ".txt");
 	if (!levelFile)
+	{
 		Win_Window::GetInstance()->ShowError("Can't open " + folderPath + levelName + ".txt", "Level loading");
+	}
 	
 	int levelWidth, levelHeight;
 	std::string background;
