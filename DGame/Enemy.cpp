@@ -10,7 +10,7 @@ Enemy::Enemy(const glm::vec2& pos, const glm::ivec2& size, const std::string& sp
 	GameObject(pos, size, sprite),
 	maxHP(100),
 	currentHP(maxHP),
-	weapon(std::make_shared<Glock>()),
+	weapon(std::make_unique<Glock>()),
 	combatStarted(false)
 { 
 

@@ -20,7 +20,7 @@ class Enemy : public GameObject
 	glm::vec2 playerPosition;
 
 	// current weapon
-	std::shared_ptr<Weapon> weapon;
+	std::unique_ptr<Weapon> weapon;
 
 	// fight between enemy and player started
 	bool combatStarted;
