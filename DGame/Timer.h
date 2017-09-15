@@ -4,12 +4,12 @@
 
 class Timer 
 {
-	LARGE_INTEGER frequency;
-	LARGE_INTEGER counter;
+	LARGE_INTEGER m_frequency;
+	LARGE_INTEGER m_counter;
 
-	double deltaTime;
-	double globalTime;
-	double accumulator;
+	double m_deltaTime;
+	double m_globalTime;
+	double m_accumulator;
 
 public:
 	Timer();
@@ -19,28 +19,28 @@ public:
 
 	void Accumulate()
 	{
-		accumulator += deltaTime;
+		m_accumulator += m_deltaTime;
 	}
 	void ToggleAndAccumulate()
 	{
 		ToggleTimer();
-		accumulator += deltaTime;
+		m_accumulator += m_deltaTime;
 	}
 	void ResetAccumulator()
 	{
-		accumulator = 0;
+		m_accumulator = 0;
 	}
 	float GetAccumulator() const 
 	{
-		return static_cast<float>(accumulator);
+		return static_cast<float>(m_accumulator);
 	}
 	float GetDeltaTime() const
 	{
-		return static_cast<float>(deltaTime);
+		return static_cast<float>(m_deltaTime);
 	}
 	float GetGlobalTime() const
 	{
-		return static_cast<float>(globalTime);
+		return static_cast<float>(m_globalTime);
 	}
 };
 
