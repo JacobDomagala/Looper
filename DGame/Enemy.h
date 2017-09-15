@@ -8,22 +8,25 @@
 class Enemy : public GameObject
 {
 	// helper timer 
-	Timer timer;
+	Timer m_timer;
 
 	// total HP
-	int maxHP;
+	int m_maxHP;
 
 	// current HP
-	int currentHP;
+	int m_currentHP;
 
 	// position where enemy will shoot
-	glm::vec2 playerPosition;
+	glm::vec2 m_playerPosition;
+
+	// enemy's vision range
+	float m_visionRange;
 
 	// current weapon
-	std::unique_ptr<Weapon> weapon;
+	std::unique_ptr<Weapon> m_weapon;
 
 	// fight between enemy and player started
-	bool combatStarted;
+	bool m_combatStarted;
 
 public:
 	Enemy(const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite);
@@ -35,7 +38,7 @@ public:
 
 	int GetDmg() const 
 	{ 
-		return weapon->GetDamage(); 
+		return m_weapon->GetDamage(); 
 	}
 	
 	void Shoot();

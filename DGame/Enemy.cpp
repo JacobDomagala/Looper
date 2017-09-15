@@ -8,10 +8,11 @@ extern Timer* globalTimer;
 
 Enemy::Enemy(const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite):
 	GameObject(pos, size, sprite),
-	maxHP(100),
-	currentHP(maxHP),
-	weapon(std::make_unique<Glock>()),
-	combatStarted(false)
+	m_maxHP(100),
+	m_currentHP(m_maxHP),
+	m_weapon(std::make_unique<Glock>()),
+	m_combatStarted(false),
+	m_visionRange(500.0f)
 { 
 
 }
@@ -21,9 +22,8 @@ void Enemy::DealWithPlayer()
 	// calculate distance between enemy and player
 	float length = glm::length(m_centeredGlobalPosition - Game::player.GetCenteredGlobalPosition());
 	
-	// TODO: change this check with enemy's 'vision range'
 	// player is enemy's sight of vision
-	if (length <= 500.0f)
+	if (length <= m_visionRange)
 	{
 		Shoot(); 
 		SetPlayerPos(Game::player.GetCenteredLocalPosition());
@@ -46,7 +46,7 @@ void Enemy::Hit(int dmg)
 
 bool Enemy::Visible() const
 {
-	if (currentHP <= 0)
+	if (m_currentHP <= 0)
 		return false;
 
 	return true;
@@ -54,29 +54,29 @@ bool Enemy::Visible() const
 
 void Enemy::SetPlayerPos(const glm::vec2& playerPos)
 {
-	timer.ToggleAndAccumulate();
+	m_timer.ToggleAndAccumulate();
 	
 	// make an enemy more human-like, prevent him from being perfect shooter
 	// every half a second his aim will move a bit
-	if (timer.GetAccumulator() > 0.5f)
+	if (m_timer.GetAccumulator() > 0.5f)
 	{
-		timer.ResetAccumulator();
+		m_timer.ResetAccumulator();
 
 		// compute small offset value which simulates the 'aim wiggle'
 		int xOffset = rand() % Game::player.GetSize().x + (-Game::player.GetSize().x/2);
 		int yOffset = rand() % Game::player.GetSize().y + (-Game::player.GetSize().y/2);
 
-		playerPosition = (playerPos + glm::vec2(xOffset, yOffset));
-		combatStarted = true;
+		m_playerPosition = (playerPos + glm::vec2(xOffset, yOffset));
+		m_combatStarted = true;
 	}
 }
 
 void Enemy::Shoot()
 {
 	// prevent enemy shooting to some random position
-	if (combatStarted)
+	if (m_combatStarted)
 	{
-		glm::ivec2 collided = Game::CheckBulletCollision(this, Level::GetGlobalVec(playerPosition), weapon->GetRange());
+		glm::ivec2 collided = Game::CheckBulletCollision(this, Level::GetGlobalVec(m_playerPosition), m_weapon->GetRange());
 
 		// if we hit anything draw a line 
 		if (collided != glm::ivec2(0, 0))
@@ -88,9 +88,9 @@ void Enemy::Shoot()
 
 void Enemy::ClearPositions()
 {
-	playerPosition = glm::vec2(0.0f, 0.0f);
-	timer.ResetAccumulator();
-	combatStarted = false;
+	m_playerPosition = glm::vec2(0.0f, 0.0f);
+	m_timer.ResetAccumulator();
+	m_combatStarted = false;
 }
 
 
