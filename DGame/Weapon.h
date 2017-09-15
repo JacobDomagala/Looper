@@ -40,6 +40,11 @@ public:
 		Weapon(3000, 80, 10, true, { "sniper rifle" }, 1.0f)
 	{}
 	virtual ~SniperRifle() = default;
+
+	virtual void Shoot(const glm::vec2& direction) override
+	{
+
+	}
 };
 
 class Glock : public Weapon 
@@ -49,4 +54,9 @@ public:
 		Weapon(3000, 10, 20, true, { "glock" }, 0.3f)
 	{}
 	virtual ~Glock() = default;
+
+	virtual void Shoot(const glm::vec2& direction) override
+	{
+
+	}
 };

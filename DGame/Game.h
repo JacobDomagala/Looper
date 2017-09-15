@@ -84,17 +84,20 @@ public:
 
 class Game 
 {
-	static std::array<unsigned char, 256> keyMap;
-	static Timer timer;
+	Timer timer;
+
 	static Level currentLevel;
 	static glm::ivec2 levelSize;
 	static std::shared_ptr<byte_vec4> collision;
 	static Font font;
 
 	float cameraSpeed;
+
 	// framebuffer for first pass
 	Framebuffer frameBuffer;
+
 	float deltaTime;
+
 	// all maps
 	std::vector<std::string> levels;
 	
@@ -133,8 +136,9 @@ public:
 	static glm::ivec2 CheckBulletCollision(Enemy* from, glm::vec2 fromr, int range);
 	static glm::ivec2 CheckBulletCollision(Enemy* from, int range);
 	static void DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f));
-	void ProcessInput(float deltaTime);
 	static void RenderText(std::string text, const glm::vec2& position, float scale, const glm::vec3& color = glm::vec3(1.0f, 1.0f, 1.0f));
+
+	void ProcessInput(float deltaTime);
 	void Render();
 };
 

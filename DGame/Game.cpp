@@ -7,26 +7,18 @@ Level Game::currentLevel;
 glm::ivec2 Game::levelSize;
 std::shared_ptr<byte_vec4> Game::collision;
 Font Game::font;
-Timer Game::timer;
-extern Timer* globalTimer;
 
 glm::vec2 destination;
 glm::vec2 cursor;
 glm::vec2 debug1;
+
 static float delta = 0.0f;
-#define myCeil(x) x < 0 ? floor(x) : ceil(x)
 
-static void swap(float& first, float& second)
-{
-	float tmp = first;
-	first = second;
-	second = tmp;
-}
-
-glm::ivec2 GlobalToScreen(glm::vec2 globalPos)
+static glm::ivec2 GlobalToScreen(glm::vec2 globalPos)
 {
 	glm::vec4 screenPosition = Win_Window::GetInstance()->GetProjection() * glm::vec4(globalPos, 0.0f, 1.0f);
 	glm::vec2 tmpPos = (glm::vec2(screenPosition.x, screenPosition.y) + glm::vec2(1.0f, 1.0f)) / glm::vec2(2.0f, 2.0f);
+
 	tmpPos.x *= WIDTH;
 	tmpPos.y *= -HEIGHT;
 	tmpPos.y += HEIGHT;
@@ -166,25 +158,25 @@ glm::ivec2 Game::CheckBulletCollision(Enemy* from, glm::vec2 globalFrom, int ran
 {
 	glm::ivec2 fromPixels = GlobalToScreen(globalFrom);
 	glm::ivec2 fromLocal = currentLevel.GetLocalVec(globalFrom);
-	float x1, x2, y1, y2;
-	x1 = from->GetScreenPositionPixels().x;
-	y1 = from->GetScreenPositionPixels().y;
-	x2 = static_cast<float>(fromPixels.x);
-	y2 = static_cast<float>(fromPixels.y);
+
+	float x1 = from->GetScreenPositionPixels().x;
+	float y1 = from->GetScreenPositionPixels().y;
+	float x2 = static_cast<float>(fromPixels.x);
+	float y2 = static_cast<float>(fromPixels.y);
 
 	bool wasGreater = false;
 	const bool steep = (fabs(y2 - y1) > fabs(x2 - x1));
 	if (steep)
 	{
-		swap(x1, y1);
-		swap(x2, y2);
+		std::swap(x1, y1);
+		std::swap(x2, y2);
 	}
 
 	if (x1 > x2)
 	{
 		wasGreater = true;
-		swap(x1, x2);
-		swap(y1, y2);
+		std::swap(x1, x2);
+		std::swap(y1, y2);
 	}
 
 	const float dx = x2 - x1;
@@ -257,15 +249,15 @@ glm::ivec2 Game::CheckBulletCollision(Enemy* from, int range)
 	const bool steep = (fabs(y2 - y1) > fabs(x2 - x1));
 	if (steep)
 	{
-		swap(x1, y1);
-		swap(x2, y2);
+		std::swap(x1, y1);
+		std::swap(x2, y2);
 	}
 
 	if (x1 > x2)
 	{
 		wasGreater = true;
-		swap(x1, x2);
-		swap(y1, y2);
+		std::swap(x1, x2);
+		std::swap(y1, y2);
 	}
 
 	const float dx = x2 - x1;
@@ -338,15 +330,15 @@ glm::ivec2 Game::CheckBulletCollision(int range)
 	const bool steep = (fabs(y2 - y1) > fabs(x2 - x1));
 	if (steep)
 	{
-		swap(x1, y1);
-		swap(x2, y2);
+		std::swap(x1, y1);
+		std::swap(x2, y2);
 	}
 
 	if (x1 > x2)
 	{
 		wasGreater = true;
-		swap(x1, x2);
-		swap(y1, y2);
+		std::swap(x1, x2);
+		std::swap(y1, y2);
 	}
 
 	const float dx = x2 - x1;
