@@ -6,55 +6,84 @@
 class Shaders;
 class Player;
 
-class Level 
-{
-	//IN PROGRESS
+class Level {
+    //IN PROGRESS
 
-	Sprite background;
-	std::unordered_map<std::string, Texture> textures;
-	Shaders shaders;
-	
-	glm::vec2 cameraPosition;
-	glm::ivec2 cameraTilePos;
-	
-	glm::ivec2 playerPos;
-	bool locked;
+    Sprite                                     background;
+    std::unordered_map< std::string, Texture > textures;
+    Shaders                                    shaders{};
 
-	glm::ivec2 tileSize;
-	glm::ivec2 numTuilesOnScreen;
-	glm::ivec2 tilesToDraw;
+    glm::vec2  cameraPosition;
+    glm::ivec2 cameraTilePos;
 
-	glm::ivec2 levelSize;
-	std::vector<std::unique_ptr<GameObject>> objects;
-public:
-	Level() = default;
-	~Level() = default;
+    glm::ivec2 playerPos;
 
-	// Convert from OpenGL position to map position
-	glm::vec2 GetLocalVec(const glm::vec2& local) const;
+    // tracktion rate at which objects velocity
+    // slows down
+    float m_tracktion = 0.001f;
+    bool  locked{};
 
-	// Convert from map position to OpenGL
-	glm::vec2 GetGlobalVec(const glm::vec2& local) const;
+    glm::ivec2 tileSize;
+    glm::ivec2 numTuilesOnScreen;
+    glm::ivec2 tilesToDraw;
 
-	void MoveObjs(glm::vec2 moveBy, bool isCameraMovement = true);
-	void Load(const std::string& fileName);
-	void LoadPremade(const std::string& fileName, glm::ivec2 size);
-	void LoadShaders(const std::string& shaderName);
-	void AddGameObject(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite);
-	void Move(const glm::vec2& moveBy);
-	void Draw();
+    glm::ivec2                                   levelSize;
+    std::vector< std::unique_ptr< GameObject > > objects;
 
-	bool CheckCollision(const glm::ivec2& localPos, Player& player);
-	void LockCamera() { locked = true; }
-	void UnlockCamera() { locked = false; }
-	bool IsCameraLocked() const { return locked; }
-	glm::vec2 GetCameraPosition() { return cameraPosition; }
-	glm::ivec2 GetCameraTiledPosition() { return cameraTilePos; }
-	glm::vec2 GetLevelPosition() const { return background.GetPosition(); }
-	glm::ivec2 GetSize() const { return levelSize; }
-	void SetPlayersPosition(const glm::vec2& position);
-	void MoveCamera(const glm::vec2 moveBy);
-	glm::ivec2 CheckMoveCamera(const glm::vec2& moveBy) const;
-	glm::ivec2 GetTilePosition(const glm::vec2& position) const;
+ public:
+    Level( )  = default;
+    ~Level( ) = default;
+
+    // Convert from OpenGL position to map position
+    glm::vec2 GetLocalVec( const glm::vec2& local ) const;
+
+    // Convert from map position to OpenGL
+    glm::vec2 GetGlobalVec( const glm::vec2& local ) const;
+
+    void MoveObjs( const glm::vec2& moveBy, bool isCameraMovement = true );
+    void Load( const std::string& fileName );
+    void LoadPremade( const std::string& fileName, const glm::ivec2& size );
+    void LoadShaders( const std::string& shaderName );
+    void AddGameObject( const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite );
+    void Move( const glm::vec2& moveBy );
+    void Draw( );
+
+    bool CheckCollision( const glm::ivec2& localPos, const Player& player );
+    void LockCamera( )
+    {
+        locked = true;
+    }
+    void UnlockCamera( )
+    {
+        locked = false;
+    }
+    bool IsCameraLocked( ) const
+    {
+        return locked;
+    }
+    glm::vec2 GetCameraPosition( )
+    {
+        return cameraPosition;
+    }
+    glm::ivec2 GetCameraTiledPosition( )
+    {
+        return cameraTilePos;
+    }
+    glm::vec2 GetLevelPosition( ) const
+    {
+        return background.GetPosition( );
+    }
+    glm::ivec2 GetSize( ) const
+    {
+        return levelSize;
+    }
+    void SetPlayersPosition( const glm::vec2& position );
+    void MoveCamera( const glm::vec2& moveBy );
+
+    glm::ivec2 CheckMoveCamera( const glm::vec2& moveBy ) const;
+    glm::ivec2 GetTilePosition( const glm::vec2& position ) const;
+    float      GetTracktion( ) const
+    {
+        return m_tracktion;
+    }
 };
-

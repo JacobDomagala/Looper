@@ -111,5 +111,7 @@
     <None Include="Shaders\Font_vs.glsl" />
     <None Include="lineVertex.glsl" />
     <None Include="lineFragment.glsl" />
+    <None Include=".clang-format" />
+    <None Include=".clang-tidy" />
   </ItemGroup>
 </Project>

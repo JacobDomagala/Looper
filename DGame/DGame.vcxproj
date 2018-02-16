@@ -22,7 +22,7 @@
     <ProjectGuid>{604B5BEE-440B-49F3-9713-6CA98F2BD9FA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>DGame</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -99,18 +99,20 @@
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>.\..\Reasource\FreeType\include;.\..\Reasource\GLM\glm\glm;.\..\Reasource\GLEW\glew-1.12.0\include\GL;.\..\Reasource\Simple OpenGL Image Library\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <MultiProcessorCompilation>false</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>.\..\Reasource\FreeType\include;D:\Work\DGame\Reasource\GLM\glm-0.9.8.5\glm\glm;D:\Work\DGame\Reasource\GLEW\glew-2.1.0\include\GL;.\..\Reasource\Simple OpenGL Image Library\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>.\..\Reasource\FreeType\obj;.\..\Reasource\Simple OpenGL Image Library\lib;.\..\Reasource\GLEW\glew-1.12.0;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>freetype27.lib;freetype27d.lib;SOIL.lib;openGL32.lib;glew32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>.\..\Reasource\FreeType\obj;.\..\Reasource\Simple OpenGL Image Library\lib;D:\Work\DGame\Reasource\GLEW\glew-2.1.0\lib\Release\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>freetype27.lib;freetype27d.lib;SOIL.lib;openGL32.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -182,6 +184,8 @@
     <ClInclude Include="Win_Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".clang-format" />
+    <None Include=".clang-tidy" />
     <None Include="lineFragment.glsl" />
     <None Include="lineVertex.glsl" />
     <None Include="Shaders\AfterEffects_fs.glsl" />

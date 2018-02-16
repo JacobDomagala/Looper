@@ -2,102 +2,99 @@
 
 #include "Common.h"
 
-class Win_Window 
+class Win_Window
 {
-	// Win32 specific members
-	WNDCLASS  m_windowClass;
-	HWND      m_windowHandle;
-	HINSTANCE m_hInstance;
-	HGLRC     m_hrc;
-	HDC       m_hdc;
+    // Win32 specific members
+    WNDCLASS  m_windowClass;
+    HWND      m_windowHandle;
+    HINSTANCE m_hInstance;
+    HGLRC     m_hrc;
+    HDC       m_hdc;
 
-	// projection matrix for OpenGL
-	glm::mat4 m_projectionMatrix;
+    // projection matrix for OpenGL
+    glm::mat4 m_projectionMatrix;
 
-	// cursor position 
-	glm::vec2 m_cursorPos;
+    // cursor position
+    glm::vec2 m_cursorPos;
 
-	// is windows active
-	bool m_isRunning;
+    // is windows active
+    bool m_isRunning;
 
-	// key map
-	static std::unordered_map<WPARAM, bool> keyMap;
+    // key map
+    static std::unordered_map< WPARAM, bool > keyMap;
 
-	// private constructor
-	Win_Window(HINSTANCE hInstance);
+    // private constructor
+    explicit Win_Window( HINSTANCE hInstance );
 
-public:
-	// singleton for window
-	static Win_Window& GetInstance();
+ public:
+    // singleton for window
+    static Win_Window& GetInstance( );
 
-	// Win32 callback function
-	static LRESULT CALLBACK MainWinProc(HWND hWind, UINT uMsg, WPARAM wParam, LPARAM lParam);
+    // Win32 callback function
+    static LRESULT CALLBACK MainWinProc( HWND hWind, UINT uMsg, WPARAM wParam, LPARAM lParam );
 
-	// deleted copy constructor
-	Win_Window(Win_Window&) = delete;
+    // deleted copy constructor
+    Win_Window( Win_Window& ) = delete;
 
-	// return true if given key is pressed
-	static bool GetKeyState(WPARAM keyValue)
-	{
-		return keyMap[keyValue];
-	}
+    // return true if given key is pressed
+    static bool GetKeyState( WPARAM keyValue )
+    {
+        return keyMap[ keyValue ];
+    }
 
-	// return true if the window is active
-	bool IsRunning() const
-	{
-		return m_isRunning;
-	}
+    // return true if the window is active
+    bool IsRunning( ) const
+    {
+        return m_isRunning;
+    }
 
-	// set cursos position
-	void SetCursor(const glm::vec2 position) 
-	{ 
-		m_cursorPos = position; 
-	}
+    // set cursos position
+    void SetCursor( const glm::vec2 position )
+    {
+        m_cursorPos = position;
+    }
 
-	// update and get curson position in Win32 coords
-	glm::vec2 GetCursor();
-	
-	// update and get cursor position <-1, 1> 
-	// with positive 'y' is up
-	glm::vec2 GetCursorScreenPosition();
+    // update and get curson position in Win32 coords
+    glm::vec2 GetCursor( );
 
-	// update and get cursor position <-1, 1>
-	// with positive 'y' is down
-	glm::vec2 GetCursorNormalized();
+    // update and get cursor position <-1, 1>
+    // with positive 'y' is up
+    glm::vec2 GetCursorScreenPosition( );
 
-	// create Win32 window
-	void Createwindow();
+    // update and get cursor position <-1, 1>
+    // with positive 'y' is down
+    glm::vec2 GetCursorNormalized( );
 
-	// initialize OpenGL
-	void SetUpOpenGL();
+    // create Win32 window
+    void Createwindow( );
 
-	// set projection matrix for OpenGL
-	void SetProjection(const glm::mat4& projection) 
-	{ 
-		m_projectionMatrix = projection; 
-	}
+    // initialize OpenGL
+    void SetUpOpenGL( );
 
-	// get projection matrix
-	const glm::mat4& GetProjection() const
-	{ 
-		return m_projectionMatrix; 
-	}
+    // set projection matrix for OpenGL
+    void SetProjection( const glm::mat4& projection )
+    {
+        m_projectionMatrix = projection;
+    }
 
-	// get window handle
-	HWND GetWindowHandle()
-	{
-		return m_windowHandle;
-	}
+    // get projection matrix
+    const glm::mat4& GetProjection( ) const
+    {
+        return m_projectionMatrix;
+    }
 
-	// destroy window
-	void ShutDown();
-	
-	// swap render buffers
-	void Swapwindow();
+    // get window handle
+    HWND GetWindowHandle( )
+    {
+        return m_windowHandle;
+    }
 
-	// create pop-up message box with error and shut down 
-	void ShowError(const std::string& errorMessage, const std::string& errorTitle);
+    // destroy window
+    void ShutDown( );
+
+    // swap render buffers
+    void Swapwindow( );
+
+    // create pop-up message box with error and shut down
+    void ShowError( const std::string& errorMessage, const std::string& errorTitle );
 };
-
-
-
