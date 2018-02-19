@@ -9,14 +9,14 @@
 class Weapon
 {
  protected:
-    int         m_range;
-    int         m_dmg;
-    int         m_ammoNum;
+    int32_t         m_range;
+    int32_t         m_dmg;
+    int32_t         m_ammoNum;
     bool        m_hasAmmo;
     std::string m_name;
     float       m_reloadTime;
 
-    Weapon( int range, int dmg, int ammoNum, bool hasAmmo, std::string name, float reloadTime )
+    Weapon( int32_t range, int32_t dmg, int32_t ammoNum, bool hasAmmo, std::string name, float reloadTime )
         : m_range( range )
         , m_dmg( dmg )
         , m_ammoNum( ammoNum )
@@ -33,7 +33,7 @@ class Weapon
     {
         return m_name;
     }
-    virtual int GetAmmoNum( ) const
+    virtual int32_t GetAmmoNum( ) const
     {
         return m_ammoNum;
     }
@@ -41,11 +41,11 @@ class Weapon
     {
         return m_reloadTime;
     }
-    virtual int GetRange( ) const
+    virtual int32_t GetRange( ) const
     {
         return m_range;
     }
-    virtual int GetDamage( ) const
+    virtual int32_t GetDamage( ) const
     {
         return m_dmg;
     }

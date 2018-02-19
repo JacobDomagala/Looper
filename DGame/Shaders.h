@@ -10,10 +10,10 @@ class Shaders
         FRAGMENT_SHADER
     };
 
-    GLuint        programID;
-    GLuint        vertexShaderID;
-    GLuint        fragmentShaderID;
-    static GLuint activeProgramID;
+    GLuint        m_programID;
+    GLuint        m_vertexShaderID;
+    GLuint        m_fragmentShaderID;
+    static GLuint m_activeProgramID;
 
     std::string ReadShaderFile( const std::string& fileName );
 
@@ -21,12 +21,12 @@ class Shaders
     void CheckLinkStatus( GLuint programID );
 
  public:
-    static GLuint numberBound;
+    static GLuint m_numberBound;
 
     Shaders( ) = default;
     ~Shaders( )
     {
-        glDeleteProgram( programID );
+        glDeleteProgram(m_programID);
     }
 
     GLuint GetProgram( ) const;

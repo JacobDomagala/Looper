@@ -108,14 +108,14 @@ glm::ivec2 Game::CorrectPosition( )
         returnVal.y = ( levelSize.y - 1 ) - playerPosition.y;
         return returnVal;
     }
-    //if you stand where you're not supposed to due to fucking float -> int conversion (FeelsBadMan)
+    //if you stand where you're not supposed to due to fucking float -> int32_t conversion (FeelsBadMan)
     if( tmpCollision[ linearPosition ].w != 0 )
     {
         // the value of getting you out of shit < -6 ; 5 >
-        int tmpval = 6;
-        for( int j = -tmpval; j <= tmpval; ++j )
+        int32_t tmpval = 6;
+        for( int32_t j = -tmpval; j <= tmpval; ++j )
         {
-            for( int i = -tmpval; i <= tmpval; ++i )
+            for( int32_t i = -tmpval; i <= tmpval; ++i )
             {
                 playerDestination = playerPosition + glm::ivec2( i, j );
 
@@ -170,7 +170,7 @@ void Game::RenderLine( glm::ivec2 collided, glm::vec3 color )
     glDeleteVertexArrays( 1, &lineVertexArray );
 }
 
-glm::ivec2 Game::CheckBulletCollision( Enemy* from, glm::vec2 globalTo, int range )
+std::pair< glm::ivec2, bool > Game::CheckBulletCollision( Enemy* from, glm::vec2 globalTo, int32_t range )
 {
     glm::ivec2 targetPixels = GlobalToScreen( globalTo );
 
@@ -197,15 +197,15 @@ glm::ivec2 Game::CheckBulletCollision( Enemy* from, glm::vec2 globalTo, int rang
     const float dx = x2 - x1;
     const float dy = fabs( y2 - y1 );
 
-    float     error = dx / 2.0f;
-    const int ystep = ( y1 < y2 ) ? 1 : -1;
-    int       y     = static_cast< int >( y1 );
+    float         error = dx / 2.0f;
+    const int32_t ystep = ( y1 < y2 ) ? 1 : -1;
+    int32_t       y     = static_cast< int32_t >( y1 );
 
-    const int maxX = static_cast< int >( x2 );
+    const int32_t maxX = static_cast< int32_t >( x2 );
 
     glm::ivec2 levelSize = m_currentLevel.GetSize( );
 
-    for( int x = static_cast< int >( x1 ); x < maxX + range; x++ )
+    for( int32_t x = static_cast< int32_t >( x1 ); x < maxX + range; x++ )
     {
         if( steep )
         {
@@ -218,26 +218,36 @@ glm::ivec2 Game::CheckBulletCollision( Enemy* from, glm::vec2 globalTo, int rang
 
             if( !m_player.CheckCollision( tmpPos, from ) )
             {
-                return tmpPos;
+                return { tmpPos, true };
             }
 
-            if( tmpPos.x == 0 || tmpPos.x == levelSize.x || tmpPos.y == 0 || tmpPos.y == levelSize.y || m_collision.get( )[ tmpPos.x + tmpPos.y * levelSize.x ].w != 0 )
-                return tmpPos;
+            if( tmpPos.x <= 0 || tmpPos.x >= levelSize.x || tmpPos.y <= 0 || tmpPos.y >= levelSize.y || m_collision.get( )[ tmpPos.x + tmpPos.y * levelSize.x ].w != 0 )
+            {
+                return { tmpPos, false };
+            }
         }
         else
         {
             //x,y
             glm::ivec2 tmpPos = glm::ivec2( );
             if( !wasGreater )
+            {
                 tmpPos = from->GetCenteredLocalPosition( ) + glm::ivec2( x - x1, y - y1 );
+            }
             else
+            {
                 tmpPos = from->GetCenteredLocalPosition( ) - glm::ivec2( x - x1, y - y1 );
+            }
 
             if( !m_player.CheckCollision( tmpPos, from ) )
-                return tmpPos;
+            {
+                return { tmpPos, true };
+            }
 
-            if( tmpPos.x == 0 || tmpPos.x == levelSize.x || tmpPos.y == 0 || tmpPos.y == levelSize.y || m_collision.get( )[ tmpPos.x + tmpPos.y * levelSize.x ].w != 0 )
-                return tmpPos;
+            if( tmpPos.x <= 0 || tmpPos.x >= levelSize.x || tmpPos.y <= 0 || tmpPos.y >= levelSize.y || m_collision.get( )[ tmpPos.x + tmpPos.y * levelSize.x ].w != 0 )
+            {
+                return { tmpPos, false };
+            }
         }
 
         error -= dy;
@@ -247,10 +257,100 @@ glm::ivec2 Game::CheckBulletCollision( Enemy* from, glm::vec2 globalTo, int rang
             error += dx;
         }
     }
-    return glm::ivec2( );
+    return { glm::ivec2( ), false };
 }
 
-glm::ivec2 Game::CheckBulletCollision( int range )
+bool Game::IsPlayerInVision( Enemy* from, int32_t range )
+{
+    glm::ivec2 targetPixels = GlobalToScreen( m_player.GetCenteredGlobalPosition( ) );
+
+    float x1 = from->GetScreenPositionPixels( ).x;
+    float y1 = from->GetScreenPositionPixels( ).y;
+    float x2 = static_cast< float >( targetPixels.x );
+    float y2 = static_cast< float >( targetPixels.y );
+
+    bool       wasGreater = false;
+    const bool steep      = ( fabs( y2 - y1 ) > fabs( x2 - x1 ) );
+    if( steep )
+    {
+        std::swap( x1, y1 );
+        std::swap( x2, y2 );
+    }
+
+    if( x1 > x2 )
+    {
+        wasGreater = true;
+        std::swap( x1, x2 );
+        std::swap( y1, y2 );
+    }
+
+    const float dx = x2 - x1;
+    const float dy = fabs( y2 - y1 );
+
+    float         error = dx / 2.0f;
+    const int32_t ystep = ( y1 < y2 ) ? 1 : -1;
+    int32_t       y     = static_cast< int32_t >( y1 );
+
+    const int32_t maxX = static_cast< int32_t >( x2 );
+
+    glm::ivec2 levelSize = m_currentLevel.GetSize( );
+
+    for( int32_t x = static_cast< int32_t >( x1 ); x < maxX + range; x++ )
+    {
+        if( steep )
+        {
+            //y,x
+            glm::ivec2 tmpPos = glm::ivec2( );
+            if( !wasGreater )
+                tmpPos = from->GetCenteredLocalPosition( ) + glm::ivec2( y - y1, x - x1 );
+            else
+                tmpPos = from->GetCenteredLocalPosition( ) - glm::ivec2( y - y1, x - x1 );
+
+            if( !m_player.CheckCollision( tmpPos, from, false ) )
+            {
+                return true;
+            }
+
+            if( tmpPos.x <= 0 || tmpPos.x >= levelSize.x || tmpPos.y <= 0 || tmpPos.y >= levelSize.y || m_collision.get( )[ tmpPos.x + tmpPos.y * levelSize.x ].w != 0 )
+            {
+                return false;
+            }
+        }
+        else
+        {
+            //x,y
+            glm::ivec2 tmpPos = glm::ivec2( );
+            if( !wasGreater )
+            {
+                tmpPos = from->GetCenteredLocalPosition( ) + glm::ivec2( x - x1, y - y1 );
+            }
+            else
+            {
+                tmpPos = from->GetCenteredLocalPosition( ) - glm::ivec2( x - x1, y - y1 );
+            }
+
+            if( !m_player.CheckCollision( tmpPos, from, false ) )
+            {
+                return true;
+            }
+
+            if( tmpPos.x <= 0 || tmpPos.x >= levelSize.x || tmpPos.y <= 0 || tmpPos.y >= levelSize.y || m_collision.get( )[ tmpPos.x + tmpPos.y * levelSize.x ].w != 0 )
+            {
+                return false;
+            }
+        }
+
+        error -= dy;
+        if( error < 0 )
+        {
+            y += ystep;
+            error += dx;
+        }
+    }
+    return false;
+}
+
+glm::ivec2 Game::CheckBulletCollision( int32_t range )
 {
     float x1, x2, y1, y2;
     x1 = static_cast< float >( m_player.GetScreenPositionPixels( ).x );
@@ -276,45 +376,61 @@ glm::ivec2 Game::CheckBulletCollision( int range )
     const float dx = x2 - x1;
     const float dy = fabs( y2 - y1 );
 
-    float     error = dx / 2.0f;
-    const int ystep = ( y1 < y2 ) ? 1 : -1;
-    int       y     = static_cast< int >( y1 );
+    float         error = dx / 2.0f;
+    const int32_t ystep = ( y1 < y2 ) ? 1 : -1;
+    int32_t       y     = static_cast< int32_t >( y1 );
 
-    const int maxX = ( int ) x2;
+    const int32_t maxX = ( int32_t ) x2;
 
     glm::ivec2 levelSize = m_currentLevel.GetSize( );
 
-    for( int x = static_cast< int >( x1 ); x < maxX + range; x++ )
+    for( int32_t x = static_cast< int32_t >( x1 ); x < maxX + range; x++ )
     {
         if( steep )
         {
             //y,x
             glm::ivec2 tmpPos = glm::ivec2( );
             if( !wasGreater )
+            {
                 tmpPos = m_player.GetCenteredLocalPosition( ) + glm::ivec2( y - y1, x - x1 );
+            }
             else
+            {
                 tmpPos = m_player.GetCenteredLocalPosition( ) - glm::ivec2( y - y1, x - x1 );
+            }
 
             if( !m_currentLevel.CheckCollision( tmpPos, m_player ) )
+            {
                 return tmpPos;
+            }
 
             if( tmpPos.x == 0 || tmpPos.x == levelSize.x || tmpPos.y == 0 || tmpPos.y == levelSize.y || m_collision.get( )[ tmpPos.x + tmpPos.y * levelSize.x ].w != 0 )
+            {
                 return tmpPos;
+            }
         }
         else
         {
             //x,y
             glm::ivec2 tmpPos = glm::ivec2( );
             if( !wasGreater )
+            {
                 tmpPos = m_player.GetCenteredLocalPosition( ) + glm::ivec2( x - x1, y - y1 );
+            }
             else
+            {
                 tmpPos = m_player.GetCenteredLocalPosition( ) - glm::ivec2( x - x1, y - y1 );
+            }
 
             if( !m_currentLevel.CheckCollision( tmpPos, m_player ) )
+            {
                 return tmpPos;
+            }
 
             if( tmpPos.x == 0 || tmpPos.x == levelSize.x || tmpPos.y == 0 || tmpPos.y == levelSize.y || m_collision.get( )[ tmpPos.x + tmpPos.y * levelSize.x ].w != 0 )
+            {
                 return tmpPos;
+            }
         }
 
         error -= dy;
@@ -336,9 +452,11 @@ glm::ivec2 Game::CheckCollision( glm::ivec2& moveBy )
     glm::ivec2 returnVal   = glm::ivec2( );
 
     if( destination.x < 0 || destination.x > levelSize.x || destination.y < 0 || destination.y > levelSize.y )
+    {
         return returnVal;
+    }
 
-    int distance = static_cast< int >( glm::length( static_cast< glm::vec2 >( moveBy ) ) );
+    int32_t distance = static_cast< int32_t >( glm::length( static_cast< glm::vec2 >( moveBy ) ) );
 
     glm::vec2  tmpDirection = glm::normalize( glm::vec2( moveBy ) );
     glm::ivec2 direction    = glm::ivec2( ceil( tmpDirection.x ), ceil( tmpDirection.y ) );
@@ -360,20 +478,20 @@ glm::ivec2 Game::CheckCollision( glm::ivec2& moveBy )
     // if player is standing in shit, this will take it into account
     glm::ivec2 positionBias = glm::ivec2( );
 
-    // if player stand where he's not supposed to due to fucking float -> int conversion (FeelsBadMan)
+    // if player stand where he's not supposed to due to fucking float -> int32_t conversion (FeelsBadMan)
     //	if (tmpCollision[linearPosition].w != 0)
     //	{
     //		// the value of getting you out of shit < -5 ; 5 >
-    //		int tmpval = 5;
-    //		for (int j = -tmpval; j <= tmpval; ++j)
+    //		int32_t tmpval = 5;
+    //		for (int32_t j = -tmpval; j <= tmpval; ++j)
     //				{
-    //					for (int i = -tmpval; i <= tmpval; ++i)
+    //					for (int32_t i = -tmpval; i <= tmpval; ++i)
     //					{
     //						tmpPosition = linearPosition + (i + j*levelSize.x);
     //						if ((tmpPosition < linearLevelSize) && (tmpPosition >= 0) && (tmpCollision[tmpPosition].w == 0 ))
     //						{
-    //							int yComp = tmpPosition / levelSize.x;
-    //							int xComp = tmpPosition - (yComp * levelSize.x);
+    //							int32_t yComp = tmpPosition / levelSize.x;
+    //							int32_t xComp = tmpPosition - (yComp * levelSize.x);
     //
     //							positionBias = glm::ivec2(xComp, yComp) - playerPos;
     //							goto next;
@@ -384,7 +502,7 @@ glm::ivec2 Game::CheckCollision( glm::ivec2& moveBy )
     //next:
 
     // if player couldn't get to destination, find closest in line point where you can go
-    for( int i = distance; i > 0; --i )
+    for( int32_t i = distance; i > 0; --i )
     {
         glm::ivec2 tmpDest = playerPosition + direction * i;
         tmpPosition        = static_cast< uint32 >( floor( tmpDest.x + tmpDest.y * levelSize.x ) );
@@ -397,11 +515,11 @@ glm::ivec2 Game::CheckCollision( glm::ivec2& moveBy )
     }
 
     // if player couldn't find anything in straight line, check the closest boundaries
-    for( int j = distance; j > 0; --j )
+    for( int32_t j = distance; j > 0; --j )
     {
         if( direction.x == 0 )
         {
-            for( int i = -2; i <= 2; ++i )
+            for( int32_t i = -2; i <= 2; ++i )
             {
                 glm::ivec2 tmpDirection = glm::ivec2( direction.x + i, direction.y );
                 glm::ivec2 tmpDest      = playerPosition + tmpDirection * j;
@@ -417,7 +535,7 @@ glm::ivec2 Game::CheckCollision( glm::ivec2& moveBy )
         }
         else if( direction.y == 0 )
         {
-            for( int i = -2; i <= 2; ++i )
+            for( int32_t i = -2; i <= 2; ++i )
             {
                 glm::ivec2 tmpDirection = glm::ivec2( direction.x, direction.y + i );
                 glm::ivec2 tmpDest      = playerPosition + tmpDirection * j;
@@ -452,8 +570,8 @@ bool Game::CheckMove( glm::ivec2& moveBy )
 
 void Game::KeyEvents( float deltaTime )
 {
-    int cameraMovement = static_cast< int >( 300.0f * deltaTime );
-    int playerMovement = static_cast< int >( 500.0f * deltaTime );
+    int32_t cameraMovement = static_cast< int32_t >( 300.0f * deltaTime );
+    int32_t playerMovement = static_cast< int32_t >( 500.0f * deltaTime );
 
     glm::ivec2 playerMoveBy = glm::ivec2( );
     glm::ivec2 cameraMoveBy = glm::ivec2( );
@@ -571,7 +689,7 @@ void Game::MouseEvents( float deltaTime )
     // TODO: Find some easier formula for this?
 
     // value to control how fast should camera move
-    int multiplier = 3;
+    int32_t multiplier = 3;
 
     // cursor's position from center of the screen to trigger camera movement
     float borderValue = 0.2f;
@@ -607,8 +725,6 @@ void Game::RenderFirstPass( )
 {
     m_frameBuffer.BeginDrawingToTexture( );
 
-    m_currentLevel.Draw( );
-
     // player's position on the map
     m_playerPosition = m_currentLevel.GetLocalVec( m_player.GetCenteredGlobalPosition( ) );
 
@@ -620,7 +736,9 @@ void Game::RenderFirstPass( )
     m_playerPosition += correction;
     m_player.SetCenteredLocalPosition( m_playerPosition );
     //}
+    m_currentLevel.Draw( );
     m_player.Draw( );
+
     m_frameBuffer.EndDrawingToTexture( );
 }
 
@@ -648,7 +766,7 @@ void Game::LoadLevel( const std::string& levelName )
         Win_Window::GetInstance( ).ShowError( "Can't open " + folderPath + levelName + ".txt", "Level loading" );
     }
 
-    int         levelWidth, levelHeight;
+    int32_t     levelWidth, levelHeight;
     std::string background;
     std::string collisionMap;
 
@@ -686,17 +804,17 @@ void Game::LoadLevel( const std::string& levelName )
         else if( tmp == "Collision:" )
         {
             levelFile >> collisionMap;
-            int        width, height;
+            int32_t    width, height;
             byte_vec4* tmpCollision = reinterpret_cast< byte_vec4* >( SOIL_load_image( ( folderPath + collisionMap ).c_str( ), &width, &height, NULL, SOIL_LOAD_RGBA ) );
             m_collision             = std::unique_ptr< byte_vec4 >( tmpCollision );
         }
         else if( tmp == "Player:" )
         {
-            int playerX, playerY;
+            int32_t playerX, playerY;
             levelFile >> playerX;
             levelFile >> playerY;
 
-            int playerWidth, playerHeight;
+            int32_t playerWidth, playerHeight;
             levelFile >> playerWidth;
             levelFile >> playerHeight;
 
@@ -708,15 +826,15 @@ void Game::LoadLevel( const std::string& levelName )
         }
         else if( tmp == "Enemies:" )
         {
-            int numEnemies;
+            int32_t numEnemies;
             levelFile >> numEnemies;
-            for( int i = 0; i < numEnemies; ++i )
+            for( int32_t i = 0; i < numEnemies; ++i )
             {
-                int enemyX, enemyY;
+                int32_t enemyX, enemyY;
                 levelFile >> enemyX;
                 levelFile >> enemyY;
 
-                int enemyWidth, enemyHeight;
+                int32_t enemyWidth, enemyHeight;
                 levelFile >> enemyWidth;
                 levelFile >> enemyHeight;
 

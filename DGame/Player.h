@@ -45,19 +45,13 @@ class Player
     Weapon* m_currentWeapon;
 
     // player's max health
-    int m_maxHP;
+    int32_t m_maxHP;
 
     // player's current health
-    int m_currentHP;
+    int32_t m_currentHP;
 
     // pixel values of player's sprite used for detailed collision
     std::unique_ptr< byte_vec4 > m_collision;
-
-    // player's vertex array buffer
-    /*GLuint m_vertexArrayBuffer;*/
-
-    // player's vertex buffer
-    /*GLuint m_vertexBuffer;*/
 
  public:
     explicit Player( const glm::vec2&   position = glm::vec2( 0.0f, 0.0f ),
@@ -70,7 +64,7 @@ class Player
                        const std::string& fileName = ".\\Default.png" );
 
     // check if player got git by enemy
-    bool CheckCollision( const glm::ivec2& bulletPosition, Enemy const* enemy );
+    bool CheckCollision( const glm::ivec2& bulletPosition, Enemy const* enemy, bool enemyShooting = true );
 
     // load shaders with given name
     void LoadShaders( const std::string& shaderFile );
@@ -79,13 +73,13 @@ class Player
     void LoadShaders( const Shaders& program );
 
     // set position on map
-    void SetLocalPosition( glm::ivec2 pos );
+    void SetLocalPosition( const glm::ivec2& pos );
 
     // set centered (center of player's sprite) position on map
-    void SetCenteredLocalPosition( glm::ivec2 pos );
+    void SetCenteredLocalPosition( const glm::ivec2& pos );
 
     // set position in OpenGL
-    void SetGlobalPosition( glm::vec2 position );
+    void SetGlobalPosition( const glm::vec2& position );
 
     // get position in OpenGL
     glm::vec2 GetGlobalPosition( ) const;
@@ -110,19 +104,19 @@ class Player
     glm::ivec2 GetSize( ) const;
 
     // move player in OpenGL space
-    void Move( glm::vec2 vector, bool changeVelocity = true );
+    void Move( const glm::vec2& vector, bool changeVelocity = true );
 
     // get reload time of player's current weapon
     float GetReloadTime( ) const;
 
     // change player's current weapon
-    void ChangeWepon( int idx );
+    void ChangeWepon( int32_t idx );
 
     // get player's current weapon range
-    int GetWeaponRange( ) const;
+    int32_t GetWeaponRange( ) const;
 
     // get player's current weapon's damage
-    int GetWeaponDmg( ) const;
+    int32_t GetWeaponDmg( ) const;
 
     // draw player
     void Draw( );

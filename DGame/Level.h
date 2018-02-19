@@ -18,9 +18,6 @@ class Level {
 
     glm::ivec2 playerPos;
 
-    // tracktion rate at which objects velocity
-    // slows down
-    float m_tracktion = 0.001f;
     bool  locked{};
 
     glm::ivec2 tileSize;
@@ -82,8 +79,4 @@ class Level {
 
     glm::ivec2 CheckMoveCamera( const glm::vec2& moveBy ) const;
     glm::ivec2 GetTilePosition( const glm::vec2& position ) const;
-    float      GetTracktion( ) const
-    {
-        return m_tracktion;
-    }
 };

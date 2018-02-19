@@ -42,7 +42,7 @@ class GameObject
     GameObject( const glm::vec2& pos, glm::ivec2 size, const std::string& sprite );
     virtual ~GameObject( ) = default;
 
-    virtual void Hit( int /*dmg*/ )
+    virtual void Hit( int32_t /*dmg*/ )
     {
     }
     virtual bool Visible( ) const

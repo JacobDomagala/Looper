@@ -52,9 +52,9 @@
 //	levelWidth = file.tellg()/2 ;
 //	file.seekg(0, file.beg);
 //
-//	int textureFileName;
-//	int tilePosX = 0;
-//	int tilePosY = 0;
+//	int32_t textureFileName;
+//	int32_t tilePosX = 0;
+//	int32_t tilePosY = 0;
 //	while (!file.eof())
 //	{
 //		file >> textureFileName;
@@ -114,9 +114,6 @@ glm::vec2 Level::GetGlobalVec( const glm::vec2& local ) const
 
 bool Level::CheckCollision( const glm::ivec2& localPos, const Player& player )
 {
-    if( objects.empty( ) )
-        return true;
-
     for( auto& obj : objects )
     {
         float     length  = glm::length( glm::vec2( localPos - obj->GetCenteredLocalPosition( ) ) );
@@ -219,8 +216,8 @@ glm::ivec2 Level::GetTilePosition( const glm::vec2& position ) const
     float tmpX = position.x;
     float tmpY = position.y;
 
-    int tileX = static_cast< int >( ceilf( tmpX / static_cast< float >( tileSize.x ) ) );
-    int tileY = static_cast< int >( ceilf( tmpY / static_cast< float >( tileSize.y ) ) );
+    int32_t tileX = static_cast< int32_t >( ceilf( tmpX / static_cast< float >( tileSize.x ) ) );
+    int32_t tileY = static_cast< int32_t >( ceilf( tmpY / static_cast< float >( tileSize.y ) ) );
 
     return glm::ivec2( tileX, tileY );
 }

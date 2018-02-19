@@ -2,9 +2,9 @@
 #include "Shaders.h"
 #include "Win_Window.h"
 
-int Texture::m_unitCounter = 0;
-int Texture::m_nowBound    = 0;
-int Texture::m_boundCount  = 0;
+int32_t Texture::m_unitCounter = 0;
+int32_t Texture::m_nowBound    = 0;
+int32_t Texture::m_boundCount  = 0;
 
 std::unique_ptr< byte_vec4 > Texture::LoadTextureFromFile( const std::string& fileName, GLenum wrapMode, GLenum filter )
 {
@@ -30,7 +30,7 @@ std::unique_ptr< byte_vec4 > Texture::LoadTextureFromFile( const std::string& fi
     return returnPtr;
 }
 
-void Texture::LoadTextureFromMemory( int width, int height, uint8* data, GLenum wrapMode, GLenum filter )
+void Texture::LoadTextureFromMemory( int32_t width, int32_t height, uint8* data, GLenum wrapMode, GLenum filter )
 {
     glGenTextures( 1, &m_textureID );
     glBindTexture( GL_TEXTURE_2D, m_textureID );

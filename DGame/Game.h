@@ -117,7 +117,7 @@ class Game
     glm::vec2 m_playerPosition;
 
     // bullet collision for player
-    glm::ivec2 CheckBulletCollision( int range );
+    glm::ivec2 CheckBulletCollision( int32_t range );
     glm::ivec2 CheckCollision( glm::ivec2& moveBy );
     glm::ivec2 CorrectPosition( );
 
@@ -134,6 +134,8 @@ class Game
     // draws to screen
     void RenderSecondPass( );
     void LoadLevel( const std::string& levelName );
+
+    void RayTracer( );
 
     Game( );
 
@@ -159,7 +161,13 @@ class Game
         return m_currentLevel;
     }
 
-    glm::ivec2 CheckBulletCollision( Enemy* from, glm::vec2 targetPosition, int range );
+    float GetDeltaTime( ) const
+    {
+        return m_deltaTime;
+    }
+
+    std::pair< glm::ivec2, bool > CheckBulletCollision( Enemy* from, glm::vec2 targetPosition, int32_t range );
+    bool                          IsPlayerInVision( Enemy* from, int32_t range );
 
     void DrawLine( glm::vec2 from, glm::vec2 to, glm::vec3 color = glm::vec3( 1.0f, 0.0f, 0.0f ) );
     void RenderText( std::string text, const glm::vec2& position, float scale, const glm::vec3& color = glm::vec3( 1.0f, 1.0f, 1.0f ) );

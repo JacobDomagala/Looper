@@ -30,5 +30,5 @@ struct byte_vec4
 
 const float TARGET_FPS  = 60.0f;
 const float TARGET_TIME = 1.0f / TARGET_FPS;
-const int   WIDTH       = 1280;
-const int   HEIGHT      = 768;
+const int32_t   WIDTH       = 1280;
+const int32_t   HEIGHT      = 768;

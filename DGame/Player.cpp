@@ -36,13 +36,16 @@ void Player::LoadShaders( const Shaders& program )
     m_program = program;
 }
 
-bool Player::CheckCollision( const glm::ivec2& bulletPosition, Enemy const* enemy )
+bool Player::CheckCollision( const glm::ivec2& bulletPosition, Enemy const* enemy, bool enemyShooting )
 {
     // if the bullet is inside collision zone then player got hit
     if( glm::length( glm::vec2( bulletPosition - m_centeredLocalPosition ) ) < ( m_sprite.GetSize( ).x ) / 2.5f )
     {
-        m_currentHP -= enemy->GetDmg( );
-        m_sprite.SetColor( glm::vec3( 1.0f, 0.0f, 0.0f ) );
+        if(enemyShooting)
+        {
+            m_currentHP -= enemy->GetDmg( );
+            m_sprite.SetColor( glm::vec3( 1.0f, 0.0f, 0.0f ) );
+        }
         return false;
     }
     return true;
@@ -95,45 +98,12 @@ glm::ivec2 Player::GetScreenPositionPixels( ) const
     return tmpPos;
 }
 
-void Player::Move( glm::vec2 moveBy, bool changeVelocity )
+void Player::Move( const glm::vec2& moveBy, bool changeVelocity )
 {
-    if( changeVelocity )
-    {
-        m_velocity += ( moveBy * m_speed );
-
-        auto traction = Game::GetInstance( ).GetLevel( ).GetTracktion( );
-
-        //if (m_velocity.x > 0.0f)
-        //{
-        //	m_velocity.x -= traction;
-        //}
-        //if (m_velocity.x < 0.0f)
-        //{
-        //	m_velocity.x += traction;
-        //}
-
-        m_sprite.Translate( m_velocity );
-        m_centeredGlobalPosition += m_velocity;
-
-        // TODO:
-        // don't check it every time player moves
-        // this should be called from Level when player enters
-        // area with different traction
-
-        /*if (m_velocity.y > 0.0f)
-		{
-			m_velocity.y -= traction;
-		}
-		if (m_velocity.x < 0.0f)
-		{
-			m_velocity.x += traction;
-		}*/
-    }
-    else
-    {
+   
         m_sprite.Translate( moveBy );
         m_centeredGlobalPosition += moveBy;
-    }
+
 }
 
 void Player::Draw( )
@@ -146,7 +116,6 @@ void Player::Draw( )
     float     angle  = -glm::degrees( glm::atan( tmpPos.y - cursorPos.y, tmpPos.x - cursorPos.x ) );
 
 #pragma endregion
-
     m_sprite.Rotate( angle + 90.0f );
     m_sprite.Render( m_program );
     m_sprite.SetColor( glm::vec3( 1.0f, 1.0f, 1.0f ) );
@@ -158,12 +127,12 @@ void Player::Shoot( )
     m_currentWeapon->Shoot( direction );
 }
 
-void Player::SetLocalPosition( glm::ivec2 pos )
+void Player::SetLocalPosition( const glm::ivec2& pos )
 {
     m_localPosition = pos;
 }
 
-void Player::SetCenteredLocalPosition( glm::ivec2 pos )
+void Player::SetCenteredLocalPosition( const glm::ivec2& pos )
 {
     m_centeredLocalPosition  = pos;
     m_localPosition          = glm::ivec2( m_centeredLocalPosition.x - m_sprite.GetSize( ).x / 2, m_centeredLocalPosition.y - m_sprite.GetSize( ).y / 2 );
@@ -171,7 +140,7 @@ void Player::SetCenteredLocalPosition( glm::ivec2 pos )
     m_centeredGlobalPosition = Game::GetInstance( ).GetLevel( ).GetGlobalVec( m_centeredLocalPosition );
 }
 
-void Player::SetGlobalPosition( glm::vec2 pos )
+void Player::SetGlobalPosition( const glm::vec2& pos )
 {
     m_localPosition = pos;
 }
@@ -181,17 +150,17 @@ float Player::GetReloadTime( ) const
     return m_currentWeapon->GetReloadTime( );
 }
 
-void Player::ChangeWepon( int idx )
+void Player::ChangeWepon( int32_t idx )
 {
     m_currentWeapon = m_weapons.at( idx ).get( );
 }
 
-int Player::GetWeaponRange( ) const
+int32_t Player::GetWeaponRange( ) const
 {
     return m_currentWeapon->GetRange( );
 }
 
-int Player::GetWeaponDmg( ) const
+int32_t Player::GetWeaponDmg( ) const
 {
     return m_currentWeapon->GetDamage( );
 }

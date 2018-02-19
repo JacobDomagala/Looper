@@ -4,7 +4,7 @@
 
 Timer* globalTimer;
 
-int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+int32_t WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32_t nCmdShow )
 {
     Win_Window::GetInstance( ).Createwindow( );
     Win_Window::GetInstance( ).SetUpOpenGL( );
@@ -17,7 +17,7 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
     MSG   msg;
     float frames           = 0.0f;
     float frameTimer       = 0.0f;
-    int   framesLastSecond = 0;
+    int32_t   framesLastSecond = 0;
 
     while( Win_Window::GetInstance( ).IsRunning( ) )
     {
@@ -38,7 +38,7 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
             Game::GetInstance( ).Render( );
             if( frameTimer > 1.0f )
             {
-                framesLastSecond = static_cast< int >( frames );
+                framesLastSecond = static_cast< int32_t >( frames );
                 frameTimer       = 0.0f;
                 frames           = 0.0f;
             }

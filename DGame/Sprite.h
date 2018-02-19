@@ -67,7 +67,7 @@ class Sprite
         m_texture.LoadTextureFromFile( filePath );
     }
 
-    void SetTexture( Texture& texture )
+    void SetTexture( const Texture& texture )
     {
         m_texture = texture;
     }

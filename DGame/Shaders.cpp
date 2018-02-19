@@ -1,21 +1,21 @@
 #include "Shaders.h"
 #include "Win_Window.h"
 
-GLuint Shaders::activeProgramID = 0;
-GLuint Shaders::numberBound     = 0;
+GLuint Shaders::m_activeProgramID = 0;
+GLuint Shaders::m_numberBound     = 0;
 
 GLuint Shaders::GetProgram( ) const
 {
-    return programID;
+    return m_programID;
 }
 
 void Shaders::UseProgram( ) const
 {
-    if( programID != activeProgramID )
+    if(m_programID != m_activeProgramID)
     {
-        glUseProgram( programID );
-        activeProgramID = programID;
-        ++numberBound;
+        glUseProgram(m_programID);
+		m_activeProgramID = m_programID;
+        ++m_numberBound;
     }
 }
 
@@ -48,32 +48,32 @@ std::string Shaders::ReadShaderFile( const std::string& fileName )
 
 void Shaders::LoadShaders( const std::string& vertexShader, const std::string& FragmentShader )
 {
-    vertexShaderID   = glCreateShader( GL_VERTEX_SHADER );
-    fragmentShaderID = glCreateShader( GL_FRAGMENT_SHADER );
+    m_vertexShaderID   = glCreateShader( GL_VERTEX_SHADER );
+    m_fragmentShaderID = glCreateShader( GL_FRAGMENT_SHADER );
 
     std::string   tmp          = ReadShaderFile( vertexShader );
     const GLchar* shaderSource = tmp.c_str( );
-    glShaderSource( vertexShaderID, 1, &shaderSource, NULL );
+    glShaderSource(m_vertexShaderID, 1, &shaderSource, NULL );
 
     tmp          = ReadShaderFile( FragmentShader );
     shaderSource = tmp.c_str( );
-    glShaderSource( fragmentShaderID, 1, &shaderSource, NULL );
+    glShaderSource(m_fragmentShaderID, 1, &shaderSource, NULL );
 
-    glCompileShader( vertexShaderID );
-    CheckCompileStatus( vertexShaderID );
-    glCompileShader( fragmentShaderID );
-    CheckCompileStatus( fragmentShaderID );
+    glCompileShader(m_vertexShaderID);
+    CheckCompileStatus(m_vertexShaderID);
+    glCompileShader(m_fragmentShaderID);
+    CheckCompileStatus(m_fragmentShaderID);
 
-    programID = glCreateProgram( );
-    glAttachShader( programID, vertexShaderID );
-    glAttachShader( programID, fragmentShaderID );
-    glLinkProgram( programID );
-    CheckLinkStatus( programID );
+    m_programID = glCreateProgram( );
+    glAttachShader(m_programID, m_vertexShaderID);
+    glAttachShader(m_programID, m_fragmentShaderID);
+    glLinkProgram(m_programID);
+    CheckLinkStatus(m_programID);
 
-    glUseProgram( programID );
+    glUseProgram(m_programID);
 
-    glDeleteShader( vertexShaderID );
-    glDeleteShader( fragmentShaderID );
+    glDeleteShader(m_vertexShaderID);
+    glDeleteShader(m_fragmentShaderID);
 }
 
 void Shaders::CheckCompileStatus( GLuint shaderID )
@@ -115,24 +115,24 @@ void Shaders::CheckLinkStatus( GLuint programID )
 
 void Shaders::SetUniformFloat( float value, const std::string& name ) const
 {
-    GLint location = glGetUniformLocation( programID, name.c_str( ) );
+    GLint location = glGetUniformLocation( m_programID, name.c_str( ) );
     glUniform1f( location, value );
 }
 
 void Shaders::SetUniformFloatVec2( const glm::vec2& value, const std::string& name ) const
 {
-    GLint location = glGetUniformLocation( programID, name.c_str( ) );
+    GLint location = glGetUniformLocation(m_programID, name.c_str( ) );
     glUniform2fv( location, 1, glm::value_ptr( value ) );
 }
 
 void Shaders::SetUniformFloatVec4( const glm::vec4& value, const std::string& name ) const
 {
-    GLint location = glGetUniformLocation( programID, name.c_str( ) );
+    GLint location = glGetUniformLocation(m_programID, name.c_str( ) );
     glUniform4fv( location, 1, glm::value_ptr( value ) );
 }
 
 void Shaders::SetUniformFloatMat4( const glm::mat4& value, const std::string& name ) const
 {
-    GLint location = glGetUniformLocation( programID, name.c_str( ) );
+    GLint location = glGetUniformLocation(m_programID, name.c_str( ) );
     glUniformMatrix4fv( location, 1, GL_FALSE, glm::value_ptr( value ) );
 }

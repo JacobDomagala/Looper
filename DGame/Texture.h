@@ -5,8 +5,8 @@
 class Texture
 {
     // width and size of texture
-    int m_width;
-    int m_height;
+    int32_t m_width;
+    int32_t m_height;
 
     // texture ID used in
     GLuint m_textureID;
@@ -15,35 +15,35 @@ class Texture
     GLuint m_samplerID;
 
     // each time new texture is loaded this counter is increased
-    static int m_unitCounter;
+    static int32_t m_unitCounter;
 
     // ID of currently bound texture
-    static int m_nowBound;
+    static int32_t m_nowBound;
 
     // texture unit
-    int m_unit;
+    int32_t m_unit;
 
  public:
     Texture( )  = default;
     ~Texture( ) = default;
 
     // DEBUG: number of glBindTexture calls
-    static int m_boundCount;
+    static int32_t m_boundCount;
 
     // Load texture from 'fileName' file and return byte values (used for collision)
     std::unique_ptr< byte_vec4 > LoadTextureFromFile( const std::string& fileName = "Assets//Default.png",
                                                       GLenum wrapMode = GL_REPEAT, GLenum filter = GL_LINEAR );
 
     // Load texture from 'data' memory
-    void LoadTextureFromMemory( int width, int height, uint8* data,
+    void LoadTextureFromMemory( int32_t width, int32_t height, uint8* data,
                                 GLenum wrapMode = GL_REPEAT, GLenum filter = GL_LINEAR );
 
-    int GetWidth( ) const
+    int32_t GetWidth( ) const
     {
         return m_width;
     }
 
-    int GetHeight( ) const
+    int32_t GetHeight( ) const
     {
         return m_height;
     }

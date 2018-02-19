@@ -34,7 +34,7 @@ class Win_Window
     static LRESULT CALLBACK MainWinProc( HWND hWind, UINT uMsg, WPARAM wParam, LPARAM lParam );
 
     // deleted copy constructor
-    Win_Window( Win_Window& ) = delete;
+    Win_Window( const Win_Window& ) = delete;
 
     // return true if given key is pressed
     static bool GetKeyState( WPARAM keyValue )
@@ -49,7 +49,7 @@ class Win_Window
     }
 
     // set cursos position
-    void SetCursor( const glm::vec2 position )
+    void SetCursor( const glm::vec2& position )
     {
         m_cursorPos = position;
     }
