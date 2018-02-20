@@ -168,7 +168,8 @@ class Game
 
     std::pair< glm::ivec2, bool > CheckBulletCollision( Enemy* from, glm::vec2 targetPosition, int32_t range );
     bool                          IsPlayerInVision( Enemy* from, int32_t range );
-
+    glm::ivec2 CheckCollision(const glm::ivec2& currentPosition, const glm::ivec2& moveBy );
+    
     void DrawLine( glm::vec2 from, glm::vec2 to, glm::vec3 color = glm::vec3( 1.0f, 0.0f, 0.0f ) );
     void RenderText( std::string text, const glm::vec2& position, float scale, const glm::vec3& color = glm::vec3( 1.0f, 1.0f, 1.0f ) );
 

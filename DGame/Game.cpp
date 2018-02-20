@@ -555,6 +555,118 @@ glm::ivec2 Game::CheckCollision( glm::ivec2& moveBy )
     return glm::ivec2( ) + positionBias;
 }
 
+glm::ivec2 Game::CheckCollision( const glm::ivec2& currentPosition, const glm::ivec2& moveBy )
+{
+    glm::ivec2 levelSize      = m_currentLevel.GetSize( );
+    glm::ivec2 playerPosition = currentPosition;
+
+    glm::ivec2 destination = playerPosition + moveBy;
+    glm::ivec2 returnVal   = glm::ivec2( );
+
+    if( destination.x < 0 || destination.x > levelSize.x || destination.y < 0 || destination.y > levelSize.y )
+    {
+        return returnVal;
+    }
+
+    int32_t distance = static_cast< int32_t >( glm::length( static_cast< glm::vec2 >( moveBy ) ) );
+
+    glm::vec2  tmpDirection = glm::normalize( glm::vec2( moveBy ) );
+    glm::ivec2 direction    = glm::ivec2( ceil( tmpDirection.x ), ceil( tmpDirection.y ) );
+
+    uint32 linearDestination = static_cast< uint32 >( floor( destination.x + destination.y * levelSize.x ) );
+    uint32 linearPosition    = static_cast< uint32 >( floor( playerPosition.x + playerPosition.y * levelSize.x ) );
+    uint32 linearLevelSize   = levelSize.x * levelSize.y;
+
+    uint32 tmpPosition      = linearPosition;
+    returnVal               = moveBy;
+    byte_vec4* tmpCollision = m_collision.get( );
+
+    // if player can move to destination (FeelsGoodMan)
+    if( tmpCollision[ linearDestination ].w == 0 )
+    {
+        return returnVal;
+    }
+
+    // if player is standing in shit, this will take it into account
+    glm::ivec2 positionBias = glm::ivec2( );
+
+    // if player stand where he's not supposed to due to fucking float -> int32_t conversion (FeelsBadMan)
+    //	if (tmpCollision[linearPosition].w != 0)
+    //	{
+    //		// the value of getting you out of shit < -5 ; 5 >
+    //		int32_t tmpval = 5;
+    //		for (int32_t j = -tmpval; j <= tmpval; ++j)
+    //				{
+    //					for (int32_t i = -tmpval; i <= tmpval; ++i)
+    //					{
+    //						tmpPosition = linearPosition + (i + j*levelSize.x);
+    //						if ((tmpPosition < linearLevelSize) && (tmpPosition >= 0) && (tmpCollision[tmpPosition].w == 0 ))
+    //						{
+    //							int32_t yComp = tmpPosition / levelSize.x;
+    //							int32_t xComp = tmpPosition - (yComp * levelSize.x);
+    //
+    //							positionBias = glm::ivec2(xComp, yComp) - playerPos;
+    //							goto next;
+    //						}
+    //					}
+    //				}
+    //	}
+    //next:
+
+    // if player couldn't get to destination, find closest in line point where you can go
+    for( int32_t i = distance; i > 0; --i )
+    {
+        glm::ivec2 tmpDest = playerPosition + direction * i;
+        tmpPosition        = static_cast< uint32 >( floor( tmpDest.x + tmpDest.y * levelSize.x ) );
+        if( ( tmpPosition > 0 ) && ( tmpPosition < linearLevelSize ) && ( tmpDest.x < levelSize.x ) && ( tmpDest.y < levelSize.y ) && ( tmpCollision[ tmpPosition ].w == 0 ) )
+        {
+            returnVal = tmpDest - playerPosition;
+            returnVal += positionBias;
+            return returnVal;
+        }
+    }
+
+    // if player couldn't find anything in straight line, check the closest boundaries
+    for( int32_t j = distance; j > 0; --j )
+    {
+        if( direction.x == 0 )
+        {
+            for( int32_t i = -2; i <= 2; ++i )
+            {
+                glm::ivec2 tmpDirection = glm::ivec2( direction.x + i, direction.y );
+                glm::ivec2 tmpDest      = playerPosition + tmpDirection * j;
+
+                tmpPosition = static_cast< uint32 >( floor( tmpDest.x + tmpDest.y * levelSize.x ) );
+                if( ( tmpDest.x > 0 ) && ( tmpDest.y > 0 ) && ( tmpDest.x < levelSize.x ) && ( tmpDest.y < levelSize.y ) && ( tmpCollision[ tmpPosition ].w == 0 ) )
+                {
+                    returnVal = tmpDest - playerPosition;
+                    returnVal += positionBias;
+                    return returnVal;
+                }
+            }
+        }
+        else if( direction.y == 0 )
+        {
+            for( int32_t i = -2; i <= 2; ++i )
+            {
+                glm::ivec2 tmpDirection = glm::ivec2( direction.x, direction.y + i );
+                glm::ivec2 tmpDest      = playerPosition + tmpDirection * j;
+
+                tmpPosition = static_cast< uint32 >( floor( tmpDest.x + tmpDest.y * levelSize.x ) );
+                if( ( tmpDest.x > 0 ) && ( tmpDest.y > 0 ) && ( tmpDest.x < levelSize.x ) && ( tmpDest.y < levelSize.y ) && ( tmpCollision[ tmpPosition ].w == 0 ) )
+                {
+                    returnVal = tmpDest - playerPosition;
+                    returnVal += positionBias;
+                    return returnVal;
+                }
+            }
+        }
+    }
+
+    // worst case scenario player won't move
+    return glm::ivec2( ) + positionBias;
+}
+
 bool Game::CheckMove( glm::ivec2& moveBy )
 {
     moveBy = CheckCollision( moveBy );
@@ -782,6 +894,7 @@ void Game::LoadLevel( const std::string& levelName )
         else if( tmp == "Background:" )
         {
             levelFile >> background;
+			m_currentLevel.LoadPremade(folderPath + background, glm::ivec2(levelWidth, levelHeight));
         }
         else if( tmp == "Objects:" )
         {
@@ -845,7 +958,6 @@ void Game::LoadLevel( const std::string& levelName )
         }
     }
 
-    m_currentLevel.LoadPremade( folderPath + background, glm::ivec2( levelWidth, levelHeight ) );
     //currentLevel.LoadCollisionMap(folderPath + collisionMap);
     //levelSize = m_currentLevel.GetSize();
 

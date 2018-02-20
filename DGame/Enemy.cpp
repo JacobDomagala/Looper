@@ -15,44 +15,63 @@ Enemy::Enemy( const glm::vec2& pos, const glm::ivec2& size, const std::string& s
     , m_combatStarted( false )
 {
     m_timer.ToggleTimer( );
+	m_initialPosition = m_centeredLocalPosition;
 }
 
 void Enemy::DealWithPlayer( )
 {
-    // calculate distance between enemy and player
-    float length = glm::length( m_centeredGlobalPosition - Game::GetInstance( ).GetPlayer( ).GetCenteredGlobalPosition( ) );
-
     auto collided = Game::GetInstance( ).IsPlayerInVision( this, m_visionRange );
-    //auto collided = Game::GetInstance( ).CheckBulletCollision( this, Game::GetInstance( ).GetPlayer().GetCenteredGlobalPosition(), length );
-    //auto length = glm::length(glm::vec2(collided.x, collided.y));
-    // player is enemy's sight of vision
+  
     m_timer.ToggleTimer( );
-    auto timeElapsed = m_timer.GetDeltaTime( );
-
+	
+	// player in enemy's sight of vision
     if( collided )
     {
+		m_timeSinceCombatEnded = 0.0f;
+		m_CurrentAnimationIndex = 0;
+		m_counter = glm::vec2( 0.0f, 0.0f );
+		reverse = false;
+
         if( m_combatStarted )
         {
-            m_timeSinceCombatStarted += timeElapsed;
+            m_timeSinceCombatStarted += m_timer.GetDeltaTime();
 
             if( m_timeSinceCombatStarted > m_reactionTime )
             {
                 Shoot( );
-                SetPlayerPos( Game::GetInstance( ).GetPlayer( ).GetCenteredLocalPosition( ) );
+                SetTargetShootPosition( Game::GetInstance( ).GetPlayer( ).GetCenteredLocalPosition( ) );
             }
         }
         else
         {
-            SetPlayerPos( Game::GetInstance( ).GetPlayer( ).GetCenteredLocalPosition( ) );
+            SetTargetShootPosition( Game::GetInstance( ).GetPlayer( ).GetCenteredLocalPosition( ) );
         }
 
         m_timer.ResetAccumulator( );
-        // TODO: CHASE PLAYER
     }
     // player is out of range, clear enemy's 'memory'
     else
     {
-        ClearPositions( );
+        m_timeSinceCombatEnded += m_timer.GetDeltaTime();
+
+		if ( m_timeSinceCombatEnded < 2.0f)
+		{
+            m_isChasingPlayer = true;
+			ChasePlayer();
+		}
+		else
+		{
+            m_isChasingPlayer = false;
+			if (!m_isAtInitialPos)
+			{
+				ReturnToInitialPosition();
+			}
+			else
+			{
+				ClearPositions();
+			}
+		//	m_timeSinceCombatEnded = 0.0f;
+		}
     }
 
     SetCenteredLocalPosition( Game::GetInstance( ).GetLevel( ).GetLocalVec( m_centeredGlobalPosition ) );
@@ -70,26 +89,23 @@ bool Enemy::Visible( ) const
     return ( m_currentHP > 0 );
 }
 
-void Enemy::SetPlayerPos( const glm::vec2& playerPos )
+void Enemy::SetTargetShootPosition( const glm::vec2& playerPos )
 {
     // compute small offset value which simulates the 'aim wiggle'
     int32_t xOffset = rand( ) % Game::GetInstance( ).GetPlayer( ).GetSize( ).x + ( -Game::GetInstance( ).GetPlayer( ).GetSize( ).x / 2 );
     int32_t yOffset = rand( ) % Game::GetInstance( ).GetPlayer( ).GetSize( ).y + ( -Game::GetInstance( ).GetPlayer( ).GetSize( ).y / 2 );
 
-    m_playerPosition = ( playerPos + glm::vec2( xOffset, yOffset ) );
+    m_targetShootPosition = ( playerPos + glm::vec2( xOffset, yOffset ) );
     m_combatStarted  = true;
 }
 
 void Enemy::Shoot( )
 {
-    auto timeElapsed = m_timer.GetDeltaTime( );
-    m_timeSinceLastShot += timeElapsed;
-    // prevent enemy shooting to some random position
-    /*if( m_combatStarted )
-    {*/
-    if( m_timeSinceLastShot > m_weapon->GetReloadTime( ) ) //0.5f )
+    m_timeSinceLastShot += m_timer.GetDeltaTime();
+  
+    if( m_timeSinceLastShot >= m_weapon->GetReloadTime( ) )
     {
-        auto collided = Game::GetInstance( ).CheckBulletCollision( this, Game::GetInstance( ).GetLevel( ).GetGlobalVec( m_playerPosition ), m_weapon->GetRange( ) );
+        auto collided = Game::GetInstance( ).CheckBulletCollision( this, Game::GetInstance( ).GetLevel( ).GetGlobalVec( m_targetShootPosition ), m_weapon->GetRange( ) );
 
         // if we hit anything draw a line
         if( collided.first != glm::ivec2( 0, 0 ) )
@@ -101,9 +117,40 @@ void Enemy::Shoot( )
     }
 }
 
+void Enemy::ChasePlayer()
+{
+    auto playerPos = Game::GetInstance( ).GetPlayer( ).GetCenteredLocalPosition( );
+	auto moveBy = 500.0f * Game::GetInstance().GetDeltaTime();
+	auto direction = glm::normalize(static_cast<glm::vec2>(playerPos - m_centeredLocalPosition));
+	
+    auto collided = Game::GetInstance( ).CheckCollision(m_centeredLocalPosition, static_cast<glm::ivec2>(direction * moveBy));
+    Move( collided, false );
+	
+	m_isAtInitialPos = false;
+}
+
+void Enemy::ReturnToInitialPosition()
+{
+	auto moveBy = 500.0f * Game::GetInstance().GetDeltaTime();
+	auto vectorToInitialPos = static_cast<glm::vec2>(m_initialPosition - m_centeredLocalPosition);
+	auto lengthToInitialPos = glm::length(vectorToInitialPos);
+	
+	if (lengthToInitialPos < 5.0f)
+	{
+		Move(vectorToInitialPos, false);
+		m_isAtInitialPos = true;
+		return;
+	}
+
+	auto directionToInitialPos = glm::normalize(vectorToInitialPos);
+	
+	auto collided = Game::GetInstance().CheckCollision(m_centeredLocalPosition, static_cast<glm::ivec2>(directionToInitialPos * moveBy));
+	Move(collided, false);
+}
+
 void Enemy::ClearPositions( )
 {
-    m_playerPosition         = glm::vec2( 0.0f, 0.0f );
+    m_targetShootPosition         = glm::vec2( 0.0f, 0.0f );
     m_combatStarted          = false;
     m_timeSinceCombatStarted = 0.0f;
     m_timeSinceLastShot      = 0.0f;
@@ -111,9 +158,9 @@ void Enemy::ClearPositions( )
 
 void Enemy::Render( const Shaders& program )
 {
-    if( !m_combatStarted )
+    if( !m_combatStarted && m_isAtInitialPos)
     {
-        Animate( );
+       Animate( );
     }
 
     GameObject::Render( program );
