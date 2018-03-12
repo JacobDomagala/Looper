@@ -93,7 +93,6 @@ class Game
     Level m_currentLevel;
 
     std::unique_ptr< byte_vec4 > m_collision;
-	std::unique_ptr< byte_vec4 > m_vectorField;
 
     // active font used in game
     Font m_font;
@@ -166,11 +165,6 @@ class Game
     {
         return m_deltaTime;
     }
-
-	byte_vec4 const* GetVectorField() const
-	{
-		return m_vectorField.get();
-	}
 
     std::pair< glm::ivec2, bool > CheckBulletCollision( Enemy* from, glm::vec2 targetPosition, int32_t range );
     bool                          IsPlayerInVision( Enemy* from, int32_t range );

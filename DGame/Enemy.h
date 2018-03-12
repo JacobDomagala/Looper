@@ -28,7 +28,6 @@ class Enemy : public GameObject
 
     bool m_isChasingPlayer = false;
 	bool m_isAtInitialPos = true;
-	bool m_isUsingVectorfield = false;
 
 	float m_timeSinceCombatEnded = 0.0f;
     float m_timeSinceCombatStarted = 0.0f;
@@ -66,7 +65,6 @@ class Enemy : public GameObject
 	void ReturnToInitialPosition();
     void ClearPositions( );
     void SetTargetShootPosition( const glm::vec2& pos );
-	glm::vec2 CalculateVectorFromVectorField();
 
  public:
     Enemy( const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite );

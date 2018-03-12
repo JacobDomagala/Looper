@@ -881,7 +881,6 @@ void Game::LoadLevel( const std::string& levelName )
     int32_t     levelWidth, levelHeight;
     std::string background;
     std::string collisionMap;
-	std::string vectorField;
 
     while( !levelFile.eof( ) )
     {
@@ -922,12 +921,6 @@ void Game::LoadLevel( const std::string& levelName )
             byte_vec4* tmpCollision = reinterpret_cast< byte_vec4* >( SOIL_load_image( ( folderPath + collisionMap ).c_str( ), &width, &height, NULL, SOIL_LOAD_RGBA ) );
             m_collision             = std::unique_ptr< byte_vec4 >( tmpCollision );
         }
-		else if (tmp == "VectorField:")
-		{
-			levelFile >> vectorField;
-			int32_t    width, height;
-			m_vectorField = std::unique_ptr< byte_vec4 >(reinterpret_cast< byte_vec4* >(SOIL_load_image((folderPath + vectorField).c_str(), &width, &height, NULL, SOIL_LOAD_RGBA)));
-		}
         else if( tmp == "Player:" )
         {
             int32_t playerX, playerY;
