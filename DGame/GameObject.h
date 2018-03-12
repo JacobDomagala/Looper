@@ -42,16 +42,14 @@ class GameObject
     GameObject( const glm::vec2& pos, glm::ivec2 size, const std::string& sprite );
     virtual ~GameObject( ) = default;
 
-    virtual void Hit( int32_t /*dmg*/ )
-    {
-    }
-    virtual bool Visible( ) const
-    {
-        return m_visible;
-    }
-    virtual void DealWithPlayer( )
-    {
-    }
+	virtual void Hit(int32_t) = 0;
+	virtual void DealWithPlayer() = 0;
+    
+	virtual bool Visible() const
+	{
+		return m_visible;
+	}
+
     // SETERS
     virtual void SetColor( const glm::vec3& color );
     virtual void SetCenteredLocalPosition( glm::ivec2 pos );
