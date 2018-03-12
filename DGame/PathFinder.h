@@ -13,8 +13,6 @@ class PathFinder
 {
     std::vector< Node > m_nodes;
 
-    std::pair< const Node&, bool > FindNode( const glm::ivec2& position );
-
  public:
 	PathFinder();
     PathFinder( std::vector< Node >&& nodes );

@@ -22,7 +22,7 @@ class Enemy : public GameObject
 
 	glm::ivec2 m_initialPosition;
 	glm::ivec2 m_lastPlayersPos;
-	//glm::ivec2 m_currentChaseValue{};
+
     // enemy's vision range
     float m_visionRange;
 

@@ -128,6 +128,8 @@ Enemy::Enemy( const glm::vec2& pos, const glm::ivec2& size, const std::string& s
 
 void Enemy::DealWithPlayer( )
 {
+	Game::GetInstance().RenderText(std::to_string(m_currentNodeIdx), glm::vec2(125.5f, 125.5f), 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+
     auto collided = Game::GetInstance( ).IsPlayerInVision( this, m_visionRange );
   
     m_timer.ToggleTimer( );
@@ -233,18 +235,6 @@ void Enemy::ChasePlayer()
 	auto playerPos = Game::GetInstance().GetPlayer().GetCenteredLocalPosition();
 	auto moveBy = 500.0f * Game::GetInstance().GetDeltaTime();
 
-	//auto direction = glm::normalize(static_cast<glm::vec2>(playerPos - m_centeredLocalPosition));
-	//auto collided = Game::GetInstance().CheckCollision(m_centeredLocalPosition, static_cast<glm::ivec2>(moveBy * direction));
-	//Game::GetInstance().RenderText(std::to_string(collided.x) + "  " + std::to_string(collided.y), glm::vec2(125.5f, 125.5f), 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-	Game::GetInstance().RenderText("CHASING PLAUH", glm::vec2(0.0f, 0.0f), 1.0f, glm::vec3(0.0f, 0.0f, 1.0f));
-
-	/*if (collided.x == 0 && collided.y == 0)
-	{
-		collided = Game::GetInstance().CheckCollision(m_centeredLocalPosition, static_cast<glm::ivec2>((moveBy * (CalculateVectorFromVectorField()))));
-	}*/
-	Game::GetInstance().RenderText(std::to_string(m_currentNodeIdx), glm::vec2(125.5f, 125.5f), 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-	
-
 	auto distanceToNode = glm::length(static_cast<glm::vec2>(m_targetMovePosition - m_centeredLocalPosition));
 	
 	if ((distanceToNode < 5.0f) && (distanceToNode != 0.0f))
@@ -269,6 +259,10 @@ void Enemy::ChasePlayer()
 		Move(nMove * moveBy, false);
 	}
 	
+	m_destinationNodeIdx = Game::GetInstance().GetLevel().GetPathfinder().FindNodeIdx(m_targetMovePosition);
+
+	Game::GetInstance().RenderText(std::to_string(m_destinationNodeIdx), glm::vec2(125.5f, 250.5f), 1.0f, glm::vec3(1.0f, 0.0f, 1.0f));
+
 	m_isAtInitialPos = false;
 }
 

@@ -30,18 +30,6 @@ PathFinder::PathFinder( std::vector< Node >&& nodes )
 {
 }
 
-std::pair< const Node&, bool > PathFinder::FindNode( const glm::ivec2& position )
-{
-    for( const auto& node : m_nodes )
-    {
-        if( node.m_position == position )
-        {
-            return { node, true };
-        }
-    }
-    return { Node{}, false };
-}
-
 uint8_t PathFinder::FindNodeIdx(const glm::ivec2& position) const
 {
 	auto node = std::find_if(m_nodes.begin(), m_nodes.end(), [position](const Node& node) { return node.m_position == position; });
@@ -57,7 +45,6 @@ glm::ivec2 PathFinder::GetNearestPosition( /*const glm::ivec2& objectPos*/ uint8
     int32_t        length{ INT32_MAX };
 
 	auto node = std::find_if(m_nodes.begin(), m_nodes.end(), [currIdx](const Node& node) { return node.m_ID == currIdx; });
-		// std::find_if(m_nodes.begin(), m_nodes.end(), [objectPos](const Node& node) { return node.m_position == objectPos; });
 
     if(node != m_nodes.end())
     {
