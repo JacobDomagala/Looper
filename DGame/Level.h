@@ -2,6 +2,7 @@
 
 #include "Common.h"
 #include "GameObject.h"
+#include "PathFinder.h"
 
 class Shaders;
 class Player;
@@ -26,6 +27,7 @@ class Level {
 
     glm::ivec2                                   levelSize;
     std::vector< std::unique_ptr< GameObject > > objects;
+	PathFinder m_pathinder{ };
 
  public:
     Level( )  = default;
@@ -74,6 +76,11 @@ class Level {
     {
         return levelSize;
     }
+	const PathFinder& GetPathfinder() const
+	{
+		return m_pathinder;
+	}
+
     void SetPlayersPosition( const glm::vec2& position );
     void MoveCamera( const glm::vec2& moveBy );
 

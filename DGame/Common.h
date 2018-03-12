@@ -22,13 +22,26 @@ using uint32 = uint32_t;
 
 struct byte_vec4
 {
-    uint8 x;
-    uint8 y;
-    uint8 z;
-    uint8 w;
+    union {
+        struct
+        {
+            uint8 x;
+            uint8 y;
+            uint8 z;
+            uint8 w;
+        };
+
+        struct
+        {
+            uint8 r;
+            uint8 g;
+            uint8 b;
+            uint8 a;
+        };
+    };
 };
 
-const float TARGET_FPS  = 60.0f;
-const float TARGET_TIME = 1.0f / TARGET_FPS;
-const int32_t   WIDTH       = 1280;
-const int32_t   HEIGHT      = 768;
+const float   TARGET_FPS  = 60.0f;
+const float   TARGET_TIME = 1.0f / TARGET_FPS;
+const int32_t WIDTH       = 1280;
+const int32_t HEIGHT      = 768;

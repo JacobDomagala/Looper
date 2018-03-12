@@ -159,6 +159,7 @@
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="PathFinder.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="Texture.cpp" />
@@ -175,6 +176,7 @@
     <ClInclude Include="Font.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Level.h" />
+    <ClInclude Include="PathFinder.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Shaders.h" />
     <ClInclude Include="Sprite.h" />

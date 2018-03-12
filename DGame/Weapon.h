@@ -9,11 +9,11 @@
 class Weapon
 {
  protected:
-    int32_t         m_range;
+    const int32_t         m_range;
     int32_t         m_dmg;
     int32_t         m_ammoNum;
     bool        m_hasAmmo;
-    std::string m_name;
+    const std::string m_name;
     float       m_reloadTime;
 
     Weapon( int32_t range, int32_t dmg, int32_t ammoNum, bool hasAmmo, std::string name, float reloadTime )
@@ -29,23 +29,23 @@ class Weapon
  public:
     virtual ~Weapon( ) = default;
 
-    virtual std::string GetName( ) const
+    std::string GetName( ) const
     {
         return m_name;
     }
-    virtual int32_t GetAmmoNum( ) const
+    int32_t GetAmmoNum( ) const
     {
         return m_ammoNum;
     }
-    virtual float GetReloadTime( ) const
+    float GetReloadTime( ) const
     {
         return m_reloadTime;
     }
-    virtual int32_t GetRange( ) const
+    constexpr int32_t GetRange( ) const
     {
         return m_range;
     }
-    virtual int32_t GetDamage( ) const
+    int32_t GetDamage( ) const
     {
         return m_dmg;
     }
@@ -71,7 +71,7 @@ class Glock : public Weapon
 {
  public:
     Glock( )
-        : Weapon( 3000, 10, 20, true, { "glock" }, 0.3f )
+        : Weapon( 100, 10, 20, true, { "glock" }, 0.3f )
     {
     }
     ~Glock( ) override = default;

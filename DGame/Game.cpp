@@ -205,7 +205,7 @@ std::pair< glm::ivec2, bool > Game::CheckBulletCollision( Enemy* from, glm::vec2
 
     glm::ivec2 levelSize = m_currentLevel.GetSize( );
 
-    for( int32_t x = static_cast< int32_t >( x1 ); x < maxX + range; x++ )
+    for( int32_t x = static_cast< int32_t >( x1 ); x < x1 + range; x++ )
     {
         if( steep )
         {
@@ -295,7 +295,7 @@ bool Game::IsPlayerInVision( Enemy* from, int32_t range )
 
     glm::ivec2 levelSize = m_currentLevel.GetSize( );
 
-    for( int32_t x = static_cast< int32_t >( x1 ); x < maxX + range; x++ )
+    for( int32_t x = static_cast< int32_t >( x1 ); x < x1 + range; x++ )
     {
         if( steep )
         {
@@ -866,7 +866,7 @@ void Game::RenderSecondPass( )
 
     RenderText( std::to_string( m_deltaTime * 1000 ) + " ms", glm::vec2( static_cast< float >( -WIDTH / 2 ), static_cast< float >( -HEIGHT / 2 ) + 20 ), 0.4f, glm::vec3( 1.0f, 0.0f, 1.0f ) );
 
-    m_font.RenderText( std::to_string( debug2.x ) + " " + std::to_string( debug2.y ), 20, 60, 1, glm::vec3( 1, .4, .6 ) );
+    //m_font.RenderText( std::to_string( debug2.x ) + " " + std::to_string( debug2.y ), 20, 60, 1, glm::vec3( 1, .4, .6 ) );
 }
 
 void Game::LoadLevel( const std::string& levelName )
@@ -881,6 +881,7 @@ void Game::LoadLevel( const std::string& levelName )
     int32_t     levelWidth, levelHeight;
     std::string background;
     std::string collisionMap;
+	std::string vectorField;
 
     while( !levelFile.eof( ) )
     {
@@ -921,6 +922,12 @@ void Game::LoadLevel( const std::string& levelName )
             byte_vec4* tmpCollision = reinterpret_cast< byte_vec4* >( SOIL_load_image( ( folderPath + collisionMap ).c_str( ), &width, &height, NULL, SOIL_LOAD_RGBA ) );
             m_collision             = std::unique_ptr< byte_vec4 >( tmpCollision );
         }
+		else if (tmp == "VectorField:")
+		{
+			levelFile >> vectorField;
+			int32_t    width, height;
+			m_vectorField = std::unique_ptr< byte_vec4 >(reinterpret_cast< byte_vec4* >(SOIL_load_image((folderPath + vectorField).c_str(), &width, &height, NULL, SOIL_LOAD_RGBA)));
+		}
         else if( tmp == "Player:" )
         {
             int32_t playerX, playerY;
@@ -951,8 +958,12 @@ void Game::LoadLevel( const std::string& levelName )
                 levelFile >> enemyWidth;
                 levelFile >> enemyHeight;
 
+				glm::vec2 centeredPosition{ enemyX - (enemyWidth /2.0f), enemyY + (enemyHeight / 2.0f) };
+				//auto globalVel = m_currentLevel.GetGlobalVec(glm::vec2(enemyX, enemyY));
+				auto globalVel = m_currentLevel.GetGlobalVec(centeredPosition);
+
                 levelFile >> tmp;
-                m_currentLevel.AddGameObject( glm::vec2( enemyX, enemyY ), glm::ivec2( enemyWidth, enemyHeight ), folderPath + tmp );
+                m_currentLevel.AddGameObject( globalVel, glm::ivec2( enemyWidth, enemyHeight ), folderPath + tmp );
                 levelFile >> tmp;
             }
         }

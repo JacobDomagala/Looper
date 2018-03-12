@@ -6,11 +6,119 @@
 
 extern Timer* globalTimer;
 
+glm::vec2 Enemy::CalculateVectorFromVectorField()
+{
+	auto vectorField = Game::GetInstance().GetVectorField();
+
+	glm::vec2 returnVal{};
+	float moveValue = 1;
+	
+	float yDirection(0.0f);
+	float xDirection(0.0f);
+	glm::vec2 direction{};
+
+	if (m_isChasingPlayer)
+	{
+		direction = glm::normalize(static_cast<glm::vec2>(m_lastPlayersPos - m_centeredLocalPosition));
+		yDirection = direction.y > 0 ? 1.0f : -1.0f;
+		xDirection = direction.x > 0 ? 1.0f : -1.0f;
+
+		Game::GetInstance().RenderText(std::to_string(xDirection), glm::vec2(256.0f, 0.0f), 1.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+		Game::GetInstance().RenderText(std::to_string(yDirection), glm::vec2(512.0f, 0.0f), 1.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+
+	}
+	else
+	{
+		direction = glm::normalize(static_cast<glm::vec2>(m_initialPosition - m_centeredLocalPosition));
+		yDirection = direction.y > 0 ? 1.0f : -1.0f;
+		xDirection = direction.x > 0 ? 1.0f : -1.0f;
+	}
+
+	for (int8_t i = -3; i < 3; ++i)
+	{
+		for (int8_t j = -3; j < 3; ++j)
+		{
+			auto linearPositionOnMap = m_centeredLocalPosition.x + m_centeredLocalPosition.y * Game::GetInstance().GetLevel().GetSize().x;
+			const auto byte = vectorField[linearPositionOnMap + (i + (j * 6))];
+
+			// TURNS
+			if (byte.b == 255)
+			{			
+				//returnVal.y += yDirection;
+				auto absXDirection = std::fabs(direction.x);
+				auto absYDirection = std::fabs(direction.y);
+
+				if (absXDirection > absYDirection)
+				{
+					returnVal.x += xDirection;
+				}
+				else if (absXDirection < absYDirection)
+				{
+					returnVal.y += yDirection;
+				}
+			}
+
+			// EDGES
+			else if (byte.b == 125)
+			{
+				returnVal.x -= 4 * xDirection;
+			}
+			else if (byte.r == 125)
+			{
+				returnVal.y -= 4 * yDirection;
+			}
+
+			// STRAIGHT LINES
+			else if (byte.r == 255)
+			{
+				returnVal.y += yDirection;
+			}
+			else if (byte.g == 255)
+			{
+				returnVal.x += xDirection;
+			}
+		}
+	}
+
+	//if (byte.x == 255 && byte.y == 255 && byte.z == 255 && byte.w == 255)
+	//{
+	//	auto direction = glm::normalize(static_cast<glm::vec2>(Game::GetInstance().GetPlayer().GetCenteredLocalPosition() - m_centeredLocalPosition));	
+	//	// do nothing
+	//}
+	//else if (byte.x == 255)
+	//{
+	//	returnVal.x = moveValue;
+	//}
+	//else if (byte.y == 255)
+	//{
+	//	returnVal.y = -moveValue;
+	//}
+	//else if (byte.z == 255)
+	//{
+	//	returnVal.x = -moveValue;
+	//}
+	//else if (byte.w == 255)
+	//{
+	//	returnVal.y = moveValue;
+	//}
+	//
+	/*float value = 124.f;
+	float x = (byte.x / value);
+	float y =  (byte.y / value);
+	float z =  -(byte.z / value);
+	float w =  -(byte.w / value);*/
+
+	returnVal /= 36.0f;
+
+	//Game::GetInstance().RenderText(std::to_string(returnVal.x) + "  " + std::to_string(returnVal.y), glm::vec2(0.0f, 0.0f), 1.0f,glm::vec3(0.0f, 0.0f, 1.0f));
+	return returnVal;//{ x + z, y + w };
+}
+
 Enemy::Enemy( const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite )
     : GameObject( pos, size, sprite )
     , m_maxHP( 100 )
     , m_currentHP( m_maxHP )
-    , m_visionRange( 500.0f )
+    , m_visionRange( 400.0f )
     , m_weapon( std::make_unique< Glock >( ) )
     , m_combatStarted( false )
 {
@@ -27,6 +135,7 @@ void Enemy::DealWithPlayer( )
 	// player in enemy's sight of vision
     if( collided )
     {
+		m_lastPlayersPos = Game::GetInstance().GetPlayer().GetCenteredLocalPosition();
 		m_timeSinceCombatEnded = 0.0f;
 		m_CurrentAnimationIndex = 0;
 		m_counter = glm::vec2( 0.0f, 0.0f );
@@ -54,8 +163,9 @@ void Enemy::DealWithPlayer( )
     {
         m_timeSinceCombatEnded += m_timer.GetDeltaTime();
 
-		if ( m_timeSinceCombatEnded < 2.0f)
+		if ( m_timeSinceCombatEnded < 3.0f)
 		{
+			Game::GetInstance().RenderText(std::to_string(m_timeSinceCombatEnded), glm::vec2(-128.0f, 64.0f), 1.0f, glm::vec3(0.0f, 0.0f, 1.0f));
             m_isChasingPlayer = true;
 			ChasePlayer();
 		}
@@ -70,7 +180,6 @@ void Enemy::DealWithPlayer( )
 			{
 				ClearPositions();
 			}
-		//	m_timeSinceCombatEnded = 0.0f;
 		}
     }
 
@@ -103,6 +212,8 @@ void Enemy::Shoot( )
 {
     m_timeSinceLastShot += m_timer.GetDeltaTime();
   
+	Game::GetInstance().RenderText("POW POW", glm::vec2(128.0f, 64.0f), 1.0f, glm::vec3(0.0f, 0.1f, 0.4f));
+
     if( m_timeSinceLastShot >= m_weapon->GetReloadTime( ) )
     {
         auto collided = Game::GetInstance( ).CheckBulletCollision( this, Game::GetInstance( ).GetLevel( ).GetGlobalVec( m_targetShootPosition ), m_weapon->GetRange( ) );
@@ -119,33 +230,85 @@ void Enemy::Shoot( )
 
 void Enemy::ChasePlayer()
 {
-    auto playerPos = Game::GetInstance( ).GetPlayer( ).GetCenteredLocalPosition( );
+	auto playerPos = Game::GetInstance().GetPlayer().GetCenteredLocalPosition();
 	auto moveBy = 500.0f * Game::GetInstance().GetDeltaTime();
-	auto direction = glm::normalize(static_cast<glm::vec2>(playerPos - m_centeredLocalPosition));
+
+	//auto direction = glm::normalize(static_cast<glm::vec2>(playerPos - m_centeredLocalPosition));
+	//auto collided = Game::GetInstance().CheckCollision(m_centeredLocalPosition, static_cast<glm::ivec2>(moveBy * direction));
+	//Game::GetInstance().RenderText(std::to_string(collided.x) + "  " + std::to_string(collided.y), glm::vec2(125.5f, 125.5f), 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	Game::GetInstance().RenderText("CHASING PLAUH", glm::vec2(0.0f, 0.0f), 1.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+
+	/*if (collided.x == 0 && collided.y == 0)
+	{
+		collided = Game::GetInstance().CheckCollision(m_centeredLocalPosition, static_cast<glm::ivec2>((moveBy * (CalculateVectorFromVectorField()))));
+	}*/
+	Game::GetInstance().RenderText(std::to_string(m_currentNodeIdx), glm::vec2(125.5f, 125.5f), 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	
-    auto collided = Game::GetInstance( ).CheckCollision(m_centeredLocalPosition, static_cast<glm::ivec2>(direction * moveBy));
-    Move( collided, false );
+
+	auto distanceToNode = glm::length(static_cast<glm::vec2>(m_targetMovePosition - m_centeredLocalPosition));
+	
+	if ((distanceToNode < 5.0f) && (distanceToNode != 0.0f))
+	{
+		Move(m_targetMovePosition - m_centeredLocalPosition, false);
+	}
+	else if (m_targetMovePosition == m_centeredLocalPosition || m_targetMovePosition == glm::ivec2(0, 0))
+	{
+		m_currentNodeIdx = Game::GetInstance().GetLevel().GetPathfinder().FindNodeIdx(m_centeredLocalPosition);
+		m_targetMovePosition = Game::GetInstance().GetLevel().GetPathfinder().GetNearestPosition(/*m_centeredLocalPosition*/m_currentNodeIdx, playerPos);
+		auto move = m_targetMovePosition - m_centeredLocalPosition;
+		auto nMove = glm::normalize(static_cast<glm::vec2>(move));
+
+		Move(nMove * moveBy, false);
+	}
+	else
+	{
+		m_targetMovePosition = Game::GetInstance().GetLevel().GetPathfinder().GetNearestPosition(/*m_centeredLocalPosition*/m_currentNodeIdx, playerPos);
+		auto move = m_targetMovePosition - m_centeredLocalPosition;
+		auto nMove = glm::normalize(static_cast<glm::vec2>(move));
+
+		Move(nMove * moveBy, false);
+	}
 	
 	m_isAtInitialPos = false;
 }
 
 void Enemy::ReturnToInitialPosition()
 {
-	auto moveBy = 500.0f * Game::GetInstance().GetDeltaTime();
+	Game::GetInstance().RenderText("RETURNING", glm::vec2(128.0f, 256.0f), 1.0f, glm::vec3(0.0f, 0.1f, 0.4f));
+
+	auto moveBy = m_movementSpeed * Game::GetInstance().GetDeltaTime();
 	auto vectorToInitialPos = static_cast<glm::vec2>(m_initialPosition - m_centeredLocalPosition);
 	auto lengthToInitialPos = glm::length(vectorToInitialPos);
-	
+	auto distanceToNode = glm::length(static_cast<glm::vec2>(m_targetMovePosition - m_centeredLocalPosition));
+
 	if (lengthToInitialPos < 5.0f)
 	{
 		Move(vectorToInitialPos, false);
 		m_isAtInitialPos = true;
 		return;
 	}
+	else if ((distanceToNode < 5.0f) && (distanceToNode != 0.0f))
+	{
+		Move(m_targetMovePosition - m_centeredLocalPosition, false);
+	}
+	else if (m_targetMovePosition == m_centeredLocalPosition || m_targetMovePosition == glm::ivec2(0, 0))
+	{
+		m_currentNodeIdx = Game::GetInstance().GetLevel().GetPathfinder().FindNodeIdx(m_centeredLocalPosition);
+		m_targetMovePosition = Game::GetInstance().GetLevel().GetPathfinder().GetNearestPosition(/*m_centeredLocalPosition*/m_currentNodeIdx, m_initialPosition);
+		auto move = m_targetMovePosition - m_centeredLocalPosition;
+		auto nMove = glm::normalize(static_cast<glm::vec2>(move));
 
-	auto directionToInitialPos = glm::normalize(vectorToInitialPos);
-	
-	auto collided = Game::GetInstance().CheckCollision(m_centeredLocalPosition, static_cast<glm::ivec2>(directionToInitialPos * moveBy));
-	Move(collided, false);
+		Move(nMove * moveBy, false);
+	}
+	else
+	{
+		m_targetMovePosition = Game::GetInstance().GetLevel().GetPathfinder().GetNearestPosition(/*m_centeredLocalPosition*/m_currentNodeIdx, m_initialPosition);
+		auto move = m_targetMovePosition - m_centeredLocalPosition;
+		auto nMove = glm::normalize(static_cast<glm::vec2>(move));
+
+		Move(nMove * moveBy, false);
+	}
+
 }
 
 void Enemy::ClearPositions( )

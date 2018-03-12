@@ -18,19 +18,27 @@ class Enemy : public GameObject
 
     // position where enemy will shoot
     glm::vec2 m_targetShootPosition;
+	glm::ivec2 m_targetMovePosition;
 
 	glm::ivec2 m_initialPosition;
+	glm::ivec2 m_lastPlayersPos;
 	//glm::ivec2 m_currentChaseValue{};
     // enemy's vision range
     float m_visionRange;
 
     bool m_isChasingPlayer = false;
 	bool m_isAtInitialPos = true;
+	bool m_isUsingVectorfield = false;
 
 	float m_timeSinceCombatEnded = 0.0f;
     float m_timeSinceCombatStarted = 0.0f;
     float m_timeSinceLastShot      = 0.0f;
     float m_reactionTime           = 0.1f;
+	float m_movementSpeed = 500.0f;
+
+	uint8_t m_currentNodeIdx{};
+	uint8_t m_destinationNodeIdx{};
+
     // current weapon
     std::unique_ptr< Weapon > m_weapon;
 
@@ -58,14 +66,15 @@ class Enemy : public GameObject
 	void ReturnToInitialPosition();
     void ClearPositions( );
     void SetTargetShootPosition( const glm::vec2& pos );
+	glm::vec2 CalculateVectorFromVectorField();
 
  public:
     Enemy( const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite );
-    virtual ~Enemy( ) = default;
+    ~Enemy( ) override = default;
 
-    virtual bool Visible( ) const override;
-    virtual void Hit( int32_t dmg ) override;
-    virtual void DealWithPlayer( ) override;
+    bool Visible( ) const override;
+    void Hit( int32_t dmg ) override;
+    void DealWithPlayer( ) override;
 
     int32_t GetDmg( ) const
     {
