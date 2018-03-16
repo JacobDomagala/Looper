@@ -31,7 +31,7 @@ int32_t WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCm
 
         if( newTime - oldTime > TARGET_TIME )
         {
-            float dt = newTime - oldTime;
+			float dt = (newTime - oldTime) * Timer::AreTimersRunning();
             Game::GetInstance( ).ProcessInput( dt );
 
             oldTime = newTime;

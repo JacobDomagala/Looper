@@ -747,14 +747,18 @@ void Game::KeyEvents( float deltaTime )
     }
     if( Win_Window::GetKeyState( 'R' ) )
     {
-        m_player.Move( glm::vec2( 200, 400 ) );
+		Timer::PauseAllTimers();
     }
+	if (Win_Window::GetKeyState('T'))
+	{
+		Timer::ResumeAllTimers();
+	}
     if( Win_Window::GetKeyState( VK_SPACE ) )
     {
         m_currentLevel.Move( -m_player.GetCenteredGlobalPosition( ) );
         m_player.Move( -m_player.GetCenteredGlobalPosition( ), false );
     }
-    if( glm::length( glm::vec2( playerMoveBy ) ) )
+    if(glm::length( glm::vec2( playerMoveBy ) ) )
     {
         m_currentLevel.Move( cameraMoveBy );
         if( CheckMove( playerMoveBy ) == false )
@@ -971,10 +975,10 @@ void Game::LoadLevel( const std::string& levelName )
 
 void Game::ProcessInput( float deltaTime )
 {
-    m_deltaTime = deltaTime;
+	m_deltaTime = deltaTime;
 
-    MouseEvents( deltaTime );
-    KeyEvents( deltaTime );
+	MouseEvents(deltaTime);
+	KeyEvents(deltaTime);
 }
 
 void Game::RenderText( std::string text, const glm::vec2& position, float scale, const glm::vec3& color )

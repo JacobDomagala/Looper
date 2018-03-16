@@ -1,5 +1,7 @@
 #include "Timer.h"
 
+bool Timer::m_timersPaused = false;
+
 Timer::Timer( )
     : m_deltaTime( 0.0 )
     , m_globalTime( 0.0 )

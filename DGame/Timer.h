@@ -11,9 +11,27 @@ class Timer
     double m_globalTime;
     double m_accumulator;
 
+	static bool m_timersPaused;
+
  public:
     Timer( );
     ~Timer( ) = default;
+
+	static void PauseAllTimers()
+	{
+		m_timersPaused = true;
+	}
+
+	static void ResumeAllTimers()
+	{
+		m_timersPaused = false;
+
+	}
+
+	static bool AreTimersRunning()
+	{
+		return !m_timersPaused;
+	}
 
     void ToggleTimer( );
 
@@ -36,7 +54,7 @@ class Timer
     }
     float GetDeltaTime( ) const
     {
-        return static_cast< float >( m_deltaTime );
+        return static_cast< float >( m_deltaTime * !m_timersPaused);
     }
     float GetGlobalTime( ) const
     {

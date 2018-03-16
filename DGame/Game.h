@@ -89,7 +89,6 @@ class Game
     };
 
     Timer m_timer;
-
     Level m_currentLevel;
 
     std::unique_ptr< byte_vec4 > m_collision;
