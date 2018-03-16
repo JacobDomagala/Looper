@@ -33,8 +33,6 @@ PathFinder::PathFinder( std::vector< Node >&& nodes )
 uint8_t PathFinder::FindNodeIdx(const glm::ivec2& position) const
 {
 	auto node = std::find_if(m_nodes.begin(), m_nodes.end(), [position](const Node& node) { return node.m_position == position; });
-	
-	assert(node != m_nodes.end());
 
 	return node->m_ID;
 }
@@ -42,18 +40,17 @@ uint8_t PathFinder::FindNodeIdx(const glm::ivec2& position) const
 glm::ivec2 PathFinder::GetNearestPosition( /*const glm::ivec2& objectPos*/ uint8_t currIdx, const glm::ivec2& targetPos ) const
 {
     glm::ivec2 returnPos{};
-    int32_t        length{ INT32_MAX };
 
 	auto node = std::find_if(m_nodes.begin(), m_nodes.end(), [currIdx](const Node& node) { return node.m_ID == currIdx; });
+	auto        length = glm::length(static_cast<glm::vec2>(targetPos - node->m_position));
 
     if(node != m_nodes.end())
     {
         for( const auto& nodeIdx : node->m_connectedNodes )
         {
 			auto currentNode = std::find_if(m_nodes.begin(), m_nodes.end(), [nodeIdx](const Node& node) { return node.m_ID == nodeIdx; });
-			assert(currentNode != m_nodes.end());
 
-            int currentLength = glm::length( static_cast<glm::vec2>(targetPos - currentNode->m_position) );
+            auto currentLength = glm::length( static_cast<glm::vec2>(targetPos - currentNode->m_position) );
             if( currentLength < length )
             {
                 length    = currentLength;
@@ -62,4 +59,23 @@ glm::ivec2 PathFinder::GetNearestPosition( /*const glm::ivec2& objectPos*/ uint8
         }
     }
     return returnPos;
+}
+
+uint8_t PathFinder::GetNearestNode(const glm::ivec2& position) const
+{
+	uint8_t nearestNode(0);
+	auto tmpLength(INT32_MAX);
+
+	for (const auto& node : m_nodes)
+	{
+		auto currentLength = glm::length(static_cast<glm::vec2>(position - node.m_position));
+
+		if (currentLength < tmpLength)
+		{
+			nearestNode = node.m_ID;
+			tmpLength = currentLength;
+		}
+	}
+
+	return nearestNode;
 }
