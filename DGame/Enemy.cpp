@@ -108,19 +108,25 @@ void Enemy::Shoot( )
     m_timeSinceLastShot += m_timer.GetDeltaTime();
   
 	Game::GetInstance().RenderText("POW POW", glm::vec2(128.0f, 64.0f), 1.0f, glm::vec3(0.0f, 0.1f, 0.4f));
+	if( glm::length(static_cast<glm::vec2>(Game::GetInstance().GetPlayer().GetCenteredLocalPosition() - m_centeredLocalPosition)) <= m_weapon->GetRange() )
+	{
+		if (m_timeSinceLastShot >= m_weapon->GetReloadTime())
+		{
+			auto collided = Game::GetInstance().CheckBulletCollision(this, Game::GetInstance().GetLevel().GetGlobalVec(m_targetShootPosition), m_weapon->GetRange());
 
-    if( m_timeSinceLastShot >= m_weapon->GetReloadTime( ) )
-    {
-        auto collided = Game::GetInstance( ).CheckBulletCollision( this, Game::GetInstance( ).GetLevel( ).GetGlobalVec( m_targetShootPosition ), m_weapon->GetRange( ) );
+			// if we hit anything draw a line
+			if (collided.first != glm::ivec2(0, 0))
+			{
+				Game::GetInstance().DrawLine(m_centeredGlobalPosition, Game::GetInstance().GetLevel().GetGlobalVec(collided.first));
+			}
 
-        // if we hit anything draw a line
-        if( collided.first != glm::ivec2( 0, 0 ) )
-        {
-            Game::GetInstance( ).DrawLine( m_centeredGlobalPosition, Game::GetInstance( ).GetLevel( ).GetGlobalVec( collided.first ) );
-        }
-
-        m_timeSinceLastShot = 0.0f;
-    }
+			m_timeSinceLastShot = 0.0f;
+		}
+	}
+	else
+	{
+		ChasePlayer();
+	}
 }
 
 void Enemy::ChasePlayer()

@@ -71,7 +71,7 @@ class Glock : public Weapon
 {
  public:
     Glock( )
-        : Weapon( 100, 10, 20, true, { "glock" }, 0.3f )
+        : Weapon( 400, 10, 20, true, { "glock" }, 0.3f )
     {
     }
     ~Glock( ) override = default;
