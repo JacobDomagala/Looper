@@ -9,12 +9,12 @@
 class Weapon
 {
  protected:
-    const int32_t         m_range;
-    int32_t         m_dmg;
-    int32_t         m_ammoNum;
-    bool        m_hasAmmo;
+    const int32_t     m_range;
+    int32_t           m_dmg;
+    int32_t           m_ammoNum;
+    bool              m_hasAmmo;
     const std::string m_name;
-    float       m_reloadTime;
+    float             m_reloadTime;
 
     Weapon( int32_t range, int32_t dmg, int32_t ammoNum, bool hasAmmo, std::string name, float reloadTime )
         : m_range( range )

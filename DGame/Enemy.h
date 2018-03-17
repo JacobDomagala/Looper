@@ -17,26 +17,26 @@ class Enemy : public GameObject
     int32_t m_currentHP;
 
     // position where enemy will shoot
-    glm::vec2 m_targetShootPosition;
-	glm::ivec2 m_targetMovePosition;
+    glm::vec2  m_targetShootPosition;
+    glm::ivec2 m_targetMovePosition;
 
-	glm::ivec2 m_initialPosition;
-	glm::ivec2 m_lastPlayersPos;
+    glm::ivec2 m_initialPosition;
+    glm::ivec2 m_lastPlayersPos;
 
     // enemy's vision range
     float m_visionRange;
 
     bool m_isChasingPlayer = false;
-	bool m_isAtInitialPos = true;
+    bool m_isAtInitialPos  = true;
 
-	float m_timeSinceCombatEnded = 0.0f;
+    float m_timeSinceCombatEnded   = 0.0f;
     float m_timeSinceCombatStarted = 0.0f;
     float m_timeSinceLastShot      = 0.0f;
     float m_reactionTime           = 0.1f;
-	float m_movementSpeed = 500.0f;
+    float m_movementSpeed          = 500.0f;
 
-	uint8_t m_currentNodeIdx{};
-	uint8_t m_destinationNodeIdx{};
+    uint8_t m_currentNodeIdx{};
+    uint8_t m_destinationNodeIdx{};
 
     // current weapon
     std::unique_ptr< Weapon > m_weapon;
@@ -59,10 +59,10 @@ class Enemy : public GameObject
     int32_t   m_CurrentAnimationIndex = 0;
     glm::vec2 m_counter{ 0.0f, 0.0f };
     bool      reverse = false;
-    
+
     void Shoot( );
-    void ChasePlayer();
-	void ReturnToInitialPosition();
+    void ChasePlayer( );
+    void ReturnToInitialPosition( );
     void ClearPositions( );
     void SetTargetShootPosition( const glm::vec2& pos );
 

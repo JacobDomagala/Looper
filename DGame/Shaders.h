@@ -26,7 +26,7 @@ class Shaders
     Shaders( ) = default;
     ~Shaders( )
     {
-        glDeleteProgram(m_programID);
+        glDeleteProgram( m_programID );
     }
 
     GLuint GetProgram( ) const;

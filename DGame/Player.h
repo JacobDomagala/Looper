@@ -104,7 +104,7 @@ class Player
     glm::ivec2 GetSize( ) const;
 
     // move player in OpenGL space
-    void Move( const glm::vec2& vector, bool changeVelocity = true );
+    void Move( const glm::vec2& vector );
 
     // get reload time of player's current weapon
     float GetReloadTime( ) const;

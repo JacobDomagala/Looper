@@ -14,10 +14,10 @@ int32_t WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCm
 
     float oldTime = globalTimer->GetGlobalTime( );
 
-    MSG   msg;
-    float frames           = 0.0f;
-    float frameTimer       = 0.0f;
-    int32_t   framesLastSecond = 0;
+    MSG     msg;
+    float   frames           = 0.0f;
+    float   frameTimer       = 0.0f;
+    int32_t framesLastSecond = 0;
 
     while( Win_Window::GetInstance( ).IsRunning( ) )
     {
@@ -31,7 +31,7 @@ int32_t WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCm
 
         if( newTime - oldTime > TARGET_TIME )
         {
-			float dt = (newTime - oldTime) * Timer::AreTimersRunning();
+            float dt = ( newTime - oldTime ) * Timer::AreTimersRunning( );
             Game::GetInstance( ).ProcessInput( dt );
 
             oldTime = newTime;

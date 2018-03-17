@@ -7,7 +7,8 @@
 class Shaders;
 class Player;
 
-class Level {
+class Level
+{
     //IN PROGRESS
 
     Sprite                                     background;
@@ -19,7 +20,7 @@ class Level {
 
     glm::ivec2 playerPos;
 
-    bool  locked{};
+    bool locked{};
 
     glm::ivec2 tileSize;
     glm::ivec2 numTuilesOnScreen;
@@ -27,7 +28,7 @@ class Level {
 
     glm::ivec2                                   levelSize;
     std::vector< std::unique_ptr< GameObject > > objects;
-	PathFinder m_pathinder{ };
+    PathFinder                                   m_pathinder{};
 
  public:
     Level( )  = default;
@@ -76,10 +77,10 @@ class Level {
     {
         return levelSize;
     }
-	const PathFinder& GetPathfinder() const
-	{
-		return m_pathinder;
-	}
+    const PathFinder& GetPathfinder( ) const
+    {
+        return m_pathinder;
+    }
 
     void SetPlayersPosition( const glm::vec2& position );
     void MoveCamera( const glm::vec2& moveBy );

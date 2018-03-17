@@ -111,7 +111,7 @@ void Win_Window::SetUpOpenGL( )
     pixelDescriptor.cColorBits = 32;
     pixelDescriptor.cAlphaBits = 8;
 
-    int32_t                   pixelformat = ChoosePixelFormat( m_hdc, &pixelDescriptor );
+    int32_t               pixelformat = ChoosePixelFormat( m_hdc, &pixelDescriptor );
     PIXELFORMATDESCRIPTOR tmp;
     DescribePixelFormat( m_hdc, pixelformat, sizeof( tmp ), &tmp );
     SetPixelFormat( m_hdc, pixelformat, &tmp );

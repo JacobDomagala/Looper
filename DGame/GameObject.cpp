@@ -5,7 +5,7 @@
 
 GameObject::GameObject( const glm::vec2& pos, glm::ivec2 size, const std::string& sprite )
     : m_globalPosition( pos )
-    , m_localPosition( Game::GetInstance( ).GetLevel( ).GetLocalVec(pos) )
+    , m_localPosition( Game::GetInstance( ).GetLevel( ).GetLocalVec( pos ) )
     , m_visible( true )
 {
     m_collision              = m_sprite.SetSpriteTextured( pos, size, sprite );
@@ -102,10 +102,10 @@ void GameObject::Move( const glm::vec2& moveBy, bool isCameraMovement )
     m_globalPosition += moveBy;
     m_centeredGlobalPosition += moveBy;
 
-    if (!isCameraMovement)
+    if( !isCameraMovement )
     {
-    	m_localPosition += moveBy;
-    	m_centeredLocalPosition += moveBy;
+        m_localPosition += moveBy;
+        m_centeredLocalPosition += moveBy;
     }
 }
 

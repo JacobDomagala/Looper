@@ -41,7 +41,7 @@ bool Player::CheckCollision( const glm::ivec2& bulletPosition, Enemy const* enem
     // if the bullet is inside collision zone then player got hit
     if( glm::length( glm::vec2( bulletPosition - m_centeredLocalPosition ) ) < ( m_sprite.GetSize( ).x ) / 2.5f )
     {
-        if(enemyShooting)
+        if( enemyShooting )
         {
             m_currentHP -= enemy->GetDmg( );
             m_sprite.SetColor( glm::vec3( 1.0f, 0.0f, 0.0f ) );
@@ -98,12 +98,10 @@ glm::ivec2 Player::GetScreenPositionPixels( ) const
     return tmpPos;
 }
 
-void Player::Move( const glm::vec2& moveBy, bool changeVelocity )
+void Player::Move( const glm::vec2& moveBy )
 {
-   
-        m_sprite.Translate( moveBy );
-        m_centeredGlobalPosition += moveBy;
-
+    m_sprite.Translate( moveBy );
+    m_centeredGlobalPosition += moveBy;
 }
 
 void Player::Draw( )
