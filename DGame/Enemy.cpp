@@ -30,6 +30,7 @@ void Enemy::DealWithPlayer( )
     // player in enemy's sight of vision
     if( collided )
     {
+		m_currentState = STATE::SHOOTING;
         m_lastPlayersPos        = Game::GetInstance( ).GetPlayer( ).GetCenteredLocalPosition( );
         m_timeSinceCombatEnded  = 0.0f;
         m_CurrentAnimationIndex = 0;
@@ -58,8 +59,9 @@ void Enemy::DealWithPlayer( )
     {
         m_timeSinceCombatEnded += m_timer.GetDeltaTime( );
 
-        if( m_timeSinceCombatEnded < 3.0f )
+        if( m_currentState != STATE::IDLE && m_timeSinceCombatEnded < 3.0f )
         {
+			m_currentState = STATE::CHASING_PLAYER;
             m_isChasingPlayer = true;
             ChasePlayer( );
         }
@@ -68,10 +70,12 @@ void Enemy::DealWithPlayer( )
             m_isChasingPlayer = false;
             if( !m_isAtInitialPos )
             {
+				m_currentState = STATE::RETURNING;
                 ReturnToInitialPosition( );
             }
             else
             {
+				m_currentState = STATE::IDLE;
                 ClearPositions( );
             }
         }

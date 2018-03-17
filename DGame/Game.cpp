@@ -799,12 +799,10 @@ void Game::RenderFirstPass( )
 
     glm::ivec2 correction = CorrectPosition( );
 
-    /*if (glm::length(glm::vec2(correction.x, correction.y)) > 0.0f)
-	{*/
     m_player.Move( correction );
     m_playerPosition += correction;
     m_player.SetCenteredLocalPosition( m_playerPosition );
-    //}
+    
     m_currentLevel.Draw( );
     m_player.Draw( );
 
@@ -822,8 +820,6 @@ void Game::RenderSecondPass( )
     m_debugObjs.clear( );
 
     RenderText( std::to_string( m_deltaTime * 1000 ) + " ms", glm::vec2( static_cast< float >( -WIDTH / 2 ), static_cast< float >( -HEIGHT / 2 ) + 20 ), 0.4f, glm::vec3( 1.0f, 0.0f, 1.0f ) );
-
-    //m_font.RenderText( std::to_string( debug2.x ) + " " + std::to_string( debug2.y ), 20, 60, 1, glm::vec3( 1, .4, .6 ) );
 }
 
 void Game::LoadLevel( const std::string& levelName )

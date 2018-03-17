@@ -18,6 +18,6 @@ class PathFinder
     PathFinder( std::vector< Node >&& nodes );
 
     uint8_t    FindNodeIdx( const glm::ivec2& position ) const;
-    glm::ivec2 GetNearestPosition( /* const glm::ivec2& objectPos*/ uint8_t currIdx, const glm::ivec2& targetPos ) const;
+    glm::ivec2 GetNearestPosition( uint8_t currIdx, const glm::ivec2& targetPos ) const;
     uint8_t    GetNearestNode( const glm::ivec2& position ) const;
 };

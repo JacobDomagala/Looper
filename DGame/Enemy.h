@@ -7,6 +7,15 @@
 
 class Enemy : public GameObject
 {
+	enum class STATE {
+		IDLE,
+		CHASING_PLAYER,
+		SHOOTING,
+		RETURNING
+	};
+
+	STATE m_currentState = STATE::IDLE;
+
     // helper timer
     Timer m_timer;
 
