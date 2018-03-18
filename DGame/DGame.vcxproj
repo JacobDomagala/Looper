@@ -103,7 +103,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>.\..\Reasource\FreeType\include;D:\Work\DGame\Reasource\GLM\glm-0.9.8.5\glm\glm;D:\Work\DGame\Reasource\GLEW\glew-2.1.0\include\GL;.\..\Reasource\Simple OpenGL Image Library\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\..\Reasource\FreeType\include;D:\Work\DGame\Reasource\GLM\glm\glm;D:\Work\DGame\Reasource\GLEW\glew-2.1.0\include\GL;.\..\Reasource\Simple OpenGL Image Library\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
