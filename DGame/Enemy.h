@@ -55,14 +55,11 @@ class Enemy : public GameObject
 
     std::vector< glm::vec2 > m_positions{
         glm::vec2( 0.5f, 0.5f ),
-        glm::vec2( 0.5f, 0.5f ),
-        glm::vec2( 0.5f, 0.0f ),
+        glm::vec2( 0.0f, -0.5f ),
+        glm::vec2( -0.5f, 0.0f ),
         glm::vec2( 0.0f, 0.5f ),
         glm::vec2( 0.5f, 0.0f ),
-        glm::vec2( 0.0f, 0.5f ),
-        glm::vec2( 0.0f, 0.5f ),
-        glm::vec2( 0.0f, 0.5f ),
-        glm::vec2( 1.0f, 0.5f )
+        glm::vec2( -0.5f, -0.5f )
     };
 
     int32_t   m_CurrentAnimationIndex = 0;

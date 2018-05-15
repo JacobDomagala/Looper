@@ -1,5 +1,18 @@
 #include "PathFinder.h"
 
+glm::ivec2 PathFinder::CalcShit(glm::ivec2 currPos, glm::ivec2 targetPos)
+{
+	auto C = currPos;
+	auto A = m_nodes.at(GetNearestNode(currPos)).m_position;
+	auto B = GetNearestPosition(GetNearestNode(currPos), targetPos);
+	
+	auto distance = ((C.x - A.x)*(-B.y + A.y) + (C.y - A.y)*(B.x - A.x)) / glm::sqrt(glm::pow((-B.y + A.y), 2) + glm::pow((B.x + A.x), 2));
+
+	auto tmpVec = A - C;
+
+	return glm::ivec2{};
+}
+
 PathFinder::PathFinder( )
 {
     std::vector< Node > nodes = {
@@ -16,7 +29,7 @@ PathFinder::PathFinder( )
         Node{ { 2800, 1600 }, 10, { 9, 11 } },
         Node{ { 2700, 2100 }, 11, { 10, 12 } },
         Node{ { 2700, 2500 }, 12, { 11 } },
-        Node{ { 1600, 800 }, 13, { 2, 14 } },
+        Node{ { 1600, 600 }, 13, { 2, 14 } },
         Node{ { 1600, 135 }, 14, { 13, 15, 16 } },
         Node{ { 1300, 135 }, 15, { 14 } },
         Node{ { 1800, 135 }, 16, { 14 } }

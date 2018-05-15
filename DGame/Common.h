@@ -41,7 +41,7 @@ struct byte_vec4
     };
 };
 
-const float   TARGET_FPS  = 60.0f;
-const float   TARGET_TIME = 1.0f / TARGET_FPS;
-const int32_t WIDTH       = 1280;
-const int32_t HEIGHT      = 768;
+constexpr float   TARGET_FPS  = 60.0f;
+constexpr float   TARGET_TIME = 1.0f / TARGET_FPS;
+constexpr int32_t WIDTH       = 1280;
+constexpr int32_t HEIGHT      = 768;
