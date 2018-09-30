@@ -1,5 +1,5 @@
-#include "Game.h"
-#include "Enemy.h"
+#include "Game.hpp"
+#include "Enemy.hpp"
 
 //glm::vec2 destination;
 glm::vec2 cursor;

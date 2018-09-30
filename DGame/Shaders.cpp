@@ -1,5 +1,5 @@
-#include "Shaders.h"
-#include "Win_Window.h"
+#include "Shaders.hpp"
+#include "Win_Window.hpp"
 
 GLuint Shaders::m_activeProgramID = 0;
 GLuint Shaders::m_numberBound     = 0;

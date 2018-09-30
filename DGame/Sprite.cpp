@@ -1,5 +1,5 @@
-#include "Sprite.h"
-#include "Win_Window.h"
+#include "Sprite.hpp"
+#include "Win_Window.hpp"
 
 void Sprite::SetSprite( const glm::vec2& position, glm::ivec2 size )
 {

@@ -1,4 +1,4 @@
-#include "Timer.h"
+#include "Timer.hpp"
 
 bool Timer::m_timersPaused = false;
 

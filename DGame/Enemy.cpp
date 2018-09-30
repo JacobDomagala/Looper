@@ -1,8 +1,8 @@
-#include "Enemy.h"
-#include "Game.h"
-#include "Level.h"
-#include "Timer.h"
-#include "Weapon.h"
+#include "Enemy.hpp"
+#include "Game.hpp"
+#include "Level.hpp"
+#include "Timer.hpp"
+#include "Weapon.hpp"
 
 extern Timer* globalTimer;
 

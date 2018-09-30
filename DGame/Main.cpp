@@ -1,6 +1,6 @@
-#include "Game.h"
-#include "Timer.h"
-#include "Win_Window.h"
+#include "Game.hpp"
+#include "Timer.hpp"
+#include "Win_Window.hpp"
 
 Timer* globalTimer;
 

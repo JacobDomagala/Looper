@@ -1,10 +1,10 @@
-#include "Level.h"
-#include "Enemy.h"
-#include "Game.h"
-#include "Player.h"
-#include "Shaders.h"
-#include "Timer.h"
-#include "Win_Window.h"
+#include "Level.hpp"
+#include "Enemy.hpp"
+#include "Game.hpp"
+#include "Player.hpp"
+#include "Shaders.hpp"
+#include "Timer.hpp"
+#include "Win_Window.hpp"
 
 //Sprite Level::background;
 //glm::ivec2 Level::levelSize;
