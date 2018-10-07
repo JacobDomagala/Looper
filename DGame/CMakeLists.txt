@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 project(DGame VERSION 1.0.0 LANGUAGES CXX)
 
 set(RESOURCES_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../resource)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/DGame)
 
 function(FIND_AND_DOWNLOAD_GIT_RESOURCE ResourceName ResourceURL)
    find_path(${ResourceName}_PATH ${ResourceName} ${RESOURCES_PATH})
@@ -39,13 +40,16 @@ set(RESOURCERS_INCLUDES ${RESOURCES_PATH}/GLM/glm/glm
 set(RESOURCES_LIBS ${RESOURCES_PATH}/GLEW/glew-2.1.0/lib/Release/x64 
                    ${RESOURCES_PATH}/FREETYPE/win64)
 
+execute_process(COMMAND mv ${RESOURCES_PATH}/GLEW/glew-2.1.0/bin/Release/x64/glew32.dll ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/)
+execute_process(COMMAND mv ${RESOURCES_PATH}/FREETYPE/win64/freetype.dll ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/)
+
 file(GLOB HEADERS "*.hpp")
 file(GLOB SOURCES "*.cpp")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${RESOURCERS_INCLUDES})
 link_directories(${RESOURCES_LIBS})
 
-set(CMAKE_CXX_FLAGS  "-std=c++17 -g -O0")
+#set(CMAKE_CXX_FLAGS  "-std=c++17 -g -O0")
 
-add_executable(DGame ${HEADERS} ${SOURCES})
-target_link_libraries (DGame glew32 glew32s freetype)
+add_executable(DGame WIN32 ${HEADERS} ${SOURCES})
+target_link_libraries (DGame glew32 glew32s opengl32 freetype)
