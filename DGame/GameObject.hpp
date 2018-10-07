@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Common.h"
-#include "Shaders.h"
-#include "Sprite.h"
+#include "Common.hpp"
+#include "Shaders.hpp"
+#include "Sprite.hpp"
 
 class GameObject
 {

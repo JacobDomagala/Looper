@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Common.h"
-#include "GameObject.h"
-#include "PathFinder.h"
+#include "Common.hpp"
+#include "GameObject.hpp"
+#include "PathFinder.hpp"
 
 class Shaders;
 class Player;

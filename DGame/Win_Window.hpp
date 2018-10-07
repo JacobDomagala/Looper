@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Common.h"
+#include "Common.hpp"
 
 class Win_Window
 {
     // Win32 specific members
-    WNDCLASS  m_windowClass;
+    WNDCLASSW  m_windowClass;
     HWND      m_windowHandle;
     HINSTANCE m_hInstance;
     HGLRC     m_hrc;

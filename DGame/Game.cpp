@@ -870,8 +870,8 @@ void Game::LoadLevel( const std::string& levelName )
         else if( tmp == "Collision:" )
         {
             levelFile >> collisionMap;
-            int32_t    width, height;
-            byte_vec4* tmpCollision = reinterpret_cast< byte_vec4* >( SOIL_load_image( ( folderPath + collisionMap ).c_str( ), &width, &height, NULL, SOIL_LOAD_RGBA ) );
+            int32_t    width, height, n;
+            byte_vec4* tmpCollision = reinterpret_cast< byte_vec4* >( stbi_load( ( folderPath + collisionMap ).c_str( ), &width, &height, &n, 0 ) );
             m_collision             = std::unique_ptr< byte_vec4 >( tmpCollision );
         }
         else if( tmp == "Player:" )

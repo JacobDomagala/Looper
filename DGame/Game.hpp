@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Common.h"
-#include "Font.h"
-#include "Framebuffer.h"
-#include "Level.h"
-#include "Player.h"
-#include "Timer.h"
-#include "Win_Window.h"
+#include "Common.hpp"
+#include "Font.hpp"
+#include "Framebuffer.hpp"
+#include "Level.hpp"
+#include "Player.hpp"
+#include "Timer.hpp"
+#include "Win_Window.hpp"
 
 #pragma region DEBUG
 /*

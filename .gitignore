@@ -304,3 +304,8 @@ paket-files/
 *.exe
 *.out
 *.app
+
+# Project specific folders
+build
+resource
+.vscode

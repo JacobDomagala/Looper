@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Common.h"
-#include "GameObject.h"
-#include "Timer.h"
-#include "Weapon.h"
+#include "Common.hpp"
+#include "GameObject.hpp"
+#include "Timer.hpp"
+#include "Weapon.hpp"
 
 class Enemy : public GameObject
 {

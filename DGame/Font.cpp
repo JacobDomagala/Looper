@@ -1,6 +1,6 @@
-#include "Font.h"
-#include "Texture.h"
-#include "Win_Window.h"
+#include "Font.hpp"
+#include "Texture.hpp"
+#include "Win_Window.hpp"
 
 void Font::SetFont( const std::string& fileName )
 {

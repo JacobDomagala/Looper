@@ -1,10 +1,7 @@
 #pragma once
 
 #include <utility>
-
-#include <utility>
-
-#include "Common.h"
+#include "Common.hpp"
 
 class Weapon
 {

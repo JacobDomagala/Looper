@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Common.h"
-#include "Shaders.h"
-#include "Texture.h"
+#include "Common.hpp"
+#include "Shaders.hpp"
+#include "Texture.hpp"
 
 class Sprite
 {
