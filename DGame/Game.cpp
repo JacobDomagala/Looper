@@ -1,5 +1,7 @@
 #include "Game.hpp"
 #include "Enemy.hpp"
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 //glm::vec2 destination;
 glm::vec2 cursor;

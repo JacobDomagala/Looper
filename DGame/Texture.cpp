@@ -1,6 +1,7 @@
 #include "Texture.hpp"
 #include "Shaders.hpp"
 #include "Win_Window.hpp"
+#include <stb_image.h>
 
 int32_t Texture::m_unitCounter = 0;
 int32_t Texture::m_nowBound    = 0;
