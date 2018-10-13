@@ -21,7 +21,7 @@ void Shaders::UseProgram( ) const
 
 void Shaders::LoadDefault( )
 {
-    LoadShaders( "Shaders\\DefaultShader_vs.glsl", "Shaders\\DefaultShader_fs.glsl" );
+    LoadShaders( "../Shaders\\DefaultShader_vs.glsl", "../Shaders\\DefaultShader_fs.glsl" );
 }
 
 std::string Shaders::ReadShaderFile( const std::string& fileName )

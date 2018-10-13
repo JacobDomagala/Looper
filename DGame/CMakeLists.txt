@@ -30,7 +30,7 @@ endfunction()
 FIND_AND_DOWNLOAD_GIT_RESOURCE(FREETYPE https://github.com/ubawurinna/freetype-windows-binaries.git)
 FIND_AND_DOWNLOAD_GIT_RESOURCE(STB_IMAGE https://github.com/nothings/stb.git)
 FIND_AND_DOWNLOAD_RESOURCE(GLEW https://sourceforge.net/projects/glew/files/glew/2.1.0/glew-2.1.0-win32.zip)
-FIND_AND_DOWNLOAD_RESOURCE(GLM https://github.com/g-truc/glm/releases/download/0.9.9.2/glm-0.9.9.2.zip)
+FIND_AND_DOWNLOAD_RESOURCE(GLM https://github.com/g-truc/glm/releases/download/0.9.8.5/glm-0.9.8.5.zip)
 
 set(RESOURCERS_INCLUDES ${RESOURCES_PATH}/GLM/glm/glm 
                         ${RESOURCES_PATH}/GLEW/glew-2.1.0/include/GL 

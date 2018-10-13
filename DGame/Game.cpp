@@ -143,7 +143,7 @@ void Game::RenderLine( glm::ivec2 collided, glm::vec3 color )
     glm::vec2 lineCollided = m_currentLevel.GetGlobalVec( collided );
 
     Shaders lineShader;
-    lineShader.LoadShaders( "lineVertex.glsl", "lineFragment.glsl" );
+    lineShader.LoadShaders( "../lineVertex.glsl", "../lineFragment.glsl" );
 
     glm::vec2 vertices[ 2 ] = {
         glm::vec2( m_player.GetCenteredGlobalPosition( ) ),
@@ -729,7 +729,7 @@ void Game::MouseEvents( float deltaTime )
     cursor = Win_Window::GetInstance( ).GetCursorNormalized( );
     //glm::vec2 tmp = CheckBulletCollision(m_player.GetWeaponRange());
 
-    //DrawLine(m_currentLevel.GetGlobalVec(m_player.GetCenteredLocalPosition()), m_currentLevel.GetGlobalVec(tmp), glm::vec3(0.0f, 1.0f, 0.0f));
+   // DrawLine(m_currentLevel.GetGlobalVec(m_player.GetCenteredLocalPosition()), m_currentLevel.GetGlobalVec(tmp), glm::vec3(0.0f, 1.0f, 0.0f));
 
     ////PRIMARY FIRE
     //if (Win_Window::GetKeyState(VK_LBUTTON))
@@ -826,7 +826,7 @@ void Game::RenderSecondPass( )
 
 void Game::LoadLevel( const std::string& levelName )
 {
-    std::string   folderPath = "Assets\\" + levelName + "\\";
+    std::string   folderPath = "../Assets\\" + levelName + "\\";
     std::ifstream levelFile( folderPath + levelName + ".txt" );
     if( !levelFile )
     {

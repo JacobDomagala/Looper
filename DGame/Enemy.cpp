@@ -21,7 +21,7 @@ Enemy::Enemy( const glm::vec2& pos, const glm::ivec2& size, const std::string& s
 
 void Enemy::DealWithPlayer( )
 {
-    Game::GetInstance( ).RenderText( std::to_string( m_currentNodeIdx ), glm::vec2( 125.5f, 125.5f ), 1.0f, glm::vec3( 1.0f, 0.0f, 0.0f ) );
+   // Game::GetInstance( ).RenderText( std::to_string( m_currentNodeIdx ), glm::vec2( 125.5f, 125.5f ), 1.0f, glm::vec3( 1.0f, 0.0f, 0.0f ) );
 
     auto collided = Game::GetInstance( ).IsPlayerInVision( this, static_cast< int32_t >( m_visionRange ) );
 

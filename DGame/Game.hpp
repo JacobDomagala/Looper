@@ -42,7 +42,7 @@ class Line : public DebugObject
     void Draw( ) override
     {
         Shaders lineShader{};
-        lineShader.LoadShaders( "lineVertex.glsl", "lineFragment.glsl" );
+        lineShader.LoadShaders( "../lineVertex.glsl", "../lineFragment.glsl" );
 
         glm::vec2 vertices[ 2 ] = {
             m_from,

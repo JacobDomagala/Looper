@@ -145,7 +145,7 @@ void Level::LoadPremade( const std::string& fileName, const glm::ivec2& size )
 
 void Level::LoadShaders( const std::string& shaderName )
 {
-    shaders.LoadShaders( "Shaders//" + shaderName + "_vs.glsl", "Shaders//" + shaderName + "_fs.glsl" );
+    shaders.LoadShaders( "../Shaders//" + shaderName + "_vs.glsl", "../Shaders//" + shaderName + "_fs.glsl" );
 }
 
 void Level::AddGameObject( const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite )

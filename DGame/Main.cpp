@@ -10,7 +10,7 @@ int32_t WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCm
     Win_Window::GetInstance( ).SetUpOpenGL( );
 
     globalTimer = new Timer( );
-    Game::GetInstance( ).Init( "Assets\\GameInit.txt" );
+    Game::GetInstance( ).Init( "../Assets\\GameInit.txt" );
 
     float oldTime = globalTimer->GetGlobalTime( );
 

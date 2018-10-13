@@ -81,7 +81,7 @@ void Win_Window::Createwindow( )
     //windowClass.style = CS_HREDRAW;
     m_windowClass.hInstance     = m_hInstance;
     m_windowClass.lpfnWndProc   = MainWinProc;
-    //m_windowClass.hCursor       = LoadCursorW( NULL, IDC_CROSS );
+    m_windowClass.hCursor       = LoadCursorA( NULL, IDC_CROSS );
     m_windowClass.lpszClassName = L"className";
 
     RegisterClassW( &m_windowClass );

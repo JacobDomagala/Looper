@@ -28,7 +28,7 @@ void Player::CreateSprite( const glm::vec2& position, const glm::ivec2& size, co
 
 void Player::LoadShaders( const std::string& shaderFile )
 {
-    m_program.LoadShaders( "Shaders//" + shaderFile + "_vs.glsl", "Shaders//" + shaderFile + "_fs.glsl" );
+    m_program.LoadShaders( "../Shaders//" + shaderFile + "_vs.glsl", "../Shaders//" + shaderFile + "_fs.glsl" );
 }
 
 void Player::LoadShaders( const Shaders& program )
