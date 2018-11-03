@@ -1,15 +1,15 @@
-#include <Level.hpp>
 #include <Enemy.hpp>
 #include <Game.hpp>
+#include <Level.hpp>
 #include <Player.hpp>
 #include <Shaders.hpp>
 #include <Timer.hpp>
 #include <Win_Window.hpp>
 
-//Sprite Level::background;
-//glm::ivec2 Level::levelSize;
+// Sprite Level::background;
+// glm::ivec2 Level::levelSize;
 
-//void Level::Load(const std::string& fileName)
+// void Level::Load(const std::string& fileName)
 //{
 //	locked = false;
 //	cameraPosition = glm::vec2(0.0f, 0.0f);
@@ -89,135 +89,148 @@
 //	file.close();
 //}
 
-glm::vec2 Level::GetLocalVec( const glm::vec2& global ) const
+glm::vec2
+Level::GetLocalVec(const glm::vec2& global) const
 {
-    // get the vector relative to map's position
-    glm::vec2 returnVal{ background.GetPosition( ) - global };
+   // get the vector relative to map's position
+   glm::vec2 returnVal{background.GetPosition() - global};
 
-    // change 'y' to originate in top left
-    returnVal.y -= levelSize.y;
-    returnVal *= -1;
+   // change 'y' to originate in top left
+   returnVal.y -= levelSize.y;
+   returnVal *= -1;
 
-    return returnVal;
+   return returnVal;
 }
 
-glm::vec2 Level::GetGlobalVec( const glm::vec2& local ) const
+glm::vec2
+Level::GetGlobalVec(const glm::vec2& local) const
 {
-    glm::vec2 returnVal = local;
+   glm::vec2 returnVal = local;
 
-    returnVal *= -1;
-    returnVal.y += levelSize.y;
-    returnVal = background.GetPosition( ) - returnVal;
+   returnVal *= -1;
+   returnVal.y += levelSize.y;
+   returnVal = background.GetPosition() - returnVal;
 
-    return returnVal;
+   return returnVal;
 }
 
-bool Level::CheckCollision( const glm::ivec2& localPos, const Player& player )
+bool
+Level::CheckCollision(const glm::ivec2& localPos, const Player& player)
 {
-    for( auto& obj : objects )
-    {
-        float     length  = glm::length( glm::vec2( localPos - obj->GetCenteredLocalPosition( ) ) );
-        glm::vec2 objPos  = obj->GetLocalPosition( );
-        glm::vec2 objSize = obj->GetSize( );
+   for (auto& obj : objects)
+   {
+      float length = glm::length(glm::vec2(localPos - obj->GetCenteredLocalPosition()));
+      glm::vec2 objPos = obj->GetLocalPosition();
+      glm::vec2 objSize = obj->GetSize();
 
-        if( length < objSize.x / 2.5f )
-        {
-            obj->Hit( player.GetWeaponDmg( ) );
+      if (length < objSize.x / 2.5f)
+      {
+         obj->Hit(player.GetWeaponDmg());
 
-            return false;
-        }
+         return false;
+      }
 
-        obj->SetColor( { 1.0f, 1.0f, 1.0f } );
-    }
-    return true;
+      obj->SetColor({1.0f, 1.0f, 1.0f});
+   }
+   return true;
 }
 
-void Level::LoadPremade( const std::string& fileName, const glm::ivec2& size )
+void
+Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
 {
-    locked          = false;
-    cameraPosition  = glm::vec2( 0.0f, 0.0f );
-    cameraTilePos   = glm::ivec2( 0, 0 );
-    this->levelSize = size;
+   locked = false;
+   cameraPosition = glm::vec2(0.0f, 0.0f);
+   cameraTilePos = glm::ivec2(0, 0);
+   this->levelSize = size;
 
-    background.SetSpriteTextured( glm::vec2( 0, 0 ), size, fileName );
-    shaders.LoadDefault( );
+   background.SetSpriteTextured(glm::vec2(0, 0), size, fileName);
+   shaders.LoadDefault();
 }
 
-void Level::LoadShaders( const std::string& shaderName )
+void
+Level::LoadShaders(const std::string& shaderName)
 {
-    shaders.LoadShaders( "../Shaders//" + shaderName + "_vs.glsl", "../Shaders//" + shaderName + "_fs.glsl" );
+   shaders.LoadShaders("../Shaders//" + shaderName + "_vs.glsl", "../Shaders//" + shaderName + "_fs.glsl");
 }
 
-void Level::AddGameObject( const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite )
+void
+Level::AddGameObject(const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite)
 {
-    std::unique_ptr< GameObject > object = std::make_unique< Enemy >( pos, size, sprite );
-    objects.push_back( std::move( object ) );
+   std::unique_ptr< GameObject > object = std::make_unique< Enemy >(pos, size, sprite);
+   objects.push_back(std::move(object));
 }
 
-void Level::Move( const glm::vec2& moveBy )
+void
+Level::Move(const glm::vec2& moveBy)
 {
-    for( auto& obj : objects )
-    {
-        obj->Move( moveBy );
-    }
+   for (auto& obj : objects)
+   {
+      obj->Move(moveBy);
+   }
 
-    background.Translate( moveBy );
-    MoveCamera( moveBy );
+   background.Translate(moveBy);
+   MoveCamera(moveBy);
 }
 
-void Level::Draw( )
+void
+Level::Draw()
 {
-    // draw background
-    background.Render( shaders );
+   // draw background
+   background.Render(shaders);
 
-    if( !objects.empty( ) )
-    {
-        for( auto& obj : objects )
-        {
-            if( obj->Visible( ) )
-            {
-                obj->DealWithPlayer( );
-                obj->Render( shaders );
-            }
-        }
-    }
+   if (!objects.empty())
+   {
+      for (auto& obj : objects)
+      {
+         if (obj->Visible())
+         {
+            obj->DealWithPlayer();
+            obj->Render(shaders);
+         }
+      }
+   }
 }
 
-void Level::MoveObjs( const glm::vec2& moveBy, bool isCameraMovement )
+void
+Level::MoveObjs(const glm::vec2& moveBy, bool isCameraMovement)
 {
-    for( auto& obj : objects )
-    {
-        obj->Move( moveBy, isCameraMovement );
-    }
+   for (auto& obj : objects)
+   {
+      obj->Move(moveBy, isCameraMovement);
+   }
 }
 
-void Level::SetPlayersPosition( const glm::vec2& position )
+void
+Level::SetPlayersPosition(const glm::vec2& position)
 {
-    playerPos = position;
-    playerPos /= tileSize;
+   playerPos = position;
+   playerPos /= tileSize;
 }
 
-void Level::MoveCamera( const glm::vec2& moveBy )
+void
+Level::MoveCamera(const glm::vec2& moveBy)
 {
-    cameraPosition -= moveBy;
-    //cameraTilePos = GetTilePosition(cameraPosition);
+   cameraPosition -= moveBy;
+   // cameraTilePos = GetTilePosition(cameraPosition);
 }
 
-glm::ivec2 Level::CheckMoveCamera( const glm::vec2& moveBy ) const
+glm::ivec2
+Level::CheckMoveCamera(const glm::vec2& moveBy) const
 {
-    glm::vec2 tmp = cameraPosition;
-    tmp -= moveBy;
+   glm::vec2 tmp = cameraPosition;
+   tmp -= moveBy;
 
-    return GetTilePosition( tmp );
+   return GetTilePosition(tmp);
 }
 
-glm::ivec2 Level::GetTilePosition( const glm::vec2& position ) const
+glm::ivec2
+Level::GetTilePosition(const glm::vec2& position) const
 {
-    float tmpX = position.x;
-    float tmpY = position.y;
+   float tmpX = position.x;
+   float tmpY = position.y;
 
-    int32_t tileX = static_cast< int32_t >( ceilf( tmpX / static_cast< float >( tileSize.x ) ) );
-    int32_t tileY = static_cast< int32_t >( ceilf( tmpY / static_cast< float >( tileSize.y ) ) );
+   int32_t tileX = static_cast< int32_t >(ceilf(tmpX / static_cast< float >(tileSize.x)));
+   int32_t tileY = static_cast< int32_t >(ceilf(tmpY / static_cast< float >(tileSize.y)));
 
-    return glm::ivec2( tileX, tileY );
+   return glm::ivec2(tileX, tileY);
 }

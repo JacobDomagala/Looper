@@ -5,15 +5,18 @@
 
 class Framebuffer
 {
-    GLuint  frameBufferID;
-    GLuint  textureID;
-    Shaders shaders;
+   GLuint frameBufferID;
+   GLuint textureID;
+   Shaders shaders;
 
  public:
-    Framebuffer( );
-    ~Framebuffer( ) = default;
+   Framebuffer();
+   ~Framebuffer() = default;
 
-    void LoadShaders( const std::string& shaderName );
-    void BeginDrawingToTexture( );
-    void EndDrawingToTexture( );
+   void
+   LoadShaders(const std::string& shaderName);
+   void
+   BeginDrawingToTexture();
+   void
+   EndDrawingToTexture();
 };
