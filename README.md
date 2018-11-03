@@ -15,3 +15,5 @@
 - Improve enemy AI
 - New assets
 - Multiplayer
+- Sound
+- Menu
