@@ -1,8 +1,10 @@
 #pragma once
 
-#include "Common.hpp"
-#include "Shaders.hpp"
-#include "Texture.hpp"
+#include <Shaders.hpp>
+#include <Texture.hpp>
+#include <glew.h>
+#include <unordered_map>
+#include <string>
 
 struct Character
 {

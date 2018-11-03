@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Common.hpp"
+#include <Common.hpp>
+#include <glew.h>
+#include <string>
 
 class Texture
 {
@@ -35,7 +37,7 @@ class Texture
                                                       GLenum wrapMode = GL_REPEAT, GLenum filter = GL_LINEAR );
 
     // Load texture from 'data' memory
-    void LoadTextureFromMemory( int32_t width, int32_t height, uint8* data,
+    void LoadTextureFromMemory( int32_t width, int32_t height, uint8_t* data,
                                 GLenum wrapMode = GL_REPEAT, GLenum filter = GL_LINEAR );
 
     int32_t GetWidth( ) const

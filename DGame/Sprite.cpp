@@ -1,5 +1,6 @@
-#include "Sprite.hpp"
-#include "Win_Window.hpp"
+#include <Sprite.hpp>
+#include <Win_Window.hpp>
+#include <gtx/transform.hpp>
 
 void Sprite::SetSprite( const glm::vec2& position, glm::ivec2 size )
 {

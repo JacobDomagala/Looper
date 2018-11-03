@@ -1,11 +1,12 @@
 #pragma once
 
-#include "Common.hpp"
-#include "GameObject.hpp"
-#include "PathFinder.hpp"
+#include <PathFinder.hpp>
+#include <Player.hpp>
+#include <Shaders.hpp>
+#include <unordered_map>
+#include <glm.hpp>
 
-class Shaders;
-class Player;
+class GameObject;
 
 class Level
 {

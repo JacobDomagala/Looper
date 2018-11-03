@@ -1,7 +1,7 @@
-#include "GameObject.hpp"
-#include "Win_Window.hpp"
+#include <GameObject.hpp>
+#include <Win_Window.hpp>
 #include <stb_image.h>
-#include "Game.hpp"
+#include <Game.hpp>
 
 GameObject::GameObject( const glm::vec2& pos, glm::ivec2 size, const std::string& sprite )
     : m_globalPosition( pos )

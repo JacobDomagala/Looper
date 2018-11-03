@@ -1,7 +1,8 @@
 #pragma once
 
 #include <utility>
-#include "Common.hpp"
+#include <string>
+#include <glm.hpp>
 
 class Weapon
 {

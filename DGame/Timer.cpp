@@ -1,4 +1,5 @@
-#include "Timer.hpp"
+#include <Timer.hpp>
+#include <memory>
 
 bool Timer::m_timersPaused = false;
 
@@ -15,7 +16,7 @@ void Timer::ToggleTimer( )
     LARGE_INTEGER currentCount;
     QueryPerformanceCounter( &currentCount );
 
-    __int64 deltaCount = currentCount.QuadPart - m_counter.QuadPart;
+    int64_t deltaCount = currentCount.QuadPart - m_counter.QuadPart;
 
     m_deltaTime = deltaCount / static_cast< double >( m_frequency.QuadPart );
 

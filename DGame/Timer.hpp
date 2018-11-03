@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.hpp"
+#include <Windows.h>
 
 class Timer
 {
@@ -45,7 +45,7 @@ class Timer
     }
     void ResetAccumulator( )
     {
-        m_accumulator = 0;
+        m_accumulator = 0.0;
     }
     float GetAccumulator( ) const
     {

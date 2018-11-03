@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Common.hpp"
+#include <unordered_map>
+#include <glm.hpp>
+#include <Windows.h>
 
 class Win_Window
 {

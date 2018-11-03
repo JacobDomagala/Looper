@@ -1,4 +1,5 @@
-#include "PathFinder.hpp"
+#include <PathFinder.hpp>
+#include <algorithm>
 
 glm::ivec2 PathFinder::CalcShit(glm::ivec2 currPos, glm::ivec2 targetPos)
 {

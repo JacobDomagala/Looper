@@ -1,56 +1,55 @@
-#include "Game.hpp"
-#include "Timer.hpp"
-#include "Win_Window.hpp"
-
-Timer* globalTimer;
+#include <Game.hpp>
+#include <Timer.hpp>
+#include <Win_Window.hpp>
 
 int32_t WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32_t nCmdShow )
 {
-    Win_Window::GetInstance( ).Createwindow( );
-    Win_Window::GetInstance( ).SetUpOpenGL( );
+    Timer globalTimer;
 
-    globalTimer = new Timer( );
-    Game::GetInstance( ).Init( "../Assets\\GameInit.txt" );
+    auto& window = Win_Window::GetInstance( );
+    window.Createwindow( );
+    window.SetUpOpenGL( );
 
-    float oldTime = globalTimer->GetGlobalTime( );
+    auto& game   = Game::GetInstance( );
+    game.Init( "../Assets/GameInit.txt" );
+
+    auto oldTime = globalTimer.GetGlobalTime( );
 
     MSG     msg;
-    float   frames           = 0.0f;
+    int32_t   frames           = 0;
     float   frameTimer       = 0.0f;
     int32_t framesLastSecond = 0;
 
-    while( Win_Window::GetInstance( ).IsRunning( ) )
+    while( window.IsRunning( ) )
     {
         if( PeekMessageW( &msg, NULL, 0, 0, PM_REMOVE ) )
         {
             TranslateMessage( &msg );
             DispatchMessageW( &msg );
         }
-        globalTimer->ToggleTimer( );
-        float newTime = globalTimer->GetGlobalTime( );
+        globalTimer.ToggleTimer( );
+        auto timeStamp = globalTimer.GetGlobalTime( );
 
-        if( newTime - oldTime > TARGET_TIME )
+        if( (timeStamp - oldTime) > TARGET_TIME )
         {
-            float dt = ( newTime - oldTime ) * Timer::AreTimersRunning( );
-            Game::GetInstance( ).ProcessInput( dt );
+            float dt = ( timeStamp - oldTime ) * Timer::AreTimersRunning( );
+            game.ProcessInput( dt );
 
-            oldTime = newTime;
-            Game::GetInstance( ).Render( );
+            oldTime = timeStamp;
+            game.Render( );
             if( frameTimer > 1.0f )
             {
-                framesLastSecond = static_cast< int32_t >( frames );
+                framesLastSecond = frames;
                 frameTimer       = 0.0f;
                 frames           = 0.0f;
             }
-            Game::GetInstance( ).RenderText( std::to_string( framesLastSecond ) + " FPS", glm::vec2( static_cast< float >( -WIDTH / 2 ), static_cast< float >( -HEIGHT / 2 ) ), 0.4f, glm::vec3( 1.0f, 0.0f, 1.0f ) );
+            game.RenderText( std::to_string( framesLastSecond ) + " FPS", glm::vec2( static_cast< float >( -WIDTH / 2 ), static_cast< float >( -HEIGHT / 2 ) ), 0.4f, glm::vec3( 1.0f, 0.0f, 1.0f ) );
 
-            Win_Window::GetInstance( ).Swapwindow( );
-            frames++;
+            window.Swapwindow( );
+            ++frames;
         }
-        frameTimer += globalTimer->GetDeltaTime( );
+        frameTimer += globalTimer.GetDeltaTime( );
     }
-
-    delete( globalTimer );
 
     return EXIT_SUCCESS;
 }

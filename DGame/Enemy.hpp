@@ -1,9 +1,10 @@
 #pragma once
 
-#include "Common.hpp"
-#include "GameObject.hpp"
-#include "Timer.hpp"
-#include "Weapon.hpp"
+#include <Common.hpp>
+#include <GameObject.hpp>
+#include <Timer.hpp>
+#include <Weapon.hpp>
+#include <vector>
 
 class Enemy : public GameObject
 {

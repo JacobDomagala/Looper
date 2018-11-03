@@ -1,5 +1,8 @@
-#include "Shaders.hpp"
-#include "Win_Window.hpp"
+#include <Shaders.hpp>
+#include <Win_Window.hpp>
+#include <glew.h>
+#include <fstream>
+#include <gtc/type_ptr.hpp>
 
 GLuint Shaders::m_activeProgramID = 0;
 GLuint Shaders::m_numberBound     = 0;

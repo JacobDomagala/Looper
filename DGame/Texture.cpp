@@ -1,6 +1,6 @@
-#include "Texture.hpp"
-#include "Shaders.hpp"
-#include "Win_Window.hpp"
+#include <Texture.hpp>
+#include <Shaders.hpp>
+#include <Win_Window.hpp>
 #include <stb_image.h>
 
 int32_t Texture::m_unitCounter = 0;
@@ -19,7 +19,7 @@ std::unique_ptr< byte_vec4 > Texture::LoadTextureFromFile( const std::string& fi
 
     glGenTextures( 1, &m_textureID );
     glBindTexture( GL_TEXTURE_2D, m_textureID );
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, reinterpret_cast< uint8* >( returnPtr.get( ) ) );
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, reinterpret_cast< uint8_t* >( returnPtr.get( ) ) );
     glGenerateMipmap( GL_TEXTURE_2D );
 
     glSamplerParameteri( m_samplerID, GL_TEXTURE_MAG_FILTER, filter );
@@ -32,7 +32,7 @@ std::unique_ptr< byte_vec4 > Texture::LoadTextureFromFile( const std::string& fi
     return returnPtr;
 }
 
-void Texture::LoadTextureFromMemory( int32_t width, int32_t height, uint8* data, GLenum wrapMode, GLenum filter )
+void Texture::LoadTextureFromMemory( int32_t width, int32_t height, uint8_t* data, GLenum wrapMode, GLenum filter )
 {
     glGenTextures( 1, &m_textureID );
     glBindTexture( GL_TEXTURE_2D, m_textureID );

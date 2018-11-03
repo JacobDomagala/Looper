@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Common.hpp"
-#include "Shaders.hpp"
+#include <Shaders.hpp>
+#include <glew.h>
 
 class Framebuffer
 {

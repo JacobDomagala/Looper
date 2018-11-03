@@ -1,10 +1,11 @@
 #pragma once
 
-#include "Common.hpp"
-#include "GameObject.hpp"
-#include "Shaders.hpp"
-#include "Sprite.hpp"
-#include "Weapon.hpp"
+#include <Common.hpp>
+#include <GameObject.hpp>
+#include <Shaders.hpp>
+#include <Sprite.hpp>
+#include <Weapon.hpp>
+#include <array>
 
 class Enemy;
 

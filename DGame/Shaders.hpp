@@ -1,10 +1,12 @@
 #pragma once
 
-#include "Common.hpp"
+#include <glew.h>
+#include <string>
+#include <glm.hpp>
 
 class Shaders
 {
-    enum class ShaderType : uint8
+    enum class ShaderType : uint8_t
     {
         VERTEX_SHADER,
         FRAGMENT_SHADER

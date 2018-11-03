@@ -1,6 +1,10 @@
-#include "Font.hpp"
-#include "Texture.hpp"
-#include "Win_Window.hpp"
+#include <Font.hpp>
+#include <Texture.hpp>
+#include <Win_Window.hpp>
+#include <glew.h>
+#include <glm.hpp>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 void Font::SetFont( const std::string& fileName )
 {

@@ -1,7 +1,7 @@
-#include "Player.hpp"
-#include "Enemy.hpp"
-#include "Game.hpp"
-#include "Win_Window.hpp"
+#include <Player.hpp>
+#include <Enemy.hpp>
+#include <Game.hpp>
+#include <Win_Window.hpp>
 
 Player::Player( const glm::vec2& position, const std::string& name )
     : m_name( name )

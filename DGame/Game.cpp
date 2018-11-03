@@ -1,13 +1,78 @@
-#include "Game.hpp"
-#include "Enemy.hpp"
+#include <Game.hpp>
+#include <Enemy.hpp>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+#include <glew.h>
+#include <fstream>
+#include <gtx/transform.hpp>
+#include <string>
 
 //glm::vec2 destination;
 glm::vec2 cursor;
 glm::vec2 debug1;
 
 static float delta = 0.0f;
+
+#pragma region DEBUG
+// THIS CLASS EXISTS ONLY IF WE WOULD NEED SOMETHING ELSE THAN LINE AS DEBUG OBJECT
+class DebugObject
+{
+ public:
+    virtual void Draw( )    = 0;
+    virtual ~DebugObject( ) = default;
+};
+
+class Line : public DebugObject
+{
+    glm::vec2 m_from;
+    glm::vec2 m_to;
+    glm::vec3 m_color;
+
+ public:
+    Line( glm::vec2 from, glm::vec2 to, glm::vec3 color )
+        : m_from( from )
+        , m_to( to )
+        , m_color( color )
+    {
+    }
+
+    ~Line( ) override = default;
+
+    void Draw( ) override
+    {
+        Shaders lineShader{};
+        lineShader.LoadShaders( "../lineVertex.glsl", "../lineFragment.glsl" );
+
+        glm::vec2 vertices[ 2 ] = {
+            m_from,
+            m_to
+        };
+
+        glm::mat4 modelMatrix = glm::scale( glm::mat4( ), glm::vec3( 1.0f, 1.0f, 1.0f ) );
+
+        GLuint lineVertexArray;
+        GLuint lineVertexBuffer;
+
+        glGenVertexArrays( 1, &lineVertexArray );
+        glGenBuffers( 1, &lineVertexBuffer );
+        glBindVertexArray( lineVertexArray );
+        glBindBuffer( GL_ARRAY_BUFFER, lineVertexBuffer );
+        glBufferData( GL_ARRAY_BUFFER, sizeof( glm::vec2 ) * 2, vertices, GL_DYNAMIC_DRAW );
+        glEnableVertexAttribArray( 0 );
+        glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof( float ), nullptr );
+
+        lineShader.UseProgram( );
+        lineShader.SetUniformFloatMat4( modelMatrix, "modelMatrix" );
+        lineShader.SetUniformFloatMat4( Win_Window::GetInstance( ).GetProjection( ), "projectionMatrix" );
+        lineShader.SetUniformFloatVec4( glm::vec4( m_color, 1.0f ), "color" );
+
+        glDrawArrays( GL_LINES, 0, 2 );
+        glBindVertexArray( 0 );
+        glDeleteBuffers( 1, &lineVertexBuffer );
+        glDeleteVertexArrays( 1, &lineVertexArray );
+    }
+};
+#pragma endregion
 
 glm::ivec2 Game::GlobalToScreen( glm::vec2 globalPos )
 {
@@ -82,7 +147,7 @@ glm::ivec2 Game::CorrectPosition( )
     glm::ivec2 playerPosition = m_playerPosition;
     glm::ivec2 levelSize      = m_currentLevel.GetSize( );
 
-    uint32 linearPosition = static_cast< uint32 >( floor( playerPosition.x + playerPosition.y * levelSize.x ) );
+    auto linearPosition = static_cast< uint32_t >( floor( playerPosition.x + playerPosition.y * levelSize.x ) );
 
     byte_vec4* tmpCollision = m_collision.get( );
 
@@ -120,7 +185,7 @@ glm::ivec2 Game::CorrectPosition( )
             {
                 playerDestination = playerPosition + glm::ivec2( i, j );
 
-                linearPosition = static_cast< uint32 >( floor( playerDestination.x + playerDestination.y * levelSize.x ) );
+                linearPosition = static_cast< uint32_t >( floor( playerDestination.x + playerDestination.y * levelSize.x ) );
 
                 if( ( playerDestination.x > 0 ) && ( playerDestination.x < levelSize.x ) && ( playerDestination.y > 0 ) && ( playerDestination.y < levelSize.y ) && ( tmpCollision[ linearPosition ].w == 0 ) )
                 {
@@ -462,11 +527,11 @@ glm::ivec2 Game::CheckCollision( glm::ivec2& moveBy )
     glm::vec2  nMoveBy   = glm::normalize( glm::vec2( moveBy ) );
     glm::ivec2 direction = glm::ivec2( ceil( nMoveBy.x ), ceil( nMoveBy.y ) );
 
-    uint32 linearDestination = static_cast< uint32 >( floor( destination.x + destination.y * levelSize.x ) );
-    uint32 linearPosition    = static_cast< uint32 >( floor( playerPosition.x + playerPosition.y * levelSize.x ) );
-    uint32 linearLevelSize   = levelSize.x * levelSize.y;
+    uint32_t linearDestination = static_cast< uint32_t >( floor( destination.x + destination.y * levelSize.x ) );
+    uint32_t linearPosition    = static_cast< uint32_t >( floor( playerPosition.x + playerPosition.y * levelSize.x ) );
+    uint32_t linearLevelSize   = levelSize.x * levelSize.y;
 
-    uint32 tmpPosition      = linearPosition;
+    uint32_t tmpPosition      = linearPosition;
     returnVal               = moveBy;
     byte_vec4* tmpCollision = m_collision.get( );
 
@@ -483,7 +548,7 @@ glm::ivec2 Game::CheckCollision( glm::ivec2& moveBy )
     for( int32_t i = distance; i > 0; --i )
     {
         glm::ivec2 tmpDest = playerPosition + direction * i;
-        tmpPosition        = static_cast< uint32 >( floor( tmpDest.x + tmpDest.y * levelSize.x ) );
+        tmpPosition        = static_cast< uint32_t >( floor( tmpDest.x + tmpDest.y * levelSize.x ) );
         if( ( tmpPosition > 0 ) && ( tmpPosition < linearLevelSize ) && ( tmpDest.x < levelSize.x ) && ( tmpDest.y < levelSize.y ) && ( tmpCollision[ tmpPosition ].w == 0 ) )
         {
             returnVal = tmpDest - playerPosition;
@@ -502,7 +567,7 @@ glm::ivec2 Game::CheckCollision( glm::ivec2& moveBy )
                 glm::ivec2 tmpDirection = glm::ivec2( direction.x + i, direction.y );
                 glm::ivec2 tmpDest      = playerPosition + tmpDirection * j;
 
-                tmpPosition = static_cast< uint32 >( floor( tmpDest.x + tmpDest.y * levelSize.x ) );
+                tmpPosition = static_cast< uint32_t >( floor( tmpDest.x + tmpDest.y * levelSize.x ) );
                 if( ( tmpDest.x > 0 ) && ( tmpDest.y > 0 ) && ( tmpDest.x < levelSize.x ) && ( tmpDest.y < levelSize.y ) && ( tmpCollision[ tmpPosition ].w == 0 ) )
                 {
                     returnVal = tmpDest - playerPosition;
@@ -518,7 +583,7 @@ glm::ivec2 Game::CheckCollision( glm::ivec2& moveBy )
                 glm::ivec2 tmpDirection = glm::ivec2( direction.x, direction.y + i );
                 glm::ivec2 tmpDest      = playerPosition + tmpDirection * j;
 
-                tmpPosition = static_cast< uint32 >( floor( tmpDest.x + tmpDest.y * levelSize.x ) );
+                tmpPosition = static_cast< uint32_t >( floor( tmpDest.x + tmpDest.y * levelSize.x ) );
                 if( ( tmpDest.x > 0 ) && ( tmpDest.y > 0 ) && ( tmpDest.x < levelSize.x ) && ( tmpDest.y < levelSize.y ) && ( tmpCollision[ tmpPosition ].w == 0 ) )
                 {
                     returnVal = tmpDest - playerPosition;
@@ -551,11 +616,11 @@ glm::ivec2 Game::CheckCollision( const glm::ivec2& currentPosition, const glm::i
     glm::vec2  nMoveBy   = glm::normalize( glm::vec2( moveBy ) );
     glm::ivec2 direction = glm::ivec2( ceil( nMoveBy.x ), ceil( nMoveBy.y ) );
 
-    uint32 linearDestination = static_cast< uint32 >( floor( destination.x + destination.y * levelSize.x ) );
-    uint32 linearPosition    = static_cast< uint32 >( floor( playerPosition.x + playerPosition.y * levelSize.x ) );
-    uint32 linearLevelSize   = levelSize.x * levelSize.y;
+    uint32_t linearDestination = static_cast< uint32_t >( floor( destination.x + destination.y * levelSize.x ) );
+    uint32_t linearPosition    = static_cast< uint32_t >( floor( playerPosition.x + playerPosition.y * levelSize.x ) );
+    uint32_t linearLevelSize   = levelSize.x * levelSize.y;
 
-    uint32 tmpPosition      = linearPosition;
+    uint32_t tmpPosition      = linearPosition;
     returnVal               = moveBy;
     byte_vec4* tmpCollision = m_collision.get( );
 
@@ -572,7 +637,7 @@ glm::ivec2 Game::CheckCollision( const glm::ivec2& currentPosition, const glm::i
     for( int32_t i = distance; i > 0; --i )
     {
         glm::ivec2 tmpDest = playerPosition + direction * i;
-        tmpPosition        = static_cast< uint32 >( floor( tmpDest.x + tmpDest.y * levelSize.x ) );
+        tmpPosition        = static_cast< uint32_t >( floor( tmpDest.x + tmpDest.y * levelSize.x ) );
         if( ( tmpPosition > 0 ) && ( tmpPosition < linearLevelSize ) && ( tmpDest.x < levelSize.x ) && ( tmpDest.y < levelSize.y ) && ( tmpCollision[ tmpPosition ].w == 0 ) )
         {
             returnVal = tmpDest - playerPosition;
@@ -591,7 +656,7 @@ glm::ivec2 Game::CheckCollision( const glm::ivec2& currentPosition, const glm::i
                 glm::ivec2 tmpDirection = glm::ivec2( direction.x + i, direction.y );
                 glm::ivec2 tmpDest      = playerPosition + tmpDirection * j;
 
-                tmpPosition = static_cast< uint32 >( floor( tmpDest.x + tmpDest.y * levelSize.x ) );
+                tmpPosition = static_cast< uint32_t >( floor( tmpDest.x + tmpDest.y * levelSize.x ) );
                 if( ( tmpDest.x > 0 ) && ( tmpDest.y > 0 ) && ( tmpDest.x < levelSize.x ) && ( tmpDest.y < levelSize.y ) && ( tmpCollision[ tmpPosition ].w == 0 ) )
                 {
                     returnVal = tmpDest - playerPosition;
@@ -607,7 +672,7 @@ glm::ivec2 Game::CheckCollision( const glm::ivec2& currentPosition, const glm::i
                 glm::ivec2 tmpDirection = glm::ivec2( direction.x, direction.y + i );
                 glm::ivec2 tmpDest      = playerPosition + tmpDirection * j;
 
-                tmpPosition = static_cast< uint32 >( floor( tmpDest.x + tmpDest.y * levelSize.x ) );
+                tmpPosition = static_cast< uint32_t >( floor( tmpDest.x + tmpDest.y * levelSize.x ) );
                 if( ( tmpDest.x > 0 ) && ( tmpDest.y > 0 ) && ( tmpDest.x < levelSize.x ) && ( tmpDest.y < levelSize.y ) && ( tmpCollision[ tmpPosition ].w == 0 ) )
                 {
                     returnVal = tmpDest - playerPosition;
