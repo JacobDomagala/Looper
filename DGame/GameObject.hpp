@@ -40,7 +40,7 @@ class GameObject
 
  public:
    // Constructors and destructors
-   GameObject(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite);
+   GameObject(const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite);
    virtual ~GameObject() = default;
 
    virtual void Hit(int32_t) = 0;
@@ -57,7 +57,7 @@ class GameObject
    virtual void
    SetColor(const glm::vec3& color);
    virtual void
-   SetCenteredLocalPosition(glm::ivec2 pos);
+   SetCenteredLocalPosition(const glm::ivec2& pos);
    virtual void
    SetLocalPosition(const glm::ivec2& position);
    virtual void
@@ -65,7 +65,7 @@ class GameObject
    virtual void
    SetShaders(const Shaders& program);
    virtual void
-   SetTexture(Texture texture);
+   SetTexture(const Texture& texture);
 
    // GETERS
    virtual glm::vec2
@@ -83,11 +83,11 @@ class GameObject
 
    // Create sprite with default texture
    virtual void
-   CreateSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f), glm::ivec2 size = glm::ivec2(10, 10));
+   CreateSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(10, 10));
 
    // Create sprite with texture from 'fileName'
    virtual void
-   CreateSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f), glm::ivec2 size = glm::ivec2(16, 16),
+   CreateSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(16, 16),
                         const std::string& fileName = ".\\Default.png");
 
    // Move object by 'moveBy'

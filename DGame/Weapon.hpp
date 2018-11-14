@@ -14,8 +14,8 @@ class Weapon
    const std::string m_name;
    float m_reloadTime;
 
-   Weapon(int32_t range, int32_t dmg, int32_t ammoNum, bool hasAmmo, std::string name, float reloadTime)
-      : m_range(range), m_dmg(dmg), m_ammoNum(ammoNum), m_hasAmmo(hasAmmo), m_name(std::move(std::move(name))), m_reloadTime(reloadTime)
+   Weapon(int32_t range, int32_t dmg, int32_t ammoNum, bool hasAmmo, const std::string& name, float reloadTime)
+      : m_range(range), m_dmg(dmg), m_ammoNum(ammoNum), m_hasAmmo(hasAmmo), m_name(name), m_reloadTime(reloadTime)
    {
    }
 
@@ -27,26 +27,31 @@ class Weapon
    {
       return m_name;
    }
+   
    int32_t
    GetAmmoNum() const
    {
       return m_ammoNum;
    }
+   
    float
    GetReloadTime() const
    {
       return m_reloadTime;
    }
-   constexpr int32_t
+   
+   int32_t
    GetRange() const
    {
       return m_range;
    }
+   
    int32_t
    GetDamage() const
    {
       return m_dmg;
    }
+
    virtual void
    Shoot(const glm::vec2& direction) = 0;
 };

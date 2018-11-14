@@ -13,7 +13,7 @@ Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenu
    int32_t n = 0;
    std::unique_ptr< byte_vec4 > returnPtr(reinterpret_cast< byte_vec4* >(stbi_load(fileName.c_str(), &m_width, &m_height, &n, 0)));
 
-   if (returnPtr == nullptr)
+   if (!returnPtr)
    {
       Win_Window::GetInstance().ShowError(std::string("Can't load the file ") + fileName, "STB_IMAGE error!");
    }

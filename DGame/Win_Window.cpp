@@ -17,7 +17,7 @@ Win_Window&
 Win_Window::GetInstance()
 {
    static Win_Window* window;
-   if (window == nullptr)
+   if (!window)
    {
       // GetModuleHandle(0) for geting hInstance
       window = new Win_Window(GetModuleHandle(0));

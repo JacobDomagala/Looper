@@ -3,7 +3,7 @@
 #include <gtx/transform.hpp>
 
 void
-Sprite::SetSprite(const glm::vec2& position, glm::ivec2 size)
+Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
 {
    glGenVertexArrays(1, &m_vertexArrayBuffer);
    glGenBuffers(1, &m_vertexBuffer);
@@ -32,7 +32,7 @@ Sprite::SetSprite(const glm::vec2& position, glm::ivec2 size)
 }
 
 std::unique_ptr< byte_vec4 >
-Sprite::SetSpriteTextured(const glm::vec2& position, glm::ivec2 size, const std::string& fileName)
+Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName)
 {
    std::unique_ptr< byte_vec4 > returnPtr = m_texture.LoadTextureFromFile(fileName);
 

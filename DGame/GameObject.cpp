@@ -2,7 +2,7 @@
 #include <GameObject.hpp>
 #include <Win_Window.hpp>
 
-GameObject::GameObject(const glm::vec2& pos, glm::ivec2 size, const std::string& sprite)
+GameObject::GameObject(const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite)
    : m_globalPosition(pos), m_localPosition(Game::GetInstance().GetLevel().GetLocalVec(pos)), m_visible(true)
 {
    m_collision = m_sprite.SetSpriteTextured(pos, size, sprite);
@@ -46,7 +46,7 @@ GameObject::GetCenteredLocalPosition() const
 }
 
 void
-GameObject::SetCenteredLocalPosition(glm::ivec2 pos)
+GameObject::SetCenteredLocalPosition(const glm::ivec2& pos)
 {
    m_centeredLocalPosition = pos;
 }
@@ -88,20 +88,20 @@ GameObject::SetShaders(const Shaders& program)
 }
 
 void
-GameObject::SetTexture(Texture texture)
+GameObject::SetTexture(const Texture& texture)
 {
    m_sprite.SetTexture(texture);
 }
 
 void
-GameObject::CreateSprite(const glm::vec2& position, glm::ivec2 size)
+GameObject::CreateSprite(const glm::vec2& position, const glm::ivec2& size)
 {
    m_sprite.SetSprite(position, size);
    m_globalPosition = m_sprite.GetCenteredPosition();
 }
 
 void
-GameObject::CreateSpriteTextured(const glm::vec2& position, glm::ivec2 size, const std::string& fileName)
+GameObject::CreateSpriteTextured(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName)
 {
    m_collision = m_sprite.SetSpriteTextured(position, size, fileName);
    m_globalPosition = m_sprite.GetCenteredPosition();
