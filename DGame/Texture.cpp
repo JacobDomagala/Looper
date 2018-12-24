@@ -17,7 +17,7 @@ Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenu
    {
       Win_Window::GetInstance().ShowError(std::string("Can't load the file ") + fileName, "STB_IMAGE error!");
    }
-
+   
    glGenTextures(1, &m_textureID);
    glBindTexture(GL_TEXTURE_2D, m_textureID);
    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, reinterpret_cast< uint8_t* >(returnPtr.get()));

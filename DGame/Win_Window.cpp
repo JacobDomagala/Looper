@@ -30,50 +30,28 @@ LRESULT CALLBACK
 Win_Window::MainWinProc(HWND hWind, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
    LRESULT returnVal = 0;
-   switch (uMsg)
-   {
-      case WM_KEYDOWN:
-      {
-         keyMap[wParam] = true;
-      }
-      break;
-      case WM_KEYUP:
-      {
-         keyMap[wParam] = false;
-      }
-      break;
-      case WM_LBUTTONDOWN:
-      {
-         keyMap[wParam] = true;
-      }
-      break;
-      case WM_LBUTTONUP:
-      {
-         keyMap[wParam] = false;
-      }
-      break;
-      case WM_RBUTTONDOWN:
-      {
-         keyMap[wParam] = true;
-      }
-      break;
-      case WM_RBUTTONUP:
-      {
-         keyMap[wParam] = true;
-      }
-      break;
-      case WM_SIZE:
-      {
-      }
-      break;
-      case WM_DESTROY:
-      {
-      }
-      break;
-      default:
-         returnVal = DefWindowProc(hWind, uMsg, wParam, lParam);
-   }
 
+   if ((uMsg == WM_KEYDOWN) || (uMsg == WM_LBUTTONDOWN) || (uMsg == WM_RBUTTONDOWN) || (uMsg == WM_RBUTTONUP))
+   {
+      keyMap[wParam] = true;
+   }
+   else if ((uMsg == WM_KEYUP) || (uMsg == WM_LBUTTONUP))
+   {
+      keyMap[wParam] = false;
+   }
+   else if (uMsg == WM_SIZE)
+   {
+	   // for now do nothing
+   }
+   else if (uMsg == WM_DESTROY)
+   {
+      // for now do nothing
+   }
+   else
+   {
+      returnVal = DefWindowProc(hWind, uMsg, wParam, lParam);
+   }
+      
    return returnVal;
 }
 
@@ -133,7 +111,7 @@ Win_Window::SetUpOpenGL()
    glEnable(GL_MULTISAMPLE);
    glViewport(0, 0, WIDTH, HEIGHT);
 
-   // glDisable(GL_DEPTH_TEST);
+   //glDisable(GL_DEPTH_TEST);
 }
 
 glm::vec2
@@ -159,7 +137,8 @@ Win_Window::GetCursorScreenPosition()
    ScreenToClient(m_windowHandle, &cursor);
 
    m_cursorPos = glm::vec2(cursor.x, cursor.y);
-   m_cursorPos -= glm::vec2(static_cast< float >(WIDTH / 2.0f), static_cast< float >(HEIGHT / 2.0f));
+   //m_cursorPos -= glm::vec2(static_cast< float >(WIDTH / 2.0f), static_cast< float >(HEIGHT / 2.0f));
+   m_cursorPos -= glm::vec2((WIDTH / 2.0f), (HEIGHT / 2.0f));
 
    glm::vec4 tmpCursor = m_projectionMatrix * glm::vec4(m_cursorPos, 0.0f, 1.0f);
 
