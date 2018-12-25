@@ -7,8 +7,8 @@ std::unordered_map< WPARAM, bool > Win_Window::keyMap;
 
 Win_Window::Win_Window(HINSTANCE hInstance)
    : m_hInstance(hInstance),
-     m_projectionMatrix(glm::ortho(static_cast< float >(-WIDTH / 2.0f), static_cast< float >(WIDTH / 2.0f),
-                                   static_cast< float >(HEIGHT / 2.0f), static_cast< float >(-HEIGHT / 2.0f), -1.0f, 1.0f)),
+     m_projectionMatrix(glm::ortho(-WIDTH / 2.0f, WIDTH / 2.0f,
+                                   HEIGHT / 2.0f, -HEIGHT / 2.0f, -1.0f, 1.0f)),
      m_isRunning(true)
 {
 }

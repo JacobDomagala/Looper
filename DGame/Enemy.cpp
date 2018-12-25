@@ -4,8 +4,6 @@
 #include <Timer.hpp>
 #include <Weapon.hpp>
 
-extern Timer* globalTimer;
-
 Enemy::Enemy(const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite)
    : GameObject(pos, size, sprite),
      m_maxHP(100),

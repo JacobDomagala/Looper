@@ -6,15 +6,7 @@
 
 class Shaders
 {
-   enum class ShaderType : uint8_t
-   {
-      VERTEX_SHADER,
-      FRAGMENT_SHADER
-   };
-
    GLuint m_programID;
-   GLuint m_vertexShaderID;
-   GLuint m_fragmentShaderID;
    static GLuint m_activeProgramID;
 
    std::string

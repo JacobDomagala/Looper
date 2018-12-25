@@ -42,10 +42,10 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32_t n
          {
             framesLastSecond = frames;
             frameTimer = 0.0f;
-            frames = 0.0f;
+            frames = 0;
          }
-         game.RenderText(std::to_string(framesLastSecond) + " FPS",
-                         glm::vec2(static_cast< float >(-WIDTH / 2), static_cast< float >(-HEIGHT / 2)), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));
+         game.RenderText(std::to_string(framesLastSecond) + " FPS", glm::vec2(-WIDTH / 2.0f, -HEIGHT / 2.0f), 0.4f,
+                         glm::vec3(1.0f, 0.0f, 1.0f));
 
          window.Swapwindow();
          ++frames;
