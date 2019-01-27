@@ -7,8 +7,7 @@ std::unordered_map< WPARAM, bool > Win_Window::keyMap;
 
 Win_Window::Win_Window(HINSTANCE hInstance)
    : m_hInstance(hInstance),
-     m_projectionMatrix(glm::ortho(-WIDTH / 2.0f, WIDTH / 2.0f,
-                                   HEIGHT / 2.0f, -HEIGHT / 2.0f, -1.0f, 1.0f)),
+     m_projectionMatrix(glm::ortho(-WIDTH / 2.0f, WIDTH / 2.0f, HEIGHT / 2.0f, -HEIGHT / 2.0f, -1.0f, 1.0f)),
      m_isRunning(true)
 {
 }
@@ -41,7 +40,7 @@ Win_Window::MainWinProc(HWND hWind, UINT uMsg, WPARAM wParam, LPARAM lParam)
    }
    else if (uMsg == WM_SIZE)
    {
-	   // for now do nothing
+      // for now do nothing
    }
    else if (uMsg == WM_DESTROY)
    {
@@ -51,7 +50,7 @@ Win_Window::MainWinProc(HWND hWind, UINT uMsg, WPARAM wParam, LPARAM lParam)
    {
       returnVal = DefWindowProc(hWind, uMsg, wParam, lParam);
    }
-      
+
    return returnVal;
 }
 
@@ -111,7 +110,7 @@ Win_Window::SetUpOpenGL()
    glEnable(GL_MULTISAMPLE);
    glViewport(0, 0, WIDTH, HEIGHT);
 
-   //glDisable(GL_DEPTH_TEST);
+   // glDisable(GL_DEPTH_TEST);
 }
 
 glm::vec2
@@ -137,7 +136,7 @@ Win_Window::GetCursorScreenPosition()
    ScreenToClient(m_windowHandle, &cursor);
 
    m_cursorPos = glm::vec2(cursor.x, cursor.y);
-   //m_cursorPos -= glm::vec2(static_cast< float >(WIDTH / 2.0f), static_cast< float >(HEIGHT / 2.0f));
+   // m_cursorPos -= glm::vec2(static_cast< float >(WIDTH / 2.0f), static_cast< float >(HEIGHT / 2.0f));
    m_cursorPos -= glm::vec2((WIDTH / 2.0f), (HEIGHT / 2.0f));
 
    glm::vec4 tmpCursor = m_projectionMatrix * glm::vec4(m_cursorPos, 0.0f, 1.0f);

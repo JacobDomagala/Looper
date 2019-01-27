@@ -81,19 +81,17 @@ Shaders::LoadShaders(const std::string& vertexShader, const std::string& Fragmen
 void
 Shaders::CheckCompileStatus(GLuint shaderID)
 {
-   GLint isCompiled = 0;
-   glGetShaderiv(shaderID, GL_COMPILE_STATUS, &isCompiled);
-   if (isCompiled == GL_FALSE)
+   GLint isCompleted = 0;
+   glGetShaderiv(shaderID, GL_COMPILE_STATUS, &isCompleted);
+   if (isCompleted == GL_FALSE)
    {
       GLint maxLength = 0;
       glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &maxLength);
 
-      char* log = new char[maxLength];
+      std::string log(maxLength, 0);
       glGetShaderInfoLog(shaderID, maxLength, &maxLength, &log[0]);
-      Win_Window::GetInstance().ShowError(log, "Compiling OpenGL program");
-      glDeleteShader(shaderID);
 
-      delete[](log);
+	  Win_Window::GetInstance().ShowError(log, "Shader program build error!");
    }
 }
 
@@ -107,13 +105,10 @@ Shaders::CheckLinkStatus(GLuint programID)
       GLint maxLength = 0;
       glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &maxLength);
 
-      char* log = new char[maxLength];
+      std::string log(maxLength, 0);
       glGetProgramInfoLog(programID, maxLength, &maxLength, &log[0]);
+
       Win_Window::GetInstance().ShowError(log, "Linking OpenGL program");
-
-      glDeleteProgram(programID);
-
-      delete[](log);
    }
 }
 
