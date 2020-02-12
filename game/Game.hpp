@@ -6,7 +6,7 @@
 #include <Player.hpp>
 #include <Timer.hpp>
 #include <Win_Window.hpp>
-#include <glm.hpp>
+#include <glm/glm.hpp>
 #include <vector>
 
 class DebugObject;

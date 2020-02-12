@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Windows.h>
-#include <glm.hpp>
+#include <glm/glm.hpp>
 #include <unordered_map>
 
 class Win_Window

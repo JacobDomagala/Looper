@@ -1,7 +1,7 @@
 #include <Common.hpp>
 #include <Win_Window.hpp>
-#include <glew.h>
-#include <gtc/matrix_transform.hpp>
+#include <GL/glew.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 std::unordered_map< WPARAM, bool > Win_Window::keyMap;
 

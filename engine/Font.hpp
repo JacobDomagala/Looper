@@ -1,8 +1,10 @@
 #pragma once
 
-#include <Shaders.hpp>
-#include <Texture.hpp>
-#include <glew.h>
+#include "Shaders.hpp"
+#include "Texture.hpp"
+#include "FileManager.hpp"
+
+#include <GL/glew.h>
 #include <string>
 #include <unordered_map>
 
@@ -26,7 +28,7 @@ class Font
    ~Font() = default;
 
    void
-   SetFont(const std::string& fileName = "Assets/segoeui.ttf");
+   SetFont(const std::string& fileName = (ASSETS_DIR/"segoeui.ttf").u8string());
    void
    RenderText(std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color);
 };

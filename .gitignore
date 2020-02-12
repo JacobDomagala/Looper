@@ -307,5 +307,5 @@ paket-files/
 
 # Project specific folders
 build
-resource
+dependencies
 .vscode

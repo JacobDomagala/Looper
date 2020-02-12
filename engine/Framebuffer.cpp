@@ -24,7 +24,7 @@ Framebuffer::Framebuffer()
    glBindFramebuffer(GL_FRAMEBUFFER, 0);
    glBindTexture(GL_TEXTURE_2D, 0);
 
-   shaders.LoadShaders("../Shaders/AfterEffects_vs.glsl", "../Shaders/AfterEffects_fs.glsl");
+   shaders.LoadShaders("AfterEffects_vs.glsl", "AfterEffects_fs.glsl");
 }
 
 void

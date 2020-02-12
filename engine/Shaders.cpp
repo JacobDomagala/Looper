@@ -1,8 +1,11 @@
-#include <Shaders.hpp>
-#include <Win_Window.hpp>
+#include "Shaders.hpp"
+#include "Win_Window.hpp"
+#include "FileManager.hpp"
+
 #include <fstream>
-#include <glew.h>
-#include <gtc/type_ptr.hpp>
+#include <GL/glew.h>
+#include <glm/gtc/type_ptr.hpp>
+
 
 GLuint Shaders::m_activeProgramID = 0;
 GLuint Shaders::m_numberBound = 0;
@@ -27,24 +30,13 @@ Shaders::UseProgram() const
 void
 Shaders::LoadDefault()
 {
-   LoadShaders("../Shaders\\DefaultShader_vs.glsl", "../Shaders\\DefaultShader_fs.glsl");
+   LoadShaders("DefaultShader_vs.glsl", "DefaultShader_fs.glsl");
 }
 
 std::string
-Shaders::ReadShaderFile(const std::string& fileName)
+Shaders::ReadShaderFile(std::string fileName)
 {
-   std::ifstream fileHandle;
-   fileHandle.open(fileName, std::ifstream::in);
-
-   if (!fileHandle.is_open())
-   {
-      Win_Window::GetInstance().ShowError(fileName + " can't be opened!", "Opening shader file");
-   }
-
-   std::string shaderSource((std::istreambuf_iterator< char >(fileHandle)), std::istreambuf_iterator< char >());
-   fileHandle.close();
-
-   return shaderSource;
+   return FileManager::ReadFile((SHADERS_DIR / fileName).u8string());
 }
 
 void

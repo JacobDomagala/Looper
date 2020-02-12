@@ -1,9 +1,11 @@
-#include <Enemy.hpp>
-#include <Game.hpp>
+#include "Enemy.hpp"
+#include "Game.hpp"
+#include "FileManager.hpp"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <fstream>
-#include <glew.h>
-#include <gtx/transform.hpp>
+#include <GL/glew.h>
+#include <glm/gtx/transform.hpp>
 #include <stb_image.h>
 #include <string>
 
@@ -40,7 +42,7 @@ class Line : public DebugObject
    Draw() override
    {
       Shaders lineShader{};
-      lineShader.LoadShaders("../lineVertex.glsl", "../lineFragment.glsl");
+      lineShader.LoadShaders("lineVertex.glsl", "lineFragment.glsl");
 
       glm::vec2 vertices[2] = {m_from, m_to};
 
@@ -108,11 +110,11 @@ Game::GetInstance()
 void
 Game::Init(const std::string configFile)
 {
-   std::ifstream initFile(configFile);
+   std::ifstream initFile((ASSETS_DIR/configFile).u8string());
 
    if (!initFile)
    {
-      Win_Window::GetInstance().ShowError("Can't open Assets/GameInit.txt", "Game Initializing");
+      Win_Window::GetInstance().ShowError("Can't open" + (ASSETS_DIR/configFile).u8string(), "Game Initializing");
    }
 
    while (!initFile.eof())
@@ -915,11 +917,11 @@ Game::RenderSecondPass()
 void
 Game::LoadLevel(const std::string& levelName)
 {
-   std::string folderPath = "../Assets\\" + levelName + "\\";
-   std::ifstream levelFile(folderPath + levelName + ".txt");
+   std::filesystem::path folderPath = ASSETS_DIR/levelName;
+   std::ifstream levelFile((folderPath/levelName).u8string() + ".txt");
    if (!levelFile)
    {
-      Win_Window::GetInstance().ShowError("Can't open " + folderPath + levelName + ".txt", "Level loading");
+      Win_Window::GetInstance().ShowError("Can't open " + (folderPath / levelName).u8string() + ".txt", "Level loading");
    }
 
    int32_t levelWidth(0), levelHeight(0);
@@ -938,7 +940,7 @@ Game::LoadLevel(const std::string& levelName)
       else if (tmp == "Background:")
       {
          levelFile >> background;
-         m_currentLevel.LoadPremade(folderPath + background, glm::ivec2(levelWidth, levelHeight));
+         m_currentLevel.LoadPremade((folderPath/background).u8string(), glm::ivec2(levelWidth, levelHeight));
       }
       else if (tmp == "Objects:")
       {
@@ -962,7 +964,7 @@ Game::LoadLevel(const std::string& levelName)
       {
          levelFile >> collisionMap;
          int32_t width, height, n;
-         byte_vec4* tmpCollision = reinterpret_cast< byte_vec4* >(stbi_load((folderPath + collisionMap).c_str(), &width, &height, &n, 0));
+         byte_vec4* tmpCollision = reinterpret_cast< byte_vec4* >(stbi_load((folderPath/collisionMap).u8string().c_str(), &width, &height, &n, 0));
          m_collision = std::unique_ptr< byte_vec4 >(tmpCollision);
       }
       else if (tmp == "Player:")
@@ -976,7 +978,7 @@ Game::LoadLevel(const std::string& levelName)
          levelFile >> playerHeight;
 
          levelFile >> tmp;
-         m_player.CreateSprite(glm::vec2(playerX, playerY), glm::ivec2(playerWidth, playerHeight), folderPath + tmp);
+         m_player.CreateSprite(glm::vec2(playerX, playerY), glm::ivec2(playerWidth, playerHeight), (folderPath/tmp).u8string());
          levelFile >> tmp;
          m_player.LoadShaders(tmp);
          m_playerPosition = glm::ivec2(playerX, -playerY);
@@ -999,7 +1001,7 @@ Game::LoadLevel(const std::string& levelName)
             auto globalVel = m_currentLevel.GetGlobalVec(centeredPosition);
 
             levelFile >> tmp;
-            m_currentLevel.AddGameObject(globalVel, glm::ivec2(enemyWidth, enemyHeight), folderPath + tmp);
+            m_currentLevel.AddGameObject(globalVel, glm::ivec2(enemyWidth, enemyHeight), (folderPath/tmp).u8string());
             levelFile >> tmp;
          }
       }

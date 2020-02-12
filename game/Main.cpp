@@ -12,7 +12,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32_t n
    window.SetUpOpenGL();
 
    auto& game = Game::GetInstance();
-   game.Init("../Assets/GameInit.txt");
+   game.Init("GameInit.txt");
 
    auto oldTime = globalTimer.GetGlobalTime();
 

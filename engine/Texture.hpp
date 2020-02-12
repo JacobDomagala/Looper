@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Common.hpp>
-#include <glew.h>
+#include <GL/glew.h>
 #include <string>
 
 class Texture

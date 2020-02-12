@@ -3,8 +3,8 @@
 #include "Common.hpp"
 #include "Shaders.hpp"
 #include "Texture.hpp"
-#include <glew.h>
-#include <glm.hpp>
+#include <GL/glew.h>
+#include <glm/glm.hpp>
 
 class Sprite
 {

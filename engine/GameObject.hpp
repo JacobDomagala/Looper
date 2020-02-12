@@ -2,8 +2,8 @@
 
 #include <Shaders.hpp>
 #include <Sprite.hpp>
-#include <glew.h>
-#include <glm.hpp>
+#include <GL/glew.h>
+#include <glm/glm.hpp>
 
 class GameObject
 {

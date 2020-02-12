@@ -1,7 +1,7 @@
 #pragma once
 
-#include <glew.h>
-#include <glm.hpp>
+#include <GL/glew.h>
+#include <glm/glm.hpp>
 #include <string>
 
 class Shaders
@@ -10,7 +10,7 @@ class Shaders
    static GLuint m_activeProgramID;
 
    std::string
-   ReadShaderFile(const std::string& fileName);
+   ReadShaderFile(std::string fileName);
 
    void
    CheckCompileStatus(GLuint shaderID);

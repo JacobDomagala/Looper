@@ -1,21 +1,23 @@
-#include <Font.hpp>
-#include <Texture.hpp>
-#include <Win_Window.hpp>
+#include "Font.hpp"
+#include "Texture.hpp"
+#include "Win_Window.hpp"
+#include "FileManager.hpp"
+
 #include <ft2build.h>
-#include <glew.h>
-#include <glm.hpp>
+#include <GL/glew.h>
+#include <glm/glm.hpp>
 #include FT_FREETYPE_H
 
 void
 Font::SetFont(const std::string& fileName)
 {
-   program.LoadShaders("../Shaders//Font_vs.glsl", "../Shaders//Font_fs.glsl");
+   program.LoadShaders("Font_vs.glsl", "Font_fs.glsl");
    FT_Library ft;
    if (FT_Init_FreeType(&ft))
       Win_Window::GetInstance().ShowError("Error initializing FreeType!", "FreeType Error!");
 
    FT_Face face;
-   std::string filePath = "../Assets/" + fileName + ".ttf";
+   std::string filePath = (ASSETS_DIR/fileName).u8string() + ".ttf";
    if (FT_New_Face(ft, filePath.c_str(), 0, &face))
       Win_Window::GetInstance().ShowError("Error loading font " + filePath, "FreeType Error!");
 

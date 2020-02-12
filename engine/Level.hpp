@@ -3,7 +3,7 @@
 #include <PathFinder.hpp>
 #include <Player.hpp>
 #include <Shaders.hpp>
-#include <glm.hpp>
+#include <glm/glm.hpp>
 #include <unordered_map>
 
 class GameObject;
