@@ -1,5 +1,5 @@
 #include <Common.hpp>
-#include <Win_Window.hpp>
+#include <Window.hpp>
 #include <GL/glew.h>
 #include <glm/gtc/matrix_transform.hpp>
 

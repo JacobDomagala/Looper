@@ -21,7 +21,7 @@ class DebugObject
 {
  public:
    virtual void
-   Draw() = 0;
+   Draw(const glm::mat4& projection) = 0;
    virtual ~DebugObject() = default;
 };
 
@@ -39,7 +39,7 @@ class Line : public DebugObject
    ~Line() override = default;
 
    void
-   Draw() override
+   Draw(const glm::mat4& projection) override
    {
       Shaders lineShader{};
       lineShader.LoadShaders("lineVertex.glsl", "lineFragment.glsl");
@@ -61,7 +61,7 @@ class Line : public DebugObject
 
       lineShader.UseProgram();
       lineShader.SetUniformFloatMat4(modelMatrix, "modelMatrix");
-      lineShader.SetUniformFloatMat4(Win_Window::GetInstance().GetProjection(), "projectionMatrix");
+      lineShader.SetUniformFloatMat4(projection, "projectionMatrix");
       lineShader.SetUniformFloatVec4(glm::vec4(m_color, 1.0f), "color");
 
       glDrawArrays(GL_LINES, 0, 2);
@@ -76,10 +76,10 @@ glm::ivec2
 Game::GlobalToScreen(glm::vec2 globalPos)
 {
    // convert to <-1, 1>
-   glm::vec4 screenPosition = Win_Window::GetInstance().GetProjection() * glm::vec4(globalPos, 0.0f, 1.0f);
+   auto screenPosition = m_window->GetProjection() * glm::vec4(globalPos, 0.0f, 1.0f);
 
    // convert to <0, 1>
-   glm::vec2 returnPos = (glm::vec2(screenPosition.x, screenPosition.y) + glm::vec2(1.0f, 1.0f)) / glm::vec2(2.0f, 2.0f);
+   auto returnPos = (glm::vec2(screenPosition.x, screenPosition.y) + glm::vec2(1.0f, 1.0f)) / glm::vec2(2.0f, 2.0f);
 
    // convert to <0, WIDTH>, <0, HEIGHT>
    // with y = 0 in top left corner
@@ -108,13 +108,15 @@ Game::GetInstance()
 }
 
 void
-Game::Init(const std::string configFile)
+Game::Init(const std::string configFile, Window* windowPtr)
 {
    std::ifstream initFile((ASSETS_DIR/configFile).u8string());
+   m_window = windowPtr;
 
    if (!initFile)
    {
-      Win_Window::GetInstance().ShowError("Can't open" + (ASSETS_DIR/configFile).u8string(), "Game Initializing");
+      //Win_Window::GetInstance().ShowError("Can't open" + (ASSETS_DIR/configFile).u8string(), "Game Initializing");
+      printf("ERROR INIT!");
    }
 
    while (!initFile.eof())
@@ -228,7 +230,7 @@ Game::RenderLine(const glm::ivec2& collided, const glm::vec3& color)
 
    lineShader.UseProgram();
    lineShader.SetUniformFloatMat4(modelMatrix, "modelMatrix");
-   lineShader.SetUniformFloatMat4(Win_Window::GetInstance().GetProjection(), "projectionMatrix");
+   lineShader.SetUniformFloatMat4(m_window->GetProjection(), "projectionMatrix");
    lineShader.SetUniformFloatVec4(glm::vec4(color, 1.0f), "color");
 
    glDrawArrays(GL_LINES, 0, 2);
@@ -429,8 +431,8 @@ Game::CheckBulletCollision(int32_t range)
    float x1, x2, y1, y2;
    x1 = static_cast< float >(m_player.GetScreenPositionPixels().x);
    y1 = static_cast< float >(m_player.GetScreenPositionPixels().y);
-   x2 = Win_Window::GetInstance().GetCursor().x;
-   y2 = Win_Window::GetInstance().GetCursor().y;
+   x2 = m_window->GetCursor().x;
+   y2 = m_window->GetCursor().y;
 
    bool wasGreater = false;
    const bool steep = (fabs(y2 - y1) > fabs(x2 - x1));
@@ -728,76 +730,76 @@ Game::KeyEvents(float deltaTime)
    glm::ivec2 playerMoveBy = glm::ivec2();
    glm::ivec2 cameraMoveBy = glm::ivec2();
 
-   if (Win_Window::GetKeyState(VK_UP))
-   {
-      m_currentLevel.MoveObjs(glm::vec2(0.0f, 2.0f), false);
-   }
-   if (Win_Window::GetKeyState(VK_DOWN))
-   {
-      m_currentLevel.MoveObjs(glm::vec2(0.0f, -2.0f), false);
-   }
-   if (Win_Window::GetKeyState(VK_LEFT))
-   {
-      m_currentLevel.MoveObjs(glm::vec2(2.0f, 0.0f));
-   }
-   if (Win_Window::GetKeyState(VK_RIGHT))
-   {
-      m_currentLevel.MoveObjs(glm::vec2(-2.0f, 0.0f));
-   }
-   if (Win_Window::GetKeyState(VK_ESCAPE))
-   {
-      Win_Window::GetInstance().ShutDown();
-   }
-   if (Win_Window::GetKeyState('O'))
-   {
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-   }
-   if (Win_Window::GetKeyState('1'))
-   {
-      m_player.ChangeWepon(1);
-   }
-   if (Win_Window::GetKeyState('2'))
-   {
-      m_player.ChangeWepon(2);
-   }
-   if (Win_Window::GetKeyState('P'))
-   {
-      glDisable(GL_BLEND);
-   }
-   if (Win_Window::GetKeyState('W'))
-   {
-      playerMoveBy += glm::ivec2(0, -playerMovement);
-      cameraMoveBy += glm::ivec2(0, cameraMovement);
-   }
-   if (Win_Window::GetKeyState('S'))
-   {
-      playerMoveBy += glm::ivec2(0, playerMovement);
-      cameraMoveBy += glm::ivec2(0, -cameraMovement);
-   }
-   if (Win_Window::GetKeyState('A'))
-   {
-      playerMoveBy += glm::ivec2(-playerMovement, 0);
-      cameraMoveBy += glm::ivec2(cameraMovement, 0);
-   }
-   if (Win_Window::GetKeyState('D'))
-   {
-      playerMoveBy += glm::ivec2(playerMovement, 0);
-      cameraMoveBy += glm::ivec2(-cameraMovement, 0);
-   }
-   if (Win_Window::GetKeyState('R'))
-   {
-      Timer::PauseAllTimers();
-   }
-   if (Win_Window::GetKeyState('T'))
-   {
-      Timer::ResumeAllTimers();
-   }
-   if (Win_Window::GetKeyState(VK_SPACE))
-   {
-      m_currentLevel.Move(-m_player.GetCenteredGlobalPosition());
-      m_player.Move(-m_player.GetCenteredGlobalPosition());
-   }
+   // if (Win_Window::GetKeyState(VK_UP))
+   // {
+   //    m_currentLevel.MoveObjs(glm::vec2(0.0f, 2.0f), false);
+   // }
+   // if (Win_Window::GetKeyState(VK_DOWN))
+   // {
+   //    m_currentLevel.MoveObjs(glm::vec2(0.0f, -2.0f), false);
+   // }
+   // if (Win_Window::GetKeyState(VK_LEFT))
+   // {
+   //    m_currentLevel.MoveObjs(glm::vec2(2.0f, 0.0f));
+   // }
+   // if (Win_Window::GetKeyState(VK_RIGHT))
+   // {
+   //    m_currentLevel.MoveObjs(glm::vec2(-2.0f, 0.0f));
+   // }
+   // if (Win_Window::GetKeyState(VK_ESCAPE))
+   // {
+   //    Win_Window::GetInstance().ShutDown();
+   // }
+   // if (Win_Window::GetKeyState('O'))
+   // {
+   //    glEnable(GL_BLEND);
+   //    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+   // }
+   // if (Win_Window::GetKeyState('1'))
+   // {
+   //    m_player.ChangeWepon(1);
+   // }
+   // if (Win_Window::GetKeyState('2'))
+   // {
+   //    m_player.ChangeWepon(2);
+   // }
+   // if (Win_Window::GetKeyState('P'))
+   // {
+   //    glDisable(GL_BLEND);
+   // }
+   // if (Win_Window::GetKeyState('W'))
+   // {
+   //    playerMoveBy += glm::ivec2(0, -playerMovement);
+   //    cameraMoveBy += glm::ivec2(0, cameraMovement);
+   // }
+   // if (Win_Window::GetKeyState('S'))
+   // {
+   //    playerMoveBy += glm::ivec2(0, playerMovement);
+   //    cameraMoveBy += glm::ivec2(0, -cameraMovement);
+   // }
+   // if (Win_Window::GetKeyState('A'))
+   // {
+   //    playerMoveBy += glm::ivec2(-playerMovement, 0);
+   //    cameraMoveBy += glm::ivec2(cameraMovement, 0);
+   // }
+   // if (Win_Window::GetKeyState('D'))
+   // {
+   //    playerMoveBy += glm::ivec2(playerMovement, 0);
+   //    cameraMoveBy += glm::ivec2(-cameraMovement, 0);
+   // }
+   // if (Win_Window::GetKeyState('R'))
+   // {
+   //    Timer::PauseAllTimers();
+   // }
+   // if (Win_Window::GetKeyState('T'))
+   // {
+   //    Timer::ResumeAllTimers();
+   // }
+   // if (Win_Window::GetKeyState(VK_SPACE))
+   // {
+   //    m_currentLevel.Move(-m_player.GetCenteredGlobalPosition());
+   //    m_player.Move(-m_player.GetCenteredGlobalPosition());
+   // }
    if (glm::length(glm::vec2(playerMoveBy)))
    {
       m_currentLevel.Move(cameraMoveBy);
@@ -812,7 +814,7 @@ Game::MouseEvents(float deltaTime)
    float cameraMovement = floor(m_cameraSpeed * deltaTime);
    glm::ivec2 cameraMoveBy = glm::ivec2();
 
-   cursor = Win_Window::GetInstance().GetCursorNormalized();
+   cursor = m_window->GetCursorNormalized();
    // glm::vec2 tmp = CheckBulletCollision(m_player.GetWeaponRange());
 
    // DrawLine(m_currentLevel.GetGlobalVec(m_player.GetCenteredLocalPosition()), m_currentLevel.GetGlobalVec(tmp), glm::vec3(0.0f, 1.0f,
@@ -902,13 +904,22 @@ Game::RenderFirstPass()
 void
 Game::RenderSecondPass()
 {
-   glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-   glm::ivec2 debug2 = m_player.GetCenteredLocalPosition();
-   for (auto& obj : m_debugObjs)
+    //glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+   m_frameBuffer.DrawFrameBuffer();
+
+   GLenum err;
+   while((err = glGetError()) != GL_NO_ERROR)
    {
-      obj->Draw();
+     //printf("DUUUPA");
    }
-   m_debugObjs.clear();
+
+    glm::ivec2 debug2 = m_player.GetCenteredLocalPosition();
+    for (auto& obj : m_debugObjs)
+    {
+       obj->Draw(m_window->GetProjection());
+    }
+    m_debugObjs.clear();
 
    RenderText(std::to_string(m_deltaTime * 1000) + " ms",
               glm::vec2(static_cast< float >(-WIDTH / 2), static_cast< float >(-HEIGHT / 2) + 20), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));
@@ -921,7 +932,7 @@ Game::LoadLevel(const std::string& levelName)
    std::ifstream levelFile((folderPath/levelName).u8string() + ".txt");
    if (!levelFile)
    {
-      Win_Window::GetInstance().ShowError("Can't open " + (folderPath / levelName).u8string() + ".txt", "Level loading");
+      //Win_Window::GetInstance().ShowError("Can't open " + (folderPath / levelName).u8string() + ".txt", "Level loading");
    }
 
    int32_t levelWidth(0), levelHeight(0);

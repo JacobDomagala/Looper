@@ -307,5 +307,10 @@ paket-files/
 
 # Project specific folders
 build
-dependencies
 .vscode
+dependencies/Freetype/Freetype*
+dependencies/GLM/GLM*
+dependencies/NANOGUI/NANOGUI*
+dependencies/OpenGL/OpenGL*
+dependencies/SDL2/SDL2*
+dependencies/STB_IMAGE/STB_IMAGE*

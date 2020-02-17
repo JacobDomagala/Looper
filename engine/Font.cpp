@@ -1,7 +1,8 @@
 #include "Font.hpp"
 #include "Texture.hpp"
-#include "Win_Window.hpp"
+#include "Window.hpp"
 #include "FileManager.hpp"
+#include "Game.hpp"
 
 #include <ft2build.h>
 #include <GL/glew.h>
@@ -13,14 +14,15 @@ Font::SetFont(const std::string& fileName)
 {
    program.LoadShaders("Font_vs.glsl", "Font_fs.glsl");
    FT_Library ft;
-   if (FT_Init_FreeType(&ft))
-      Win_Window::GetInstance().ShowError("Error initializing FreeType!", "FreeType Error!");
+   FT_Init_FreeType(&ft);
+   // if (FT_Init_FreeType(&ft))
+   //    Win_Window::GetInstance().ShowError("Error initializing FreeType!", "FreeType Error!");
 
    FT_Face face;
    std::string filePath = (ASSETS_DIR/fileName).u8string() + ".ttf";
-   if (FT_New_Face(ft, filePath.c_str(), 0, &face))
-      Win_Window::GetInstance().ShowError("Error loading font " + filePath, "FreeType Error!");
-
+   // if (FT_New_Face(ft, filePath.c_str(), 0, &face))
+   //    Win_Window::GetInstance().ShowError("Error loading font " + filePath, "FreeType Error!");
+   FT_New_Face(ft, filePath.c_str(), 0, &face);
    // Set size to load glyphs as
    FT_Set_Pixel_Sizes(face, 0, 48);
 
@@ -31,9 +33,10 @@ Font::SetFont(const std::string& fileName)
    for (GLubyte c = 0; c < 128; ++c)
    {
       // Load character glyph
-      if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-         Win_Window::GetInstance().ShowError("Error loading font face!", "FreeType Error!");
+      // if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+      //    Win_Window::GetInstance().ShowError("Error loading font face!", "FreeType Error!");
 
+       FT_Load_Char(face, c, FT_LOAD_RENDER);
       // Generate texture
       GLuint texture;
       glGenTextures(1, &texture);
@@ -77,7 +80,7 @@ Font::RenderText(std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec
    // Activate corresponding render state
    program.UseProgram();
    program.SetUniformFloatVec4(glm::vec4(color, 1.0f), "color");
-   program.SetUniformFloatMat4(Win_Window::GetInstance().GetProjection(), "projectionMatrix");
+   program.SetUniformFloatMat4(Game::GetInstance().GetProjection(), "projectionMatrix");
    glActiveTexture(GL_TEXTURE0);
    glBindVertexArray(VAO);
 

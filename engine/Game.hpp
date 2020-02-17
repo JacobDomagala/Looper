@@ -5,7 +5,7 @@
 #include <Level.hpp>
 #include <Player.hpp>
 #include <Timer.hpp>
-#include <Win_Window.hpp>
+#include <Window.hpp>
 #include <glm/glm.hpp>
 #include <vector>
 
@@ -52,6 +52,8 @@ class Game
    // player position on map (centered)
    glm::vec2 m_playerPosition;
 
+   Window* m_window = nullptr;
+
    // bullet collision for player
    glm::ivec2
    CheckBulletCollision(int32_t range);
@@ -93,7 +95,7 @@ class Game
 
    // Initialize Game using 'configFile'
    void
-   Init(std::string configFile);
+   Init(std::string configFile, Window* windowPtr);
 
    ~Game() = default;
 
@@ -134,4 +136,23 @@ class Game
    ProcessInput(float deltaTime);
    void
    Render();
+
+   const glm::mat4&
+   GetProjection() const
+   {
+      return m_window->GetProjection();
+   }
+
+   glm::vec2
+   GetCursor()
+   {
+      return m_window->GetCursor();
+   }
+
+   glm::vec2
+   GetCursorScreenPosition()
+   {
+      return m_window->GetCursorScreenPosition();
+   }
+
 };

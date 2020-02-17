@@ -1,6 +1,6 @@
 #include <Game.hpp>
 #include <GameObject.hpp>
-#include <Win_Window.hpp>
+#include <Window.hpp>
 
 GameObject::GameObject(const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite)
    : m_globalPosition(pos), m_localPosition(Game::GetInstance().GetLevel().GetLocalVec(pos)), m_visible(true)
@@ -14,7 +14,7 @@ glm::vec2
 GameObject::GetScreenPositionPixels() const
 {
    // Get the world coords
-   glm::vec4 screenPosition = Win_Window::GetInstance().GetProjection() * glm::vec4(m_centeredGlobalPosition, 0.0f, 1.0f);
+   glm::vec4 screenPosition = Game::GetInstance().GetProjection() * glm::vec4(m_centeredGlobalPosition, 0.0f, 1.0f);
 
    // convert from <-1,1> to <0,1>
    glm::vec2 tmpPos = (glm::vec2(screenPosition.x, screenPosition.y) + glm::vec2(1.0f, 1.0f)) / glm::vec2(2.0f, 2.0f);

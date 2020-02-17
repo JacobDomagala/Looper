@@ -1,18 +1,16 @@
-#include <Game.hpp>
-#include <Timer.hpp>
-#include <Win_Window.hpp>
+#include "Game.hpp"
+#include "Timer.hpp"
+#include "Window.hpp"
+#include <GLFW/glfw3.h>
 
-int32_t WINAPI
-WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32_t nCmdShow)
+int main(int /* argc */, char ** /* argv */)
 {
    Timer globalTimer;
 
-   auto& window = Win_Window::GetInstance();
-   window.Createwindow();
-   window.SetUpOpenGL();
+   Window window(1024, 765, "WindowTitle");
 
    auto& game = Game::GetInstance();
-   game.Init("GameInit.txt");
+   game.Init("GameInit.txt", &window);
 
    auto oldTime = globalTimer.GetGlobalTime();
 
@@ -23,11 +21,9 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32_t n
 
    while (window.IsRunning())
    {
-      if (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
-      {
-         TranslateMessage(&msg);
-         DispatchMessageW(&msg);
-      }
+
+      glfwPollEvents();
+
       globalTimer.ToggleTimer();
       auto timeStamp = globalTimer.GetGlobalTime();
 
@@ -47,7 +43,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32_t n
          game.RenderText(std::to_string(framesLastSecond) + " FPS", glm::vec2(-WIDTH / 2.0f, -HEIGHT / 2.0f), 0.4f,
                          glm::vec3(1.0f, 0.0f, 1.0f));
 
-         window.Swapwindow();
+         window.SwapBuffers();
          ++frames;
       }
       frameTimer += globalTimer.GetDeltaTime();

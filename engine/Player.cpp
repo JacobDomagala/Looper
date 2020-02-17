@@ -1,7 +1,7 @@
 #include <Enemy.hpp>
 #include <Game.hpp>
 #include <Player.hpp>
-#include <Win_Window.hpp>
+#include <Window.hpp>
 
 Player::Player(const glm::vec2& position, const std::string& name)
    : m_name(name), m_globalPosition(position), m_velocity(0.0f, 0.0f), m_speed(0.0005f), m_maxHP(100), m_currentHP(m_maxHP)
@@ -83,7 +83,7 @@ Player::GetSize() const
 glm::vec2
 Player::GetScreenPosition() const
 {
-   glm::vec4 screenPosition = Win_Window::GetInstance().GetProjection() * glm::vec4(m_centeredGlobalPosition, 0.0f, 1.0f);
+   glm::vec4 screenPosition = Game::GetInstance().GetProjection() * glm::vec4(m_centeredGlobalPosition, 0.0f, 1.0f);
    return glm::vec2(screenPosition.x, screenPosition.y);
 }
 
@@ -91,7 +91,7 @@ glm::ivec2
 Player::GetScreenPositionPixels() const
 {
    // get screen space <-1, 1>
-   glm::vec4 screenPosition = Win_Window::GetInstance().GetProjection() * glm::vec4(m_centeredGlobalPosition, 0.0f, 1.0f);
+   glm::vec4 screenPosition = Game::GetInstance().GetProjection() * glm::vec4(m_centeredGlobalPosition, 0.0f, 1.0f);
 
    // transform from <-1, 1> to <0, 1> (with 1 for y is upper boundary)
    glm::vec2 tmpPos = (glm::vec2(screenPosition.x, screenPosition.y) + glm::vec2(1.0f, 1.0f)) / glm::vec2(2.0f, 2.0f);
@@ -116,9 +116,9 @@ Player::Draw()
 {
 #pragma region CURSOR_MATH
 
-   glm::vec2 cursorPos = Win_Window::GetInstance().GetCursorScreenPosition();
+   glm::vec2 cursorPos = Game::GetInstance().GetCursorScreenPosition();
 
-   glm::vec4 tmpPos = Win_Window::GetInstance().GetProjection() * glm::vec4(m_centeredGlobalPosition, 0.0f, 1.0f);
+   glm::vec4 tmpPos = Game::GetInstance().GetProjection() * glm::vec4(m_centeredGlobalPosition, 0.0f, 1.0f);
    float angle = -glm::degrees(glm::atan(tmpPos.y - cursorPos.y, tmpPos.x - cursorPos.x));
 
 #pragma endregion
@@ -130,7 +130,7 @@ Player::Draw()
 void
 Player::Shoot()
 {
-   glm::ivec2 direction = static_cast< glm::ivec2 >(Win_Window::GetInstance().GetCursor()) - m_localPosition;
+   glm::ivec2 direction = static_cast< glm::ivec2 >(Game::GetInstance().GetCursor()) - m_localPosition;
    m_currentWeapon->Shoot(direction);
 }
 
