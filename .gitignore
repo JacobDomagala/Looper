@@ -311,6 +311,6 @@ build
 dependencies/Freetype/Freetype*
 dependencies/GLM/GLM*
 dependencies/NANOGUI/NANOGUI*
-dependencies/OpenGL/OpenGL*
+dependencies/OpenGL/glew*
 dependencies/SDL2/SDL2*
 dependencies/STB_IMAGE/STB_IMAGE*
