@@ -90,7 +90,9 @@ Game::GlobalToScreen(glm::vec2 globalPos)
    return returnPos;
 }
 
-Game::Game() : m_cameraSpeed(600.0f)
+Game::Game() :
+   m_cameraSpeed(600.0f),
+   m_window(std::make_unique<Window>(1024, 765, "WindowTitle"))
 {
 }
 
@@ -108,15 +110,13 @@ Game::GetInstance()
 }
 
 void
-Game::Init(const std::string configFile, Window* windowPtr)
+Game::Init(const std::string configFile)
 {
    std::ifstream initFile((ASSETS_DIR/configFile).u8string());
-   m_window = windowPtr;
 
    if (!initFile)
    {
-      //Win_Window::GetInstance().ShowError("Can't open" + (ASSETS_DIR/configFile).u8string(), "Game Initializing");
-      printf("ERROR INIT!");
+      logger.Log(Logger::TYPE::FATAL, "Can't open" + (ASSETS_DIR/configFile).u8string());
    }
 
    while (!initFile.eof())
@@ -904,22 +904,14 @@ Game::RenderFirstPass()
 void
 Game::RenderSecondPass()
 {
-    //glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
    m_frameBuffer.DrawFrameBuffer();
 
-   GLenum err;
-   while((err = glGetError()) != GL_NO_ERROR)
+   glm::ivec2 debug2 = m_player.GetCenteredLocalPosition();
+   for (auto& obj : m_debugObjs)
    {
-     //printf("DUUUPA");
+      obj->Draw(m_window->GetProjection());
    }
-
-    glm::ivec2 debug2 = m_player.GetCenteredLocalPosition();
-    for (auto& obj : m_debugObjs)
-    {
-       obj->Draw(m_window->GetProjection());
-    }
-    m_debugObjs.clear();
+   m_debugObjs.clear();
 
    RenderText(std::to_string(m_deltaTime * 1000) + " ms",
               glm::vec2(static_cast< float >(-WIDTH / 2), static_cast< float >(-HEIGHT / 2) + 20), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));
@@ -932,7 +924,7 @@ Game::LoadLevel(const std::string& levelName)
    std::ifstream levelFile((folderPath/levelName).u8string() + ".txt");
    if (!levelFile)
    {
-      //Win_Window::GetInstance().ShowError("Can't open " + (folderPath / levelName).u8string() + ".txt", "Level loading");
+      logger.Log(Logger::TYPE::FATAL, "Can't open " + (folderPath / levelName).u8string());
    }
 
    int32_t levelWidth(0), levelHeight(0);
@@ -1034,7 +1026,7 @@ Game::ProcessInput(float deltaTime)
 void
 Game::RenderText(std::string text, const glm::vec2& position, float scale, const glm::vec3& color)
 {
-   m_font.RenderText(text, position.x, position.y, scale, color);
+   m_font.RenderText(text, position, scale, color);
 }
 
 void

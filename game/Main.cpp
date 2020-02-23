@@ -7,10 +7,8 @@ int main(int /* argc */, char ** /* argv */)
 {
    Timer globalTimer;
 
-   Window window(1024, 765, "WindowTitle");
-
    auto& game = Game::GetInstance();
-   game.Init("GameInit.txt", &window);
+   game.Init("GameInit.txt");
 
    auto oldTime = globalTimer.GetGlobalTime();
 
@@ -19,7 +17,7 @@ int main(int /* argc */, char ** /* argv */)
    float frameTimer = 0.0f;
    int32_t framesLastSecond = 0;
 
-   while (window.IsRunning())
+   while (game.IsRunning())
    {
 
       glfwPollEvents();
@@ -43,7 +41,7 @@ int main(int /* argc */, char ** /* argv */)
          game.RenderText(std::to_string(framesLastSecond) + " FPS", glm::vec2(-WIDTH / 2.0f, -HEIGHT / 2.0f), 0.4f,
                          glm::vec3(1.0f, 0.0f, 1.0f));
 
-         window.SwapBuffers();
+         game.SwapBuffers();
          ++frames;
       }
       frameTimer += globalTimer.GetDeltaTime();

@@ -75,7 +75,7 @@ Font::SetFont(const std::string& fileName)
 }
 
 void
-Font::RenderText(std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color)
+Font::RenderText(std::string text, glm::vec2 position, GLfloat scale, const glm::vec3& color)
 {
    // Activate corresponding render state
    program.UseProgram();
@@ -93,8 +93,8 @@ Font::RenderText(std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec
       GLfloat w = ch.size.x * scale;
       GLfloat h = ch.size.y * scale;
 
-      GLfloat xpos = x + ch.bearing.x * scale;
-      GLfloat ypos = y + (this->Characters['H'].bearing.y - ch.bearing.y) * scale;
+      GLfloat xpos = position.x + ch.bearing.x * scale;
+      GLfloat ypos = position.y + (this->Characters['H'].bearing.y - ch.bearing.y) * scale;
 
       // Seems like it stores tex coords in Direct3d style FeelsBadMan
       GLfloat vertices[6][4] = {{xpos, ypos + h, 0.0, 1.0}, {xpos + w, ypos, 1.0, 0.0},     {xpos, ypos, 0.0, 0.0},
@@ -114,7 +114,7 @@ Font::RenderText(std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec
       glDrawArrays(GL_TRIANGLES, 0, 6);
 
       // Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-      x += (ch.advance >> 6)
+      position.x += (ch.advance >> 6)
            * scale; // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
    }
    glBindVertexArray(0);

@@ -1,11 +1,13 @@
 #pragma once
 
-#include <Font.hpp>
-#include <Framebuffer.hpp>
-#include <Level.hpp>
-#include <Player.hpp>
-#include <Timer.hpp>
-#include <Window.hpp>
+#include "Font.hpp"
+#include "Logger.hpp"
+#include "Framebuffer.hpp"
+#include "Level.hpp"
+#include "Player.hpp"
+#include "Timer.hpp"
+#include "Window.hpp"
+
 #include <glm/glm.hpp>
 #include <vector>
 
@@ -21,10 +23,11 @@ class Game
    enum class GameState : uint8_t
    {
       MENU = 0,
-      GAME,
-      EDITOR
+      GAME
    };
 
+   Logger logger;
+   std::unique_ptr<Window> m_window = nullptr;
    Timer m_timer;
    Level m_currentLevel;
 
@@ -52,13 +55,15 @@ class Game
    // player position on map (centered)
    glm::vec2 m_playerPosition;
 
-   Window* m_window = nullptr;
+
 
    // bullet collision for player
    glm::ivec2
    CheckBulletCollision(int32_t range);
+
    glm::ivec2
    CheckCollision(glm::ivec2& moveBy);
+
    glm::ivec2
    CorrectPosition();
 
@@ -68,8 +73,10 @@ class Game
 
    bool
    CheckMove(glm::ivec2& moveBy);
+
    void
    KeyEvents(float deltaTime);
+
    void
    MouseEvents(float deltaTime);
 
@@ -95,7 +102,7 @@ class Game
 
    // Initialize Game using 'configFile'
    void
-   Init(std::string configFile, Window* windowPtr);
+   Init(std::string configFile);
 
    ~Game() = default;
 
@@ -122,18 +129,22 @@ class Game
 
    std::pair< glm::ivec2, bool >
    CheckBulletCollision(Enemy* from, glm::vec2 targetPosition, int32_t range);
+
    bool
    IsPlayerInVision(Enemy* from, int32_t range);
+
    glm::ivec2
    CheckCollision(const glm::ivec2& currentPosition, const glm::ivec2& moveBy);
 
    void
    DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f));
+
    void
    RenderText(std::string text, const glm::vec2& position, float scale, const glm::vec3& color = glm::vec3(1.0f, 1.0f, 1.0f));
 
    void
    ProcessInput(float deltaTime);
+
    void
    Render();
 
@@ -155,4 +166,15 @@ class Game
       return m_window->GetCursorScreenPosition();
    }
 
+   void
+   SwapBuffers()
+   {
+      m_window->SwapBuffers();
+   }
+
+   bool
+   IsRunning()
+   {
+      return m_window->IsRunning();
+   }
 };

@@ -7,6 +7,7 @@
 #include <GL/glew.h>
 #include <string>
 #include <unordered_map>
+#include<glm/glm.hpp>
 
 struct Character
 {
@@ -30,5 +31,5 @@ class Font
    void
    SetFont(const std::string& fileName = (ASSETS_DIR/"segoeui.ttf").u8string());
    void
-   RenderText(std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color);
+   RenderText(std::string text, glm::vec2 position, GLfloat scale, const glm::vec3& color);
 };
