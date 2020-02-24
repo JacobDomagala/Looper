@@ -19,7 +19,7 @@ public:
    ~Logger() = default;
 
    void
-   Log(TYPE, const std::string& logBuffer);
+   Log(TYPE, const std::string& logBuffer) const;
 
    void
    SetLogType(TYPE);
@@ -29,16 +29,16 @@ public:
    {
       if(type == Logger::TYPE::DEBUG)
       {
-         os << "[DEBUG] ";
+         os << " [DEBUG] ";
       }else if(type == Logger::TYPE::INFO)
       {
-         os << "[INFO] ";
+         os << " [INFO] ";
       }else if(type == Logger::TYPE::WARNING)
       {
-         os << "[WARNING] ";
+         os << " [WARNING] ";
       }else if(type == Logger::TYPE::FATAL)
       {
-         os << "[FATAL] ";
+         os << " [FATAL] ";
       }
 
       return os;

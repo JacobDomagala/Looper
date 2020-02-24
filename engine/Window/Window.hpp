@@ -5,11 +5,12 @@
 #include <glm/glm.hpp>
 
 struct GLFWwindow;
+class Logger;
 
 class Window
 {
 public:
-	Window(uint32_t width, uint32_t height, const std::string& title);
+   Window(uint32_t width, uint32_t height, const std::string& title, Logger& logger);
 	~Window();
 
    // set projection matrix for OpenGL
@@ -73,10 +74,10 @@ public:
    GetCursor();
 
 private:
-	uint32_t    m_width;
-	uint32_t    m_height;
-	GLFWwindow*  m_pWindow;
-	std::string m_title;
+   uint32_t    m_width;
+   uint32_t    m_height;
+   GLFWwindow*  m_pWindow;
+   std::string m_title;
 
    // cursor position
    glm::vec2 m_cursorPos;
@@ -84,7 +85,9 @@ private:
    // projection matrix for OpenGL
    glm::mat4 m_projectionMatrix;
 
-	// is windows active
+   // is windows active
    bool m_isRunning;
+
+   Logger& m_logger;
 };
 

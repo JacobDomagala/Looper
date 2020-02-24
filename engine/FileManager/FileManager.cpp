@@ -1,5 +1,4 @@
 #include "FileManager.hpp"
-#include "Window.hpp"
 
 #include <fstream>
 

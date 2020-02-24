@@ -1,4 +1,4 @@
-set(MODULE_NAME Game)
+set(MODULE_NAME DGame)
 
 project(${MODULE_NAME})
 

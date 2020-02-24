@@ -92,14 +92,14 @@ Game::GlobalToScreen(glm::vec2 globalPos)
 
 Game::Game() :
    m_cameraSpeed(600.0f),
-   m_window(std::make_unique<Window>(1024, 765, "WindowTitle"))
+   m_window(std::make_unique<Window>(WIDTH, HEIGHT, "WindowTitle", logger))
 {
 }
 
 Game&
 Game::GetInstance()
 {
-   static Game* gamePtr;
+   static Game* gamePtr = nullptr;
 
    if (gamePtr == nullptr)
    {

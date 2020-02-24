@@ -30,6 +30,7 @@ class Font
 
    void
    SetFont(const std::string& fileName = (ASSETS_DIR/"segoeui.ttf").u8string());
+
    void
    RenderText(std::string text, glm::vec2 position, GLfloat scale, const glm::vec3& color);
 };

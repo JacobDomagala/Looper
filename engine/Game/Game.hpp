@@ -177,4 +177,10 @@ class Game
    {
       return m_window->IsRunning();
    }
+
+   void
+   Log(Logger::TYPE t, const std::string& log)
+   {
+      logger.Log(t, log);
+   }
 };

@@ -1,6 +1,6 @@
-#include <Sprite.hpp>
-#include <Window.hpp>
+#include "Sprite.hpp"
 #include "Game.hpp"
+
 #include <glm/gtx/transform.hpp>
 
 void

@@ -1,5 +1,7 @@
 #include "Window.hpp"
 #include "Common.hpp"
+#include "Game.hpp"
+#include "Logger.hpp"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -10,8 +12,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 {
     // When a user presses the escape key, we set the WindowShouldClose property to true,
     // closing the application
-
-   printf("KEY - %d", key);
 
     if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
@@ -32,21 +32,25 @@ MessageCallback( GLenum source,
                  GLenum severity,
                  GLsizei length,
                  const GLchar* message,
-                 const void* userParam )
+                 const void* logger )
 {
-  fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+   std::string buffer(1024, 0x0);
+   sprintf( &buffer[0], "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
            ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
             type, severity, message );
+
+   reinterpret_cast<const Logger*>(logger)->Log(Logger::TYPE::DEBUG, buffer);
 }
 
-Window::Window(uint32_t width, uint32_t height, const std::string& title)
+Window::Window(uint32_t width, uint32_t height, const std::string& title, Logger& logger)
    : m_width(WIDTH),
      m_height(HEIGHT),
      m_title(title),
      m_isRunning(true),
-     m_projectionMatrix(glm::ortho(-WIDTH / 2.0f, WIDTH / 2.0f, HEIGHT / 2.0f, -HEIGHT / 2.0f, -1.0f, 1.0f))
+     m_projectionMatrix(glm::ortho(-WIDTH / 2.0f, WIDTH / 2.0f, HEIGHT / 2.0f, -HEIGHT / 2.0f, -1.0f, 1.0f)),
+     m_logger(logger)
 {
-	glfwSetErrorCallback(error_callback);
+   glfwSetErrorCallback(error_callback);
 
    assert(GLFW_TRUE == glfwInit());
    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -54,30 +58,31 @@ Window::Window(uint32_t width, uint32_t height, const std::string& title)
    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-   m_pWindow = glfwCreateWindow(WIDTH, HEIGHT, title.c_str(), nullptr, nullptr);
+   m_pWindow = glfwCreateWindow(m_width, m_height, title.c_str(), nullptr, nullptr);
+   m_logger.Log(Logger::TYPE::DEBUG, "GLFW Window created - " + std::to_string(m_width) + "x" + std::to_string(m_height));
+
    glfwMakeContextCurrent(m_pWindow);
 
    int major, minor;
    glGetIntegerv(GL_MAJOR_VERSION, &major);
    glGetIntegerv(GL_MINOR_VERSION, &minor);
-   printf("%d.%d \n", major, minor);
+   m_logger.Log(Logger::TYPE::DEBUG, "OpenGL Version - " + std::to_string(major) + "." + std::to_string(minor));
 
    glewExperimental = GL_TRUE;
 
    if (glewInit() != GLEW_OK)
    {
-      printf("GL ERROR!");
+      m_logger.Log(Logger::TYPE::FATAL, "glewInit() != GLEW_OK");
    }
 
    // During init, enable debug output
    glEnable              ( GL_DEBUG_OUTPUT );
-   glDebugMessageCallback( MessageCallback, 0 );
+   glDebugMessageCallback( MessageCallback, &logger);
 
    glfwSwapInterval(1);
 
    int tmpWidth, tmpHeight;
    glfwGetFramebufferSize(m_pWindow, &tmpWidth, &tmpHeight);
-   printf("%d.%d \n", tmpWidth, tmpHeight);
 
    glViewport(0, 0, tmpWidth, tmpHeight);
    Clear(1,1,1,1);
@@ -118,7 +123,6 @@ Window::Resize(uint32_t newWidth, uint32_t newHeight)
 void
 Window::Clear(float r, float g, float b, float a)
 {
-  // printf("CLEAR!");
    glClearColor(r, g, b, a);
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -126,9 +130,7 @@ Window::Clear(float r, float g, float b, float a)
 void
 Window::SwapBuffers()
 {
-//   printf("SWAP!");
    glfwSwapBuffers(m_pWindow);
-   //Clear(0.5, 0.5, 0.5, 0.5);
 }
 
 void
@@ -170,7 +172,6 @@ Window::GetCursorNormalized()
    float cursorX = xpos/ center.x;
    float cursorY = ypos / center.y;
 
-   //printf("%f %f\n", cursorX, cursorY);
    return glm::vec2(cursorX, cursorY);
 }
 
@@ -179,6 +180,6 @@ Window::GetCursor()
 {
    double xpos, ypos;
    glfwGetCursorPos(m_pWindow, &xpos, &ypos);
-  // printf("%f %f\n", xpos, ypos);
+
    return glm::vec2(xpos, ypos);
 }

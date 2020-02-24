@@ -1,5 +1,4 @@
 #include "Shaders.hpp"
-#include "Window.hpp"
 #include "FileManager.hpp"
 
 #include <fstream>
@@ -84,8 +83,6 @@ Shaders::CheckCompileStatus(GLuint shaderID)
       glGetShaderInfoLog(shaderID, maxLength, &maxLength, &log[0]);
 
       printf("%s", log.c_str());
-
-	 // Win_Window::GetInstance().ShowError(log, "Shader program build error!");
    }
 }
 
@@ -103,7 +100,6 @@ Shaders::CheckLinkStatus(GLuint programID)
       glGetProgramInfoLog(programID, maxLength, &maxLength, &log[0]);
 
       printf("%s",log.c_str());
-     // Win_Window::GetInstance().ShowError(log, "Linking OpenGL program");
    }
 }
 
