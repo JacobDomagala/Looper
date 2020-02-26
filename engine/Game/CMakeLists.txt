@@ -14,6 +14,6 @@ target_link_libraries (${MODULE_NAME} PUBLIC
     #EXTERNALS
     NANOGUI2 OpenGL::GL GLEW::GLEW glm STB_IMAGE freetype
     #INTERNALS
-    Window FileManager Logger Render Time Common)
+    Window FileManager Logger Render Time Common Input)
 
 target_compile_features(${MODULE_NAME} PUBLIC cxx_std_17)

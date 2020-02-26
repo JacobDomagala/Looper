@@ -73,6 +73,12 @@ public:
    glm::vec2
    GetCursor();
 
+   GLFWwindow*
+   GetWindowHandle()
+   {
+      return m_pWindow;
+   }
+
 private:
    uint32_t    m_width;
    uint32_t    m_height;

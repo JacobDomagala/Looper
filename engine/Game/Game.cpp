@@ -140,6 +140,8 @@ Game::Init(const std::string configFile)
 
    initFile.close();
 
+   m_inputManager.Init(m_window->GetWindowHandle());
+
    LoadLevel(m_levels[0]);
    m_state = GameState::GAME;
 }

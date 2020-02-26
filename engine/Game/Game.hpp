@@ -7,95 +7,17 @@
 #include "Player.hpp"
 #include "Timer.hpp"
 #include "Window.hpp"
+#include "InputManager.hpp"
 
 #include <glm/glm.hpp>
 #include <vector>
+#include <GLFW/glfw3.h>
 
 class DebugObject;
 
 class Game
 {
-   // DEBUG
-   std::vector< std::unique_ptr< DebugObject > > m_debugObjs;
-   void
-   RenderLine(const glm::ivec2& collided, const glm::vec3& color);
-
-   enum class GameState : uint8_t
-   {
-      MENU = 0,
-      GAME
-   };
-
-   Logger logger;
-   std::unique_ptr<Window> m_window = nullptr;
-   Timer m_timer;
-   Level m_currentLevel;
-
-   std::unique_ptr< byte_vec4 > m_collision;
-
-   // active font used in game
-   Font m_font;
-
-   // how fast should camera move
-   float m_cameraSpeed;
-
-   // framebuffer for first pass
-   Framebuffer m_frameBuffer;
-
-   //
-   float m_deltaTime;
-
-   // all maps
-   std::vector< std::string > m_levels;
-
-   // state of the game
-   GameState m_state;
-   Player m_player;
-
-   // player position on map (centered)
-   glm::vec2 m_playerPosition;
-
-
-
-   // bullet collision for player
-   glm::ivec2
-   CheckBulletCollision(int32_t range);
-
-   glm::ivec2
-   CheckCollision(glm::ivec2& moveBy);
-
-   glm::ivec2
-   CorrectPosition();
-
-   // convert from global position (OpenGL) to screen position (in pixels)
-   glm::ivec2
-   GlobalToScreen(glm::vec2 globalPos);
-
-   bool
-   CheckMove(glm::ivec2& moveBy);
-
-   void
-   KeyEvents(float deltaTime);
-
-   void
-   MouseEvents(float deltaTime);
-
-   // draws to framebuffer (texture)
-   void
-   RenderFirstPass();
-
-   // draws to screen
-   void
-   RenderSecondPass();
-   void
-   LoadLevel(const std::string& levelName);
-
-   void
-   RayTracer();
-
-   Game();
-
- public:
+public:
    // Singleton for Game class
    static Game&
    GetInstance();
@@ -183,4 +105,97 @@ class Game
    {
       logger.Log(t, log);
    }
+
+   void
+   PollEvents()
+   {
+      glfwPollEvents();
+   }
+
+   void
+   RegisterForKeyInput(IInputListener* listener)
+   {
+      m_inputManager.RegisterForKeyInput(listener);
+   }
+
+private:
+   // DEBUG
+   std::vector< std::unique_ptr< DebugObject > > m_debugObjs;
+   void
+   RenderLine(const glm::ivec2& collided, const glm::vec3& color);
+
+   enum class GameState : uint8_t
+   {
+      MENU = 0,
+      GAME
+   };
+
+   // bullet collision for player
+   glm::ivec2
+   CheckBulletCollision(int32_t range);
+
+   glm::ivec2
+   CheckCollision(glm::ivec2& moveBy);
+
+   glm::ivec2
+   CorrectPosition();
+
+   // convert from global position (OpenGL) to screen position (in pixels)
+   glm::ivec2
+   GlobalToScreen(glm::vec2 globalPos);
+
+   bool
+   CheckMove(glm::ivec2& moveBy);
+
+   void
+   KeyEvents(float deltaTime);
+
+   void
+   MouseEvents(float deltaTime);
+
+   // draws to framebuffer (texture)
+   void
+   RenderFirstPass();
+
+   // draws to screen
+   void
+   RenderSecondPass();
+   void
+   LoadLevel(const std::string& levelName);
+
+   void
+   RayTracer();
+
+   Game();
+
+private:
+   Logger logger;
+   std::unique_ptr<Window> m_window = nullptr;
+   Timer m_timer;
+   Level m_currentLevel;
+
+   std::unique_ptr< byte_vec4 > m_collision;
+
+   // active font used in game
+   Font m_font;
+
+   // how fast should camera move
+   float m_cameraSpeed;
+
+   // framebuffer for first pass
+   Framebuffer m_frameBuffer;
+
+   //
+   float m_deltaTime;
+
+   // all maps
+   std::vector< std::string > m_levels;
+
+   // state of the game
+   GameState m_state;
+   Player m_player;
+
+   // player position on map (centered)
+   glm::vec2 m_playerPosition;
+   InputManager m_inputManager;
 };

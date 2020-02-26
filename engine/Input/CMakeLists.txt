@@ -7,9 +7,8 @@ project(${MODULE_NAME})
 file(GLOB HEADERS "*.hpp")
 file(GLOB SOURCES "*.cpp")
 
-add_library(${MODULE_NAME} INTERFACE)
+add_library(${MODULE_NAME} STATIC ${SOURCES} ${HEADERS})
 
-target_link_directories(${MODULE_NAME} INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
-target_sources(${MODULE_NAME} INTERFACE ${SOURCES} INTERFACE ${HEADERS})
-target_include_directories(${MODULE_NAME} INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
-target_link_libraries (${MODULE_NAME} INTERFACE SDL2)
+target_link_directories(${MODULE_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(${MODULE_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_link_libraries (${MODULE_NAME} PUBLIC glfw glm Game)

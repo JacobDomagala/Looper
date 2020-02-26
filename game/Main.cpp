@@ -1,7 +1,6 @@
 #include "Game.hpp"
 #include "Timer.hpp"
 #include "Window.hpp"
-#include <GLFW/glfw3.h>
 
 int main(int /* argc */, char ** /* argv */)
 {
@@ -20,7 +19,7 @@ int main(int /* argc */, char ** /* argv */)
    while (game.IsRunning())
    {
 
-      glfwPollEvents();
+      game.PollEvents();
 
       globalTimer.ToggleTimer();
       auto timeStamp = globalTimer.GetGlobalTime();

@@ -35,11 +35,12 @@ MessageCallback( GLenum source,
                  const void* logger )
 {
    std::string buffer(1024, 0x0);
-   sprintf( &buffer[0], "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+   const auto newSize = sprintf(&buffer[0], "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s",
            ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
             type, severity, message );
 
-   reinterpret_cast<const Logger*>(logger)->Log(Logger::TYPE::DEBUG, buffer);
+   buffer.resize(newSize);
+   reinterpret_cast< const Logger* >(logger)->Log(Logger::TYPE::DEBUG, buffer);
 }
 
 Window::Window(uint32_t width, uint32_t height, const std::string& title, Logger& logger)
@@ -53,8 +54,8 @@ Window::Window(uint32_t width, uint32_t height, const std::string& title, Logger
    glfwSetErrorCallback(error_callback);
 
    assert(GLFW_TRUE == glfwInit());
-   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
@@ -85,8 +86,6 @@ Window::Window(uint32_t width, uint32_t height, const std::string& title, Logger
    glfwGetFramebufferSize(m_pWindow, &tmpWidth, &tmpHeight);
 
    glViewport(0, 0, tmpWidth, tmpHeight);
-   Clear(1,1,1,1);
-   SwapBuffers();
 
    glfwSetKeyCallback(m_pWindow, key_callback);
    glEnable(GL_BLEND);
@@ -104,11 +103,15 @@ Window::~Window()
 void
 Window::SetIcon(const std::string& file)
 {
-   // auto image   = SDL_RWFromFile(file.c_str(), "rb");
-   // auto surface = SDL_LoadBMP_RW(image, 1);
+   Texture texture;
 
-   // SDL_SetWindowIcon(m_pWindow, surface);
-   // SDL_FreeSurface(surface);
+   GLFWimage image;
+   image.width = 16;
+   image.height = 16;
+   image.pixels = reinterpret_cast<unsigned char*>(texture.LoadTextureFromFile(file).get());
+
+   auto cursor = glfwCreateCursor(&image, 0, 0);
+   glfwSetCursor(m_pWindow, cursor);
 }
 
 void
