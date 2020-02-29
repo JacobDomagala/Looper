@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Shaders.hpp>
 #include <GL/glew.h>
+#include <Shaders.hpp>
 
 class Framebuffer
 {
@@ -9,9 +9,10 @@ class Framebuffer
    GLuint textureID;
    Shaders shaders;
 
-    // OpenGL buffers
+   // OpenGL buffers
    GLuint m_vertexArrayBuffer{};
    GLuint m_vertexBuffer{};
+
  public:
    Framebuffer();
    ~Framebuffer() = default;

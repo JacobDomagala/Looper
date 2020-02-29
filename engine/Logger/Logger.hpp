@@ -1,12 +1,12 @@
 #pragma once
 
+#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
 
 class Logger
 {
-public:
+ public:
    enum class TYPE
    {
       DEBUG,
@@ -21,22 +21,24 @@ public:
    void
    Log(TYPE, const std::string& logBuffer) const;
 
-   void
-   SetLogType(TYPE);
+   void SetLogType(TYPE);
 
-   friend
-   std::ostream& operator<<(std::ostream& os, const Logger::TYPE& type)
+   friend std::ostream&
+   operator<<(std::ostream& os, const Logger::TYPE& type)
    {
-      if(type == Logger::TYPE::DEBUG)
+      if (type == Logger::TYPE::DEBUG)
       {
          os << " [DEBUG] ";
-      }else if(type == Logger::TYPE::INFO)
+      }
+      else if (type == Logger::TYPE::INFO)
       {
          os << " [INFO] ";
-      }else if(type == Logger::TYPE::WARNING)
+      }
+      else if (type == Logger::TYPE::WARNING)
       {
          os << " [WARNING] ";
-      }else if(type == Logger::TYPE::FATAL)
+      }
+      else if (type == Logger::TYPE::FATAL)
       {
          os << " [FATAL] ";
       }
@@ -44,8 +46,7 @@ public:
       return os;
    }
 
-private:
+ private:
    std::string m_internalBuffer;
    TYPE m_currentLogType = TYPE::DEBUG;
 };
-

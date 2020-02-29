@@ -1,8 +1,8 @@
 #include "Shaders.hpp"
 #include "FileManager.hpp"
 
-#include <fstream>
 #include <GL/glew.h>
+#include <fstream>
 #include <glm/gtc/type_ptr.hpp>
 
 
@@ -99,7 +99,7 @@ Shaders::CheckLinkStatus(GLuint programID)
       std::string log(maxLength, 0);
       glGetProgramInfoLog(programID, maxLength, &maxLength, &log[0]);
 
-      printf("%s",log.c_str());
+      printf("%s", log.c_str());
    }
 }
 

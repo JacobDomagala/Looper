@@ -27,25 +27,25 @@ class Weapon
    {
       return m_name;
    }
-   
+
    int32_t
    GetAmmoNum() const
    {
       return m_ammoNum;
    }
-   
+
    float
    GetReloadTime() const
    {
       return m_reloadTime;
    }
-   
+
    int32_t
    GetRange() const
    {
       return m_range;
    }
-   
+
    int32_t
    GetDamage() const
    {

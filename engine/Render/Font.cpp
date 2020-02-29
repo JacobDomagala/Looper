@@ -1,11 +1,11 @@
 #include "Font.hpp"
-#include "Texture.hpp"
-#include "Window.hpp"
 #include "FileManager.hpp"
 #include "Game.hpp"
+#include "Texture.hpp"
+#include "Window.hpp"
 
-#include <ft2build.h>
 #include <GL/glew.h>
+#include <ft2build.h>
 #include <glm/glm.hpp>
 #include FT_FREETYPE_H
 
@@ -19,7 +19,7 @@ Font::SetFont(const std::string& fileName)
       Game::GetInstance().Log(Logger::TYPE::FATAL, "Error initializing FreeType!");
 
    FT_Face face;
-   std::string filePath = (ASSETS_DIR/fileName).u8string() + ".ttf";
+   std::string filePath = (ASSETS_DIR / fileName).u8string() + ".ttf";
 
    if (FT_New_Face(ft, filePath.c_str(), 0, &face))
       Game::GetInstance().Log(Logger::TYPE::FATAL, "Error loading font " + filePath);
@@ -36,9 +36,9 @@ Font::SetFont(const std::string& fileName)
    {
       // Load character glyph
       if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-          Game::GetInstance().Log(Logger::TYPE::FATAL, "Error loading font face for character " + c + filePath);
+         Game::GetInstance().Log(Logger::TYPE::FATAL, "Error loading font face for character " + c + filePath);
 
-       FT_Load_Char(face, c, FT_LOAD_RENDER);
+      FT_Load_Char(face, c, FT_LOAD_RENDER);
       // Generate texture
       GLuint texture;
       glGenTextures(1, &texture);
@@ -116,8 +116,9 @@ Font::RenderText(std::string text, glm::vec2 position, GLfloat scale, const glm:
       glDrawArrays(GL_TRIANGLES, 0, 6);
 
       // Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-      position.x += (ch.advance >> 6)
-           * scale; // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+      position.x +=
+         (ch.advance >> 6)
+         * scale; // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
    }
    glBindVertexArray(0);
    glBindTexture(GL_TEXTURE_2D, 0);

@@ -15,7 +15,7 @@ Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenu
 
    if (!returnPtr)
    {
-      //Win_Window::GetInstance().ShowError(std::string("Can't load the file ") + fileName, "STB_IMAGE error!");
+      // Win_Window::GetInstance().ShowError(std::string("Can't load the file ") + fileName, "STB_IMAGE error!");
       printf("EERROR TEXTURE");
    }
 

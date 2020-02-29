@@ -31,12 +31,8 @@ Framebuffer::Framebuffer()
    glBindVertexArray(m_vertexArrayBuffer);
    glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
 
-   glm::vec4 positions[4] = {
-       glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
-       glm::vec4(-1.0f, 1.0f, 0.0f, 1.0f),
-       glm::vec4(-1.0f, -1.0f, 0.0f, 0.0f),
-       glm::vec4(1.0f, -1.0f, 1.0f, 0.0f)
-   };
+   glm::vec4 positions[4] = {glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), glm::vec4(-1.0f, 1.0f, 0.0f, 1.0f), glm::vec4(-1.0f, -1.0f, 0.0f, 0.0f),
+                             glm::vec4(1.0f, -1.0f, 1.0f, 0.0f)};
 
    glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
    glEnableVertexAttribArray(0);
@@ -71,7 +67,8 @@ Framebuffer::DrawFrameBuffer()
    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT);
 
-   shaders.UseProgram();glBindVertexArray(m_vertexArrayBuffer);
+   shaders.UseProgram();
+   glBindVertexArray(m_vertexArrayBuffer);
 
    glActiveTexture(GL_TEXTURE0);
    glBindTexture(GL_TEXTURE_2D, textureID);

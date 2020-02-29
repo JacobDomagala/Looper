@@ -8,36 +8,18 @@
 #include <functional>
 #include <glm/gtc/matrix_transform.hpp>
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
+void
+error_callback(int error, const char* description)
 {
-    // When a user presses the escape key, we set the WindowShouldClose property to true,
-    // closing the application
-
-    if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-    {
-       printf(" pressed\n", key);
-       glfwSetWindowShouldClose(window, GL_TRUE);
-    }
-}
-
-void error_callback(int error, const char* description)
-{
-	fprintf(stderr, "Error: %s\n", description);
+   fprintf(stderr, "Error: %s\n", description);
 }
 
 void GLAPIENTRY
-MessageCallback( GLenum source,
-                 GLenum type,
-                 GLuint id,
-                 GLenum severity,
-                 GLsizei length,
-                 const GLchar* message,
-                 const void* logger )
+MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* logger)
 {
    std::string buffer(1024, 0x0);
    const auto newSize = sprintf(&buffer[0], "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s",
-           ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
-            type, severity, message );
+                                (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
 
    buffer.resize(newSize);
    reinterpret_cast< const Logger* >(logger)->Log(Logger::TYPE::DEBUG, buffer);
@@ -77,8 +59,8 @@ Window::Window(uint32_t width, uint32_t height, const std::string& title, Logger
    }
 
    // During init, enable debug output
-   glEnable              ( GL_DEBUG_OUTPUT );
-   glDebugMessageCallback( MessageCallback, &logger);
+   glEnable(GL_DEBUG_OUTPUT);
+   glDebugMessageCallback(MessageCallback, &logger);
 
    glfwSwapInterval(1);
 
@@ -87,7 +69,6 @@ Window::Window(uint32_t width, uint32_t height, const std::string& title, Logger
 
    glViewport(0, 0, tmpWidth, tmpHeight);
 
-   glfwSetKeyCallback(m_pWindow, key_callback);
    glEnable(GL_BLEND);
    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
    glEnable(GL_LINE_SMOOTH);
@@ -108,7 +89,7 @@ Window::SetIcon(const std::string& file)
    GLFWimage image;
    image.width = 16;
    image.height = 16;
-   image.pixels = reinterpret_cast<unsigned char*>(texture.LoadTextureFromFile(file).get());
+   image.pixels = reinterpret_cast< unsigned char* >(texture.LoadTextureFromFile(file).get());
 
    auto cursor = glfwCreateCursor(&image, 0, 0);
    glfwSetCursor(m_pWindow, cursor);
@@ -172,7 +153,7 @@ Window::GetCursorNormalized()
    xpos -= center.x;
    ypos -= center.y;
 
-   float cursorX = xpos/ center.x;
+   float cursorX = xpos / center.x;
    float cursorY = ypos / center.y;
 
    return glm::vec2(cursorX, cursorY);

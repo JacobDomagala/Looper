@@ -4,8 +4,9 @@
 #include <Window.hpp>
 
 Player::Player(const glm::vec2& position, const std::string& name)
-   : m_name(name), m_globalPosition(position), m_velocity(0.0f, 0.0f), m_speed(0.0005f), m_maxHP(100), m_currentHP(m_maxHP)
+   : GameObject(position, {32, 32}, name), m_name(name), m_velocity(0.0f, 0.0f), m_speed(0.0005f), m_maxHP(100), m_currentHP(m_maxHP)
 {
+   m_globalPosition = position;
    m_weapons[0] = std::make_unique< SniperRifle >();
    m_weapons[1] = std::make_unique< Glock >();
 
@@ -51,68 +52,14 @@ Player::CheckCollision(const glm::ivec2& bulletPosition, Enemy const* enemy, boo
 }
 
 glm::vec2
-Player::GetGlobalPosition() const
-{
-   return m_globalPosition;
-}
-
-glm::vec2
-Player::GetCenteredGlobalPosition() const
-{
-   return m_centeredGlobalPosition;
-}
-
-glm::ivec2
-Player::GetLocalPosition() const
-{
-   return m_localPosition;
-}
-
-glm::ivec2
-Player::GetCenteredLocalPosition() const
-{
-   return m_centeredLocalPosition;
-}
-
-glm::ivec2
-Player::GetSize() const
-{
-   return m_sprite.GetSize();
-}
-
-glm::vec2
 Player::GetScreenPosition() const
 {
    glm::vec4 screenPosition = Game::GetInstance().GetProjection() * glm::vec4(m_centeredGlobalPosition, 0.0f, 1.0f);
    return glm::vec2(screenPosition.x, screenPosition.y);
 }
 
-glm::ivec2
-Player::GetScreenPositionPixels() const
-{
-   // get screen space <-1, 1>
-   glm::vec4 screenPosition = Game::GetInstance().GetProjection() * glm::vec4(m_centeredGlobalPosition, 0.0f, 1.0f);
-
-   // transform from <-1, 1> to <0, 1> (with 1 for y is upper boundary)
-   glm::vec2 tmpPos = (glm::vec2(screenPosition.x, screenPosition.y) + glm::vec2(1.0f, 1.0f)) / glm::vec2(2.0f, 2.0f);
-
-   // transform from <0, 1> to <0, WIDTH> (also make upper boundary 0 for y)
-   tmpPos.x *= WIDTH;
-   tmpPos.y *= -HEIGHT;
-   tmpPos.y += HEIGHT;
-
-   return tmpPos;
-}
-
 void
-Player::Move(const glm::vec2& moveBy)
-{
-   m_sprite.Translate(moveBy);
-   m_centeredGlobalPosition += moveBy;
-}
-
-void
-Player::Draw()
+Player::Render(const Shaders& program)
 {
 #pragma region CURSOR_MATH
 

@@ -100,9 +100,11 @@ Enemy::Visible() const
 void
 Enemy::SetTargetShootPosition(const glm::vec2& playerPos)
 {
+   auto& playerSize = Game::GetInstance().GetPlayer().GetSize();
+
    // compute small offset value which simulates the 'aim wiggle'
-   int32_t xOffset = rand() % Game::GetInstance().GetPlayer().GetSize().x + (-Game::GetInstance().GetPlayer().GetSize().x / 2);
-   int32_t yOffset = rand() % Game::GetInstance().GetPlayer().GetSize().y + (-Game::GetInstance().GetPlayer().GetSize().y / 2);
+   auto xOffset = fmod(rand(), playerSize.x) + (-playerSize.x / 2);
+   auto yOffset = fmod(rand(), playerSize.y) + (-playerSize.y / 2);
 
    m_targetShootPosition = (playerPos + glm::vec2(xOffset, yOffset));
    m_combatStarted = true;

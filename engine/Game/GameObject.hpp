@@ -1,8 +1,8 @@
 #pragma once
 
+#include <GL/glew.h>
 #include <Shaders.hpp>
 #include <Sprite.hpp>
-#include <GL/glew.h>
 #include <glm/glm.hpp>
 
 class GameObject

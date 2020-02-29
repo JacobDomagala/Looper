@@ -1,13 +1,13 @@
 #pragma once
 
+#include "FileManager.hpp"
 #include "Shaders.hpp"
 #include "Texture.hpp"
-#include "FileManager.hpp"
 
 #include <GL/glew.h>
+#include <glm/glm.hpp>
 #include <string>
 #include <unordered_map>
-#include<glm/glm.hpp>
 
 struct Character
 {
@@ -29,7 +29,7 @@ class Font
    ~Font() = default;
 
    void
-   SetFont(const std::string& fileName = (ASSETS_DIR/"segoeui.ttf").u8string());
+   SetFont(const std::string& fileName = (ASSETS_DIR / "segoeui.ttf").u8string());
 
    void
    RenderText(std::string text, glm::vec2 position, GLfloat scale, const glm::vec3& color);

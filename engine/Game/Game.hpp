@@ -1,23 +1,23 @@
 #pragma once
 
 #include "Font.hpp"
-#include "Logger.hpp"
 #include "Framebuffer.hpp"
+#include "InputManager.hpp"
 #include "Level.hpp"
+#include "Logger.hpp"
 #include "Player.hpp"
 #include "Timer.hpp"
 #include "Window.hpp"
-#include "InputManager.hpp"
 
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <vector>
-#include <GLFW/glfw3.h>
 
 class DebugObject;
 
 class Game
 {
-public:
+ public:
    // Singleton for Game class
    static Game&
    GetInstance();
@@ -34,7 +34,7 @@ public:
    Player&
    GetPlayer()
    {
-      return m_player;
+      return *m_player;
    }
 
    Level&
@@ -118,7 +118,7 @@ public:
       m_inputManager.RegisterForKeyInput(listener);
    }
 
-private:
+ private:
    // DEBUG
    std::vector< std::unique_ptr< DebugObject > > m_debugObjs;
    void
@@ -168,9 +168,9 @@ private:
 
    Game();
 
-private:
+ private:
    Logger logger;
-   std::unique_ptr<Window> m_window = nullptr;
+   std::unique_ptr< Window > m_window = nullptr;
    Timer m_timer;
    Level m_currentLevel;
 
@@ -193,7 +193,7 @@ private:
 
    // state of the game
    GameState m_state;
-   Player m_player;
+   std::unique_ptr< Player > m_player = nullptr;
 
    // player position on map (centered)
    glm::vec2 m_playerPosition;

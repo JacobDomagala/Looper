@@ -23,7 +23,7 @@ class PathFinder
 
    glm::ivec2
    GetNearestPosition(uint8_t currIdx, const glm::ivec2& targetPos) const;
-   
+
    uint8_t
    GetNearestNode(const glm::ivec2& position) const;
 };

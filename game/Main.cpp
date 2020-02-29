@@ -2,7 +2,8 @@
 #include "Timer.hpp"
 #include "Window.hpp"
 
-int main(int /* argc */, char ** /* argv */)
+int
+main(int /* argc */, char** /* argv */)
 {
    Timer globalTimer;
 
@@ -18,7 +19,6 @@ int main(int /* argc */, char ** /* argv */)
 
    while (game.IsRunning())
    {
-
       game.PollEvents();
 
       globalTimer.ToggleTimer();
