@@ -1,29 +1,13 @@
 #pragma once
 
 #include <Common.hpp>
+#include "Logger.hpp"
+
 #include <GL/glew.h>
 #include <string>
 
 class Texture
 {
-   // width and size of texture
-   int32_t m_width;
-   int32_t m_height;
-
-   // texture ID used in
-   GLuint m_textureID;
-
-   // sampler ID
-   GLuint m_samplerID;
-
-   // each time new texture is loaded this counter is increased
-   static int32_t m_unitCounter;
-
-   // ID of currently bound texture
-   static int32_t m_nowBound;
-
-   // texture unit
-   int32_t m_unit;
 
  public:
    Texture() = default;
@@ -38,7 +22,7 @@ class Texture
 
    // Load texture from 'data' memory
    void
-   LoadTextureFromMemory(int32_t width, int32_t height, uint8_t* data, GLenum wrapMode = GL_REPEAT, GLenum filter = GL_LINEAR);
+   LoadTextureFromMemory(int32_t width, int32_t height, byte_vec4* data, GLenum wrapMode = GL_REPEAT, GLenum filter = GL_LINEAR);
 
    int32_t
    GetWidth() const
@@ -61,4 +45,27 @@ class Texture
    // Make this texture active for given 'programID'
    void
    Use(GLuint programID);
+
+private:
+ // width and size of texture
+   int32_t m_width;
+   int32_t m_height;
+
+   // texture ID used in
+   GLuint m_textureID;
+
+   // sampler ID
+   GLuint m_samplerID;
+
+   // each time new texture is loaded this counter is increased
+   static int32_t m_unitCounter;
+
+   // ID of currently bound texture
+   static int32_t m_nowBound;
+
+   // texture unit
+   int32_t m_unit;
+
+   Logger m_logger = Logger("Texture");
+
 };

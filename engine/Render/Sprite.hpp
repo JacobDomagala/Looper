@@ -3,36 +3,14 @@
 #include "Common.hpp"
 #include "Shaders.hpp"
 #include "Texture.hpp"
+
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
+class Window;
+
 class Sprite
 {
-   // sprite's texture
-   Texture m_texture{};
-
-   // color of sprite (default is white)
-   glm::vec4 m_color;
-
-   // sprite's center
-   glm::vec2 m_centeredPosition;
-
-   // sprite's position
-   glm::vec2 m_position;
-
-   // OpenGL buffers
-   GLuint m_vertexArrayBuffer{};
-   GLuint m_vertexBuffer{};
-
-   // width and height
-   glm::ivec2 m_size;
-
-   // transofmation values
-   glm::vec3 m_translateVal;
-   glm::vec3 m_velocity;
-   glm::vec2 m_scaleVal;
-   float m_angle{};
-
  public:
    Sprite() = default;
    ~Sprite() = default;
@@ -104,5 +82,31 @@ class Sprite
 
    // Render sprite using 'program'
    void
-   Render(const Shaders& program);
+   Render(Window& window, const Shaders& program);
+
+private:
+   // sprite's texture
+   Texture m_texture{};
+
+   // color of sprite (default is white)
+   glm::vec4 m_color;
+
+   // sprite's center
+   glm::vec2 m_centeredPosition;
+
+   // sprite's position
+   glm::vec2 m_position;
+
+   // OpenGL buffers
+   GLuint m_vertexArrayBuffer{};
+   GLuint m_vertexBuffer{};
+
+   // width and height
+   glm::ivec2 m_size;
+
+   // transofmation values
+   glm::vec3 m_translateVal;
+   glm::vec3 m_velocity;
+   glm::vec2 m_scaleVal;
+   float m_angle{};
 };

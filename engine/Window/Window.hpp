@@ -1,17 +1,22 @@
 #pragma once
 
+#include "Logger.hpp"
+
 #include <glm/glm.hpp>
 #include <memory>
+#include <sstream>
 #include <string>
 
 struct GLFWwindow;
-class Logger;
 
 class Window
 {
  public:
-   Window(uint32_t width, uint32_t height, const std::string& title, Logger& logger);
+   Window(int32_t width, int32_t height, const std::string& title);
    ~Window();
+
+   void
+   ShutDown();
 
    // set projection matrix for OpenGL
    void
@@ -35,7 +40,7 @@ class Window
    }
 
    void
-   Resize(uint32_t newWidth, uint32_t newHeight);
+   Resize(int32_t newWidth, int32_t newHeight);
 
    void
    SetIcon(const std::string& file);
@@ -46,9 +51,8 @@ class Window
    void
    SwapBuffers();
 
-   void
-   WrapMouse(bool choice);
-
+   // true -> mouse visible and not wrapped
+   // false -> mouse is disabled (hidden and wrapped)
    void
    ShowCursor(bool choice);
 
@@ -62,14 +66,7 @@ class Window
    glm::vec2
    GetCursorNormalized();
 
-   // set cursos position
-   void
-   SetCursor(const glm::vec2& position)
-   {
-      m_cursorPos = position;
-   }
-
-   // update and get curson position in Win32 coords
+   // return current cursor position on window
    glm::vec2
    GetCursor();
 
@@ -78,6 +75,25 @@ class Window
    {
       return m_pWindow;
    }
+
+   operator std::string() const
+   {
+      std::stringstream returnStr;
+      returnStr << "Window title - " << m_title << '\n' << "Window dimensions - " << m_width << "x" << m_height;
+
+      return returnStr.str();
+   }
+
+   friend std::ostream&
+   operator<<(std::ostream& os, Window window)
+   {
+      os << "Window title - " << window.m_title << '\n' << "Window dimensions - " << window.m_width << "x" << window.m_height;
+
+      return os;
+   }
+
+   static void
+   ErrorCallback(int error, const char* description);
 
  private:
    uint32_t m_width;
@@ -94,5 +110,5 @@ class Window
    // is windows active
    bool m_isRunning;
 
-   Logger& m_logger;
+   Logger m_logger;
 };

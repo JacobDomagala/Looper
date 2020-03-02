@@ -8,8 +8,9 @@
 #include <functional>
 #include <glm/gtc/matrix_transform.hpp>
 
+
 void
-error_callback(int error, const char* description)
+Window::ErrorCallback(int error, const char* description)
 {
    fprintf(stderr, "Error: %s\n", description);
 }
@@ -25,24 +26,29 @@ MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei 
    reinterpret_cast< const Logger* >(logger)->Log(Logger::TYPE::DEBUG, buffer);
 }
 
-Window::Window(uint32_t width, uint32_t height, const std::string& title, Logger& logger)
-   : m_width(WIDTH),
-     m_height(HEIGHT),
+Window::Window(int32_t width, int32_t height, const std::string& title)
+   : m_width(width),
+     m_height(height),
      m_title(title),
      m_isRunning(true),
-     m_projectionMatrix(glm::ortho(-WIDTH / 2.0f, WIDTH / 2.0f, HEIGHT / 2.0f, -HEIGHT / 2.0f, -1.0f, 1.0f)),
-     m_logger(logger)
+     m_projectionMatrix(glm::ortho(-width / 2.0f, width / 2.0f, height / 2.0f, -height / 2.0f, -1.0f, 1.0f))
 {
-   glfwSetErrorCallback(error_callback);
+   m_logger.Init("Window");
 
-   assert(GLFW_TRUE == glfwInit());
+   glfwSetErrorCallback(ErrorCallback);
+
+   if (GLFW_TRUE != glfwInit())
+   {
+      m_logger.Log(Logger::TYPE::FATAL, "GLFW_TRUE != glfwInit()");
+   }
+
    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
    m_pWindow = glfwCreateWindow(m_width, m_height, title.c_str(), nullptr, nullptr);
-   m_logger.Log(Logger::TYPE::DEBUG, "GLFW Window created - " + std::to_string(m_width) + "x" + std::to_string(m_height));
+   m_logger.Log(Logger::TYPE::DEBUG, "GLFW Window created - \n" + std::string(*this));
 
    glfwMakeContextCurrent(m_pWindow);
 
@@ -58,16 +64,15 @@ Window::Window(uint32_t width, uint32_t height, const std::string& title, Logger
       m_logger.Log(Logger::TYPE::FATAL, "glewInit() != GLEW_OK");
    }
 
-   // During init, enable debug output
+   int viewportWidth, viewportHeight;
+   glfwGetFramebufferSize(m_pWindow, &viewportWidth, &viewportHeight);
+
+   glViewport(0, 0, viewportWidth, viewportHeight);
+
    glEnable(GL_DEBUG_OUTPUT);
-   glDebugMessageCallback(MessageCallback, &logger);
+   glDebugMessageCallback(MessageCallback, &m_logger);
 
    glfwSwapInterval(1);
-
-   int tmpWidth, tmpHeight;
-   glfwGetFramebufferSize(m_pWindow, &tmpWidth, &tmpHeight);
-
-   glViewport(0, 0, tmpWidth, tmpHeight);
 
    glEnable(GL_BLEND);
    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -77,8 +82,14 @@ Window::Window(uint32_t width, uint32_t height, const std::string& title, Logger
 
 Window::~Window()
 {
-   m_isRunning = false;
    glfwTerminate();
+}
+
+void
+Window::ShutDown()
+{
+   m_isRunning = false;
+   glfwDestroyWindow(m_pWindow);
 }
 
 void
@@ -96,12 +107,12 @@ Window::SetIcon(const std::string& file)
 }
 
 void
-Window::Resize(uint32_t newWidth, uint32_t newHeight)
+Window::Resize(int32_t newWidth, int32_t newHeight)
 {
-   // SDL_SetWindowSize(m_pWindow, newWidth, newHeight);
+   glfwSetWindowSize(m_pWindow, newWidth, newHeight);
 
-   // m_height = newHeight;
-   // m_width  = newWidth;
+   m_height = newHeight;
+   m_width = newWidth;
 }
 
 void
@@ -118,26 +129,19 @@ Window::SwapBuffers()
 }
 
 void
-Window::WrapMouse(bool choice)
-{
-   // SDL_SetWindowGrab(m_pWindow, static_cast<SDL_bool>(choice));
-}
-
-void
 Window::ShowCursor(bool choice)
 {
-   // SDL_ShowCursor(choice);
+   int mode = choice ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED;
+   glfwSetInputMode(m_pWindow, GLFW_CURSOR, mode);
 }
 
 glm::vec2
 Window::GetCursorScreenPosition()
 {
-   double xpos, ypos;
-   glfwGetCursorPos(m_pWindow, &xpos, &ypos);
+   auto cursorPos = GetCursor();
 
-   m_cursorPos = glm::vec2(xpos, ypos);
-   m_cursorPos -= glm::vec2((WIDTH / 2.0f), (HEIGHT / 2.0f));
-   glm::vec4 tmpCursor = m_projectionMatrix * glm::vec4(m_cursorPos, 0.0f, 1.0f);
+   cursorPos -= glm::vec2((m_width / 2.0f), (m_height / 2.0f));
+   glm::vec4 tmpCursor = m_projectionMatrix * glm::vec4(cursorPos, 0.0f, 1.0f);
 
    return glm::vec2(tmpCursor.x, tmpCursor.y);
 }
@@ -145,25 +149,21 @@ Window::GetCursorScreenPosition()
 glm::vec2
 Window::GetCursorNormalized()
 {
-   double xpos, ypos;
-   glfwGetCursorPos(m_pWindow, &xpos, &ypos);
+   auto cursorPos = GetCursor();
 
-   glm::vec2 center(m_width / 2.0f, m_height / 2.0f);
+   glm::dvec2 centerOfScreen(m_width / 2.0f, m_height / 2.0f);
 
-   xpos -= center.x;
-   ypos -= center.y;
+   cursorPos -= centerOfScreen;
+   cursorPos /= centerOfScreen;
 
-   float cursorX = xpos / center.x;
-   float cursorY = ypos / center.y;
-
-   return glm::vec2(cursorX, cursorY);
+   return cursorPos;
 }
 
 glm::vec2
 Window::GetCursor()
 {
-   double xpos, ypos;
-   glfwGetCursorPos(m_pWindow, &xpos, &ypos);
+   glm::dvec2 cursorPos;
+   glfwGetCursorPos(m_pWindow, &cursorPos.x, &cursorPos.y);
 
-   return glm::vec2(xpos, ypos);
+   return cursorPos;
 }

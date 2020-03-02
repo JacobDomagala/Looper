@@ -7,52 +7,39 @@
 #include <functional>
 #include <iostream>
 
-std::vector< IInputListener* > InputManager::m_inputListeners = {};
 glm::vec2 InputManager::m_mousePosition = {};
-GLFWwindow* InputManager::m_windowHandle = nullptr;
 std::unordered_map< int, bool > InputManager::m_keyMap = {};
+Logger InputManager::m_logger;
 
 void
 InputManager::InternalKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-   Game::GetInstance().Log(Logger::TYPE::DEBUG,
+   m_logger.Log(Logger::TYPE::TRACE,
                            "GLFW key " + std::to_string(action) + std::to_string(key) + " scan code - " + std::to_string(scancode));
 
    m_keyMap[key] = action;
-
-   for (auto& listener : m_inputListeners)
-   {
-      listener->KeyCallback(key, scancode, action, mods);
-   }
 }
 
 void
 InputManager::InternalMouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-   Game::GetInstance().Log(Logger::TYPE::DEBUG,
+   m_logger.Log(Logger::TYPE::TRACE,
                            "GLFW mouse button " + std::to_string(action) + " " + std::to_string(button) + " " + std::to_string(mods));
-
-   for (auto& listener : m_inputListeners)
-   {
-      listener->MouseButtonCallback(button, action, mods);
-   }
 }
 
 void
 InputManager::InternalCursorPositionCallback(GLFWwindow* window, double x, double y)
 {
-   Game::GetInstance().Log(Logger::TYPE::DEBUG, "GLFW cursor pos " + std::to_string(x) + " " + std::to_string(y));
+   m_logger.Log(Logger::TYPE::TRACE, "GLFW cursor pos " + std::to_string(x) + " " + std::to_string(y));
 
-   for (auto& listener : m_inputListeners)
-   {
-      listener->CursorPositionCallback(x, y);
-   }
+   m_mousePosition = glm::vec2(x,y);
 }
 
 void
 InputManager::Init(GLFWwindow* mainWindow)
 {
    m_windowHandle = mainWindow;
+   m_logger.Init("InputManager");
 
    glfwSetKeyCallback(m_windowHandle, InternalKeyCallback);
    glfwSetMouseButtonCallback(m_windowHandle, InternalMouseButtonCallback);

@@ -1,28 +1,32 @@
-#include <Common.hpp>
-#include <Framebuffer.hpp>
+#include "Common.hpp"
+#include "Framebuffer.hpp"
 
-Framebuffer::Framebuffer()
+void Framebuffer::SetUp()
 {
-   glGenFramebuffers(1, &frameBufferID);
-   glBindFramebuffer(GL_FRAMEBUFFER, frameBufferID);
+   glGenFramebuffers(NUM_FRAMES_TO_SAVE, m_frameBufferIDs.data());
+   glGenTextures(NUM_FRAMES_TO_SAVE, m_textureIDs.data());
 
-   glGenTextures(1, &textureID);
-   glBindTexture(GL_TEXTURE_2D, textureID);
-   glActiveTexture(GL_TEXTURE0);
-   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+   for(GLuint id = 1; id < NUM_FRAMES_TO_SAVE; ++id)
+   {
+      glBindFramebuffer(GL_FRAMEBUFFER, id);
+      glBindTexture(GL_TEXTURE_2D, id);
+      glActiveTexture(GL_TEXTURE0);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
-   GLenum drawBuffers[] = {GL_COLOR_ATTACHMENT0};
-   glDrawBuffers(1, drawBuffers);
+      GLenum drawBuffers[] = {GL_COLOR_ATTACHMENT0};
+      glDrawBuffers(1, drawBuffers);
 
-   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
-   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-   glBindTexture(GL_TEXTURE_2D, 0);
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, id, 0);
+      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+      glBindTexture(GL_TEXTURE_2D, 0);
+   }
+
 
    shaders.LoadShaders("AfterEffects_vs.glsl", "AfterEffects_fs.glsl");
 
@@ -50,7 +54,7 @@ void
 Framebuffer::BeginDrawingToTexture()
 {
    // DRAW TO FRAMEBUFFER
-   glBindFramebuffer(GL_FRAMEBUFFER, frameBufferID);
+   glBindFramebuffer(GL_FRAMEBUFFER, m_textureIDs.at(m_currentFrame));
    glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT);
 }
@@ -71,7 +75,26 @@ Framebuffer::DrawFrameBuffer()
    glBindVertexArray(m_vertexArrayBuffer);
 
    glActiveTexture(GL_TEXTURE0);
-   glBindTexture(GL_TEXTURE_2D, textureID);
+   glBindTexture(GL_TEXTURE_2D, m_textureIDs.at(m_currentFrame));
+
+   glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+   glBindVertexArray(0);
+
+   m_currentFrame = m_currentFrame >= NUM_FRAMES_TO_SAVE ? 0 : m_currentFrame++;
+}
+
+void
+Framebuffer::DrawPreviousFrameBuffer()
+{
+   glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+   glClear(GL_COLOR_BUFFER_BIT);
+
+   shaders.UseProgram();
+   glBindVertexArray(m_vertexArrayBuffer);
+
+   glActiveTexture(GL_TEXTURE0);
+   glBindTexture(GL_TEXTURE_2D, m_textureIDs.at(0));
 
    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 

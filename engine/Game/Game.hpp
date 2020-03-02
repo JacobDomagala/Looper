@@ -11,25 +11,75 @@
 
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/gtx/transform.hpp>
 #include <vector>
 
-class DebugObject;
+#pragma region DEBUG
+// THIS CLASS EXISTS ONLY IF WE WOULD NEED SOMETHING ELSE THAN LINE AS DEBUG OBJECT
+class DebugObject
+{
+ public:
+   virtual void
+   Draw(const glm::mat4& projection) = 0;
+   virtual ~DebugObject() = default;
+};
+
+class Line : public DebugObject
+{
+   glm::vec2 m_from;
+   glm::vec2 m_to;
+   glm::vec3 m_color;
+
+ public:
+   Line(glm::vec2 from, glm::vec2 to, glm::vec3 color) : m_from(from), m_to(to), m_color(color)
+   {
+   }
+
+   ~Line() override = default;
+
+   void
+   Draw(const glm::mat4& projection) override
+   {
+      Shaders lineShader{};
+      lineShader.LoadShaders("lineVertex.glsl", "lineFragment.glsl");
+
+      glm::vec2 vertices[2] = {m_from, m_to};
+
+      glm::mat4 modelMatrix = glm::scale(glm::mat4(), glm::vec3(1.0f, 1.0f, 1.0f));
+
+      GLuint lineVertexArray;
+      GLuint lineVertexBuffer;
+
+      glGenVertexArrays(1, &lineVertexArray);
+      glGenBuffers(1, &lineVertexBuffer);
+      glBindVertexArray(lineVertexArray);
+      glBindBuffer(GL_ARRAY_BUFFER, lineVertexBuffer);
+      glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 2, vertices, GL_DYNAMIC_DRAW);
+      glEnableVertexAttribArray(0);
+      glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
+
+      lineShader.UseProgram();
+      lineShader.SetUniformFloatMat4(modelMatrix, "modelMatrix");
+      lineShader.SetUniformFloatMat4(projection, "projectionMatrix");
+      lineShader.SetUniformFloatVec4(glm::vec4(m_color, 1.0f), "color");
+
+      glDrawArrays(GL_LINES, 0, 2);
+      glBindVertexArray(0);
+      glDeleteBuffers(1, &lineVertexBuffer);
+      glDeleteVertexArrays(1, &lineVertexArray);
+   }
+};
+#pragma endregion
 
 class Game
 {
  public:
-   // Singleton for Game class
-   static Game&
-   GetInstance();
+   Game() = default;
+   ~Game() = default;
 
    // Initialize Game using 'configFile'
    void
    Init(std::string configFile);
-
-   ~Game() = default;
-
-   // Deleted copy constructor
-   Game(Game&) = delete;
 
    Player&
    GetPlayer()
@@ -166,13 +216,15 @@ class Game
    void
    RayTracer();
 
-   Game();
-
  private:
    Logger logger;
    std::unique_ptr< Window > m_window = nullptr;
    Timer m_timer;
+
+
    Level m_currentLevel;
+   // all maps
+   std::vector< std::string > m_levels;
 
    std::unique_ptr< byte_vec4 > m_collision;
 
@@ -188,14 +240,14 @@ class Game
    //
    float m_deltaTime;
 
-   // all maps
-   std::vector< std::string > m_levels;
+   bool m_reverse = false;
 
    // state of the game
    GameState m_state;
-   std::unique_ptr< Player > m_player = nullptr;
 
    // player position on map (centered)
    glm::vec2 m_playerPosition;
+   std::unique_ptr< Player > m_player = nullptr;
+
    InputManager m_inputManager;
 };

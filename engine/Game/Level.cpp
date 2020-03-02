@@ -150,13 +150,13 @@ Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
 void
 Level::LoadShaders(const std::string& shaderName)
 {
-   shaders.LoadShaders("../Shaders//" + shaderName + "_vs.glsl", "../Shaders//" + shaderName + "_fs.glsl");
+   shaders.LoadShaders(shaderName + "_vs.glsl", shaderName + "_fs.glsl");
 }
 
 void
-Level::AddGameObject(const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite)
+Level::AddGameObject(Game& game, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite)
 {
-   std::unique_ptr< GameObject > object = std::make_unique< Enemy >(pos, size, sprite);
+   std::unique_ptr< GameObject > object = std::make_unique< Enemy >(game, pos, size, sprite);
    objects.push_back(std::move(object));
 }
 
@@ -173,10 +173,10 @@ Level::Move(const glm::vec2& moveBy)
 }
 
 void
-Level::Draw()
+Level::Draw(Window& window)
 {
    // draw background
-   background.Render(shaders);
+   background.Render(window, shaders);
 
    if (!objects.empty())
    {
@@ -185,7 +185,7 @@ Level::Draw()
          if (obj->Visible())
          {
             obj->DealWithPlayer();
-            obj->Render(shaders);
+            obj->Render(window, shaders);
          }
       }
    }

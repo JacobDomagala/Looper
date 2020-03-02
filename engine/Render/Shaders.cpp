@@ -20,10 +20,17 @@ Shaders::UseProgram() const
 {
    if (m_programID != m_activeProgramID)
    {
+      m_logger.Log(Logger::TYPE::DEBUG, "Binding new shaders with program_id = " + std::to_string(m_programID));
+
       glUseProgram(m_programID);
       m_activeProgramID = m_programID;
       ++m_numberBound;
    }
+   else
+   {
+      m_logger.Log(Logger::TYPE::DEBUG, "Using already bound shaders program_id = " + std::to_string(m_programID));
+   }
+
 }
 
 void
@@ -67,6 +74,8 @@ Shaders::LoadShaders(const std::string& vertexShader, const std::string& Fragmen
 
    glDeleteShader(vertexShaderID);
    glDeleteShader(fragmentShaderID);
+
+   m_logger.Log(Logger::TYPE::DEBUG, "Loaded shaders " + vertexShader + "/" + FragmentShader + " with program_id = " + std::to_string(m_programID));
 }
 
 void
@@ -82,7 +91,7 @@ Shaders::CheckCompileStatus(GLuint shaderID)
       std::string log(maxLength, 0);
       glGetShaderInfoLog(shaderID, maxLength, &maxLength, &log[0]);
 
-      printf("%s", log.c_str());
+      m_logger.Log(Logger::TYPE::FATAL, log);
    }
 }
 
@@ -99,7 +108,7 @@ Shaders::CheckLinkStatus(GLuint programID)
       std::string log(maxLength, 0);
       glGetProgramInfoLog(programID, maxLength, &maxLength, &log[0]);
 
-      printf("%s", log.c_str());
+      m_logger.Log(Logger::TYPE::FATAL, log);
    }
 }
 

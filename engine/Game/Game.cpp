@@ -5,7 +5,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <GL/glew.h>
 #include <fstream>
-#include <glm/gtx/transform.hpp>
 #include <stb_image.h>
 #include <string>
 
@@ -14,63 +13,6 @@ glm::vec2 cursor;
 glm::vec2 debug1;
 
 static float delta = 0.0f;
-
-#pragma region DEBUG
-// THIS CLASS EXISTS ONLY IF WE WOULD NEED SOMETHING ELSE THAN LINE AS DEBUG OBJECT
-class DebugObject
-{
- public:
-   virtual void
-   Draw(const glm::mat4& projection) = 0;
-   virtual ~DebugObject() = default;
-};
-
-class Line : public DebugObject
-{
-   glm::vec2 m_from;
-   glm::vec2 m_to;
-   glm::vec3 m_color;
-
- public:
-   Line(glm::vec2 from, glm::vec2 to, glm::vec3 color) : m_from(from), m_to(to), m_color(color)
-   {
-   }
-
-   ~Line() override = default;
-
-   void
-   Draw(const glm::mat4& projection) override
-   {
-      Shaders lineShader{};
-      lineShader.LoadShaders("lineVertex.glsl", "lineFragment.glsl");
-
-      glm::vec2 vertices[2] = {m_from, m_to};
-
-      glm::mat4 modelMatrix = glm::scale(glm::mat4(), glm::vec3(1.0f, 1.0f, 1.0f));
-
-      GLuint lineVertexArray;
-      GLuint lineVertexBuffer;
-
-      glGenVertexArrays(1, &lineVertexArray);
-      glGenBuffers(1, &lineVertexBuffer);
-      glBindVertexArray(lineVertexArray);
-      glBindBuffer(GL_ARRAY_BUFFER, lineVertexBuffer);
-      glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 2, vertices, GL_DYNAMIC_DRAW);
-      glEnableVertexAttribArray(0);
-      glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
-
-      lineShader.UseProgram();
-      lineShader.SetUniformFloatMat4(modelMatrix, "modelMatrix");
-      lineShader.SetUniformFloatMat4(projection, "projectionMatrix");
-      lineShader.SetUniformFloatVec4(glm::vec4(m_color, 1.0f), "color");
-
-      glDrawArrays(GL_LINES, 0, 2);
-      glBindVertexArray(0);
-      glDeleteBuffers(1, &lineVertexBuffer);
-      glDeleteVertexArrays(1, &lineVertexArray);
-   }
-};
-#pragma endregion
 
 glm::ivec2
 Game::GlobalToScreen(glm::vec2 globalPos)
@@ -90,23 +32,6 @@ Game::GlobalToScreen(glm::vec2 globalPos)
    return returnPos;
 }
 
-Game::Game() : m_cameraSpeed(600.0f), m_window(std::make_unique< Window >(WIDTH, HEIGHT, "WindowTitle", logger))
-{
-}
-
-Game&
-Game::GetInstance()
-{
-   static Game* gamePtr = nullptr;
-
-   if (gamePtr == nullptr)
-   {
-      gamePtr = new Game();
-   }
-
-   return *gamePtr;
-}
-
 void
 Game::Init(const std::string configFile)
 {
@@ -116,6 +41,10 @@ Game::Init(const std::string configFile)
    {
       logger.Log(Logger::TYPE::FATAL, "Can't open" + (ASSETS_DIR / configFile).u8string());
    }
+
+   m_cameraSpeed = 600.0f;
+   m_window = std::make_unique< Window >(WIDTH, HEIGHT, "WindowTitle");
+   m_frameBuffer.SetUp();
 
    while (!initFile.eof())
    {
@@ -748,7 +677,7 @@ Game::KeyEvents(float deltaTime)
    }
    if (m_inputManager.CheckKeyPressed(GLFW_KEY_ESCAPE))
    {
-      // m_window->ShutDown();
+      m_window->ShutDown();
    }
    if (m_inputManager.CheckKeyPressed(GLFW_KEY_O))
    {
@@ -757,11 +686,11 @@ Game::KeyEvents(float deltaTime)
    }
    if (m_inputManager.CheckKeyPressed(GLFW_KEY_1))
    {
-      m_player->ChangeWepon(1);
+      m_window->ShowCursor(true);
    }
    if (m_inputManager.CheckKeyPressed(GLFW_KEY_2))
    {
-      m_player->ChangeWepon(2);
+      m_window->ShowCursor(false);
    }
    if (m_inputManager.CheckKeyPressed(GLFW_KEY_P))
    {
@@ -800,6 +729,8 @@ Game::KeyEvents(float deltaTime)
       m_currentLevel.Move(-m_player->GetCenteredGlobalPosition());
       m_player->Move(-m_player->GetCenteredGlobalPosition());
    }
+
+
    if (glm::length(glm::vec2(playerMoveBy)))
    {
       m_currentLevel.Move(cameraMoveBy);
@@ -895,9 +826,8 @@ Game::RenderFirstPass()
    m_playerPosition += correction;
    m_player->SetCenteredLocalPosition(m_playerPosition);
 
-   m_currentLevel.Draw();
-   Shaders tmp;
-   m_player->Render(tmp);
+   m_currentLevel.Draw(*m_window);
+   m_player->Render(*m_window);
 
    m_frameBuffer.EndDrawingToTexture();
 }
@@ -910,7 +840,7 @@ Game::RenderSecondPass()
    glm::ivec2 debug2 = m_player->GetCenteredLocalPosition();
    for (auto& obj : m_debugObjs)
    {
-      obj->Draw(m_window->GetProjection());
+     obj->Draw(m_window->GetProjection());
    }
    m_debugObjs.clear();
 
@@ -934,37 +864,39 @@ Game::LoadLevel(const std::string& levelName)
 
    while (!levelFile.eof())
    {
-      std::string tmp = "";
-      levelFile >> tmp;
-      if (tmp == "Size:")
+      std::string token = "";
+      levelFile >> token;
+      if (token == "Size:")
       {
          levelFile >> levelWidth;
          levelFile >> levelHeight;
       }
-      else if (tmp == "Background:")
+      else if (token == "Background:")
       {
          levelFile >> background;
          m_currentLevel.LoadPremade((folderPath / background).u8string(), glm::ivec2(levelWidth, levelHeight));
       }
-      else if (tmp == "Objects:")
+      else if (token == "Objects:")
       {
          // TODO KAPPA
       }
-      else if (tmp == "Particles:")
+      else if (token == "Particles:")
       {
          // TODO KAPPA
       }
-      else if (tmp == "First_pass_shaders:")
+      else if (token == "First_pass_shaders:")
       {
-         levelFile >> tmp;
-         m_currentLevel.LoadShaders(tmp);
+         std::string shadersName;
+         levelFile >> shadersName;
+         m_currentLevel.LoadShaders(shadersName);
       }
-      else if (tmp == "Second_pass_shaders:")
+      else if (token == "Second_pass_shaders:")
       {
-         levelFile >> tmp;
-         m_frameBuffer.LoadShaders(tmp);
+         std::string shadersName;
+         levelFile >> shadersName;
+         m_frameBuffer.LoadShaders(shadersName);
       }
-      else if (tmp == "Collision:")
+      else if (token == "Collision:")
       {
          levelFile >> collisionMap;
          int32_t width, height, n;
@@ -972,44 +904,46 @@ Game::LoadLevel(const std::string& levelName)
             reinterpret_cast< byte_vec4* >(stbi_load((folderPath / collisionMap).u8string().c_str(), &width, &height, &n, 0));
          m_collision = std::unique_ptr< byte_vec4 >(tmpCollision);
       }
-      else if (tmp == "Player:")
+      else if (token == "Player:")
       {
-         m_player = std::make_unique< Player >();
+         glm::vec2 position;
+         levelFile >> position.x;
+         levelFile >> position.y;
 
-         int32_t playerX, playerY;
-         levelFile >> playerX;
-         levelFile >> playerY;
+         glm::ivec2 size;
+         levelFile >> size.x;
+         levelFile >> size.y;
 
-         int32_t playerWidth, playerHeight;
-         levelFile >> playerWidth;
-         levelFile >> playerHeight;
+         std::string textureName, shaderName;
+         levelFile >> textureName;
+         levelFile >> shaderName;
 
-         levelFile >> tmp;
-         m_player->CreateSprite(glm::vec2(playerX, playerY), glm::ivec2(playerWidth, playerHeight), (folderPath / tmp).u8string());
-         levelFile >> tmp;
-         m_player->LoadShaders(tmp);
-         m_playerPosition = glm::ivec2(playerX, -playerY);
+         m_player = std::make_unique< Player >(*this, position, size, (folderPath / textureName).u8string());
+         m_player->LoadShaders(shaderName);
+
+         m_playerPosition = glm::ivec2(position.x, -position.y);
       }
-      else if (tmp == "Enemies:")
+      else if (token == "Enemies:")
       {
          int32_t numEnemies;
          levelFile >> numEnemies;
          for (int32_t i = 0; i < numEnemies; ++i)
          {
-            int32_t enemyX, enemyY;
-            levelFile >> enemyX;
-            levelFile >> enemyY;
+            glm::vec2 position;
+            levelFile >> position.x;
+            levelFile >> position.y;
 
-            int32_t enemyWidth, enemyHeight;
-            levelFile >> enemyWidth;
-            levelFile >> enemyHeight;
+            glm::ivec2 size;
+            levelFile >> size.x;
+            levelFile >> size.y;
 
-            glm::vec2 centeredPosition{enemyX - (enemyWidth / 2.0f), enemyY + (enemyHeight / 2.0f)};
-            auto globalVel = m_currentLevel.GetGlobalVec(centeredPosition);
+            glm::vec2 centeredPosition{position.x - (size.x / 2.0f), position.y + (size.y / 2.0f)};
+            auto globalPosition = m_currentLevel.GetGlobalVec(centeredPosition);
 
-            levelFile >> tmp;
-            m_currentLevel.AddGameObject(globalVel, glm::ivec2(enemyWidth, enemyHeight), (folderPath / tmp).u8string());
-            levelFile >> tmp;
+            std::string textureName, shaderName;
+            levelFile >> textureName;
+            m_currentLevel.AddGameObject(*this, globalPosition, size, (folderPath / textureName).u8string());
+            levelFile >> shaderName;
          }
       }
    }
@@ -1030,12 +964,21 @@ Game::ProcessInput(float deltaTime)
 void
 Game::RenderText(std::string text, const glm::vec2& position, float scale, const glm::vec3& color)
 {
-   m_font.RenderText(text, position, scale, color);
+   m_font.RenderText(*m_window, text, position, scale, color);
 }
 
 void
 Game::Render()
 {
-   RenderFirstPass();
-   RenderSecondPass();
+   if(!m_reverse)
+   {
+      RenderFirstPass();
+      RenderSecondPass();
+   }
+   else
+   {
+      m_frameBuffer.DrawPreviousFrameBuffer();
+
+   }
+
 }

@@ -7,6 +7,8 @@
 #include <unordered_map>
 
 class GameObject;
+class Window;
+class Game;
 
 class Level
 {
@@ -52,11 +54,11 @@ class Level
    void
    LoadShaders(const std::string& shaderName);
    void
-   AddGameObject(const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite);
+   AddGameObject(Game& game, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite);
    void
    Move(const glm::vec2& moveBy);
    void
-   Draw();
+   Draw(Window& window);
 
    bool
    CheckCollision(const glm::ivec2& localPos, const Player& player);

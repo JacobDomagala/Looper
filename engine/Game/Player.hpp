@@ -2,18 +2,21 @@
 
 #include <Common.hpp>
 #include <GameObject.hpp>
+#include <Logger.hpp>
 #include <Shaders.hpp>
 #include <Sprite.hpp>
 #include <Weapon.hpp>
 
 #include <array>
 
+class Window;
 class Enemy;
 
 class Player : public GameObject
 {
  public:
-   explicit Player(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const std::string& name = "Anonymous");
+   explicit Player(Game& game, const glm::vec2& position, const glm::ivec2& size, const std::string& sprite,
+                   const std::string& name = "Anonymous");
    ~Player() = default;
 
    // check if player got git by enemy
@@ -61,34 +64,48 @@ class Player : public GameObject
    int32_t
    GetWeaponDmg() const;
 
-   // draw player
-   void
-   Render(const Shaders& program) override;
-
    // shoot with current weapon
    void
    Shoot();
 
    void
    CreateSprite(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName);
+
+   void
+   Render(Window& window);
+
+   // draw player
+   void
+   Render(Window& window, const Shaders& program) override;
+
    void Hit(int32_t) override
    {
    }
+
    void
    DealWithPlayer() override
    {
    }
 
  private:
+   struct State
+   {
+      // speed at which the player moves
+      // (any moving imparing effects should lower this value)
+      float m_speed;
+
+      // player's current health
+      int32_t m_currentHP;
+
+      // player's velocity
+      glm::vec2 m_velocity;
+   };
+
+   std::array< State, NUM_FRAMES_TO_SAVE > m_previousStates;
+   State m_currentState;
+
    // name of the player
    std::string m_name;
-
-   // player's velocity
-   glm::vec2 m_velocity;
-
-   // speed at which the player moves
-   // (any moving imparing effects should lower this value)
-   float m_speed;
 
    // array of player's weapons
    std::array< std::unique_ptr< Weapon >, 3 > m_weapons;
@@ -99,6 +116,6 @@ class Player : public GameObject
    // player's max health
    int32_t m_maxHP;
 
-   // player's current health
-   int32_t m_currentHP;
+
+   Logger m_logger;
 };

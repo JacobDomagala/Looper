@@ -3,11 +3,14 @@
 #include "FileManager.hpp"
 #include "Shaders.hpp"
 #include "Texture.hpp"
+#include "Logger.hpp"
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <string>
 #include <unordered_map>
+
+class Window;
 
 struct Character
 {
@@ -19,11 +22,6 @@ struct Character
 
 class Font
 {
-   GLuint VAO{}, VBO{};
-   std::unordered_map< GLchar, Character > Characters;
-   Shaders program{};
-   /*Texture texture{};*/
-
  public:
    Font() = default;
    ~Font() = default;
@@ -32,5 +30,11 @@ class Font
    SetFont(const std::string& fileName = (ASSETS_DIR / "segoeui.ttf").u8string());
 
    void
-   RenderText(std::string text, glm::vec2 position, GLfloat scale, const glm::vec3& color);
+   RenderText(Window& window, std::string text, glm::vec2 position, GLfloat scale, const glm::vec3& color);
+
+private:
+   GLuint m_VAO{}, m_VBO{};
+   std::unordered_map< GLchar, Character > m_characters;
+   Shaders m_program{};
+   Logger m_logger;
 };

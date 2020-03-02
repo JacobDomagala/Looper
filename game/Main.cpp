@@ -7,7 +7,7 @@ main(int /* argc */, char** /* argv */)
 {
    Timer globalTimer;
 
-   auto& game = Game::GetInstance();
+   Game game;
    game.Init("GameInit.txt");
 
    auto oldTime = globalTimer.GetGlobalTime();
@@ -26,6 +26,8 @@ main(int /* argc */, char** /* argv */)
 
       if ((timeStamp - oldTime) > TARGET_TIME)
       {
+         game.SwapBuffers();
+
          float dt = (timeStamp - oldTime) * Timer::AreTimersRunning();
          game.ProcessInput(dt);
 
@@ -40,7 +42,6 @@ main(int /* argc */, char** /* argv */)
          game.RenderText(std::to_string(framesLastSecond) + " FPS", glm::vec2(-WIDTH / 2.0f, -HEIGHT / 2.0f), 0.4f,
                          glm::vec3(1.0f, 0.0f, 1.0f));
 
-         game.SwapBuffers();
          ++frames;
       }
       frameTimer += globalTimer.GetDeltaTime();

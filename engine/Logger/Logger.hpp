@@ -9,19 +9,27 @@ class Logger
  public:
    enum class TYPE
    {
+      TRACE = 0,
       DEBUG,
       INFO,
       WARNING,
       FATAL
    };
 
+   Logger(const std::string& name)
+   {
+      m_moduleName = name;
+   }
    Logger() = default;
    ~Logger() = default;
 
    void
+   Init(const std::string& name);
+
+   void
    Log(TYPE, const std::string& logBuffer) const;
 
-   void SetLogType(TYPE);
+   static void SetLogType(TYPE);
 
    friend std::ostream&
    operator<<(std::ostream& os, const Logger::TYPE& type)
@@ -47,6 +55,6 @@ class Logger
    }
 
  private:
-   std::string m_internalBuffer;
-   TYPE m_currentLogType = TYPE::DEBUG;
+   std::string m_moduleName;
+   static TYPE m_currentLogType;
 };

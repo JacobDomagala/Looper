@@ -1,46 +1,21 @@
 #pragma once
 
+#include "Common.hpp"
+#include "Shaders.hpp"
+#include "Sprite.hpp"
+
 #include <GL/glew.h>
-#include <Shaders.hpp>
-#include <Sprite.hpp>
+#include <array>
 #include <glm/glm.hpp>
+
+class Game;
+class Window;
 
 class GameObject
 {
- protected:
-   // global position (in OpenGL coords)
-   glm::vec2 m_globalPosition;
-
-   // center of global's position (in OpenGL coords)
-   glm::vec2 m_centeredGlobalPosition;
-
-   // local position (map coords)
-   glm::ivec2 m_localPosition;
-
-   // center of local's position (map coords)
-   glm::ivec2 m_centeredLocalPosition;
-
-   // object's sprite
-   Sprite m_sprite;
-
-   // object's shaders
-   Shaders m_program;
-
-   // should this object be visible
-   bool m_visible;
-
-   // byte array of sprite used for collision
-   std::unique_ptr< byte_vec4 > m_collision;
-
-   // matrices for transforming object
-   glm::mat4 m_translateMatrix;
-   glm::vec2 m_translateVal;
-   glm::mat4 m_rotateMatrix;
-   glm::mat4 m_scaleMatrix;
-
  public:
    // Constructors and destructors
-   GameObject(const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite);
+   GameObject(Game& game, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite);
    virtual ~GameObject() = default;
 
    virtual void Hit(int32_t) = 0;
@@ -50,7 +25,7 @@ class GameObject
    virtual bool
    Visible() const
    {
-      return m_visible;
+      return m_currentState.m_visible;
    }
 
    // SETERS
@@ -96,5 +71,64 @@ class GameObject
 
    // Render object
    virtual void
-   Render(const Shaders& program);
+   Render(Window& window, const Shaders& program);
+
+ protected:
+   struct State
+   {
+      // global position (in OpenGL coords)
+      glm::vec2 m_globalPosition;
+
+      // center of global's position (in OpenGL coords)
+      glm::vec2 m_centeredGlobalPosition;
+
+      // local position (map coords)
+      glm::ivec2 m_localPosition;
+
+      // center of local's position (map coords)
+      glm::ivec2 m_centeredLocalPosition;
+
+      // should this object be visible
+      bool m_visible;
+      // matrices for transforming object
+      glm::mat4 m_translateMatrix;
+      glm::vec2 m_translateVal;
+      glm::mat4 m_rotateMatrix;
+      glm::mat4 m_scaleMatrix;
+   };
+
+   std::array< State, NUM_FRAMES_TO_SAVE > m_previousStates;
+   State m_currentState;
+   uint32_t m_currentFrame = 0;
+
+   Game& m_gameHandle;
+   // // global position (in OpenGL coords)
+   // glm::vec2 m_globalPosition;
+
+   // // center of global's position (in OpenGL coords)
+   // glm::vec2 m_centeredGlobalPosition;
+
+   // // local position (map coords)
+   // glm::ivec2 m_localPosition;
+
+   // // center of local's position (map coords)
+   // glm::ivec2 m_centeredLocalPosition;
+
+   // object's sprite
+   Sprite m_sprite;
+
+   // object's shaders
+   Shaders m_program;
+
+   // should this object be visible
+   // bool m_visible;
+
+   // byte array of sprite used for collision
+   std::unique_ptr< byte_vec4 > m_collision;
+
+   // matrices for transforming object
+   // glm::mat4 m_translateMatrix;
+   // glm::vec2 m_translateVal;
+   // glm::mat4 m_rotateMatrix;
+   // glm::mat4 m_scaleMatrix;
 };

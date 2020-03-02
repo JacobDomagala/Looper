@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IInputListener.hpp"
-#include "KeyCodes.hpp"
+#include "Logger.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -18,13 +18,13 @@ class InputManager
    // @brief Used by IInputListener object to register for key callback
    // @param listener listener object interested in
    // @param state state of the action in which user is interested
-   static void
+   void
    RegisterForKeyInput(IInputListener* listener);
 
    // @brief Polling function to check if key is currenty pressed
    // @param action Key in which user is interested
    // @return True if key is pressed, False otherwise
-   static bool
+   bool
    CheckKeyPressed(int keyKode);
 
    // @brief Polling function to check if key mapped to given action is currenty pressed
@@ -39,10 +39,10 @@ class InputManager
    SetUpKeyMap(const std::string& configFile);*/
 
    // @brief Called each frame to update the input and notify all interested components
-   static void
+   void
    HandleInput();
 
-   static void
+   void
    Init(GLFWwindow* mainWindow);
 
    // callbacks for GLFW input
@@ -54,10 +54,12 @@ class InputManager
    InternalCursorPositionCallback(GLFWwindow* window, double xpos, double ypos);
 
  private:
-   static std::vector< IInputListener* > m_inputListeners;
+   std::vector< IInputListener* > m_inputListeners;
    static glm::vec2 m_mousePosition;
    static std::unordered_map< int, bool > m_keyMap;
 
    // in future handle input from multiple windows?
-   static GLFWwindow* m_windowHandle;
+   GLFWwindow* m_windowHandle;
+
+   static Logger m_logger;
 };

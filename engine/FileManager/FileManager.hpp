@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Logger.hpp"
+
 #include <filesystem>
 #include <string>
 
@@ -17,6 +19,10 @@ class FileManager
    };
    static std::string
    ReadFile(const std::string& fileName, FileType type = FileType::TEXT);
+
    static void
    WriteToFile(const std::string& fileName, FileType type = FileType::TEXT);
+
+private:
+   static Logger m_logger;
 };

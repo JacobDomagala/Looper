@@ -12,17 +12,20 @@
 void
 Font::SetFont(const std::string& fileName)
 {
-   program.LoadShaders("Font_vs.glsl", "Font_fs.glsl");
+   m_logger.Init("Font");
+
+   m_program.LoadShaders("Font_vs.glsl", "Font_fs.glsl");
+
    FT_Library ft;
 
    if (FT_Init_FreeType(&ft))
-      Game::GetInstance().Log(Logger::TYPE::FATAL, "Error initializing FreeType!");
+      m_logger.Log(Logger::TYPE::FATAL, "Error initializing FreeType!");
 
    FT_Face face;
    std::string filePath = (ASSETS_DIR / fileName).u8string() + ".ttf";
 
    if (FT_New_Face(ft, filePath.c_str(), 0, &face))
-      Game::GetInstance().Log(Logger::TYPE::FATAL, "Error loading font " + filePath);
+      m_logger.Log(Logger::TYPE::FATAL, "Error loading font " + filePath);
 
    FT_New_Face(ft, filePath.c_str(), 0, &face);
    // Set size to load glyphs as
@@ -36,7 +39,7 @@ Font::SetFont(const std::string& fileName)
    {
       // Load character glyph
       if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-         Game::GetInstance().Log(Logger::TYPE::FATAL, "Error loading font face for character " + c + filePath);
+         m_logger.Log(Logger::TYPE::FATAL, "Error loading font face for character " + c + filePath);
 
       FT_Load_Char(face, c, FT_LOAD_RENDER);
       // Generate texture
@@ -55,7 +58,7 @@ Font::SetFont(const std::string& fileName)
       Character character = {texture, glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
                              glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top), static_cast< GLuint >(face->glyph->advance.x)};
 
-      Characters.insert(std::pair< GLchar, Character >(c, character));
+      m_characters.insert(std::pair< GLchar, Character >(c, character));
    }
 
    glBindTexture(GL_TEXTURE_2D, 0);
@@ -63,10 +66,10 @@ Font::SetFont(const std::string& fileName)
    FT_Done_Face(face);
    FT_Done_FreeType(ft);
 
-   glGenVertexArrays(1, &VAO);
-   glGenBuffers(1, &VBO);
-   glBindVertexArray(VAO);
-   glBindBuffer(GL_ARRAY_BUFFER, VBO);
+   glGenVertexArrays(1, &m_VAO);
+   glGenBuffers(1, &m_VBO);
+   glBindVertexArray(m_VAO);
+   glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
    glEnableVertexAttribArray(0);
    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
@@ -77,26 +80,26 @@ Font::SetFont(const std::string& fileName)
 }
 
 void
-Font::RenderText(std::string text, glm::vec2 position, GLfloat scale, const glm::vec3& color)
+Font::RenderText(Window& window, std::string text, glm::vec2 position, GLfloat scale, const glm::vec3& color)
 {
    // Activate corresponding render state
-   program.UseProgram();
-   program.SetUniformFloatVec4(glm::vec4(color, 1.0f), "color");
-   program.SetUniformFloatMat4(Game::GetInstance().GetProjection(), "projectionMatrix");
+   m_program.UseProgram();
+   m_program.SetUniformFloatVec4(glm::vec4(color, 1.0f), "color");
+   m_program.SetUniformFloatMat4(window.GetProjection(), "projectionMatrix");
    glActiveTexture(GL_TEXTURE0);
-   glBindVertexArray(VAO);
+   glBindVertexArray(m_VAO);
 
    // Iterate through all characters
    std::string::const_iterator c;
    for (c = text.begin(); c != text.end(); ++c)
    {
-      Character ch = Characters[*c];
+      Character ch = m_characters[*c];
 
       GLfloat w = ch.size.x * scale;
       GLfloat h = ch.size.y * scale;
 
       GLfloat xpos = position.x + ch.bearing.x * scale;
-      GLfloat ypos = position.y + (this->Characters['H'].bearing.y - ch.bearing.y) * scale;
+      GLfloat ypos = position.y + (m_characters['H'].bearing.y - ch.bearing.y) * scale;
 
       // Seems like it stores tex coords in Direct3d style FeelsBadMan
       GLfloat vertices[6][4] = {{xpos, ypos + h, 0.0, 1.0}, {xpos + w, ypos, 1.0, 0.0},     {xpos, ypos, 0.0, 0.0},
@@ -107,7 +110,7 @@ Font::RenderText(std::string text, glm::vec2 position, GLfloat scale, const glm:
       glBindTexture(GL_TEXTURE_2D, ch.textureID);
 
       // Update content of VBO memory
-      glBindBuffer(GL_ARRAY_BUFFER, VBO);
+      glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
       glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); // Be sure to use glBufferSubData and not glBufferData
 
       glBindBuffer(GL_ARRAY_BUFFER, 0);
