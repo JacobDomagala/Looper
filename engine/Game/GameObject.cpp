@@ -124,7 +124,15 @@ GameObject::Move(const glm::vec2& moveBy, bool isCameraMovement)
 }
 
 void
-GameObject::Render(Window& window, const Shaders& program)
+GameObject::Render(Window& window, const Shaders& program, int frameCount)
 {
-   m_sprite.Render(window, program);
+   m_previousStates[frameCount] = m_currentState;
+   m_sprite.Render(window, program, frameCount);
+}
+
+void
+GameObject::RenderReverse(Window& window, const Shaders& program, int frameCount)
+{
+   m_currentState = m_previousStates.at(frameCount);
+   m_sprite.RenderReverse(window, program, frameCount);
 }

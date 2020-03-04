@@ -7,10 +7,6 @@
 #include <functional>
 #include <iostream>
 
-glm::vec2 InputManager::m_mousePosition = {};
-std::unordered_map< int, bool > InputManager::m_keyMap = {};
-Logger InputManager::m_logger;
-
 void
 InputManager::InternalKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {

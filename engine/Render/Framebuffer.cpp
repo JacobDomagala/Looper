@@ -1,34 +1,32 @@
-#include "Common.hpp"
 #include "Framebuffer.hpp"
+#include "Common.hpp"
+#include "Texture.hpp"
 
-void Framebuffer::SetUp()
+void
+Framebuffer::SetUp()
 {
-   glGenFramebuffers(NUM_FRAMES_TO_SAVE, m_frameBufferIDs.data());
-   glGenTextures(NUM_FRAMES_TO_SAVE, m_textureIDs.data());
+   glGenFramebuffers(1, &m_framebufferID);
+   glGenTextures(1, &m_textureID);
 
-   for(GLuint id = 1; id < NUM_FRAMES_TO_SAVE; ++id)
-   {
-      glBindFramebuffer(GL_FRAMEBUFFER, id);
-      glBindTexture(GL_TEXTURE_2D, id);
-      glActiveTexture(GL_TEXTURE0);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+   glBindFramebuffer(GL_FRAMEBUFFER, m_framebufferID);
+   glBindTexture(GL_TEXTURE_2D, m_textureID);
+   glActiveTexture(GL_TEXTURE0);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
-      GLenum drawBuffers[] = {GL_COLOR_ATTACHMENT0};
-      glDrawBuffers(1, drawBuffers);
+   GLenum drawBuffers[] = {GL_COLOR_ATTACHMENT0};
+   glDrawBuffers(1, drawBuffers);
 
-      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, id, 0);
-      glBindFramebuffer(GL_FRAMEBUFFER, 0);
-      glBindTexture(GL_TEXTURE_2D, 0);
-   }
+   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_textureID, 0);
+   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+   glBindTexture(GL_TEXTURE_2D, 0);
 
-
-   shaders.LoadShaders("AfterEffects_vs.glsl", "AfterEffects_fs.glsl");
+   m_shaders.LoadShaders("AfterEffects_vs.glsl", "AfterEffects_fs.glsl");
 
    glGenVertexArrays(1, &m_vertexArrayBuffer);
    glGenBuffers(1, &m_vertexBuffer);
@@ -47,14 +45,14 @@ void Framebuffer::SetUp()
 void
 Framebuffer::LoadShaders(const std::string& shaderName)
 {
-   shaders.LoadShaders(shaderName + "_vs.glsl", shaderName + "_fs.glsl");
+   m_shaders.LoadShaders(shaderName + "_vs.glsl", shaderName + "_fs.glsl");
 }
 
 void
 Framebuffer::BeginDrawingToTexture()
 {
    // DRAW TO FRAMEBUFFER
-   glBindFramebuffer(GL_FRAMEBUFFER, m_textureIDs.at(m_currentFrame));
+   glBindFramebuffer(GL_FRAMEBUFFER, m_textureID);
    glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT);
 }
@@ -71,17 +69,18 @@ Framebuffer::DrawFrameBuffer()
    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT);
 
-   shaders.UseProgram();
+   m_shaders.UseProgram();
    glBindVertexArray(m_vertexArrayBuffer);
 
    glActiveTexture(GL_TEXTURE0);
-   glBindTexture(GL_TEXTURE_2D, m_textureIDs.at(m_currentFrame));
+   glBindTexture(GL_TEXTURE_2D, m_textureID);
+   //glReadPixels(0, 0, WIDTH, HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, m_texturesBytes.at(m_currentFrame).get());
 
    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
    glBindVertexArray(0);
 
-   m_currentFrame = m_currentFrame >= NUM_FRAMES_TO_SAVE ? 0 : m_currentFrame++;
+   //m_currentFrame = m_currentFrame >= NUM_FRAMES_TO_SAVE ? 0 : m_currentFrame++;
 }
 
 void
@@ -90,13 +89,15 @@ Framebuffer::DrawPreviousFrameBuffer()
    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT);
 
-   shaders.UseProgram();
    glBindVertexArray(m_vertexArrayBuffer);
 
-   glActiveTexture(GL_TEXTURE0);
-   glBindTexture(GL_TEXTURE_2D, m_textureIDs.at(0));
+   Texture textureForCurrentFrame;
+   textureForCurrentFrame.LoadTextureFromMemory(WIDTH, HEIGHT, m_texturesBytes.at(m_currentFrame).get());
+   textureForCurrentFrame.Use(m_shaders.GetProgram());
 
    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
    glBindVertexArray(0);
+
+   m_currentFrame = m_currentFrame <= 0 ? 0 : m_currentFrame--;
 }

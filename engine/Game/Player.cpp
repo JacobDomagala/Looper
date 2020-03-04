@@ -66,25 +66,49 @@ Player::GetScreenPosition() const
 }
 
 void
-Player::Render(Window& window)
+Player::Render(Window& window, int frameCount)
 {
-   Render(window, m_program);
+   Render(window, m_program, frameCount);
 }
 
 void
-Player::Render(Window& window, const Shaders& program)
+Player::RenderReverse(Window& window, int frameCount)
+{
+   m_currentState = m_previousStates.at(frameCount);
+
+   m_sprite.Rotate(m_currentState.m_viewAngle + 90.0f);
+
+   //m_sprite.Render(window, m_program, frameCount);
+   GameObject::RenderReverse(window, m_program, frameCount);
+   m_sprite.SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
+}
+
+void
+Player::Render(Window& window, const Shaders& program, int frameCount)
 {
 #pragma region CURSOR_MATH
 
    glm::vec2 cursorPos = m_gameHandle.GetCursorScreenPosition();
 
    glm::vec4 tmpPos = m_gameHandle.GetProjection() * glm::vec4(GameObject::m_currentState.m_centeredGlobalPosition, 0.0f, 1.0f);
-   float angle = -glm::degrees(glm::atan(tmpPos.y - cursorPos.y, tmpPos.x - cursorPos.x));
+   m_currentState.m_viewAngle = -glm::degrees(glm::atan(tmpPos.y - cursorPos.y, tmpPos.x - cursorPos.x));
 
 #pragma endregion
-   m_sprite.Rotate(angle + 90.0f);
-   m_sprite.Render(window, m_program);
+   m_sprite.Rotate(m_currentState.m_viewAngle + 90.0f);
+  // m_sprite.RenderReverse(window, m_program, frameCount);
+   GameObject::Render(window, m_program, frameCount);
    m_sprite.SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
+
+   m_previousStates[frameCount] = m_currentState;
+}
+
+void
+Player::RenderReverse(Window& window, const Shaders& program, int frameCount)
+{
+   GameObject::m_currentState = GameObject::m_previousStates.at(frameCount);
+   m_currentState = m_previousStates.at(frameCount);
+
+   Render(window, program, frameCount);
 }
 
 void

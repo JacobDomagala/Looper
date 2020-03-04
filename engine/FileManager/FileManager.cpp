@@ -2,8 +2,6 @@
 
 #include <fstream>
 
-Logger FileManager::m_logger = Logger("FileManager");
-
 std::string
 FileManager::ReadFile(const std::string& fileName, FileType type)
 {

@@ -23,14 +23,18 @@ class Enemy : public GameObject
    void
    DealWithPlayer() override;
 
+   void
+   Render(Window& window, const Shaders& program, int frameCount) override;
+
+   void
+   RenderReverse(Window& window, const Shaders& program, int frameCount) override;
+
    int32_t
    GetDmg() const
    {
       return m_weapon->GetDamage();
    }
 
-   void
-   Render(Window& window, const Shaders& program) override;
    void
    Animate();
 

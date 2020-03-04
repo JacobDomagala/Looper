@@ -6,6 +6,7 @@
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
+#include <array>
 
 class Window;
 
@@ -26,65 +27,58 @@ class Sprite
                      const std::string& fileName = ".\\Default.png");
 
    glm::vec2
-   GetCenteredPosition() const
-   {
-      return m_centeredPosition;
-   }
+   GetCenteredPosition() const;
 
    glm::vec2
-   GetPosition() const
-   {
-      return m_position;
-   }
+   GetPosition() const;
 
    glm::ivec2
-   GetSize() const
-   {
-      return m_size;
-   }
+   GetSize() const;
 
    void
-   SetColor(const glm::vec3& color)
-   {
-      m_color = glm::vec4(color, 1.0f);
-   }
+   SetColor(const glm::vec3& color);
 
    void
-   SetTextureFromFile(const std::string& filePath)
-   {
-      m_texture.LoadTextureFromFile(filePath);
-   }
+   SetTextureFromFile(const std::string& filePath);
 
    void
-   SetTexture(const Texture& texture)
-   {
-      m_texture = texture;
-   }
+   SetTexture(const Texture& texture);
 
    void
-   Rotate(float angle)
-   {
-      m_angle = angle;
-   }
+   Rotate(float angle);
 
    void
-   Scale(const glm::vec2& axies)
-   {
-      m_scaleVal = axies;
-   }
+   Scale(const glm::vec2& scaleValue);
 
    void
-   Translate(const glm::vec2& axies)
-   {
-      m_position += axies;
-      m_translateVal += glm::vec3(axies, 0.0f);
-   }
+   Translate(const glm::vec2& translateValue);
 
    // Render sprite using 'program'
    void
-   Render(Window& window, const Shaders& program);
+   Render(Window& window, const Shaders& program, int frameCounter);
+
+   void
+   RenderReverse(Window& window, const Shaders& program, int frameCounter);
 
 private:
+   struct State
+   {
+      // color of sprite (default is white)
+      glm::vec4 m_color;
+
+      // sprite's position
+      glm::vec2 m_position;
+
+      // transofmation values
+      glm::vec3 m_translateVal;
+      glm::vec3 m_velocity;
+      glm::vec2 m_scaleVal;
+      float m_angle{};
+   };
+
+   std::array< State, NUM_FRAMES_TO_SAVE > m_previousStates;
+   State m_currentState;
+
    // sprite's texture
    Texture m_texture{};
 
@@ -94,19 +88,10 @@ private:
    // sprite's center
    glm::vec2 m_centeredPosition;
 
-   // sprite's position
-   glm::vec2 m_position;
-
    // OpenGL buffers
    GLuint m_vertexArrayBuffer{};
    GLuint m_vertexBuffer{};
 
    // width and height
    glm::ivec2 m_size;
-
-   // transofmation values
-   glm::vec3 m_translateVal;
-   glm::vec3 m_velocity;
-   glm::vec2 m_scaleVal;
-   float m_angle{};
 };

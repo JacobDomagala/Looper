@@ -661,81 +661,84 @@ Game::KeyEvents(float deltaTime)
 
    if (m_inputManager.CheckKeyPressed(GLFW_KEY_UP))
    {
-      m_currentLevel.MoveObjs(glm::vec2(0.0f, 2.0f), false);
+      m_reverse = true;
    }
    if (m_inputManager.CheckKeyPressed(GLFW_KEY_DOWN))
    {
-      m_currentLevel.MoveObjs(glm::vec2(0.0f, -2.0f), false);
-   }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_LEFT))
-   {
-      m_currentLevel.MoveObjs(glm::vec2(2.0f, 0.0f));
-   }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_RIGHT))
-   {
-      m_currentLevel.MoveObjs(glm::vec2(-2.0f, 0.0f));
-   }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_ESCAPE))
-   {
-      m_window->ShutDown();
-   }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_O))
-   {
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-   }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_1))
-   {
-      m_window->ShowCursor(true);
-   }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_2))
-   {
-      m_window->ShowCursor(false);
-   }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_P))
-   {
-      glDisable(GL_BLEND);
-   }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_W))
-   {
-      playerMoveBy += glm::ivec2(0, -playerMovement);
-      cameraMoveBy += glm::ivec2(0, cameraMovement);
-   }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_S))
-   {
-      playerMoveBy += glm::ivec2(0, playerMovement);
-      cameraMoveBy += glm::ivec2(0, -cameraMovement);
-   }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_A))
-   {
-      playerMoveBy += glm::ivec2(-playerMovement, 0);
-      cameraMoveBy += glm::ivec2(cameraMovement, 0);
-   }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_D))
-   {
-      playerMoveBy += glm::ivec2(playerMovement, 0);
-      cameraMoveBy += glm::ivec2(-cameraMovement, 0);
-   }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_R))
-   {
-      Timer::PauseAllTimers();
-   }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_T))
-   {
-      Timer::ResumeAllTimers();
-   }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_SPACE))
-   {
-      m_currentLevel.Move(-m_player->GetCenteredGlobalPosition());
-      m_player->Move(-m_player->GetCenteredGlobalPosition());
+      m_reverse = false;
    }
 
-
-   if (glm::length(glm::vec2(playerMoveBy)))
+   if (!m_reverse)
    {
-      m_currentLevel.Move(cameraMoveBy);
-      if (CheckMove(playerMoveBy) == false)
-         m_currentLevel.Move(-cameraMoveBy);
+      if (m_inputManager.CheckKeyPressed(GLFW_KEY_LEFT))
+      {
+         m_currentLevel.MoveObjs(glm::vec2(2.0f, 0.0f));
+      }
+      if (m_inputManager.CheckKeyPressed(GLFW_KEY_RIGHT))
+      {
+         m_currentLevel.MoveObjs(glm::vec2(-2.0f, 0.0f));
+      }
+      if (m_inputManager.CheckKeyPressed(GLFW_KEY_ESCAPE))
+      {
+         m_window->ShutDown();
+      }
+      if (m_inputManager.CheckKeyPressed(GLFW_KEY_O))
+      {
+         glEnable(GL_BLEND);
+         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      }
+      if (m_inputManager.CheckKeyPressed(GLFW_KEY_1))
+      {
+         m_window->ShowCursor(true);
+      }
+      if (m_inputManager.CheckKeyPressed(GLFW_KEY_2))
+      {
+         m_window->ShowCursor(false);
+      }
+      if (m_inputManager.CheckKeyPressed(GLFW_KEY_P))
+      {
+         glDisable(GL_BLEND);
+      }
+      if (m_inputManager.CheckKeyPressed(GLFW_KEY_W))
+      {
+         playerMoveBy += glm::ivec2(0, -playerMovement);
+         cameraMoveBy += glm::ivec2(0, cameraMovement);
+      }
+      if (m_inputManager.CheckKeyPressed(GLFW_KEY_S))
+      {
+         playerMoveBy += glm::ivec2(0, playerMovement);
+         cameraMoveBy += glm::ivec2(0, -cameraMovement);
+      }
+      if (m_inputManager.CheckKeyPressed(GLFW_KEY_A))
+      {
+         playerMoveBy += glm::ivec2(-playerMovement, 0);
+         cameraMoveBy += glm::ivec2(cameraMovement, 0);
+      }
+      if (m_inputManager.CheckKeyPressed(GLFW_KEY_D))
+      {
+         playerMoveBy += glm::ivec2(playerMovement, 0);
+         cameraMoveBy += glm::ivec2(-cameraMovement, 0);
+      }
+      if (m_inputManager.CheckKeyPressed(GLFW_KEY_R))
+      {
+         Timer::PauseAllTimers();
+      }
+      if (m_inputManager.CheckKeyPressed(GLFW_KEY_T))
+      {
+         Timer::ResumeAllTimers();
+      }
+      if (m_inputManager.CheckKeyPressed(GLFW_KEY_SPACE))
+      {
+         m_currentLevel.Move(-m_player->GetCenteredGlobalPosition());
+         m_player->Move(-m_player->GetCenteredGlobalPosition());
+      }
+
+      if (glm::length(glm::vec2(playerMoveBy)))
+      {
+         m_currentLevel.Move(cameraMoveBy);
+         if (CheckMove(playerMoveBy) == false)
+            m_currentLevel.Move(-cameraMoveBy);
+      }
    }
 }
 
@@ -785,30 +788,33 @@ Game::MouseEvents(float deltaTime)
    // cursor's position from center of the screen to trigger camera movement
    float borderValue = 0.2f;
 
-   if (cursor.x > borderValue)
+   if (!m_reverse)
    {
-      float someX = (cursor.x - borderValue) * multiplier;
-      cameraMoveBy += glm::vec2(-cameraMovement * someX, 0.0f);
-   }
-   else if (cursor.x < -borderValue)
-   {
-      float someX = (cursor.x + borderValue) * multiplier;
-      cameraMoveBy += glm::vec2(-cameraMovement * someX, 0.0f);
-   }
-   if (cursor.y > borderValue)
-   {
-      float someY = (cursor.y - borderValue) * multiplier;
-      cameraMoveBy += glm::vec2(0.0f, -cameraMovement * someY);
-   }
-   else if (cursor.y < -borderValue)
-   {
-      float someY = (cursor.y + borderValue) * multiplier;
-      cameraMoveBy += glm::vec2(0.0f, -cameraMovement * someY);
-   }
-   if (glm::length(glm::vec2(cameraMoveBy)))
-   {
-      m_currentLevel.Move(cameraMoveBy);
-      m_player->Move(cameraMoveBy);
+      if (cursor.x > borderValue)
+      {
+         float someX = (cursor.x - borderValue) * multiplier;
+         cameraMoveBy += glm::vec2(-cameraMovement * someX, 0.0f);
+      }
+      else if (cursor.x < -borderValue)
+      {
+         float someX = (cursor.x + borderValue) * multiplier;
+         cameraMoveBy += glm::vec2(-cameraMovement * someX, 0.0f);
+      }
+      if (cursor.y > borderValue)
+      {
+         float someY = (cursor.y - borderValue) * multiplier;
+         cameraMoveBy += glm::vec2(0.0f, -cameraMovement * someY);
+      }
+      else if (cursor.y < -borderValue)
+      {
+         float someY = (cursor.y + borderValue) * multiplier;
+         cameraMoveBy += glm::vec2(0.0f, -cameraMovement * someY);
+      }
+      if (glm::length(glm::vec2(cameraMoveBy)))
+      {
+         m_currentLevel.Move(cameraMoveBy);
+         m_player->Move(cameraMoveBy);
+      }
    }
 }
 
@@ -817,17 +823,25 @@ Game::RenderFirstPass()
 {
    m_frameBuffer.BeginDrawingToTexture();
 
-   // player's position on the map
-   m_playerPosition = m_currentLevel.GetLocalVec(m_player->GetCenteredGlobalPosition());
+   if (!m_reverse)
+   {
+      // player's position on the map
+      m_playerPosition = m_currentLevel.GetLocalVec(m_player->GetCenteredGlobalPosition());
 
-   glm::ivec2 correction = CorrectPosition();
+      glm::ivec2 correction = CorrectPosition();
 
-   m_player->Move(correction);
-   m_playerPosition += correction;
-   m_player->SetCenteredLocalPosition(m_playerPosition);
+      m_player->Move(correction);
+      m_playerPosition += correction;
+      m_player->SetCenteredLocalPosition(m_playerPosition);
 
-   m_currentLevel.Draw(*m_window);
-   m_player->Render(*m_window);
+      m_currentLevel.Draw(*m_window, m_frameCount);
+      m_player->Render(*m_window, m_frameCount);
+   }
+   else
+   {
+      m_currentLevel.DrawReverse(*m_window, m_frameCount);
+      m_player->RenderReverse(*m_window, m_frameCount);
+   }
 
    m_frameBuffer.EndDrawingToTexture();
 }
@@ -840,7 +854,7 @@ Game::RenderSecondPass()
    glm::ivec2 debug2 = m_player->GetCenteredLocalPosition();
    for (auto& obj : m_debugObjs)
    {
-     obj->Draw(m_window->GetProjection());
+      obj->Draw(m_window->GetProjection());
    }
    m_debugObjs.clear();
 
@@ -970,15 +984,33 @@ Game::RenderText(std::string text, const glm::vec2& position, float scale, const
 void
 Game::Render()
 {
-   if(!m_reverse)
+   RenderFirstPass();
+   RenderSecondPass();
+
+   if(m_reverse)
    {
-      RenderFirstPass();
-      RenderSecondPass();
+      if(m_frameCount == 0)
+      {
+         m_reverse = false;
+      }
+      else
+      {
+         --m_frameCount;
+      }
+
    }
    else
    {
-      m_frameBuffer.DrawPreviousFrameBuffer();
+      if(m_frameCount == NUM_FRAMES_TO_SAVE - 1)
+      {
+         // do nothing
+      }
+      else
+      {
+         ++m_frameCount;
+      }
 
    }
 
+ //  m_frameCount = m_reverse ? (m_frameCount == 0) ? 0 : --m_frameCount : (m_frameCount == NUM_FRAMES_TO_SAVE - 1) ? NUM_FRAMES_TO_SAVE : ++m_frameCount;
 }

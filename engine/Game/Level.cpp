@@ -173,10 +173,10 @@ Level::Move(const glm::vec2& moveBy)
 }
 
 void
-Level::Draw(Window& window)
+Level::Draw(Window& window, int frameCount)
 {
    // draw background
-   background.Render(window, shaders);
+   background.Render(window, shaders, frameCount);
 
    if (!objects.empty())
    {
@@ -185,7 +185,25 @@ Level::Draw(Window& window)
          if (obj->Visible())
          {
             obj->DealWithPlayer();
-            obj->Render(window, shaders);
+            obj->Render(window, shaders, frameCount);
+         }
+      }
+   }
+}
+
+void
+Level::DrawReverse(Window& window, int frameCount)
+{
+   // draw background
+   background.RenderReverse(window, shaders, frameCount);
+
+   if (!objects.empty())
+   {
+      for (auto& obj : objects)
+      {
+         if (obj->Visible())
+         {
+            obj->RenderReverse(window, shaders, frameCount);
          }
       }
    }

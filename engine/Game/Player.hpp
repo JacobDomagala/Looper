@@ -72,11 +72,17 @@ class Player : public GameObject
    CreateSprite(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName);
 
    void
-   Render(Window& window);
+   Render(Window& window, int frameCount);
+
+   void
+   RenderReverse(Window& window, int frameCount);
 
    // draw player
    void
-   Render(Window& window, const Shaders& program) override;
+   Render(Window& window, const Shaders& program, int frameCount) override;
+
+   void
+   RenderReverse(Window& window, const Shaders& program, int frameCount) override;
 
    void Hit(int32_t) override
    {
@@ -99,6 +105,9 @@ class Player : public GameObject
 
       // player's velocity
       glm::vec2 m_velocity;
+
+      // direction where player is looking
+      float m_viewAngle;
    };
 
    std::array< State, NUM_FRAMES_TO_SAVE > m_previousStates;

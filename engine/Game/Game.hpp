@@ -241,6 +241,7 @@ class Game
    float m_deltaTime;
 
    bool m_reverse = false;
+   int m_frameCount = 0;
 
    // state of the game
    GameState m_state;

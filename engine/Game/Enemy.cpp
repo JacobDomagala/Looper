@@ -257,14 +257,23 @@ Enemy::ClearPositions()
 }
 
 void
-Enemy::Render(Window& window, const Shaders& program)
+Enemy::Render(Window& window, const Shaders& program, int frameCount)
 {
    if (!m_currentState.m_combatStarted && m_currentState.m_isAtInitialPos)
    {
       Animate();
    }
 
-   GameObject::Render(window, program);
+   m_enemyPreviousStates[frameCount] = m_currentState;
+   GameObject::Render(window, program, frameCount);
+}
+
+void
+Enemy::RenderReverse(Window& window, const Shaders& program, int frameCount)
+{
+   m_currentState = m_enemyPreviousStates.at(frameCount);
+
+   GameObject::RenderReverse(window, program, frameCount);
 }
 
 void

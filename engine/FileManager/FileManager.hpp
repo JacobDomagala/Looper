@@ -24,5 +24,5 @@ class FileManager
    WriteToFile(const std::string& fileName, FileType type = FileType::TEXT);
 
 private:
-   static Logger m_logger;
+   static inline Logger m_logger = Logger("FileManager");;
 };

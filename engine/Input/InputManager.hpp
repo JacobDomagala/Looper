@@ -55,11 +55,11 @@ class InputManager
 
  private:
    std::vector< IInputListener* > m_inputListeners;
-   static glm::vec2 m_mousePosition;
-   static std::unordered_map< int, bool > m_keyMap;
 
    // in future handle input from multiple windows?
    GLFWwindow* m_windowHandle;
 
-   static Logger m_logger;
+   static inline glm::vec2 m_mousePosition = {};
+   static inline std::unordered_map< int, bool > m_keyMap = {};
+   static inline Logger m_logger = Logger("InputManager");
 };

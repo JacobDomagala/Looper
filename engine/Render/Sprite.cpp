@@ -18,12 +18,12 @@ Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
                              glm::vec4(0.0f + size.x, 0.0f - size.y, 1.0f, 0.0f)};
    m_centeredPosition.x = position.x + (size.x / 2.0f);
    m_centeredPosition.y = position.y - (size.y / 2.0f);
-   m_position = position;
+   m_currentState.m_position = position;
    m_size = size;
 
-   m_translateVal = glm::vec3(position, 0.0f);
-   m_angle = 0.0f;
-   m_scaleVal = glm::vec2(1.0f, 1.0f);
+   m_currentState.m_translateVal = glm::vec3(position, 0.0f);
+   m_currentState.m_angle = 0.0f;
+   m_currentState.m_scaleVal = glm::vec2(1.0f, 1.0f);
    m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
    glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
@@ -50,12 +50,12 @@ Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size, con
 
    m_centeredPosition.x = position.x + (size.x / 2.0f);
    m_centeredPosition.y = position.y - (size.y / 2.0f);
-   m_position = position;
+   m_currentState.m_position = position;
    m_size = size;
 
-   m_translateVal = glm::vec3(position, 0.0f);
-   m_angle = 0.0f;
-   m_scaleVal = glm::vec2(1.0f, 1.0f);
+   m_currentState.m_translateVal = glm::vec3(position, 0.0f);
+   m_currentState.m_angle = 0.0f;
+   m_currentState.m_scaleVal = glm::vec2(1.0f, 1.0f);
    m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
    glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
@@ -67,18 +67,20 @@ Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size, con
 }
 
 void
-Sprite::Render(Window& window, const Shaders& program)
+Sprite::Render(Window& window, const Shaders& program, int frameCounter)
 {
    program.UseProgram();
    glBindVertexArray(m_vertexArrayBuffer);
 
    glm::mat4 modelMatrix;
 
-   modelMatrix = glm::translate(modelMatrix, m_translateVal);
-   modelMatrix = glm::translate(modelMatrix, glm::vec3((m_size.x / 2.0f) * m_scaleVal.x, (m_size.y / -2.0f) * m_scaleVal.y, 0.0f));
-   modelMatrix = glm::rotate(modelMatrix, glm::radians(m_angle), glm::vec3(0.0f, 0.0f, 1.0f));
-   modelMatrix = glm::translate(modelMatrix, glm::vec3((m_size.x / -2.0f) * m_scaleVal.x, (m_size.y / 2.0f) * m_scaleVal.y, 0.0f));
-   modelMatrix = glm::scale(modelMatrix, glm::vec3(m_scaleVal, 1.0f));
+   modelMatrix = glm::translate(modelMatrix, m_currentState.m_translateVal);
+   modelMatrix = glm::translate(
+      modelMatrix, glm::vec3((m_size.x / 2.0f) * m_currentState.m_scaleVal.x, (m_size.y / -2.0f) * m_currentState.m_scaleVal.y, 0.0f));
+   modelMatrix = glm::rotate(modelMatrix, glm::radians(m_currentState.m_angle), glm::vec3(0.0f, 0.0f, 1.0f));
+   modelMatrix = glm::translate(
+      modelMatrix, glm::vec3((m_size.x / -2.0f) * m_currentState.m_scaleVal.x, (m_size.y / 2.0f) * m_currentState.m_scaleVal.y, 0.0f));
+   modelMatrix = glm::scale(modelMatrix, glm::vec3(m_currentState.m_scaleVal, 1.0f));
 
    m_texture.Use(program.GetProgram());
    program.SetUniformFloatVec4(m_color, "color");
@@ -87,4 +89,88 @@ Sprite::Render(Window& window, const Shaders& program)
 
    glDrawArrays(GL_TRIANGLES, 0, 6);
    glBindVertexArray(0);
+
+   m_previousStates[frameCounter] = m_currentState;
+}
+
+void
+Sprite::RenderReverse(Window& window, const Shaders& program, int frameCounter)
+{
+   m_currentState =  m_previousStates[frameCounter];
+   program.UseProgram();
+   glBindVertexArray(m_vertexArrayBuffer);
+
+   glm::mat4 modelMatrix;
+
+   modelMatrix = glm::translate(modelMatrix, m_currentState.m_translateVal);
+   modelMatrix = glm::translate(
+      modelMatrix, glm::vec3((m_size.x / 2.0f) * m_currentState.m_scaleVal.x, (m_size.y / -2.0f) * m_currentState.m_scaleVal.y, 0.0f));
+   modelMatrix = glm::rotate(modelMatrix, glm::radians(m_currentState.m_angle), glm::vec3(0.0f, 0.0f, 1.0f));
+   modelMatrix = glm::translate(
+      modelMatrix, glm::vec3((m_size.x / -2.0f) * m_currentState.m_scaleVal.x, (m_size.y / 2.0f) * m_currentState.m_scaleVal.y, 0.0f));
+   modelMatrix = glm::scale(modelMatrix, glm::vec3(m_currentState.m_scaleVal, 1.0f));
+
+   m_texture.Use(program.GetProgram());
+   program.SetUniformFloatVec4(m_color, "color");
+   program.SetUniformFloatMat4(window.GetProjection(), "projectionMatrix");
+   program.SetUniformFloatMat4(modelMatrix, "modelMatrix");
+
+   glDrawArrays(GL_TRIANGLES, 0, 6);
+   glBindVertexArray(0);
+}
+
+
+glm::vec2
+Sprite::GetCenteredPosition() const
+{
+   return m_centeredPosition;
+}
+
+glm::vec2
+Sprite::GetPosition() const
+{
+   return m_currentState.m_position;
+}
+
+glm::ivec2
+Sprite::GetSize() const
+{
+   return m_size;
+}
+
+void
+Sprite::SetColor(const glm::vec3& color)
+{
+   m_color = glm::vec4(color, 1.0f);
+}
+
+void
+Sprite::SetTextureFromFile(const std::string& filePath)
+{
+   m_texture.LoadTextureFromFile(filePath);
+}
+
+void
+Sprite::SetTexture(const Texture& texture)
+{
+   m_texture = texture;
+}
+
+void
+Sprite::Rotate(float angle)
+{
+   m_currentState.m_angle = angle;
+}
+
+void
+Sprite::Scale(const glm::vec2& scaleValue)
+{
+   m_currentState.m_scaleVal = scaleValue;
+}
+
+void
+Sprite::Translate(const glm::vec2& translateValue)
+{
+   m_currentState.m_position += translateValue;
+   m_currentState.m_translateVal += glm::vec3(translateValue, 0.0f);
 }

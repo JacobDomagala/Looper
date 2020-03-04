@@ -71,7 +71,10 @@ class GameObject
 
    // Render object
    virtual void
-   Render(Window& window, const Shaders& program);
+   Render(Window& window, const Shaders& program, int frameCount);
+
+   virtual void
+   RenderReverse(Window& window, const Shaders& program, int frameCount);
 
  protected:
    struct State

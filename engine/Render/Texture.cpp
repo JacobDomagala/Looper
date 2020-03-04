@@ -3,10 +3,6 @@
 #include <Window.hpp>
 #include <stb_image.h>
 
-int32_t Texture::m_unitCounter = 0;
-int32_t Texture::m_nowBound = 0;
-int32_t Texture::m_boundCount = 0;
-
 std::unique_ptr< byte_vec4 >
 Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenum filter)
 {
@@ -18,17 +14,19 @@ Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenu
       m_logger.Log(Logger::TYPE::FATAL, std::string("Can't load the file ") + fileName);
    }
 
-   LoadTextureFromMemory(m_width, m_height, data.get());
+   LoadTextureFromMemory(m_width, m_height, reinterpret_cast< uint8_t* >(data.get()));
 
    return data;
 }
 
 void
-Texture::LoadTextureFromMemory(int32_t width, int32_t height, byte_vec4* data, GLenum wrapMode, GLenum filter)
+Texture::LoadTextureFromMemory(int32_t width, int32_t height, uint8_t* data, GLenum wrapMode, GLenum filter)
 {
+   m_data = data;
+
    glGenTextures(1, &m_textureID);
    glBindTexture(GL_TEXTURE_2D, m_textureID);
-   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, reinterpret_cast< uint8_t* >(data));
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, reinterpret_cast< uint8_t* >(m_data));
    glGenerateMipmap(GL_TEXTURE_2D);
 
    // glTexParameteri(m_textureID, GL_TEXTURE_MAG_FILTER, filter);
@@ -36,7 +34,8 @@ Texture::LoadTextureFromMemory(int32_t width, int32_t height, byte_vec4* data, G
    // glTexParameteri(m_textureID, GL_TEXTURE_WRAP_S, wrapMode);
    // glTexParameteri(m_textureID, GL_TEXTURE_WRAP_T, wrapMode);
 
-   m_unit =m_textureID;// m_unitCounter++;
+   // 32 textures can be bound at the same time
+   m_unit = m_unitCounter >= m_maxBoundCound ? 0 : m_unitCounter++;
 
    m_logger.Log(Logger::TYPE::DEBUG, std::string("Created texture with sampler_ID ") + std::to_string(m_samplerID) + " using it with unit_id " + std::to_string(m_unit));
 }
@@ -44,6 +43,8 @@ Texture::LoadTextureFromMemory(int32_t width, int32_t height, byte_vec4* data, G
 void
 Texture::Use(GLuint program)
 {
+//   LoadTextureFromMemory(m_width, m_height, m_data);
+
    if (m_nowBound != m_unit)
    {
       m_logger.Log(Logger::TYPE::DEBUG, std::string("Binding texture with ID ") + std::to_string(m_unit) + " for shader program " + std::to_string(program));

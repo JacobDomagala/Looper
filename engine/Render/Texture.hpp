@@ -14,7 +14,7 @@ class Texture
    ~Texture() = default;
 
    // DEBUG: number of glBindTexture calls
-   static int32_t m_boundCount;
+   static inline int32_t m_boundCount = 0;
 
    // Load texture from 'fileName' file and return byte values (used for collision)
    std::unique_ptr< byte_vec4 >
@@ -22,7 +22,7 @@ class Texture
 
    // Load texture from 'data' memory
    void
-   LoadTextureFromMemory(int32_t width, int32_t height, byte_vec4* data, GLenum wrapMode = GL_REPEAT, GLenum filter = GL_LINEAR);
+   LoadTextureFromMemory(int32_t width, int32_t height, uint8_t* data, GLenum wrapMode = GL_REPEAT, GLenum filter = GL_LINEAR);
 
    int32_t
    GetWidth() const
@@ -58,14 +58,19 @@ private:
    GLuint m_samplerID;
 
    // each time new texture is loaded this counter is increased
-   static int32_t m_unitCounter;
+   static inline int32_t m_unitCounter = 0;
 
    // ID of currently bound texture
-   static int32_t m_nowBound;
+   static inline int32_t m_nowBound = 0;
+
+   GLuint m_maxBoundCound = 31;
 
    // texture unit
    int32_t m_unit;
 
    Logger m_logger = Logger("Texture");
+
+   // FIX LATER -> THIS IS RAW POINTER FROM UNIQUE
+   uint8_t* m_data;
 
 };
