@@ -221,6 +221,9 @@ class Game
    void
    RayTracer();
 
+   void
+   HandleReverseLogic();
+
  private:
    Logger logger;
    std::unique_ptr< Window > m_window = nullptr;

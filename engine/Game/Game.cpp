@@ -659,11 +659,11 @@ Game::KeyEvents(float deltaTime)
    glm::ivec2 playerMoveBy = glm::ivec2();
    glm::ivec2 cameraMoveBy = glm::ivec2();
 
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_UP))
+   if (m_inputManager.CheckKeyPressed(GLFW_KEY_LEFT_CONTROL))
    {
       m_reverse = true;
    }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_DOWN))
+   else
    {
       m_reverse = false;
    }
@@ -995,9 +995,9 @@ Game::RenderText(std::string text, const glm::vec2& position, float scale, const
 }
 
 void
-Game::Render()
+Game::HandleReverseLogic()
 {
-   if(m_reverse)
+  if(m_reverse)
    {
       if(m_frameCount == 0)
       {
@@ -1007,7 +1007,6 @@ Game::Render()
       {
          --m_frameCount;
       }
-
    }
    else
    {
@@ -1019,11 +1018,14 @@ Game::Render()
       {
          ++m_frameCount;
       }
-
    }
+}
+
+void
+Game::Render()
+{
+   HandleReverseLogic();
 
    RenderFirstPass();
    RenderSecondPass();
-
- //  m_frameCount = m_reverse ? (m_frameCount == 0) ? 0 : --m_frameCount : (m_frameCount == NUM_FRAMES_TO_SAVE - 1) ? NUM_FRAMES_TO_SAVE : ++m_frameCount;
 }
