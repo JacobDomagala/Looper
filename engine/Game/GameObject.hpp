@@ -5,7 +5,7 @@
 #include "Sprite.hpp"
 
 #include <GL/glew.h>
-#include <array>
+#include <deque>
 #include <glm/glm.hpp>
 
 class Game;
@@ -18,7 +18,9 @@ class GameObject
    GameObject(Game& game, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite);
    virtual ~GameObject() = default;
 
-   virtual void Hit(int32_t) = 0;
+   virtual void
+   Hit(int32_t) = 0;
+
    virtual void
    DealWithPlayer() = 0;
 
@@ -71,10 +73,10 @@ class GameObject
 
    // Render object
    virtual void
-   Render(Window& window, const Shaders& program, int frameCount);
+   Render(Window& window, const Shaders& program);
 
    virtual void
-   RenderReverse(Window& window, const Shaders& program, int frameCount);
+   RenderReverse(Window& window, const Shaders& program);
 
  protected:
    struct State
@@ -100,38 +102,17 @@ class GameObject
       glm::mat4 m_scaleMatrix;
    };
 
-   std::array< State, NUM_FRAMES_TO_SAVE > m_previousStates;
+   std::deque<State> m_statesQueue;
    State m_currentState;
-   uint32_t m_currentFrame = 0;
 
    Game& m_gameHandle;
-   // // global position (in OpenGL coords)
-   // glm::vec2 m_globalPosition;
-
-   // // center of global's position (in OpenGL coords)
-   // glm::vec2 m_centeredGlobalPosition;
-
-   // // local position (map coords)
-   // glm::ivec2 m_localPosition;
-
-   // // center of local's position (map coords)
-   // glm::ivec2 m_centeredLocalPosition;
-
+ 
    // object's sprite
    Sprite m_sprite;
 
    // object's shaders
    Shaders m_program;
 
-   // should this object be visible
-   // bool m_visible;
-
    // byte array of sprite used for collision
    std::unique_ptr< byte_vec4 > m_collision;
-
-   // matrices for transforming object
-   // glm::mat4 m_translateMatrix;
-   // glm::vec2 m_translateVal;
-   // glm::mat4 m_rotateMatrix;
-   // glm::mat4 m_scaleMatrix;
 };

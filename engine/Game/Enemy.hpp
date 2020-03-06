@@ -5,7 +5,7 @@
 #include "Timer.hpp"
 #include "Weapon.hpp"
 
-#include <array>
+#include <deque>
 #include <vector>
 
 class Window;
@@ -24,10 +24,10 @@ class Enemy : public GameObject
    DealWithPlayer() override;
 
    void
-   Render(Window& window, const Shaders& program, int frameCount) override;
+   Render(Window& window, const Shaders& program) override;
 
    void
-   RenderReverse(Window& window, const Shaders& program, int frameCount) override;
+   RenderReverse(Window& window, const Shaders& program) override;
 
    int32_t
    GetDmg() const
@@ -77,7 +77,7 @@ class Enemy : public GameObject
       glm::vec2 m_counter{0.0f, 0.0f};
    };
 
-   std::array< EnemyState, NUM_FRAMES_TO_SAVE > m_enemyPreviousStates;
+   std::deque< EnemyState > m_statesQueue;
    EnemyState m_currentState;
 
    // helper timer
@@ -86,43 +86,11 @@ class Enemy : public GameObject
    // total HP
    int32_t m_maxHP;
 
-   // current HP
-   // int32_t m_currentHP;
-
-   // // position where enemy will shoot
-   // glm::vec2 m_targetShootPosition;
-   // glm::ivec2 m_targetMovePosition;
-
-   // glm::ivec2 m_initialPosition;
-   // glm::ivec2 m_lastPlayersPos;
-
-   // enemy's vision range
-   // float m_visionRange;
-
-   // bool m_isChasingPlayer = false;
-   // bool m_isAtInitialPos = true;
-
-   // float m_timeSinceCombatEnded = 0.0f;
-   // float m_timeSinceCombatStarted = 0.0f;
-   // float m_timeSinceLastShot = 0.0f;
-   // float m_reactionTime = 0.1f;
-   // float m_movementSpeed = 500.0f;
-
-   // uint8_t m_currentNodeIdx{};
-   // uint8_t m_destinationNodeIdx{};
-
    // current weapon
    std::unique_ptr< Weapon > m_weapon;
 
-   // fight between enemy and player started
-   // bool m_combatStarted;
-
    std::vector< glm::vec2 > m_positions{glm::vec2(0.5f, 0.5f), glm::vec2(0.0f, -0.5f), glm::vec2(-0.5f, 0.0f),
                                         glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 0.0f),  glm::vec2(-0.5f, -0.5f)};
-
-   // int32_t m_CurrentAnimationIndex = 0;
-   // glm::vec2 m_counter{0.0f, 0.0f};
-   // bool reverse = false;
 
    void
    Shoot();

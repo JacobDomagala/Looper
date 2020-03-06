@@ -203,6 +203,11 @@ class Game
    void
    MouseEvents(float deltaTime);
 
+   // Updates the internal states of each game object
+   // Needed for reversing time
+   void
+   UpdateGameState();
+
    // draws to framebuffer (texture)
    void
    RenderFirstPass();

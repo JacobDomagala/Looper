@@ -819,10 +819,18 @@ Game::MouseEvents(float deltaTime)
 }
 
 void
+Game::UpdateGameState()
+{
+
+}
+
+void
 Game::RenderFirstPass()
 {
    m_frameBuffer.BeginDrawingToTexture();
 
+   // Temporary fix for getting player unstuck from walls
+   // Should only be active when not going in reverse mode
    if (!m_reverse)
    {
       // player's position on the map
@@ -834,13 +842,14 @@ Game::RenderFirstPass()
       m_playerPosition += correction;
       m_player->SetCenteredLocalPosition(m_playerPosition);
 
-      m_currentLevel.Draw(*m_window, m_frameCount);
-      m_player->Render(*m_window, m_frameCount);
+
+      m_currentLevel.Draw(*m_window);
+      m_player->Render(*m_window);
    }
    else
    {
-      m_currentLevel.DrawReverse(*m_window, m_frameCount);
-      m_player->RenderReverse(*m_window, m_frameCount);
+      m_currentLevel.DrawReverse(*m_window);
+      m_player->RenderReverse(*m_window);
    }
 
    m_frameBuffer.EndDrawingToTexture();
@@ -973,6 +982,10 @@ Game::ProcessInput(float deltaTime)
 
    MouseEvents(deltaTime);
    KeyEvents(deltaTime);
+
+   // Update game state only when NOT going reverse mode
+   if(!m_reverse)
+      UpdateGameState();
 }
 
 void
@@ -984,9 +997,6 @@ Game::RenderText(std::string text, const glm::vec2& position, float scale, const
 void
 Game::Render()
 {
-   RenderFirstPass();
-   RenderSecondPass();
-
    if(m_reverse)
    {
       if(m_frameCount == 0)
@@ -1011,6 +1021,9 @@ Game::Render()
       }
 
    }
+
+   RenderFirstPass();
+   RenderSecondPass();
 
  //  m_frameCount = m_reverse ? (m_frameCount == 0) ? 0 : --m_frameCount : (m_frameCount == NUM_FRAMES_TO_SAVE - 1) ? NUM_FRAMES_TO_SAVE : ++m_frameCount;
 }

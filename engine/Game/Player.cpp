@@ -66,25 +66,24 @@ Player::GetScreenPosition() const
 }
 
 void
-Player::Render(Window& window, int frameCount)
+Player::Render(Window& window)
 {
-   Render(window, m_program, frameCount);
+   Render(window, m_program);
 }
 
 void
-Player::RenderReverse(Window& window, int frameCount)
+Player::RenderReverse(Window& window)
 {
-   m_currentState = m_previousStates.at(frameCount);
+   m_currentState = m_statesQueue.back();
+   // m_sprite.Rotate(m_currentState.m_viewAngle + 90.0f);
 
-   m_sprite.Rotate(m_currentState.m_viewAngle + 90.0f);
-
-   //m_sprite.Render(window, m_program, frameCount);
-   GameObject::RenderReverse(window, m_program, frameCount);
-   m_sprite.SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
+   GameObject::RenderReverse(window, m_program);
+   // m_sprite.SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
+   m_statesQueue.pop_back();
 }
 
 void
-Player::Render(Window& window, const Shaders& program, int frameCount)
+Player::Render(Window& window, const Shaders& program)
 {
 #pragma region CURSOR_MATH
 
@@ -95,20 +94,26 @@ Player::Render(Window& window, const Shaders& program, int frameCount)
 
 #pragma endregion
    m_sprite.Rotate(m_currentState.m_viewAngle + 90.0f);
-  // m_sprite.RenderReverse(window, m_program, frameCount);
-   GameObject::Render(window, m_program, frameCount);
+   // m_sprite.RenderReverse(window, m_program, frameCount);
+   GameObject::Render(window, m_program);
    m_sprite.SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
 
-   m_previousStates[frameCount] = m_currentState;
+   m_statesQueue.push_back(m_currentState);
+   if (m_statesQueue.size() >= NUM_FRAMES_TO_SAVE)
+   {
+      m_statesQueue.pop_front();
+   }
 }
 
 void
-Player::RenderReverse(Window& window, const Shaders& program, int frameCount)
+Player::RenderReverse(Window& window, const Shaders& program)
 {
-   GameObject::m_currentState = GameObject::m_previousStates.at(frameCount);
-   m_currentState = m_previousStates.at(frameCount);
+   // m_currentState = m_statesQueue.front();
+   // GameObject::m_currentState = GameObject::m_previousStates.at();
+   // m_currentState = m_previousStates.at(frameCount);
 
-   Render(window, program, frameCount);
+   // /RenderReverse(window, program);
+   // m_statesQueue.pop();
 }
 
 void

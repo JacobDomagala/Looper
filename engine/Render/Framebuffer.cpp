@@ -74,13 +74,13 @@ Framebuffer::DrawFrameBuffer()
 
    glActiveTexture(GL_TEXTURE0);
    glBindTexture(GL_TEXTURE_2D, m_textureID);
-   //glReadPixels(0, 0, WIDTH, HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, m_texturesBytes.at(m_currentFrame).get());
+   // glReadPixels(0, 0, WIDTH, HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, m_texturesBytes.at(m_currentFrame).get());
 
    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
    glBindVertexArray(0);
 
-   //m_currentFrame = m_currentFrame >= NUM_FRAMES_TO_SAVE ? 0 : m_currentFrame++;
+   // m_currentFrame = m_currentFrame >= NUM_FRAMES_TO_SAVE ? 0 : m_currentFrame++;
 }
 
 void

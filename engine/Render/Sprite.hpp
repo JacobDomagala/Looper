@@ -5,8 +5,8 @@
 #include "Texture.hpp"
 
 #include <GL/glew.h>
+#include <deque>
 #include <glm/glm.hpp>
-#include <array>
 
 class Window;
 
@@ -55,12 +55,12 @@ class Sprite
 
    // Render sprite using 'program'
    void
-   Render(Window& window, const Shaders& program, int frameCounter);
+   Render(Window& window, const Shaders& program);
 
    void
-   RenderReverse(Window& window, const Shaders& program, int frameCounter);
+   RenderReverse(Window& window, const Shaders& program);
 
-private:
+ private:
    struct State
    {
       // color of sprite (default is white)
@@ -76,7 +76,7 @@ private:
       float m_angle{};
    };
 
-   std::array< State, NUM_FRAMES_TO_SAVE > m_previousStates;
+   std::deque< State > m_statesQueue;
    State m_currentState;
 
    // sprite's texture

@@ -37,17 +37,19 @@ Texture::LoadTextureFromMemory(int32_t width, int32_t height, uint8_t* data, GLe
    // 32 textures can be bound at the same time
    m_unit = m_unitCounter >= m_maxBoundCound ? 0 : m_unitCounter++;
 
-   m_logger.Log(Logger::TYPE::DEBUG, std::string("Created texture with sampler_ID ") + std::to_string(m_samplerID) + " using it with unit_id " + std::to_string(m_unit));
+   m_logger.Log(Logger::TYPE::DEBUG, std::string("Created texture with sampler_ID ") + std::to_string(m_samplerID)
+                                        + " using it with unit_id " + std::to_string(m_unit));
 }
 
 void
 Texture::Use(GLuint program)
 {
-//   LoadTextureFromMemory(m_width, m_height, m_data);
+   //   LoadTextureFromMemory(m_width, m_height, m_data);
 
    if (m_nowBound != m_unit)
    {
-      m_logger.Log(Logger::TYPE::DEBUG, std::string("Binding texture with ID ") + std::to_string(m_unit) + " for shader program " + std::to_string(program));
+      m_logger.Log(Logger::TYPE::DEBUG,
+                   std::string("Binding texture with ID ") + std::to_string(m_unit) + " for shader program " + std::to_string(program));
 
       GLuint samplerLocation = glGetUniformLocation(program, "texture");
 
@@ -61,7 +63,7 @@ Texture::Use(GLuint program)
    }
    else
    {
-      m_logger.Log(Logger::TYPE::DEBUG, std::string("Using already bound texture with ID ") + std::to_string(m_unit) + " for shader program " + std::to_string(program));
+      m_logger.Log(Logger::TYPE::DEBUG, std::string("Using already bound texture with ID ") + std::to_string(m_unit)
+                                           + " for shader program " + std::to_string(program));
    }
-
 }

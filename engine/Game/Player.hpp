@@ -7,7 +7,7 @@
 #include <Sprite.hpp>
 #include <Weapon.hpp>
 
-#include <array>
+#include <deque>
 
 class Window;
 class Enemy;
@@ -72,17 +72,17 @@ class Player : public GameObject
    CreateSprite(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName);
 
    void
-   Render(Window& window, int frameCount);
+   Render(Window& window);
 
    void
-   RenderReverse(Window& window, int frameCount);
+   RenderReverse(Window& window);
 
    // draw player
    void
-   Render(Window& window, const Shaders& program, int frameCount) override;
+   Render(Window& window, const Shaders& program) override;
 
    void
-   RenderReverse(Window& window, const Shaders& program, int frameCount) override;
+   RenderReverse(Window& window, const Shaders& program) override;
 
    void Hit(int32_t) override
    {
@@ -110,7 +110,7 @@ class Player : public GameObject
       float m_viewAngle;
    };
 
-   std::array< State, NUM_FRAMES_TO_SAVE > m_previousStates;
+   std::deque< State > m_statesQueue;
    State m_currentState;
 
    // name of the player

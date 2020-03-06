@@ -58,9 +58,11 @@ class Level
    void
    Move(const glm::vec2& moveBy);
    void
-   Draw(Window& window, int frameCount);
+   Update();
    void
-   DrawReverse(Window& window, int frameCount);
+   Draw(Window& window);
+   void
+   DrawReverse(Window& window);
 
    bool
    CheckCollision(const glm::ivec2& localPos, const Player& player);

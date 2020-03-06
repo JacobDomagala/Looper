@@ -6,6 +6,7 @@
 #include <Timer.hpp>
 #include <Window.hpp>
 
+#include <functional>
 // Sprite Level::background;
 // glm::ivec2 Level::levelSize;
 
@@ -173,10 +174,10 @@ Level::Move(const glm::vec2& moveBy)
 }
 
 void
-Level::Draw(Window& window, int frameCount)
+Level::Draw(Window& window)
 {
    // draw background
-   background.Render(window, shaders, frameCount);
+   background.Render(window, shaders);
 
    if (!objects.empty())
    {
@@ -185,17 +186,17 @@ Level::Draw(Window& window, int frameCount)
          if (obj->Visible())
          {
             obj->DealWithPlayer();
-            obj->Render(window, shaders, frameCount);
+            obj->Render(window, shaders);
          }
       }
    }
 }
 
 void
-Level::DrawReverse(Window& window, int frameCount)
+Level::DrawReverse(Window& window)
 {
    // draw background
-   background.RenderReverse(window, shaders, frameCount);
+   background.RenderReverse(window, shaders);
 
    if (!objects.empty())
    {
@@ -203,7 +204,7 @@ Level::DrawReverse(Window& window, int frameCount)
       {
          if (obj->Visible())
          {
-            obj->RenderReverse(window, shaders, frameCount);
+            obj->RenderReverse(window, shaders);
          }
       }
    }

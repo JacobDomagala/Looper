@@ -67,7 +67,7 @@ Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size, con
 }
 
 void
-Sprite::Render(Window& window, const Shaders& program, int frameCounter)
+Sprite::Render(Window& window, const Shaders& program)
 {
    program.UseProgram();
    glBindVertexArray(m_vertexArrayBuffer);
@@ -90,13 +90,17 @@ Sprite::Render(Window& window, const Shaders& program, int frameCounter)
    glDrawArrays(GL_TRIANGLES, 0, 6);
    glBindVertexArray(0);
 
-   m_previousStates[frameCounter] = m_currentState;
+   m_statesQueue.push_back(m_currentState);
+   if(m_statesQueue.size() >= NUM_FRAMES_TO_SAVE)
+   {
+      m_statesQueue.pop_front();
+   }
 }
 
 void
-Sprite::RenderReverse(Window& window, const Shaders& program, int frameCounter)
+Sprite::RenderReverse(Window& window, const Shaders& program)
 {
-   m_currentState =  m_previousStates[frameCounter];
+   m_currentState = m_statesQueue.back();
    program.UseProgram();
    glBindVertexArray(m_vertexArrayBuffer);
 
@@ -117,6 +121,9 @@ Sprite::RenderReverse(Window& window, const Shaders& program, int frameCounter)
 
    glDrawArrays(GL_TRIANGLES, 0, 6);
    glBindVertexArray(0);
+
+   // remove oldest state
+   m_statesQueue.pop_back();
 }
 
 
