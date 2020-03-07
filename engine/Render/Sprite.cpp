@@ -67,6 +67,24 @@ Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size, con
 }
 
 void
+Sprite::Update(bool isReverse)
+{
+   if (isReverse)
+   {
+      m_currentState = m_statesQueue.back();
+      m_statesQueue.pop_back();
+   }
+   else
+   {
+      m_statesQueue.push_back(m_currentState);
+      if (m_statesQueue.size() >= NUM_FRAMES_TO_SAVE)
+      {
+         m_statesQueue.pop_front();
+      }
+   }
+}
+
+void
 Sprite::Render(Window& window, const Shaders& program)
 {
    program.UseProgram();
@@ -89,41 +107,6 @@ Sprite::Render(Window& window, const Shaders& program)
 
    glDrawArrays(GL_TRIANGLES, 0, 6);
    glBindVertexArray(0);
-
-   m_statesQueue.push_back(m_currentState);
-   if(m_statesQueue.size() >= NUM_FRAMES_TO_SAVE)
-   {
-      m_statesQueue.pop_front();
-   }
-}
-
-void
-Sprite::RenderReverse(Window& window, const Shaders& program)
-{
-   m_currentState = m_statesQueue.back();
-   program.UseProgram();
-   glBindVertexArray(m_vertexArrayBuffer);
-
-   glm::mat4 modelMatrix;
-
-   modelMatrix = glm::translate(modelMatrix, m_currentState.m_translateVal);
-   modelMatrix = glm::translate(
-      modelMatrix, glm::vec3((m_size.x / 2.0f) * m_currentState.m_scaleVal.x, (m_size.y / -2.0f) * m_currentState.m_scaleVal.y, 0.0f));
-   modelMatrix = glm::rotate(modelMatrix, glm::radians(m_currentState.m_angle), glm::vec3(0.0f, 0.0f, 1.0f));
-   modelMatrix = glm::translate(
-      modelMatrix, glm::vec3((m_size.x / -2.0f) * m_currentState.m_scaleVal.x, (m_size.y / 2.0f) * m_currentState.m_scaleVal.y, 0.0f));
-   modelMatrix = glm::scale(modelMatrix, glm::vec3(m_currentState.m_scaleVal, 1.0f));
-
-   m_texture.Use(program.GetProgram());
-   program.SetUniformFloatVec4(m_color, "color");
-   program.SetUniformFloatMat4(window.GetProjection(), "projectionMatrix");
-   program.SetUniformFloatMat4(modelMatrix, "modelMatrix");
-
-   glDrawArrays(GL_TRIANGLES, 0, 6);
-   glBindVertexArray(0);
-
-   // remove oldest state
-   m_statesQueue.pop_back();
 }
 
 

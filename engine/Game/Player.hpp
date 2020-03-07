@@ -74,15 +74,9 @@ class Player : public GameObject
    void
    Render(Window& window);
 
-   void
-   RenderReverse(Window& window);
-
    // draw player
    void
    Render(Window& window, const Shaders& program) override;
-
-   void
-   RenderReverse(Window& window, const Shaders& program) override;
 
    void Hit(int32_t) override
    {
@@ -94,6 +88,9 @@ class Player : public GameObject
    }
 
  private:
+   void
+   UpdateInternal(bool isReverse) override;
+
    struct State
    {
       // speed at which the player moves

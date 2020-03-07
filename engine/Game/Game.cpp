@@ -821,7 +821,8 @@ Game::MouseEvents(float deltaTime)
 void
 Game::UpdateGameState()
 {
-
+   m_currentLevel.Update(m_reverse);
+   m_player->Update(m_reverse);
 }
 
 void
@@ -841,16 +842,10 @@ Game::RenderFirstPass()
       m_player->Move(correction);
       m_playerPosition += correction;
       m_player->SetCenteredLocalPosition(m_playerPosition);
-
-
-      m_currentLevel.Draw(*m_window);
-      m_player->Render(*m_window);
    }
-   else
-   {
-      m_currentLevel.DrawReverse(*m_window);
-      m_player->RenderReverse(*m_window);
-   }
+
+   m_currentLevel.Render(*m_window);
+   m_player->Render(*m_window);
 
    m_frameBuffer.EndDrawingToTexture();
 }
@@ -983,9 +978,8 @@ Game::ProcessInput(float deltaTime)
    MouseEvents(deltaTime);
    KeyEvents(deltaTime);
 
-   // Update game state only when NOT going reverse mode
-   if(!m_reverse)
-      UpdateGameState();
+   HandleReverseLogic();
+   UpdateGameState();
 }
 
 void
@@ -997,9 +991,9 @@ Game::RenderText(std::string text, const glm::vec2& position, float scale, const
 void
 Game::HandleReverseLogic()
 {
-  if(m_reverse)
+   if (m_reverse)
    {
-      if(m_frameCount == 0)
+      if (m_frameCount == 0)
       {
          m_reverse = false;
       }
@@ -1010,7 +1004,7 @@ Game::HandleReverseLogic()
    }
    else
    {
-      if(m_frameCount == NUM_FRAMES_TO_SAVE - 1)
+      if (m_frameCount == NUM_FRAMES_TO_SAVE - 1)
       {
          // do nothing
       }
@@ -1024,8 +1018,6 @@ Game::HandleReverseLogic()
 void
 Game::Render()
 {
-   HandleReverseLogic();
-
    RenderFirstPass();
    RenderSecondPass();
 }

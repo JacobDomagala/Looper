@@ -18,8 +18,7 @@ class GameObject
    GameObject(Game& game, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite);
    virtual ~GameObject() = default;
 
-   virtual void
-   Hit(int32_t) = 0;
+   virtual void Hit(int32_t) = 0;
 
    virtual void
    DealWithPlayer() = 0;
@@ -76,9 +75,14 @@ class GameObject
    Render(Window& window, const Shaders& program);
 
    virtual void
-   RenderReverse(Window& window, const Shaders& program);
+   Update(bool isReverse);
 
  protected:
+   // should be overriden by derrived class
+   // used by GameObject::Update
+   virtual void
+   UpdateInternal(bool isReverse) = 0;
+
    struct State
    {
       // global position (in OpenGL coords)
@@ -102,11 +106,11 @@ class GameObject
       glm::mat4 m_scaleMatrix;
    };
 
-   std::deque<State> m_statesQueue;
+   std::deque< State > m_statesQueue;
    State m_currentState;
 
    Game& m_gameHandle;
- 
+
    // object's sprite
    Sprite m_sprite;
 

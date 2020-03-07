@@ -257,6 +257,24 @@ Enemy::ClearPositions()
 }
 
 void
+Enemy::UpdateInternal(bool isReverse)
+{
+   if (isReverse)
+   {
+      m_currentState = m_statesQueue.back();
+      m_statesQueue.pop_back();
+   }
+   else
+   {
+      m_statesQueue.push_back(m_currentState);
+      if (m_statesQueue.size() >= NUM_FRAMES_TO_SAVE)
+      {
+         m_statesQueue.pop_front();
+      }
+   }
+}
+
+void
 Enemy::Render(Window& window, const Shaders& program)
 {
    if (!m_currentState.m_combatStarted && m_currentState.m_isAtInitialPos)
@@ -265,20 +283,6 @@ Enemy::Render(Window& window, const Shaders& program)
    }
 
    GameObject::Render(window, program);
-
-   m_statesQueue.push_back(m_currentState);
-   if (m_statesQueue.size() >= NUM_FRAMES_TO_SAVE)
-   {
-      m_statesQueue.pop_front();
-   }
-}
-
-void
-Enemy::RenderReverse(Window& window, const Shaders& program)
-{
-   m_currentState = m_statesQueue.back();
-   GameObject::RenderReverse(window, program);
-   m_statesQueue.pop_back();
 }
 
 void

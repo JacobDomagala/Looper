@@ -173,39 +173,33 @@ Level::Move(const glm::vec2& moveBy)
    MoveCamera(moveBy);
 }
 
-void
-Level::Draw(Window& window)
-{
-   // draw background
-   background.Render(window, shaders);
 
-   if (!objects.empty())
+void
+Level::Update(bool isReverse)
+{
+   background.Update(isReverse);
+
+   for (auto& obj : objects)
    {
-      for (auto& obj : objects)
+      if (obj->Visible())
       {
-         if (obj->Visible())
-         {
-            obj->DealWithPlayer();
-            obj->Render(window, shaders);
-         }
+         obj->DealWithPlayer();
+         obj->Update(isReverse);
       }
    }
 }
 
 void
-Level::DrawReverse(Window& window)
+Level::Render(Window& window)
 {
    // draw background
-   background.RenderReverse(window, shaders);
+   background.Render(window, shaders);
 
-   if (!objects.empty())
+   for (auto& obj : objects)
    {
-      for (auto& obj : objects)
+      if (obj->Visible())
       {
-         if (obj->Visible())
-         {
-            obj->RenderReverse(window, shaders);
-         }
+         obj->Render(window, shaders);
       }
    }
 }

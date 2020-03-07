@@ -53,12 +53,12 @@ class Sprite
    void
    Translate(const glm::vec2& translateValue);
 
+   void
+   Update(bool isReverse);
+
    // Render sprite using 'program'
    void
    Render(Window& window, const Shaders& program);
-
-   void
-   RenderReverse(Window& window, const Shaders& program);
 
  private:
    struct State

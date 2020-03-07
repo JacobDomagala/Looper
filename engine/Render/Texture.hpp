@@ -1,14 +1,13 @@
 #pragma once
 
-#include <Common.hpp>
 #include "Logger.hpp"
+#include <Common.hpp>
 
 #include <GL/glew.h>
 #include <string>
 
 class Texture
 {
-
  public:
    Texture() = default;
    ~Texture() = default;
@@ -46,8 +45,8 @@ class Texture
    void
    Use(GLuint programID);
 
-private:
- // width and size of texture
+ private:
+   // width and size of texture
    int32_t m_width;
    int32_t m_height;
 
@@ -72,5 +71,4 @@ private:
 
    // FIX LATER -> THIS IS RAW POINTER FROM UNIQUE
    uint8_t* m_data;
-
 };

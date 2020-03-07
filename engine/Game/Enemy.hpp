@@ -26,9 +26,6 @@ class Enemy : public GameObject
    void
    Render(Window& window, const Shaders& program) override;
 
-   void
-   RenderReverse(Window& window, const Shaders& program) override;
-
    int32_t
    GetDmg() const
    {
@@ -39,6 +36,8 @@ class Enemy : public GameObject
    Animate();
 
  private:
+   void UpdateInternal(bool isReverse) override;
+
    enum class ACTION
    {
       IDLE,

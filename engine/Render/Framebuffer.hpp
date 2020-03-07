@@ -13,7 +13,8 @@ class Framebuffer
    Framebuffer() = default;
    ~Framebuffer() = default;
 
-   void SetUp();
+   void
+   SetUp();
 
    void
    LoadShaders(const std::string& shaderName);
@@ -30,7 +31,7 @@ class Framebuffer
    void
    DrawPreviousFrameBuffer();
 
-private:
+ private:
    uint32_t m_currentFrame = 0;
    GLuint m_framebufferID;
    GLuint m_textureID;
@@ -42,5 +43,4 @@ private:
    // OpenGL buffers
    GLuint m_vertexArrayBuffer{};
    GLuint m_vertexBuffer{};
-
 };

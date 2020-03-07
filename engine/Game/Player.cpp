@@ -66,20 +66,27 @@ Player::GetScreenPosition() const
 }
 
 void
-Player::Render(Window& window)
+Player::UpdateInternal(bool isReverse)
 {
-   Render(window, m_program);
+   if (isReverse)
+   {
+      m_currentState = m_statesQueue.back();
+      m_statesQueue.pop_back();
+   }
+   else
+   {
+      m_statesQueue.push_back(m_currentState);
+      if (m_statesQueue.size() >= NUM_FRAMES_TO_SAVE)
+      {
+         m_statesQueue.pop_front();
+      }
+   }
 }
 
 void
-Player::RenderReverse(Window& window)
+Player::Render(Window& window)
 {
-   m_currentState = m_statesQueue.back();
-   // m_sprite.Rotate(m_currentState.m_viewAngle + 90.0f);
-
-   GameObject::RenderReverse(window, m_program);
-   // m_sprite.SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
-   m_statesQueue.pop_back();
+   Render(window, m_program);
 }
 
 void
@@ -97,23 +104,6 @@ Player::Render(Window& window, const Shaders& program)
    // m_sprite.RenderReverse(window, m_program, frameCount);
    GameObject::Render(window, m_program);
    m_sprite.SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
-
-   m_statesQueue.push_back(m_currentState);
-   if (m_statesQueue.size() >= NUM_FRAMES_TO_SAVE)
-   {
-      m_statesQueue.pop_front();
-   }
-}
-
-void
-Player::RenderReverse(Window& window, const Shaders& program)
-{
-   // m_currentState = m_statesQueue.front();
-   // GameObject::m_currentState = GameObject::m_previousStates.at();
-   // m_currentState = m_previousStates.at(frameCount);
-
-   // /RenderReverse(window, program);
-   // m_statesQueue.pop();
 }
 
 void

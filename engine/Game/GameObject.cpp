@@ -124,21 +124,28 @@ GameObject::Move(const glm::vec2& moveBy, bool isCameraMovement)
 }
 
 void
-GameObject::Render(Window& window, const Shaders& program)
+GameObject::Update(bool isReverse)
 {
-   m_sprite.Render(window, program);
-
-   m_statesQueue.push_back(m_currentState);
-   if (m_statesQueue.size() >= NUM_FRAMES_TO_SAVE)
+   if (isReverse)
    {
-      m_statesQueue.pop_front();
+      m_currentState = m_statesQueue.back();
+      m_statesQueue.pop_back();
    }
+   else
+   {
+      m_statesQueue.push_back(m_currentState);
+      if (m_statesQueue.size() >= NUM_FRAMES_TO_SAVE)
+      {
+         m_statesQueue.pop_front();
+      }
+   }
+
+   m_sprite.Update(isReverse);
+   UpdateInternal(isReverse);
 }
 
 void
-GameObject::RenderReverse(Window& window, const Shaders& program)
+GameObject::Render(Window& window, const Shaders& program)
 {
-   m_currentState = m_statesQueue.back();
-   m_sprite.RenderReverse(window, program);
-   m_statesQueue.pop_back();
+   m_sprite.Render(window, program);
 }
