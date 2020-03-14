@@ -1,24 +1,20 @@
-#include <Timer.hpp>
+#include "Timer.hpp"
 #include <memory>
 
-bool Timer::m_timersPaused = false;
-
-Timer::Timer() : m_deltaTime(0.0), m_globalTime(0.0)
+Timer::Timer()
 {
-   QueryPerformanceFrequency(&m_frequency);
-   QueryPerformanceCounter(&m_counter);
+   m_deltaTime = std::chrono::milliseconds(0);
+   m_timeStamp = std::chrono::steady_clock::now();
 }
 
 void
-Timer::ToggleTimer()
+Timer::Start()
 {
-   LARGE_INTEGER currentCount;
-   QueryPerformanceCounter(&currentCount);
+   // m_startPoint = std::chrono::steady_clock::now();
+}
 
-   int64_t deltaCount = currentCount.QuadPart - m_counter.QuadPart;
-
-   m_deltaTime = deltaCount / static_cast< double >(m_frequency.QuadPart);
-
-   m_globalTime += m_deltaTime;
-   m_counter = currentCount;
+void
+Timer::Stop()
+{
+   // auto tp = std::chrono::steady_clock::now();
 }

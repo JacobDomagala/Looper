@@ -53,7 +53,7 @@ Enemy::DealWithPlayer()
          SetTargetShootPosition(m_gameHandle.GetPlayer().GetCenteredLocalPosition());
       }
 
-      m_timer.ResetAccumulator();
+      //m_timer.ResetAccumulator();
    }
    // player is out of range, clear enemy's 'memory'
    else

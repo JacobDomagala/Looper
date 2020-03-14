@@ -14,6 +14,50 @@ glm::vec2 debug1;
 
 static float delta = 0.0f;
 
+void
+Game::MainLoop()
+{
+   Logger::SetLogType(Logger::TYPE::INFO);
+
+   m_timer.ToggleTimer();
+
+   float timeInterval = 0.0f;
+
+   while (IsRunning())
+   {
+      PollEvents();
+
+      m_timer.ToggleTimer();
+
+      logger.Log(Logger::TYPE::INFO, std::to_string(timeInterval));
+      // if (timeInterval >= TARGET_TIME)
+      if (true)
+      {
+         SwapBuffers();
+
+         auto dt = timeInterval * Timer::AreTimersRunning();
+         ProcessInput(TARGET_TIME);
+
+         // oldTime = timeStamp;
+         Render();
+         if (m_frameTimer > 1.0f)
+         {
+            m_framesLastSecond = m_frames;
+            m_frameTimer = 0.0f;
+            m_frames = 0;
+         }
+         RenderText(std::to_string(m_framesLastSecond) + " FPS", glm::vec2(-WIDTH / 2.0f, -HEIGHT / 2.0f), 0.4f,
+                    glm::vec3(1.0f, 0.0f, 1.0f));
+
+         ++m_frames;
+         timeInterval = 0.0f;
+      }
+      m_frameTimer += m_timer.GetDeltaTime();
+      timeInterval += m_timer.GetDeltaTime();
+   }
+}
+
+
 glm::ivec2
 Game::GlobalToScreen(glm::vec2 globalPos)
 {

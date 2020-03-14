@@ -92,14 +92,17 @@ Player::Render(Window& window)
 void
 Player::Render(Window& window, const Shaders& program)
 {
+   if (!m_gameHandle.IsReverse())
+   {
 #pragma region CURSOR_MATH
 
-   glm::vec2 cursorPos = m_gameHandle.GetCursorScreenPosition();
+      glm::vec2 cursorPos = m_gameHandle.GetCursorScreenPosition();
 
-   glm::vec4 tmpPos = m_gameHandle.GetProjection() * glm::vec4(GameObject::m_currentState.m_centeredGlobalPosition, 0.0f, 1.0f);
-   m_currentState.m_viewAngle = -glm::degrees(glm::atan(tmpPos.y - cursorPos.y, tmpPos.x - cursorPos.x));
+      glm::vec4 tmpPos = m_gameHandle.GetProjection() * glm::vec4(GameObject::m_currentState.m_centeredGlobalPosition, 0.0f, 1.0f);
+      m_currentState.m_viewAngle = -glm::degrees(glm::atan(tmpPos.y - cursorPos.y, tmpPos.x - cursorPos.x));
 
 #pragma endregion
+   }
    m_sprite.Rotate(m_currentState.m_viewAngle + 90.0f);
    // m_sprite.RenderReverse(window, m_program, frameCount);
    GameObject::Render(window, m_program);

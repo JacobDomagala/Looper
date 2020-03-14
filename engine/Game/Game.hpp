@@ -77,9 +77,18 @@ class Game
    Game() = default;
    ~Game() = default;
 
+   void
+   MainLoop();
+
    // Initialize Game using 'configFile'
    void
    Init(std::string configFile);
+
+   bool
+   IsReverse() const
+   {
+      return m_reverse;
+   }
 
    Player&
    GetPlayer()
@@ -228,6 +237,9 @@ class Game
    Logger logger;
    std::unique_ptr< Window > m_window = nullptr;
    Timer m_timer;
+   int32_t m_frames = 0;
+   float m_frameTimer = 0.0f;
+   int32_t m_framesLastSecond = 0;
 
 
    Level m_currentLevel;
