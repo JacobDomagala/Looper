@@ -19,26 +19,19 @@ Game::MainLoop()
 {
    Logger::SetLogType(Logger::TYPE::INFO);
 
-   m_timer.ToggleTimer();
-
-   float timeInterval = 0.0f;
-
    while (IsRunning())
    {
       PollEvents();
 
       m_timer.ToggleTimer();
 
-      logger.Log(Logger::TYPE::INFO, std::to_string(timeInterval));
-      // if (timeInterval >= TARGET_TIME)
-      if (true)
+      if (m_timer.GetTotalTime() > TARGET_TIME)
       {
          SwapBuffers();
 
-         auto dt = timeInterval * Timer::AreTimersRunning();
-         ProcessInput(TARGET_TIME);
+         const auto dt = TARGET_TIME * Timer::AreTimersRunning();
+         ProcessInput(dt);
 
-         // oldTime = timeStamp;
          Render();
          if (m_frameTimer > 1.0f)
          {
@@ -50,10 +43,9 @@ Game::MainLoop()
                     glm::vec3(1.0f, 0.0f, 1.0f));
 
          ++m_frames;
-         timeInterval = 0.0f;
+         m_timer.ResetTotalTime();
       }
       m_frameTimer += m_timer.GetDeltaTime();
-      timeInterval += m_timer.GetDeltaTime();
    }
 }
 
@@ -695,7 +687,7 @@ Game::CheckMove(glm::ivec2& moveBy)
 }
 
 void
-Game::KeyEvents(float deltaTime)
+Game::KeyEvents()
 {
    int32_t cameraMovement = static_cast< int32_t >(300.0f * m_deltaTime);
    int32_t playerMovement = static_cast< int32_t >(500.0f * m_deltaTime);
@@ -787,7 +779,7 @@ Game::KeyEvents(float deltaTime)
 }
 
 void
-Game::MouseEvents(float deltaTime)
+Game::MouseEvents()
 {
    float cameraMovement = floor(m_cameraSpeed * m_deltaTime);
    glm::ivec2 cameraMoveBy = glm::ivec2();
@@ -1019,8 +1011,8 @@ Game::ProcessInput(float deltaTime)
 {
    m_deltaTime = deltaTime;
 
-   MouseEvents(deltaTime);
-   KeyEvents(deltaTime);
+   MouseEvents();
+   KeyEvents();
 
    HandleReverseLogic();
    UpdateGameState();

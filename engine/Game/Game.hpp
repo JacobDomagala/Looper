@@ -207,10 +207,10 @@ class Game
    CheckMove(glm::ivec2& moveBy);
 
    void
-   KeyEvents(float deltaTime);
+   KeyEvents();
 
    void
-   MouseEvents(float deltaTime);
+   MouseEvents();
 
    // Updates the internal states of each game object
    // Needed for reversing time
@@ -234,7 +234,7 @@ class Game
    HandleReverseLogic();
 
  private:
-   Logger logger;
+   Logger logger = Logger("Game");
    std::unique_ptr< Window > m_window = nullptr;
    Timer m_timer;
    int32_t m_frames = 0;

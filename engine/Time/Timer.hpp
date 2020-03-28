@@ -4,19 +4,10 @@
 
 class Timer
 {
-   // Time period between last Toggle() function call
-   std::chrono::milliseconds m_deltaTime;
-
-   // Total time
-   std::chrono::milliseconds m_totalTime;
-
-   // Used to tore temporary timepoint which is then used to calculate time between
-   // each Toggle() function call
-   std::chrono::steady_clock::time_point m_timeStamp;
-
-   static inline bool m_timersPaused = false;
-
  public:
+   using milliseconds = std::chrono::milliseconds;
+   using seconds = std::chrono::seconds;
+
    Timer();
    ~Timer() = default;
 
@@ -38,28 +29,51 @@ class Timer
       return !m_timersPaused;
    }
 
-   void
-   Start();
-   void
-   Stop();
-
+   // It does 3 things:
+   // - Set m_deltaTime duration (currentTime - m_timeStamp)
+   // - Set m_timeStamp to current time
+   // - Update m_totalTime with m_deltaTime value
    void
    ToggleTimer()
    {
       auto currentTimeStamp = std::chrono::steady_clock::now();
-      m_deltaTime = std::chrono::duration_cast< std::chrono::milliseconds >(currentTimeStamp - m_timeStamp);
+      m_deltaTime = std::chrono::duration_cast< milliseconds >(currentTimeStamp - m_timeStamp);
 
       m_timeStamp = currentTimeStamp;
+      m_totalTime += m_deltaTime;
    }
 
+   // Get time elapsed between calling ToggleTimer() functions
+   // Returned value is in seconds (float value)
    float
    GetDeltaTime() const
    {
       return m_deltaTime.count() / 1000.0f;
    }
-   // float
-   // GetGlobalTime() const
-   //{
-   //   return static_cast< float >(m_globalTime);
-   //}
+
+   // Returned value in seconds
+   float
+   GetTotalTime() const
+   {
+      return std::chrono::duration_cast< milliseconds >(m_totalTime).count() / 1.0f;
+   }
+
+   void
+   ResetTotalTime()
+   {
+      m_totalTime = milliseconds(0);
+   }
+
+ private:
+   // Time period between last Toggle() function call
+   milliseconds m_deltaTime;
+
+   // Total time
+   milliseconds m_totalTime;
+
+   // Used to tore temporary timepoint which is then used to calculate time between
+   // each Toggle() function call
+   std::chrono::steady_clock::time_point m_timeStamp;
+
+   static inline bool m_timersPaused = false;
 };
