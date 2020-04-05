@@ -32,14 +32,10 @@ function(FIND_AND_DOWNLOAD_ZIP_RESOURCE ResourceURL ResourceName Version)
    endif()
 endfunction()
 
-set(OPENGL_VERSION 4.5)
-set(GLEW_VERSION 2.1.0)
-set(GLM_VERSION 0.9.8.5)
-set(FREETYPE_VERSION 2.10.1)
-
 add_subdirectory(OpenGL)
 add_subdirectory(Freetype)
 add_subdirectory(STB_IMAGE)
 add_subdirectory(GLM)
 add_subdirectory(NANOGUI)
+add_subdirectory(JSON)
 

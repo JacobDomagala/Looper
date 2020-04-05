@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 
+set(OPENGL_VERSION 4.5)
+set(GLEW_VERSION 2.1.0)
+
 find_package(OpenGL ${OPENGL_VERSION} EXACT REQUIRED)
 set_target_properties(OpenGL::GL PROPERTIES IMPORTED_GLOBAL TRUE)
 
