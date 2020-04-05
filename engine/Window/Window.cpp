@@ -35,7 +35,7 @@ Window::Window(int32_t width, int32_t height, const std::string& title)
 {
    m_logger.Init("Window");
 
-   glfwSetErrorCallback(ErrorCallback);
+   glfwSetErrorCallback([](int error, const char* description) { fprintf(stderr, "Error: %s\n", description); });
 
    if (GLFW_TRUE != glfwInit())
    {
@@ -45,6 +45,7 @@ Window::Window(int32_t width, int32_t height, const std::string& title)
    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+   glfwWindowHint(GLFW_VISIBLE, GL_TRUE);
    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
    m_pWindow = glfwCreateWindow(m_width, m_height, title.c_str(), nullptr, nullptr);
@@ -70,7 +71,16 @@ Window::Window(int32_t width, int32_t height, const std::string& title)
    glViewport(0, 0, viewportWidth, viewportHeight);
 
    glEnable(GL_DEBUG_OUTPUT);
-   glDebugMessageCallback(MessageCallback, &m_logger);
+   glDebugMessageCallback(
+      [](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* logger) {
+         std::string buffer(1024, 0x0);
+         const auto newSize = sprintf(&buffer[0], "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s",
+                                      (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
+
+         buffer.resize(newSize);
+         reinterpret_cast< const Logger* >(logger)->Log(Logger::TYPE::DEBUG, buffer);
+      },
+      &m_logger);
 
    glfwSwapInterval(1);
 
@@ -82,7 +92,7 @@ Window::Window(int32_t width, int32_t height, const std::string& title)
 
 Window::~Window()
 {
-   glfwTerminate();
+  // glfwTerminate();
 }
 
 void
@@ -118,6 +128,8 @@ Window::Resize(int32_t newWidth, int32_t newHeight)
 void
 Window::Clear(float r, float g, float b, float a)
 {
+   glfwMakeContextCurrent(m_pWindow);
+
    glClearColor(r, g, b, a);
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -125,6 +137,7 @@ Window::Clear(float r, float g, float b, float a)
 void
 Window::SwapBuffers()
 {
+   glfwMakeContextCurrent(m_pWindow);
    glfwSwapBuffers(m_pWindow);
 }
 

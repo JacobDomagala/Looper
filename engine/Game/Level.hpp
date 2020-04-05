@@ -1,8 +1,9 @@
 #pragma once
 
-#include <PathFinder.hpp>
-#include <Player.hpp>
-#include <Shaders.hpp>
+#include "PathFinder.hpp"
+#include "Player.hpp"
+#include "Shaders.hpp"
+
 #include <glm/glm.hpp>
 #include <unordered_map>
 
@@ -12,27 +13,6 @@ class Game;
 
 class Level
 {
-   // IN PROGRESS
-
-   Sprite background;
-   std::unordered_map< std::string, Texture > textures;
-   Shaders shaders{};
-
-   glm::vec2 cameraPosition;
-   glm::ivec2 cameraTilePos;
-
-   glm::ivec2 playerPos;
-
-   bool locked{};
-
-   glm::ivec2 tileSize;
-   glm::ivec2 numTuilesOnScreen;
-   glm::ivec2 tilesToDraw;
-
-   glm::ivec2 levelSize;
-   std::vector< std::unique_ptr< GameObject > > objects;
-   PathFinder m_pathinder{};
-
  public:
    Level() = default;
    ~Level() = default;
@@ -47,58 +27,73 @@ class Level
 
    void
    MoveObjs(const glm::vec2& moveBy, bool isCameraMovement = true);
+
    void
    Load(const std::string& fileName);
+
    void
    LoadPremade(const std::string& fileName, const glm::ivec2& size);
+
    void
    LoadShaders(const std::string& shaderName);
+
    void
    AddGameObject(Game& game, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite);
+
    void
    Move(const glm::vec2& moveBy);
+
    void
    Update(bool isReverse);
+
    void
-   Render(Window& window);
+   Render(const glm::mat4& projectionMat);
 
    bool
    CheckCollision(const glm::ivec2& localPos, const Player& player);
+
    void
    LockCamera()
    {
-      locked = true;
+      m_locked = true;
    }
+
    void
    UnlockCamera()
    {
-      locked = false;
+      m_locked = false;
    }
+
    bool
    IsCameraLocked() const
    {
-      return locked;
+      return m_locked;
    }
+
    glm::vec2
    GetCameraPosition()
    {
-      return cameraPosition;
+      return m_cameraPosition;
    }
+
    glm::ivec2
    GetCameraTiledPosition()
    {
-      return cameraTilePos;
+      return m_cameraTilePos;
    }
+
    glm::vec2
    GetLevelPosition() const
    {
-      return background.GetPosition();
+      return m_background.GetPosition();
    }
+
    glm::ivec2
    GetSize() const
    {
-      return levelSize;
+      return m_levelSize;
    }
+
    const PathFinder&
    GetPathfinder() const
    {
@@ -107,11 +102,34 @@ class Level
 
    void
    SetPlayersPosition(const glm::vec2& position);
+
    void
    MoveCamera(const glm::vec2& moveBy);
 
    glm::ivec2
    CheckMoveCamera(const glm::vec2& moveBy) const;
+
    glm::ivec2
    GetTilePosition(const glm::vec2& position) const;
+
+ private:
+   Logger m_logger = Logger("Level");
+   Sprite m_background;
+
+   Shaders m_shaders{};
+   glm::vec2 m_cameraPosition;
+   glm::ivec2 m_playerPos;
+
+   bool m_locked{};
+
+   glm::ivec2 m_levelSize;
+   std::vector< std::unique_ptr< GameObject > > m_objects;
+   PathFinder m_pathinder{};
+
+   // Tile handling stuff (deprecated)
+   std::unordered_map< std::string, Texture > m_textures;
+   glm::ivec2 m_cameraTilePos;
+   glm::ivec2 m_tileSize;
+   glm::ivec2 m_numTuilesOnScreen;
+   glm::ivec2 m_tilesToDraw;
 };

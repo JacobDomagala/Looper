@@ -2,10 +2,8 @@
 #include "Enemy.hpp"
 #include "FileManager.hpp"
 
-#define STB_IMAGE_IMPLEMENTATION
 #include <GL/glew.h>
 #include <fstream>
-#include <stb_image.h>
 #include <string>
 
 // glm::vec2 destination;
@@ -17,6 +15,7 @@ static float delta = 0.0f;
 void
 Game::MainLoop()
 {
+   //m_window->Start();
    Logger::SetLogType(Logger::TYPE::INFO);
 
    while (IsRunning())
@@ -38,6 +37,8 @@ Game::MainLoop()
             m_framesLastSecond = m_frames;
             m_frameTimer = 0.0f;
             m_frames = 0;
+
+            logger.Log(Logger::TYPE::FATAL, "SECOND PASSED");
          }
          RenderText(std::to_string(m_framesLastSecond) + " FPS", glm::vec2(-WIDTH / 2.0f, -HEIGHT / 2.0f), 0.4f,
                     glm::vec3(1.0f, 0.0f, 1.0f));
@@ -47,6 +48,8 @@ Game::MainLoop()
       }
       m_frameTimer += m_timer.GetDeltaTime();
    }
+
+   logger.Log(Logger::TYPE::FATAL, "LEAVING GAME");
 }
 
 
@@ -107,6 +110,7 @@ Game::Init(const std::string configFile)
 
    LoadLevel(m_levels[0]);
    m_state = GameState::GAME;
+   m_initialized = true;
 }
 
 glm::ivec2
@@ -880,8 +884,8 @@ Game::RenderFirstPass()
       m_player->SetCenteredLocalPosition(m_playerPosition);
    }
 
-   m_currentLevel.Render(*m_window);
-   m_player->Render(*m_window);
+   m_currentLevel.Render(m_window->GetProjection());
+   m_player->Render(m_window->GetProjection());
 
    m_frameBuffer.EndDrawingToTexture();
 }
@@ -905,7 +909,7 @@ Game::RenderSecondPass()
 void
 Game::LoadLevel(const std::string& levelName)
 {
-   std::filesystem::path folderPath = ASSETS_DIR / levelName;
+   std::filesystem::path folderPath = LEVELS_DIR / levelName;
    std::ifstream levelFile((folderPath / levelName).u8string() + ".txt");
    if (!levelFile)
    {
@@ -953,10 +957,9 @@ Game::LoadLevel(const std::string& levelName)
       else if (token == "Collision:")
       {
          levelFile >> collisionMap;
-         int32_t width, height, n;
-         byte_vec4* tmpCollision =
-            reinterpret_cast< byte_vec4* >(stbi_load((folderPath / collisionMap).u8string().c_str(), &width, &height, &n, 0));
-         m_collision = std::unique_ptr< byte_vec4 >(tmpCollision);
+
+         std::unique_ptr< byte_vec4 > collisionMap(reinterpret_cast<byte_vec4*>(FileManager::LoadPictureRawBytes((folderPath / collisionMap).u8string())));
+         m_collision = std::move(collisionMap);
       }
       else if (token == "Player:")
       {

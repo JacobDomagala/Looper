@@ -38,8 +38,10 @@ InputManager::Init(GLFWwindow* mainWindow)
    m_logger.Init("InputManager");
 
    glfwSetKeyCallback(m_windowHandle, InternalKeyCallback);
-   glfwSetMouseButtonCallback(m_windowHandle, InternalMouseButtonCallback);
-   glfwSetCursorPosCallback(m_windowHandle, InternalCursorPositionCallback);
+ //  glfwSetMouseButtonCallback(m_windowHandle, InternalMouseButtonCallback);
+ //  glfwSetCursorPosCallback(m_windowHandle, InternalCursorPositionCallback);
+
+   m_keyMap.clear();
 }
 
 void

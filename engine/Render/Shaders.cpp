@@ -18,18 +18,18 @@ Shaders::GetProgram() const
 void
 Shaders::UseProgram() const
 {
-   if (m_programID != m_activeProgramID)
-   {
+   //if (m_programID != m_activeProgramID)
+   //{
       m_logger.Log(Logger::TYPE::DEBUG, "Binding new shaders with program_id = " + std::to_string(m_programID));
 
       glUseProgram(m_programID);
       m_activeProgramID = m_programID;
       ++m_numberBound;
-   }
-   else
-   {
-      m_logger.Log(Logger::TYPE::DEBUG, "Using already bound shaders program_id = " + std::to_string(m_programID));
-   }
+   //}
+   //else
+   //{
+   //   m_logger.Log(Logger::TYPE::DEBUG, "Using already bound shaders program_id = " + std::to_string(m_programID));
+   //}
 
 }
 

@@ -34,14 +34,7 @@ class Timer
    // - Set m_timeStamp to current time
    // - Update m_totalTime with m_deltaTime value
    void
-   ToggleTimer()
-   {
-      auto currentTimeStamp = std::chrono::steady_clock::now();
-      m_deltaTime = std::chrono::duration_cast< milliseconds >(currentTimeStamp - m_timeStamp);
-
-      m_timeStamp = currentTimeStamp;
-      m_totalTime += m_deltaTime;
-   }
+   ToggleTimer();
 
    // Get time elapsed between calling ToggleTimer() functions
    // Returned value is in seconds (float value)

@@ -1,0 +1,7 @@
+{
+  "BACKGROUND": {
+    "texture": "Background.png",
+    "width": 3600,
+    "height": 3600
+  }
+}

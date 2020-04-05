@@ -11,7 +11,7 @@ Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
    glBindVertexArray(m_vertexArrayBuffer);
    glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
 
-   glm::vec4 positions[6] = {glm::vec4(0.0f + size.x, 0.0f, 1.0f, 1.0f),         glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
+   glm::vec4 positions[] = {glm::vec4(0.0f + size.x, 0.0f, 1.0f, 1.0f),         glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
                              glm::vec4(0.0f, 0.0f - size.y, 0.0f, 0.0f),
 
                              glm::vec4(0.0f + size.x, 0.0f, 1.0f, 1.0f),         glm::vec4(0.0f, 0.0f - size.y, 0.0f, 0.0f),
@@ -24,7 +24,7 @@ Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
    m_currentState.m_translateVal = glm::vec3(position, 0.0f);
    m_currentState.m_angle = 0.0f;
    m_currentState.m_scaleVal = glm::vec2(1.0f, 1.0f);
-   m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+   m_currentState.m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
    glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
    glEnableVertexAttribArray(0);
@@ -35,14 +35,14 @@ Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
 std::unique_ptr< byte_vec4 >
 Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName)
 {
-   std::unique_ptr< byte_vec4 > returnPtr = m_texture.LoadTextureFromFile(fileName);
+   auto returnPtr = m_texture.LoadTextureFromFile(fileName);
 
    glGenVertexArrays(1, &m_vertexArrayBuffer);
    glGenBuffers(1, &m_vertexBuffer);
    glBindVertexArray(m_vertexArrayBuffer);
    glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
 
-   glm::vec4 positions[6] = {glm::vec4(0.0f + size.x, 0.0f, 1.0f, 1.0f),         glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
+   glm::vec4 positions[] = {glm::vec4(0.0f + size.x, 0.0f, 1.0f, 1.0f),         glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
                              glm::vec4(0.0f, 0.0f - size.y, 0.0f, 0.0f),
 
                              glm::vec4(0.0f + size.x, 0.0f, 1.0f, 1.0f),         glm::vec4(0.0f, 0.0f - size.y, 0.0f, 0.0f),
@@ -56,7 +56,7 @@ Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size, con
    m_currentState.m_translateVal = glm::vec3(position, 0.0f);
    m_currentState.m_angle = 0.0f;
    m_currentState.m_scaleVal = glm::vec2(1.0f, 1.0f);
-   m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+   m_currentState.m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
    glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
    glEnableVertexAttribArray(0);
@@ -85,7 +85,7 @@ Sprite::Update(bool isReverse)
 }
 
 void
-Sprite::Render(Window& window, const Shaders& program)
+Sprite::Render(const glm::mat4& projectionMat, const Shaders& program)
 {
    program.UseProgram();
    glBindVertexArray(m_vertexArrayBuffer);
@@ -101,8 +101,8 @@ Sprite::Render(Window& window, const Shaders& program)
    modelMatrix = glm::scale(modelMatrix, glm::vec3(m_currentState.m_scaleVal, 1.0f));
 
    m_texture.Use(program.GetProgram());
-   program.SetUniformFloatVec4(m_color, "color");
-   program.SetUniformFloatMat4(window.GetProjection(), "projectionMatrix");
+   program.SetUniformFloatVec4(m_currentState.m_color, "color");
+   program.SetUniformFloatMat4(projectionMat, "projectionMatrix");
    program.SetUniformFloatMat4(modelMatrix, "modelMatrix");
 
    glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -131,7 +131,7 @@ Sprite::GetSize() const
 void
 Sprite::SetColor(const glm::vec3& color)
 {
-   m_color = glm::vec4(color, 1.0f);
+   m_currentState.m_color = glm::vec4(color, 1.0f);
 }
 
 void

@@ -8,6 +8,7 @@
 #include <Weapon.hpp>
 
 #include <deque>
+#include <array>
 
 class Window;
 class Enemy;
@@ -72,11 +73,11 @@ class Player : public GameObject
    CreateSprite(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName);
 
    void
-   Render(Window& window);
+   Render(const glm::mat4& window);
 
    // draw player
    void
-   Render(Window& window, const Shaders& program) override;
+   Render(const glm::mat4& window, const Shaders& program) override;
 
    void Hit(int32_t) override
    {

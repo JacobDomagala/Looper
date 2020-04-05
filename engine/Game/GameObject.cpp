@@ -145,7 +145,7 @@ GameObject::Update(bool isReverse)
 }
 
 void
-GameObject::Render(Window& window, const Shaders& program)
+GameObject::Render(const glm::mat4& projectionMat, const Shaders& program)
 {
-   m_sprite.Render(window, program);
+   m_sprite.Render(projectionMat, program);
 }

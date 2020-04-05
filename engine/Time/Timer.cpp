@@ -7,3 +7,12 @@ Timer::Timer()
    m_timeStamp = std::chrono::steady_clock::now();
    m_totalTime = milliseconds(0);
 }
+
+void
+Timer::ToggleTimer()
+{
+   auto currentTimeStamp = std::chrono::steady_clock::now();
+   m_deltaTime = std::chrono::duration_cast< milliseconds >(currentTimeStamp - m_timeStamp);
+   m_timeStamp = currentTimeStamp;
+   m_totalTime += m_deltaTime;
+}

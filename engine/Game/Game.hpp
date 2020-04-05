@@ -177,6 +177,9 @@ class Game
       m_inputManager.RegisterForKeyInput(listener);
    }
 
+   void
+   LoadLevel(const std::string& levelName);
+
  private:
    // DEBUG
    std::vector< std::unique_ptr< DebugObject > > m_debugObjs;
@@ -224,8 +227,6 @@ class Game
    // draws to screen
    void
    RenderSecondPass();
-   void
-   LoadLevel(const std::string& levelName);
 
    void
    RayTracer();
@@ -234,6 +235,7 @@ class Game
    HandleReverseLogic();
 
  private:
+   bool m_initialized = false;
    Logger logger = Logger("Game");
    std::unique_ptr< Window > m_window = nullptr;
    Timer m_timer;

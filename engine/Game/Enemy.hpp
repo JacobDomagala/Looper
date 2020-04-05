@@ -24,7 +24,7 @@ class Enemy : public GameObject
    DealWithPlayer() override;
 
    void
-   Render(Window& window, const Shaders& program) override;
+   Render(const glm::mat4& window, const Shaders& program) override;
 
    int32_t
    GetDmg() const

@@ -32,6 +32,12 @@ class Window
       return m_projectionMatrix;
    }
 
+   void
+   Start()
+   {
+      m_isRunning = true;
+   }
+
    // return true if the window is active
    bool
    IsRunning() const
@@ -98,7 +104,7 @@ class Window
  private:
    uint32_t m_width;
    uint32_t m_height;
-   GLFWwindow* m_pWindow;
+   GLFWwindow* m_pWindow = nullptr;
    std::string m_title;
 
    // cursor position

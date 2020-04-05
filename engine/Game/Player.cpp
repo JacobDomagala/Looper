@@ -84,13 +84,13 @@ Player::UpdateInternal(bool isReverse)
 }
 
 void
-Player::Render(Window& window)
+Player::Render(const glm::mat4& window)
 {
    Render(window, m_program);
 }
 
 void
-Player::Render(Window& window, const Shaders& program)
+Player::Render(const glm::mat4& window, const Shaders& program)
 {
    if (!m_gameHandle.IsReverse())
    {

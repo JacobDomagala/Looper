@@ -72,7 +72,7 @@ class GameObject
 
    // Render object
    virtual void
-   Render(Window& window, const Shaders& program);
+   Render(const glm::mat4& window, const Shaders& program);
 
    virtual void
    Update(bool isReverse);

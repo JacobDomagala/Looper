@@ -24,7 +24,7 @@ class Sprite
    // Returns byte vector used for collision
    std::unique_ptr< byte_vec4 >
    SetSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(10, 10),
-                     const std::string& fileName = ".\\Default.png");
+                     const std::string& fileName = "Default.png");
 
    glm::vec2
    GetCenteredPosition() const;
@@ -58,13 +58,13 @@ class Sprite
 
    // Render sprite using 'program'
    void
-   Render(Window& window, const Shaders& program);
+   Render(const glm::mat4& projectionMat, const Shaders& program);
 
  private:
    struct State
    {
       // color of sprite (default is white)
-      glm::vec4 m_color;
+      glm::vec4 m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
       // sprite's position
       glm::vec2 m_position;
@@ -73,24 +73,21 @@ class Sprite
       glm::vec3 m_translateVal;
       glm::vec3 m_velocity;
       glm::vec2 m_scaleVal;
-      float m_angle{};
+      float m_angle;
    };
 
    std::deque< State > m_statesQueue;
    State m_currentState;
 
    // sprite's texture
-   Texture m_texture{};
-
-   // color of sprite (default is white)
-   glm::vec4 m_color;
+   Texture m_texture;
 
    // sprite's center
    glm::vec2 m_centeredPosition;
 
    // OpenGL buffers
-   GLuint m_vertexArrayBuffer{};
-   GLuint m_vertexBuffer{};
+   GLuint m_vertexArrayBuffer;
+   GLuint m_vertexBuffer;
 
    // width and height
    glm::ivec2 m_size;

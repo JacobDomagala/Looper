@@ -10,7 +10,7 @@
 #include FT_FREETYPE_H
 
 void
-Font::SetFont(const std::string& fileName)
+Font::SetFont(const std::string& fontName)
 {
    m_logger.Init("Font");
 
@@ -22,7 +22,7 @@ Font::SetFont(const std::string& fileName)
       m_logger.Log(Logger::TYPE::FATAL, "Error initializing FreeType!");
 
    FT_Face face;
-   std::string filePath = (ASSETS_DIR / fileName).u8string() + ".ttf";
+   std::string filePath = (FONTS_DIR / fontName).u8string() + ".ttf";
 
    if (FT_New_Face(ft, filePath.c_str(), 0, &face))
       m_logger.Log(Logger::TYPE::FATAL, "Error loading font " + filePath);
