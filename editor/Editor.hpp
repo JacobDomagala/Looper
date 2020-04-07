@@ -2,14 +2,15 @@
 
 #include "Game.hpp"
 
+#include "Gui.hpp"
 #include "Level.hpp"
 #include "Logger.hpp"
 #include "Player.hpp"
 #include "Timer.hpp"
-#include "Gui.hpp"
 
-#include <nanogui/screen.h>
 #include <glm/matrix.hpp>
+#include <nanogui/screen.h>
+#include <utility>
 
 class Player;
 class Window;
@@ -31,6 +32,9 @@ class Editor : public nanogui::Screen
    LoadLevel(const std::string& levelName);
 
    void
+   SaveLevel(const std::string& levelName);
+
+   void
    InitGLFW();
 
    void
@@ -41,21 +45,22 @@ class Editor : public nanogui::Screen
 
  private:
    Logger m_logger = Logger("Editor");
-   
+
    Game m_game;
    std::unique_ptr< Player > m_player = nullptr;
    glm::vec2 m_playerPosition;
 
    // string -> file name in which level is stored (used for testing level in game)
    // level -> currently active level in editor
-   std::pair<std::string, Level> m_currentLevel;
-   
+   std::string m_levelFileName;
+   Level m_currentLevel = Level(m_game);
+
    bool m_levelLoaded = false;
    std::unique_ptr< byte_vec4 > m_collision = nullptr;
-   
+
    // framebuffer for first pass
    Framebuffer m_frameBuffer;
-   
+
    // projection matrix for OpenGL
    glm::mat4 m_projectionMatrix;
 

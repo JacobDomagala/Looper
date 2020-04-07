@@ -83,11 +83,12 @@ class Enemy : public GameObject
    Timer m_timer;
 
    // total HP
-   int32_t m_maxHP;
+   int32_t m_maxHP = 100;
 
    // current weapon
    std::unique_ptr< Weapon > m_weapon;
 
+   // animation offsets/positions when IDLE
    std::vector< glm::vec2 > m_positions{glm::vec2(0.5f, 0.5f), glm::vec2(0.0f, -0.5f), glm::vec2(-0.5f, 0.0f),
                                         glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 0.0f),  glm::vec2(-0.5f, -0.5f)};
 

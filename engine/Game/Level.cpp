@@ -12,9 +12,69 @@
 #include <nlohmann/json.hpp>
 
 void
-Level::Load(const std::string& pathToLevel)
-{   
-   const nlohmann::json json = FileManager::ReadFile(pathToLevel);
+Level::Load(const std::string& pathToLevel, bool isGame)
+{
+   const auto json = FileManager::LoadJsonFile(pathToLevel);
+
+   for (auto& [key, value] : json.items())
+   {
+      if (key == "BACKGROUND")
+      {
+         const auto background = json[key]["texture"];
+         const auto width = json[key]["width"];
+         const auto height = json[key]["height"];
+
+         LoadPremade((IMAGES_DIR / std::string(background)).u8string(), glm::ivec2(width, height));
+
+         // Temporary solution
+         // This should be moved to Level class soon
+         const auto collision = json[key]["collision"];
+         std::unique_ptr< byte_vec4 > collisionMap(
+            reinterpret_cast< byte_vec4* >(FileManager::LoadPictureRawBytes((IMAGES_DIR / std::string(collision)).u8string())));
+         m_game.SetCollisionMap(std::move(collisionMap));
+      }
+      else if (key == "SHADER")
+      {
+         const auto shaderName = json[key]["name"];
+         LoadShaders(shaderName);
+      }
+      else if (key == "PLAYER")
+      {
+         const auto position = json[key]["position"];
+         const auto width = json[key]["width"];
+         const auto height = json[key]["height"];
+         const auto texture = json[key]["texture"];
+         const auto weapons = json[key]["weapons"];
+
+         m_player = std::make_shared< Player >(m_game, glm::vec2(position[0], position[1]), glm::ivec2(width, height), texture, isGame);
+      }
+      else if (key == "ENEMIES")
+      {
+         for (auto& enemy : json[key])
+         {
+            const auto position = enemy["position"];
+            const auto width = enemy["width"];
+            const auto height = enemy["height"];
+            const auto texture = enemy["texture"];
+            const auto weapons = enemy["weapons"];
+            const auto animatePos = enemy["animate positions"];
+
+            m_objects.emplace_back(
+               std::make_unique< Enemy >(m_game, glm::vec2(position[0], position[1]), glm::ivec2(width, height), texture));
+         }
+      }
+      else
+      {
+         m_logger.Log(Logger::TYPE::WARNING, "Level::Load -> Unspecified type " + key + " during level loading");
+      }
+   }
+}
+
+void
+Level::Save(const std::string& pathToLevel)
+{
+   nlohmann::json json;
+   FileManager::SaveJsonFile(pathToLevel, json);
 }
 
 glm::vec2
@@ -129,6 +189,8 @@ Level::Render(const glm::mat4& projectionMat)
          obj->Render(projectionMat, m_shaders);
       }
    }
+
+   m_player->Render(projectionMat);
 }
 
 void
@@ -143,8 +205,8 @@ Level::MoveObjs(const glm::vec2& moveBy, bool isCameraMovement)
 void
 Level::SetPlayersPosition(const glm::vec2& position)
 {
-   m_playerPos = position;
-   m_playerPos /= m_tileSize;
+   // m_playerPos = position;
+   // m_playerPos /= m_tileSize;
 }
 
 void

@@ -14,7 +14,10 @@ class Game;
 class Level
 {
  public:
-   Level() = default;
+   Level(Game& game) : m_game(game)
+   {
+   }
+
    ~Level() = default;
 
    // Convert from OpenGL position to map position
@@ -28,8 +31,13 @@ class Level
    void
    MoveObjs(const glm::vec2& moveBy, bool isCameraMovement = true);
 
+   // pathToFile - global path to level file (.dgl)
    void
-   Load(const std::string& fileName);
+   Load(const std::string& pathToFile, bool isGame = true);
+
+   // pathToFile - global path to level file (.dgl)
+   void
+   Save(const std::string& pathToFile);
 
    void
    LoadPremade(const std::string& fileName, const glm::ivec2& size);
@@ -100,6 +108,12 @@ class Level
       return m_pathinder;
    }
 
+   std::shared_ptr< Player >
+   GetPlayer()
+   {
+      return m_player;
+   }
+
    void
    SetPlayersPosition(const glm::vec2& position);
 
@@ -118,9 +132,10 @@ class Level
 
    Shaders m_shaders{};
    glm::vec2 m_cameraPosition;
-   glm::ivec2 m_playerPos;
+   std::shared_ptr< Player > m_player = nullptr;
+   Game& m_game;
 
-   bool m_locked{};
+   bool m_locked = false;
 
    glm::ivec2 m_levelSize;
    std::vector< std::unique_ptr< GameObject > > m_objects;

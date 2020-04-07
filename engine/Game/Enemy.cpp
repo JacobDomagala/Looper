@@ -14,8 +14,7 @@ Enemy::Enemy(Game& game, const glm::vec2& pos, const glm::ivec2& size, const std
 
    m_timer.ToggleTimer();
    m_currentState.m_initialPosition = GameObject::m_currentState.m_centeredLocalPosition;
-   m_currentState.m_currentNodeIdx =
-      m_gameHandle.GetLevel().GetPathfinder().FindNodeIdx(GameObject::m_currentState.m_centeredLocalPosition);
+   m_currentState.m_currentNodeIdx = m_gameHandle.GetLevel().GetPathfinder().FindNodeIdx(m_currentState.m_initialPosition);
 }
 
 void

@@ -11,12 +11,16 @@
 #include <fstream>
 #include <thread>
 
-Editor::Editor() : nanogui::Screen(Eigen::Vector2i(1920, 1080), "DGame Editor", true, false, 8, 8, 24, 8, 0, 4, 5), m_gui(*this)
+Editor::Editor()
+   : nanogui::Screen(Eigen::Vector2i(1920, 1080), "DGame Editor", true, false, 8, 8, 24, 8, 0, 4,
+                     5),
+     m_gui(*this)
 {
    InitGLFW();
    m_inputManager.Init(mGLFWWindow);
 
-   m_projectionMatrix = glm::ortho(-1920.0f / 2.0f, 1920.0f / 2.0f, 1080.0f / 2.0f, -1080.0f / 2.0f, -1.0f, 1.0f);
+   m_projectionMatrix =
+      glm::ortho(-1920.0f / 2.0f, 1920.0f / 2.0f, 1080.0f / 2.0f, -1080.0f / 2.0f, -1.0f, 1.0f);
 
    m_gui.Init();
 
@@ -38,7 +42,8 @@ Editor::InitGLFW()
    int major, minor;
    glGetIntegerv(GL_MAJOR_VERSION, &major);
    glGetIntegerv(GL_MINOR_VERSION, &minor);
-   m_logger.Log(Logger::TYPE::DEBUG, "OpenGL Version - " + std::to_string(major) + "." + std::to_string(minor));
+   m_logger.Log(Logger::TYPE::DEBUG,
+                "OpenGL Version - " + std::to_string(major) + "." + std::to_string(minor));
 
    glewExperimental = GL_TRUE;
 
@@ -49,10 +54,12 @@ Editor::InitGLFW()
 
    glEnable(GL_DEBUG_OUTPUT);
    glDebugMessageCallback(
-      [](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* logger) {
+      [](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+         const GLchar* message, const void* logger) {
          std::string buffer(1024, 0x0);
-         const auto newSize = sprintf(&buffer[0], "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s",
-                                      (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
+         const auto newSize =
+            sprintf(&buffer[0], "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s",
+                    (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
 
          buffer.resize(newSize);
          reinterpret_cast< const Logger* >(logger)->Log(Logger::TYPE::DEBUG, buffer);
@@ -95,7 +102,7 @@ Editor::HandleInput()
       cameraMoveBy += glm::ivec2(-cameraMovement, 0);
    }
 
-   m_currentLevel.second.Move(cameraMoveBy);
+   m_currentLevel.Move(cameraMoveBy);
 }
 
 void
@@ -111,7 +118,7 @@ Editor::drawContents()
 {
    if (m_levelLoaded)
    {
-      m_currentLevel.second.Render(m_projectionMatrix);
+      m_currentLevel.Render(m_projectionMatrix);
       //  draw(mNVGContext);
    }
 }
@@ -119,10 +126,16 @@ Editor::drawContents()
 void
 Editor::LoadLevel(const std::string& levelPath)
 {
-   //const auto filename = std::filesystem::path(levelPath).filename().u8string();
-   m_currentLevel.first = levelPath;
-   m_currentLevel.second.Load(levelPath);
+   // const auto filename = std::filesystem::path(levelPath).filename().u8string();
+   m_levelFileName = levelPath;
+   m_currentLevel.Load(levelPath, false);
    m_levelLoaded = true;
+}
+
+void
+Editor::SaveLevel(const std::string& levelPath)
+{
+   m_currentLevel.Save(m_levelFileName);
 }
 
 void
@@ -131,7 +144,7 @@ Editor::PlayLevel()
    if (m_levelLoaded)
    {
       m_game.Init("GameInit.txt");
-      m_game.LoadLevel(m_currentLevel.first);
-      m_game.MainLoop();   
+      m_game.LoadLevel(m_levelFileName);
+      m_game.MainLoop();
    }
 }

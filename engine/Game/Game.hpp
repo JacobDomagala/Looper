@@ -180,6 +180,13 @@ class Game
    void
    LoadLevel(const std::string& levelName);
 
+   // TODO move all collision related code to Level class?
+   void
+   SetCollisionMap(std::unique_ptr< byte_vec4 >&& collision)
+   {
+      m_collision = std::move(collision);
+   }
+
  private:
    // DEBUG
    std::vector< std::unique_ptr< DebugObject > > m_debugObjs;
@@ -244,7 +251,7 @@ class Game
    int32_t m_framesLastSecond = 0;
 
 
-   Level m_currentLevel;
+   Level m_currentLevel = Level(*this);
    // all maps
    std::vector< std::string > m_levels;
 
@@ -254,23 +261,22 @@ class Game
    Font m_font;
 
    // how fast should camera move
-   float m_cameraSpeed;
+   float m_cameraSpeed = 0.0f;
 
    // framebuffer for first pass
    Framebuffer m_frameBuffer;
 
-   //
-   float m_deltaTime;
+   float m_deltaTime = 0.0f;
 
    bool m_reverse = false;
    int m_frameCount = 0;
 
    // state of the game
-   GameState m_state;
+   GameState m_state = GameState::GAME;
 
    // player position on map (centered)
    glm::vec2 m_playerPosition;
-   std::unique_ptr< Player > m_player = nullptr;
+   std::shared_ptr< Player > m_player = nullptr;
 
    InputManager m_inputManager;
 };

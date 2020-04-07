@@ -3,7 +3,8 @@
 #include <Player.hpp>
 #include <Window.hpp>
 
-Player::Player(Game& game, const glm::vec2& position, const glm::ivec2& size, const std::string& sprite, const std::string& name)
+Player::Player(Game& game, const glm::vec2& position, const glm::ivec2& size, const std::string& sprite, bool isGame,
+               const std::string& name)
    : GameObject(game, position, size, sprite)
 {
    m_name = name;
@@ -11,13 +12,14 @@ Player::Player(Game& game, const glm::vec2& position, const glm::ivec2& size, co
    m_currentState.m_speed = 0.0005f;
    m_maxHP = 100;
    m_currentState.m_currentHP = m_maxHP;
-   GameObject::m_currentState.m_globalPosition = position;
+   // GameObject::m_currentState.m_globalPosition = position;
    m_weapons[0] = std::make_unique< SniperRifle >();
    m_weapons[1] = std::make_unique< Glock >();
 
    m_currentWeapon = m_weapons.at(0).get();
 
    m_logger.Init("Player");
+   m_isGame = isGame;
 }
 
 void
@@ -92,7 +94,7 @@ Player::Render(const glm::mat4& window)
 void
 Player::Render(const glm::mat4& window, const Shaders& program)
 {
-   if (!m_gameHandle.IsReverse())
+   if (!m_gameHandle.IsReverse() && m_isGame)
    {
 #pragma region CURSOR_MATH
 

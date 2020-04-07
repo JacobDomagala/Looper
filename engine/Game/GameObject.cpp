@@ -2,12 +2,12 @@
 #include <GameObject.hpp>
 #include <Window.hpp>
 
-GameObject::GameObject(Game& game, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite) : m_gameHandle(game)
+GameObject::GameObject(Game& game, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite) : m_gameHandle(game)
 {
-   m_currentState.m_globalPosition = pos;
-   m_currentState.m_localPosition = m_gameHandle.GetLevel().GetLocalVec(pos);
+   m_currentState.m_globalPosition = m_gameHandle.GetLevel().GetGlobalVec(positionOnMap);
+   m_currentState.m_localPosition = positionOnMap;
    m_currentState.m_visible = true;
-   m_collision = m_sprite.SetSpriteTextured(pos, size, sprite);
+   m_collision = m_sprite.SetSpriteTextured(m_currentState.m_globalPosition, size, sprite);
    m_currentState.m_centeredGlobalPosition = m_sprite.GetCenteredPosition();
    m_currentState.m_centeredLocalPosition = m_gameHandle.GetLevel().GetLocalVec(m_currentState.m_centeredGlobalPosition);
 }

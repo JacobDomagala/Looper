@@ -7,8 +7,8 @@
 #include <Sprite.hpp>
 #include <Weapon.hpp>
 
-#include <deque>
 #include <array>
+#include <deque>
 
 class Window;
 class Enemy;
@@ -16,7 +16,7 @@ class Enemy;
 class Player : public GameObject
 {
  public:
-   explicit Player(Game& game, const glm::vec2& position, const glm::ivec2& size, const std::string& sprite,
+   explicit Player(Game& game, const glm::vec2& position, const glm::ivec2& size, const std::string& sprite, bool isGame = true,
                    const std::string& name = "Anonymous");
    ~Player() = default;
 
@@ -118,11 +118,11 @@ class Player : public GameObject
    std::array< std::unique_ptr< Weapon >, 3 > m_weapons;
 
    // current weapon
-   Weapon* m_currentWeapon;
+   Weapon* m_currentWeapon = nullptr;
 
    // player's max health
-   int32_t m_maxHP;
-
+   int32_t m_maxHP = 100;
 
    Logger m_logger;
+   bool m_isGame = true;
 };
