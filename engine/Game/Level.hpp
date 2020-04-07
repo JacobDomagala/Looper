@@ -31,6 +31,9 @@ class Level
    void
    MoveObjs(const glm::vec2& moveBy, bool isCameraMovement = true);
 
+   void
+   Create(const glm::ivec2& size);
+
    // pathToFile - global path to level file (.dgl)
    void
    Load(const std::string& pathToFile, bool isGame = true);

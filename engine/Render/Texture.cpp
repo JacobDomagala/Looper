@@ -1,7 +1,15 @@
+#include "FileManager.hpp"
 #include <Shaders.hpp>
 #include <Texture.hpp>
 #include <Window.hpp>
-#include "FileManager.hpp"
+
+void
+Texture::CreateColorTexture(const glm::vec2& size, const glm::vec3& color)
+{
+   std::unique_ptr< byte_vec4[] > data(new byte_vec4[size.x * size.y]);
+   std::memset(data.get(), 0xFF, size.x * size.y * 4);
+   LoadTextureFromMemory(size.x, size.y, reinterpret_cast< uint8_t* >(data.get()));
+}
 
 std::unique_ptr< byte_vec4 >
 Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenum filter)
@@ -15,7 +23,7 @@ Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenu
 
    LoadTextureFromMemory(m_width, m_height, picture.m_bytes);
 
-   std::unique_ptr< byte_vec4 > data(reinterpret_cast<byte_vec4*>(picture.m_bytes));
+   std::unique_ptr< byte_vec4 > data(reinterpret_cast< byte_vec4* >(picture.m_bytes));
 
    return data;
 }
@@ -29,11 +37,6 @@ Texture::LoadTextureFromMemory(int32_t width, int32_t height, uint8_t* data, GLe
    glBindTexture(GL_TEXTURE_2D, m_textureID);
    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, reinterpret_cast< uint8_t* >(m_data));
    glGenerateMipmap(GL_TEXTURE_2D);
-
-   // glTexParameteri(m_textureID, GL_TEXTURE_MAG_FILTER, filter);
-   // glTexParameteri(m_textureID, GL_TEXTURE_MIN_FILTER, filter);
-   // glTexParameteri(m_textureID, GL_TEXTURE_WRAP_S, wrapMode);
-   // glTexParameteri(m_textureID, GL_TEXTURE_WRAP_T, wrapMode);
 
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -50,26 +53,16 @@ Texture::LoadTextureFromMemory(int32_t width, int32_t height, uint8_t* data, GLe
 void
 Texture::Use(GLuint program)
 {
-   //   LoadTextureFromMemory(m_width, m_height, m_data);
+   m_logger.Log(Logger::TYPE::DEBUG,
+                std::string("Binding texture with ID ") + std::to_string(m_unit) + " for shader program " + std::to_string(program));
 
-   /*if (m_nowBound != m_unit)
-   {*/
-      m_logger.Log(Logger::TYPE::DEBUG,
-                   std::string("Binding texture with ID ") + std::to_string(m_unit) + " for shader program " + std::to_string(program));
+   GLuint samplerLocation = glGetUniformLocation(program, "texture");
 
-      GLuint samplerLocation = glGetUniformLocation(program, "texture");
+   glActiveTexture(GL_TEXTURE0 + m_unit);
+   glBindTexture(GL_TEXTURE_2D, m_textureID);
+   glUniform1i(samplerLocation, m_unit);
 
-      glActiveTexture(GL_TEXTURE0 + m_unit);
-      glBindTexture(GL_TEXTURE_2D, m_textureID);
-      glUniform1i(samplerLocation, m_unit);
+   m_nowBound = m_unit;
 
-      m_nowBound = m_unit;
-
-      ++m_boundCount;
- /*  }
-   else
-   {
-      m_logger.Log(Logger::TYPE::DEBUG, std::string("Using already bound texture with ID ") + std::to_string(m_unit)
-                                           + " for shader program " + std::to_string(program));
-   }*/
+   ++m_boundCount;
 }

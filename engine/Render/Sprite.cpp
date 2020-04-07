@@ -6,6 +6,8 @@
 void
 Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
 {
+   m_texture.CreateColorTexture(size, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
    glGenVertexArrays(1, &m_vertexArrayBuffer);
    glGenBuffers(1, &m_vertexBuffer);
    glBindVertexArray(m_vertexArrayBuffer);

@@ -14,6 +14,9 @@ class Texture
 
    // DEBUG: number of glBindTexture calls
    static inline int32_t m_boundCount = 0;
+   
+   void
+   CreateColorTexture(const glm::vec2& size, const glm::vec3& color);
 
    // Load texture from 'fileName' file and return byte values (used for collision)
    std::unique_ptr< byte_vec4 >

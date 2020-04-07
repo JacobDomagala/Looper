@@ -12,7 +12,7 @@ main()
 
       /* scoped variables */
       {
-         nanogui::ref< Editor > app = new Editor();
+         nanogui::ref< Editor > app = new Editor({1920, 1080});
 
          app->drawAll();
          app->setVisible(true);

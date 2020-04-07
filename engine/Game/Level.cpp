@@ -12,6 +12,14 @@
 #include <nlohmann/json.hpp>
 
 void
+Level::Create(const glm::ivec2& size)
+{
+   m_levelSize = size;
+   m_background.SetSprite(glm::vec2(0.0f, 0.0f), m_levelSize);
+   m_shaders.LoadDefault();
+}
+
+void
 Level::Load(const std::string& pathToLevel, bool isGame)
 {
    const auto json = FileManager::LoadJsonFile(pathToLevel);
@@ -190,7 +198,10 @@ Level::Render(const glm::mat4& projectionMat)
       }
    }
 
-   m_player->Render(projectionMat);
+   if (m_player)
+   {
+      m_player->Render(projectionMat);
+   }
 }
 
 void

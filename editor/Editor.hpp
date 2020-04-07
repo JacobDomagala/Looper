@@ -18,15 +18,20 @@ class Window;
 class Editor : public nanogui::Screen
 {
  public:
-   Editor();
+   Editor(const glm::ivec2& screenSize);
    ~Editor();
 
    void
    draw(NVGcontext* ctx) override;
+
    void
    drawAll() override;
+
    void
    drawContents() override;
+
+   void
+   CreateLevel(const glm::ivec2& size);
 
    void
    LoadLevel(const std::string& levelName);
@@ -42,6 +47,9 @@ class Editor : public nanogui::Screen
 
    void
    PlayLevel();
+
+   glm::ivec2
+   GetScreenSize();
 
  private:
    Logger m_logger = Logger("Editor");
@@ -63,6 +71,7 @@ class Editor : public nanogui::Screen
 
    // projection matrix for OpenGL
    glm::mat4 m_projectionMatrix;
+   glm::ivec2 m_screenSize;
 
    InputManager m_inputManager;
    Gui m_gui;

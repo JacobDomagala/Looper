@@ -11,16 +11,15 @@
 #include <fstream>
 #include <thread>
 
-Editor::Editor()
-   : nanogui::Screen(Eigen::Vector2i(1920, 1080), "DGame Editor", true, false, 8, 8, 24, 8, 0, 4,
-                     5),
-     m_gui(*this)
+Editor::Editor(const glm::ivec2& screenSize)
+   : nanogui::Screen(Eigen::Vector2i(screenSize.x, screenSize.y), "DGame Editor", true, false, 8, 8, 24, 8, 0, 4, 5), m_gui(*this)
 {
    InitGLFW();
    m_inputManager.Init(mGLFWWindow);
 
+   m_screenSize = screenSize;
    m_projectionMatrix =
-      glm::ortho(-1920.0f / 2.0f, 1920.0f / 2.0f, 1080.0f / 2.0f, -1080.0f / 2.0f, -1.0f, 1.0f);
+      glm::ortho(-m_screenSize.x / 2.0f, m_screenSize.x / 2.0f, m_screenSize.y / 2.0f, -m_screenSize.y / 2.0f, -1.0f, 1.0f);
 
    m_gui.Init();
 
@@ -42,8 +41,7 @@ Editor::InitGLFW()
    int major, minor;
    glGetIntegerv(GL_MAJOR_VERSION, &major);
    glGetIntegerv(GL_MINOR_VERSION, &minor);
-   m_logger.Log(Logger::TYPE::DEBUG,
-                "OpenGL Version - " + std::to_string(major) + "." + std::to_string(minor));
+   m_logger.Log(Logger::TYPE::DEBUG, "OpenGL Version - " + std::to_string(major) + "." + std::to_string(minor));
 
    glewExperimental = GL_TRUE;
 
@@ -54,12 +52,10 @@ Editor::InitGLFW()
 
    glEnable(GL_DEBUG_OUTPUT);
    glDebugMessageCallback(
-      [](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
-         const GLchar* message, const void* logger) {
+      [](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* logger) {
          std::string buffer(1024, 0x0);
-         const auto newSize =
-            sprintf(&buffer[0], "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s",
-                    (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
+         const auto newSize = sprintf(&buffer[0], "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s",
+                                      (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
 
          buffer.resize(newSize);
          reinterpret_cast< const Logger* >(logger)->Log(Logger::TYPE::DEBUG, buffer);
@@ -124,6 +120,13 @@ Editor::drawContents()
 }
 
 void
+Editor::CreateLevel(const glm::ivec2& size)
+{
+   m_currentLevel.Create(size);
+   m_levelLoaded = true;
+}
+
+void
 Editor::LoadLevel(const std::string& levelPath)
 {
    // const auto filename = std::filesystem::path(levelPath).filename().u8string();
@@ -147,4 +150,10 @@ Editor::PlayLevel()
       m_game.LoadLevel(m_levelFileName);
       m_game.MainLoop();
    }
+}
+
+glm::ivec2
+Editor::GetScreenSize()
+{
+   return m_screenSize;
 }
