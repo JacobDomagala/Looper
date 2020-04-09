@@ -209,7 +209,7 @@ class Game : public Context
    std::vector< std::string > m_levels;
 
    // TODO: Move entire collision logic to Level class
-   byte_vec4* m_collision;
+   byte_vec4* m_collision = nullptr;
 
    // framebuffer for first pass
    Framebuffer m_frameBuffer;

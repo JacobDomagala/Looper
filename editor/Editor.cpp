@@ -120,7 +120,6 @@ Editor::drawContents()
    if (m_levelLoaded)
    {
       m_currentLevel.Render(m_projectionMatrix);
-      //  draw(mNVGContext);
    }
 }
 
@@ -134,7 +133,6 @@ Editor::CreateLevel(const glm::ivec2& size)
 void
 Editor::LoadLevel(const std::string& levelPath)
 {
-   // const auto filename = std::filesystem::path(levelPath).filename().u8string();
    m_levelFileName = levelPath;
    m_currentLevel.Load(*this, levelPath);
    m_player = m_currentLevel.GetPlayer();

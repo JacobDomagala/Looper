@@ -59,27 +59,13 @@ Level::Load(Context& context, const std::string& pathToLevel)
       }
       else if (key == "ENEMIES")
       {
-         if (json[key].is_array())
+         for (auto& enemy : json[key])
          {
-            for (auto& enemy : json[key])
-            {
-               const auto position = enemy["position"];
-               const auto size = enemy["size"];
-               const auto texture = enemy["texture"];
-               const auto weapons = enemy["weapons"];
-               //   const auto animatePos = enemy["animate positions"];
-
-               m_objects.emplace_back(
-                  std::make_unique< Enemy >(context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture));
-            }
-         }
-         else
-         {
-            const auto position = json[key]["position"];
-            const auto size = json[key]["size"];
-            const auto texture = json[key]["texture"];
-            const auto weapons = json[key]["weapons"];
-            //   const auto animatePos = json[key]["animate positions"];
+            const auto position = enemy["position"];
+            const auto size = enemy["size"];
+            const auto texture = enemy["texture"];
+            const auto weapons = enemy["weapons"];
+            //   const auto animatePos = enemy["animate positions"];
 
             m_objects.emplace_back(
                std::make_unique< Enemy >(context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture));
@@ -114,10 +100,14 @@ Level::Save(const std::string& pathToLevel)
    // Serialize game objects
    for (const auto& object : m_objects)
    {
-      json["ENEMIES"]["position"] = {object->GetLocalPosition().x, object->GetLocalPosition().y};
-      json["ENEMIES"]["size"] = {object->GetSize().x, object->GetSize().y};
-      json["ENEMIES"]["texture"] = object->GetSprite().GetTextureName();
-      json["ENEMIES"]["weapons"] = dynamic_cast< Enemy* >(object.get())->GetWeapon();
+      nlohmann::json enemyJson;
+
+      enemyJson["position"] = {object->GetLocalPosition().x, object->GetLocalPosition().y};
+      enemyJson["size"] = {object->GetSize().x, object->GetSize().y};
+      enemyJson["texture"] = object->GetSprite().GetTextureName();
+      enemyJson["weapons"] = dynamic_cast< Enemy* >(object.get())->GetWeapon();
+
+      json["ENEMIES"].emplace_back(enemyJson);
    }
 
    FileManager::SaveJsonFile(pathToLevel, json);

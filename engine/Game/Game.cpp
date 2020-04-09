@@ -887,7 +887,6 @@ Game::RenderFirstPass()
    }
 
    m_currentLevel.Render(m_window->GetProjection());
-   // m_player->Render(m_window->GetProjection());
 
    m_frameBuffer.EndDrawingToTexture();
 }

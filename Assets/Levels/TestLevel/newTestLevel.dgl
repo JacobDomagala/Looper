@@ -1,1 +1,0 @@
-{"BACKGROUND":{"collision":"Level1_collision.png","size":[3000,3000],"texture":"Level1.png"},"ENEMIES":{"position":[1600,1600],"size":[128.0,128.0],"texture":"Default128.png","weapons":"glock"},"PLAYER":{"position":[1600,1600],"size":[128.0,128.0],"texture":"Level1_Char.png","weapons":["sniper rifle","glock"]},"SHADER":{"name":"DefaultShader"}}

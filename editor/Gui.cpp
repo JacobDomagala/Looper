@@ -40,10 +40,11 @@ Gui::CreateLeftPanel()
    });
 
    CreateButton(openLoadLevelLayout, "Save", [&] {
-      auto file = nanogui::file_dialog({{"dgl", "DGame Level"}}, true);
+      std::filesystem::path file = nanogui::file_dialog({{"dgl", "DGame Level"}}, true);
       if (!file.empty())
       {
-         m_parent.SaveLevel(file + ".dgl");
+         const auto fileName = file.has_extension() ? file.u8string() : file.u8string() + ".dgl";
+         m_parent.SaveLevel(fileName);
       }
    });
 
