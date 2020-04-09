@@ -9,6 +9,17 @@
 GLuint Shaders::m_activeProgramID = 0;
 GLuint Shaders::m_numberBound = 0;
 
+Shaders::~Shaders()
+{
+   glDeleteProgram(m_programID);
+}
+
+std::string
+Shaders::GetName() const
+{
+   return m_name;
+}
+
 GLuint
 Shaders::GetProgram() const
 {
@@ -18,25 +29,15 @@ Shaders::GetProgram() const
 void
 Shaders::UseProgram() const
 {
-   //if (m_programID != m_activeProgramID)
-   //{
-      m_logger.Log(Logger::TYPE::DEBUG, "Binding new shaders with program_id = " + std::to_string(m_programID));
-
-      glUseProgram(m_programID);
-      m_activeProgramID = m_programID;
-      ++m_numberBound;
-   //}
-   //else
-   //{
-   //   m_logger.Log(Logger::TYPE::DEBUG, "Using already bound shaders program_id = " + std::to_string(m_programID));
-   //}
-
+   glUseProgram(m_programID);
+   m_activeProgramID = m_programID;
+   ++m_numberBound;
 }
 
 void
 Shaders::LoadDefault()
 {
-   LoadShaders("DefaultShader_vs.glsl", "DefaultShader_fs.glsl");
+   LoadShaders("DefaultShader");
 }
 
 std::string
@@ -46,16 +47,18 @@ Shaders::ReadShaderFile(std::string fileName)
 }
 
 void
-Shaders::LoadShaders(const std::string& vertexShader, const std::string& FragmentShader)
+Shaders::LoadShaders(const std::string& shaderName)
 {
+   m_name = shaderName;
+
    auto vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
    auto fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 
-   std::string tmp = ReadShaderFile(vertexShader);
+   std::string tmp = ReadShaderFile(shaderName + "_vs.glsl");
    const GLchar* shaderSource = tmp.c_str();
    glShaderSource(vertexShaderID, 1, &shaderSource, NULL);
 
-   tmp = ReadShaderFile(FragmentShader);
+   tmp = ReadShaderFile(shaderName + "_fs.glsl");
    shaderSource = tmp.c_str();
    glShaderSource(fragmentShaderID, 1, &shaderSource, NULL);
 
@@ -75,7 +78,7 @@ Shaders::LoadShaders(const std::string& vertexShader, const std::string& Fragmen
    glDeleteShader(vertexShaderID);
    glDeleteShader(fragmentShaderID);
 
-   m_logger.Log(Logger::TYPE::DEBUG, "Loaded shaders " + vertexShader + "/" + FragmentShader + " with program_id = " + std::to_string(m_programID));
+   m_logger.Log(Logger::TYPE::DEBUG, "Loaded shaders " + shaderName + " with program_id = " + std::to_string(m_programID));
 }
 
 void

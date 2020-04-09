@@ -14,6 +14,7 @@
 Editor::Editor(const glm::ivec2& screenSize)
    : nanogui::Screen(Eigen::Vector2i(screenSize.x, screenSize.y), "DGame Editor", true, false, 8, 8, 24, 8, 0, 4, 5), m_gui(*this)
 {
+   m_logger.Init("Editor");
    InitGLFW();
    m_inputManager.Init(mGLFWWindow);
 
@@ -99,6 +100,10 @@ Editor::HandleInput()
    }
 
    m_currentLevel.Move(cameraMoveBy);
+   if (m_player)
+   {
+      m_player->Move(cameraMoveBy);
+   }
 }
 
 void
@@ -131,14 +136,18 @@ Editor::LoadLevel(const std::string& levelPath)
 {
    // const auto filename = std::filesystem::path(levelPath).filename().u8string();
    m_levelFileName = levelPath;
-   m_currentLevel.Load(levelPath, false);
+   m_currentLevel.Load(m_game, levelPath);
+   m_player = m_currentLevel.GetPlayer();
+   m_player->SetGlobalPosition(m_currentLevel.GetGlobalVec(m_player->GetLocalPosition()));
+   // m_currentLevel.Move(-m_player->GetCenteredGlobalPosition());
+   m_player->Move(-m_player->GetCenteredGlobalPosition());
    m_levelLoaded = true;
 }
 
 void
 Editor::SaveLevel(const std::string& levelPath)
 {
-   m_currentLevel.Save(m_levelFileName);
+   m_currentLevel.Save(levelPath);
 }
 
 void
@@ -156,4 +165,10 @@ glm::ivec2
 Editor::GetScreenSize()
 {
    return m_screenSize;
+}
+
+const glm::mat4&
+Editor::GetProjection() const
+{
+   return m_projectionMatrix;
 }

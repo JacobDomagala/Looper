@@ -28,15 +28,10 @@ class Framebuffer
    void
    DrawFrameBuffer();
 
-   void
-   DrawPreviousFrameBuffer();
-
  private:
    uint32_t m_currentFrame = 0;
    GLuint m_framebufferID;
    GLuint m_textureID;
-   // std::array<GLuint, NUM_FRAMES_TO_SAVE> m_frameBufferIDs;
-   std::array< std::unique_ptr< uint8_t[] >, NUM_FRAMES_TO_SAVE > m_texturesBytes;
    Shaders m_shaders;
 
 

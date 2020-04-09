@@ -3,10 +3,11 @@
 #include <Player.hpp>
 #include <Window.hpp>
 
-Player::Player(Game& game, const glm::vec2& position, const glm::ivec2& size, const std::string& sprite, bool isGame,
-               const std::string& name)
+Player::Player(Context& game, const glm::vec2& position, const glm::ivec2& size, const std::string& sprite, const std::string& name)
    : GameObject(game, position, size, sprite)
 {
+   m_logger.Init("Player");
+
    m_name = name;
    m_currentState.m_velocity = {0.0f, 0.0f};
    m_currentState.m_speed = 0.0005f;
@@ -17,9 +18,6 @@ Player::Player(Game& game, const glm::vec2& position, const glm::ivec2& size, co
    m_weapons[1] = std::make_unique< Glock >();
 
    m_currentWeapon = m_weapons.at(0).get();
-
-   m_logger.Init("Player");
-   m_isGame = isGame;
 }
 
 void
@@ -35,7 +33,7 @@ Player::CreateSprite(const glm::vec2& position, const glm::ivec2& size, const st
 void
 Player::LoadShaders(const std::string& shaderFile)
 {
-   m_program.LoadShaders(shaderFile + "_vs.glsl", shaderFile + "_fs.glsl");
+   m_program.LoadShaders(shaderFile);
 }
 
 void
@@ -63,7 +61,7 @@ Player::CheckCollision(const glm::ivec2& bulletPosition, Enemy const* enemy, boo
 glm::vec2
 Player::GetScreenPosition() const
 {
-   glm::vec4 screenPosition = m_gameHandle.GetProjection() * glm::vec4(GameObject::m_currentState.m_centeredGlobalPosition, 0.0f, 1.0f);
+   glm::vec4 screenPosition = m_contextHandle.GetProjection() * glm::vec4(GameObject::m_currentState.m_centeredGlobalPosition, 0.0f, 1.0f);
    return glm::vec2(screenPosition.x, screenPosition.y);
 }
 
@@ -77,7 +75,23 @@ Player::UpdateInternal(bool isReverse)
    }
    else
    {
+      if (m_contextHandle.IsGame())
+      {
+         auto gameHandle = ConvertToGameHandle();
+         if (!gameHandle->IsReverse())
+         {
+            glm::vec2 cursorPos = gameHandle->GetCursorScreenPosition();
+
+            glm::vec4 tmpPos = gameHandle->GetProjection() * glm::vec4(GameObject::m_currentState.m_centeredGlobalPosition, 0.0f, 1.0f);
+            m_currentState.m_viewAngle = -glm::degrees(glm::atan(tmpPos.y - cursorPos.y, tmpPos.x - cursorPos.x));
+         }
+      }
+
+      m_sprite.Rotate(m_currentState.m_viewAngle + 90.0f);
+      m_sprite.SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
+
       m_statesQueue.push_back(m_currentState);
+
       if (m_statesQueue.size() >= NUM_FRAMES_TO_SAVE)
       {
          m_statesQueue.pop_front();
@@ -86,35 +100,11 @@ Player::UpdateInternal(bool isReverse)
 }
 
 void
-Player::Render(const glm::mat4& window)
-{
-   Render(window, m_program);
-}
-
-void
-Player::Render(const glm::mat4& window, const Shaders& program)
-{
-   if (!m_gameHandle.IsReverse() && m_isGame)
-   {
-#pragma region CURSOR_MATH
-
-      glm::vec2 cursorPos = m_gameHandle.GetCursorScreenPosition();
-
-      glm::vec4 tmpPos = m_gameHandle.GetProjection() * glm::vec4(GameObject::m_currentState.m_centeredGlobalPosition, 0.0f, 1.0f);
-      m_currentState.m_viewAngle = -glm::degrees(glm::atan(tmpPos.y - cursorPos.y, tmpPos.x - cursorPos.x));
-
-#pragma endregion
-   }
-   m_sprite.Rotate(m_currentState.m_viewAngle + 90.0f);
-   // m_sprite.RenderReverse(window, m_program, frameCount);
-   GameObject::Render(window, m_program);
-   m_sprite.SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
-}
-
-void
 Player::Shoot()
 {
-   glm::ivec2 direction = static_cast< glm::ivec2 >(m_gameHandle.GetCursor()) - GameObject::m_currentState.m_localPosition;
+   auto gameHandle = ConvertToGameHandle();
+
+   glm::ivec2 direction = static_cast< glm::ivec2 >(gameHandle->GetCursor()) - GameObject::m_currentState.m_localPosition;
    m_currentWeapon->Shoot(direction);
 }
 
@@ -130,9 +120,9 @@ Player::SetCenteredLocalPosition(const glm::ivec2& pos)
    GameObject::m_currentState.m_centeredLocalPosition = pos;
    GameObject::m_currentState.m_localPosition = glm::ivec2(GameObject::m_currentState.m_centeredLocalPosition.x - m_sprite.GetSize().x / 2,
                                                            GameObject::m_currentState.m_centeredLocalPosition.y - m_sprite.GetSize().y / 2);
-   GameObject::m_currentState.m_globalPosition = m_gameHandle.GetLevel().GetGlobalVec(GameObject::m_currentState.m_localPosition);
+   GameObject::m_currentState.m_globalPosition = m_contextHandle.GetLevel().GetGlobalVec(GameObject::m_currentState.m_localPosition);
    GameObject::m_currentState.m_centeredGlobalPosition =
-      m_gameHandle.GetLevel().GetGlobalVec(GameObject::m_currentState.m_centeredLocalPosition);
+      m_contextHandle.GetLevel().GetGlobalVec(GameObject::m_currentState.m_centeredLocalPosition);
 }
 
 void
@@ -163,4 +153,20 @@ int32_t
 Player::GetWeaponDmg() const
 {
    return m_currentWeapon->GetDamage();
+}
+
+std::vector< std::string >
+Player::GetWeapons() const
+{
+   std::vector< std::string > weapons{};
+
+   for (const auto& weapon : m_weapons)
+   {
+      if (weapon)
+      {
+         weapons.push_back(weapon->GetName());
+      }
+   }
+
+   return weapons;
 }

@@ -1,7 +1,7 @@
 #pragma once
 
+#include "Context.hpp"
 #include "Game.hpp"
-
 #include "Gui.hpp"
 #include "Level.hpp"
 #include "Logger.hpp"
@@ -15,7 +15,7 @@
 class Player;
 class Window;
 
-class Editor : public nanogui::Screen
+class Editor : public nanogui::Screen, public Context
 {
  public:
    Editor(const glm::ivec2& screenSize);
@@ -51,28 +51,22 @@ class Editor : public nanogui::Screen
    glm::ivec2
    GetScreenSize();
 
- private:
-   Logger m_logger = Logger("Editor");
+   const glm::mat4&
+   GetProjection() const override;
 
+ private:
    Game m_game;
-   std::unique_ptr< Player > m_player = nullptr;
-   glm::vec2 m_playerPosition;
 
    // string -> file name in which level is stored (used for testing level in game)
    // level -> currently active level in editor
    std::string m_levelFileName;
-   Level m_currentLevel = Level(m_game);
 
    bool m_levelLoaded = false;
    std::unique_ptr< byte_vec4 > m_collision = nullptr;
-
-   // framebuffer for first pass
-   Framebuffer m_frameBuffer;
 
    // projection matrix for OpenGL
    glm::mat4 m_projectionMatrix;
    glm::ivec2 m_screenSize;
 
-   InputManager m_inputManager;
    Gui m_gui;
 };

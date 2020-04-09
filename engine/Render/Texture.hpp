@@ -1,10 +1,12 @@
 #pragma once
 
 #include "Logger.hpp"
-#include <Common.hpp>
+#include "Common.hpp"
+#include "FileManager.hpp"
 
 #include <GL/glew.h>
 #include <string>
+#include <memory>
 
 class Texture
 {
@@ -14,17 +16,26 @@ class Texture
 
    // DEBUG: number of glBindTexture calls
    static inline int32_t m_boundCount = 0;
-   
+
+   // Create new texture which is filled with 'color' 
    void
-   CreateColorTexture(const glm::vec2& size, const glm::vec3& color);
+   CreateColorTexture(const glm::ivec2& size, const glm::vec3& color);
 
    // Load texture from 'fileName' file and return byte values (used for collision)
-   std::unique_ptr< byte_vec4 >
-   LoadTextureFromFile(const std::string& fileName = "Assets//Default.png", GLenum wrapMode = GL_REPEAT, GLenum filter = GL_LINEAR);
+   byte_vec4*
+   LoadTextureFromFile(const std::string& fileName = "Default.png", GLenum wrapMode = GL_REPEAT, GLenum filter = GL_LINEAR);
 
-   // Load texture from 'data' memory
-   void
-   LoadTextureFromMemory(int32_t width, int32_t height, uint8_t* data, GLenum wrapMode = GL_REPEAT, GLenum filter = GL_LINEAR);
+   uint8_t*
+   GetData()
+   {
+      return m_data.get();
+   }
+
+   std::string
+   GetName() const
+   {
+      return m_name;
+   }
 
    int32_t
    GetWidth() const
@@ -49,15 +60,25 @@ class Texture
    Use(GLuint programID);
 
  private:
+   // Load texture from 'data' memory
+   void
+   LoadTextureFromMemory(const glm::ivec2& size, uint8_t* data, const std::string& name, GLenum wrapMode = GL_REPEAT,
+                         GLenum filter = GL_LINEAR);
+
+ private:
+   FileManager::ImageHandleType m_data;
+
    // width and size of texture
-   int32_t m_width;
-   int32_t m_height;
+   int32_t m_width = 0 ;
+   int32_t m_height = 0;
+
+   std::string m_name = "EmptyName.png";
 
    // texture ID used in
-   GLuint m_textureID;
+   GLuint m_textureID = 0;
 
    // sampler ID
-   GLuint m_samplerID;
+   GLuint m_samplerID = 0;
 
    // each time new texture is loaded this counter is increased
    static inline int32_t m_unitCounter = 0;
@@ -65,13 +86,10 @@ class Texture
    // ID of currently bound texture
    static inline int32_t m_nowBound = 0;
 
-   GLuint m_maxBoundCound = 31;
+   GLint m_maxBoundCound = 31;
 
    // texture unit
-   int32_t m_unit;
+   int32_t m_unit = 0;
 
    Logger m_logger = Logger("Texture");
-
-   // FIX LATER -> THIS IS RAW POINTER FROM UNIQUE
-   uint8_t* m_data;
 };

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Context.hpp"
 #include "Font.hpp"
 #include "Framebuffer.hpp"
 #include "InputManager.hpp"
@@ -41,7 +42,7 @@ class Line : public DebugObject
    Draw(const glm::mat4& projection) override
    {
       Shaders lineShader{};
-      lineShader.LoadShaders("lineVertex.glsl", "lineFragment.glsl");
+      lineShader.LoadShaders("lineShader");
 
       glm::vec2 vertices[2] = {m_from, m_to};
 
@@ -71,7 +72,7 @@ class Line : public DebugObject
 };
 #pragma endregion
 
-class Game
+class Game : public Context
 {
  public:
    Game() = default;
@@ -85,28 +86,10 @@ class Game
    Init(std::string configFile);
 
    bool
-   IsReverse() const
-   {
-      return m_reverse;
-   }
-
-   Player&
-   GetPlayer()
-   {
-      return *m_player;
-   }
-
-   Level&
-   GetLevel()
-   {
-      return m_currentLevel;
-   }
+   IsReverse() const;
 
    float
-   GetDeltaTime() const
-   {
-      return m_deltaTime;
-   }
+   GetDeltaTime() const;
 
    std::pair< glm::ivec2, bool >
    CheckBulletCollision(Enemy* from, glm::vec2 targetPosition, int32_t range);
@@ -121,75 +104,43 @@ class Game
    DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f));
 
    void
-   RenderText(std::string text, const glm::vec2& position, float scale, const glm::vec3& color = glm::vec3(1.0f, 1.0f, 1.0f));
-
-   void
    ProcessInput(float deltaTime);
 
    void
    Render();
 
    const glm::mat4&
-   GetProjection() const
-   {
-      return m_window->GetProjection();
-   }
+   GetProjection() const override;
 
    glm::vec2
-   GetCursor()
-   {
-      return m_window->GetCursor();
-   }
+   GetCursor();
 
    glm::vec2
-   GetCursorScreenPosition()
-   {
-      return m_window->GetCursorScreenPosition();
-   }
+   GetCursorScreenPosition();
 
    void
-   SwapBuffers()
-   {
-      m_window->SwapBuffers();
-   }
+   SwapBuffers();
 
    bool
-   IsRunning()
-   {
-      return m_window->IsRunning();
-   }
+   IsRunning();
 
    void
-   Log(Logger::TYPE t, const std::string& log)
-   {
-      logger.Log(t, log);
-   }
+   PollEvents();
 
    void
-   PollEvents()
-   {
-      glfwPollEvents();
-   }
-
-   void
-   RegisterForKeyInput(IInputListener* listener)
-   {
-      m_inputManager.RegisterForKeyInput(listener);
-   }
+   RegisterForKeyInput(IInputListener* listener);
 
    void
    LoadLevel(const std::string& levelName);
 
    // TODO move all collision related code to Level class?
    void
-   SetCollisionMap(std::unique_ptr< byte_vec4 >&& collision)
-   {
-      m_collision = std::move(collision);
-   }
+   SetCollisionMap(byte_vec4* collision);
 
  private:
    // DEBUG
    std::vector< std::unique_ptr< DebugObject > > m_debugObjs;
+
    void
    RenderLine(const glm::ivec2& collided, const glm::vec3& color);
 
@@ -242,26 +193,24 @@ class Game
    HandleReverseLogic();
 
  private:
-   bool m_initialized = false;
+
    Logger logger = Logger("Game");
+
+   bool m_initialized = false;
+
    std::unique_ptr< Window > m_window = nullptr;
+
    Timer m_timer;
+
    int32_t m_frames = 0;
    float m_frameTimer = 0.0f;
    int32_t m_framesLastSecond = 0;
 
-
-   Level m_currentLevel = Level(*this);
    // all maps
    std::vector< std::string > m_levels;
 
-   std::unique_ptr< byte_vec4 > m_collision;
-
-   // active font used in game
-   Font m_font;
-
-   // how fast should camera move
-   float m_cameraSpeed = 0.0f;
+   // TODO: Move entire collision logic to Level class
+   byte_vec4* m_collision;
 
    // framebuffer for first pass
    Framebuffer m_frameBuffer;
@@ -269,6 +218,7 @@ class Game
    float m_deltaTime = 0.0f;
 
    bool m_reverse = false;
+
    int m_frameCount = 0;
 
    // state of the game
@@ -276,7 +226,4 @@ class Game
 
    // player position on map (centered)
    glm::vec2 m_playerPosition;
-   std::shared_ptr< Player > m_player = nullptr;
-
-   InputManager m_inputManager;
 };

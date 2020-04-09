@@ -34,7 +34,7 @@ Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
    glBindVertexArray(0);
 }
 
-std::unique_ptr< byte_vec4 >
+byte_vec4*
 Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName)
 {
    auto returnPtr = m_texture.LoadTextureFromFile(fileName);
@@ -130,6 +130,11 @@ Sprite::GetSize() const
    return m_size;
 }
 
+std::string
+Sprite::GetTextureName() const
+{
+   return m_texture.GetName();
+}
 void
 Sprite::SetColor(const glm::vec3& color)
 {
@@ -140,12 +145,6 @@ void
 Sprite::SetTextureFromFile(const std::string& filePath)
 {
    m_texture.LoadTextureFromFile(filePath);
-}
-
-void
-Sprite::SetTexture(const Texture& texture)
-{
-   m_texture = texture;
 }
 
 void

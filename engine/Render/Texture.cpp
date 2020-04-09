@@ -4,38 +4,35 @@
 #include <Window.hpp>
 
 void
-Texture::CreateColorTexture(const glm::vec2& size, const glm::vec3& color)
+Texture::CreateColorTexture(const glm::ivec2& size, const glm::vec3& color)
 {
-   std::unique_ptr< byte_vec4[] > data(new byte_vec4[size.x * size.y]);
-   std::memset(data.get(), 0xFF, size.x * size.y * 4);
-   LoadTextureFromMemory(size.x, size.y, reinterpret_cast< uint8_t* >(data.get()));
+   const auto sizeArray = size.x * size.y * sizeof(byte_vec4);
+
+   m_data = std::make_unique< uint8_t[] >(sizeArray);
+   std::memset(m_data.get(), 0xFF, sizeArray);
+
+   LoadTextureFromMemory(size, m_data.get(), "NewTexture.png");
 }
 
-std::unique_ptr< byte_vec4 >
+byte_vec4*
 Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenum filter)
 {
-   // int32_t n = 0;
-   // std::unique_ptr< byte_vec4 > data(reinterpret_cast< byte_vec4* >(stbi_load(fileName.c_str(), &m_width, &m_height, &n, 0)));
+   auto picture = FileManager::LoadImage(fileName);
 
-   auto picture = FileManager::LoadPictureRawData(fileName);
-   m_width = picture.m_size.x;
-   m_height = picture.m_size.y;
+   m_data = std::move(picture.m_bytes);
+   LoadTextureFromMemory(picture.m_size, m_data.get(), fileName);
 
-   LoadTextureFromMemory(m_width, m_height, picture.m_bytes);
-
-   std::unique_ptr< byte_vec4 > data(reinterpret_cast< byte_vec4* >(picture.m_bytes));
-
-   return data;
+   return reinterpret_cast< byte_vec4* >(GetData());
 }
 
 void
-Texture::LoadTextureFromMemory(int32_t width, int32_t height, uint8_t* data, GLenum wrapMode, GLenum filter)
+Texture::LoadTextureFromMemory(const glm::ivec2& size, uint8_t* data, const std::string& name, GLenum wrapMode, GLenum filter)
 {
-   m_data = data;
+   m_name = name;
 
    glGenTextures(1, &m_textureID);
    glBindTexture(GL_TEXTURE_2D, m_textureID);
-   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, reinterpret_cast< uint8_t* >(m_data));
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_data.get());
    glGenerateMipmap(GL_TEXTURE_2D);
 
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -43,19 +40,17 @@ Texture::LoadTextureFromMemory(int32_t width, int32_t height, uint8_t* data, GLe
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
+   glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &m_maxBoundCound);
    // 32 textures can be bound at the same time
    m_unit = m_unitCounter >= m_maxBoundCound ? 0 : m_unitCounter++;
 
-   m_logger.Log(Logger::TYPE::DEBUG, std::string("Created texture with sampler_ID ") + std::to_string(m_samplerID)
+   m_logger.Log(Logger::TYPE::DEBUG, std::string("Created texture " + m_name + " with sampler_ID ") + std::to_string(m_samplerID)
                                         + " using it with unit_id " + std::to_string(m_unit));
 }
 
 void
 Texture::Use(GLuint program)
 {
-   m_logger.Log(Logger::TYPE::DEBUG,
-                std::string("Binding texture with ID ") + std::to_string(m_unit) + " for shader program " + std::to_string(program));
-
    GLuint samplerLocation = glGetUniformLocation(program, "texture");
 
    glActiveTexture(GL_TEXTURE0 + m_unit);

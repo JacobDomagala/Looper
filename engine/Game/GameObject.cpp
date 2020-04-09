@@ -1,22 +1,24 @@
+#include <Context.hpp>
 #include <Game.hpp>
 #include <GameObject.hpp>
 #include <Window.hpp>
 
-GameObject::GameObject(Game& game, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite) : m_gameHandle(game)
+GameObject::GameObject(Context& game, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite)
+   : m_contextHandle(game)
 {
-   m_currentState.m_globalPosition = m_gameHandle.GetLevel().GetGlobalVec(positionOnMap);
+   m_currentState.m_globalPosition = m_contextHandle.GetLevel().GetGlobalVec(positionOnMap);
    m_currentState.m_localPosition = positionOnMap;
    m_currentState.m_visible = true;
    m_collision = m_sprite.SetSpriteTextured(m_currentState.m_globalPosition, size, sprite);
    m_currentState.m_centeredGlobalPosition = m_sprite.GetCenteredPosition();
-   m_currentState.m_centeredLocalPosition = m_gameHandle.GetLevel().GetLocalVec(m_currentState.m_centeredGlobalPosition);
+   m_currentState.m_centeredLocalPosition = m_contextHandle.GetLevel().GetLocalVec(m_currentState.m_centeredGlobalPosition);
 }
 
 glm::vec2
 GameObject::GetScreenPositionPixels() const
 {
    // Get the world coords
-   glm::vec4 screenPosition = m_gameHandle.GetProjection() * glm::vec4(m_currentState.m_centeredGlobalPosition, 0.0f, 1.0f);
+   glm::vec4 screenPosition = m_contextHandle.GetProjection() * glm::vec4(m_currentState.m_centeredGlobalPosition, 0.0f, 1.0f);
 
    // convert from <-1,1> to <0,1>
    glm::vec2 tmpPos = (glm::vec2(screenPosition.x, screenPosition.y) + glm::vec2(1.0f, 1.0f)) / glm::vec2(2.0f, 2.0f);
@@ -27,6 +29,12 @@ GameObject::GetScreenPositionPixels() const
    tmpPos.y += HEIGHT;
 
    return tmpPos;
+}
+
+bool
+GameObject::Visible() const
+{
+   return m_currentState.m_visible;
 }
 
 void
@@ -83,16 +91,16 @@ GameObject::GetCenteredGlobalPosition() const
    return m_currentState.m_centeredGlobalPosition;
 }
 
+const Sprite&
+GameObject::GetSprite() const
+{
+   return m_sprite;
+}
+
 void
 GameObject::SetShaders(const Shaders& program)
 {
    m_program = program;
-}
-
-void
-GameObject::SetTexture(const Texture& texture)
-{
-   m_sprite.SetTexture(texture);
 }
 
 void
@@ -148,4 +156,16 @@ void
 GameObject::Render(const glm::mat4& projectionMat, const Shaders& program)
 {
    m_sprite.Render(projectionMat, program);
+}
+
+Game*
+GameObject::ConvertToGameHandle()
+{
+   auto gameHandle = static_cast< Game* >(&m_contextHandle);
+   if (gameHandle == nullptr)
+   {
+      m_contextHandle.Log(Logger::TYPE::FATAL, "Game logic called not from Game class");
+   }
+
+   return gameHandle;
 }

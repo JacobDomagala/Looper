@@ -32,13 +32,19 @@ Gui::CreateLeftPanel()
 
    CreateButton(openLoadLevelLayout, "Open", [&, playLevelButton] {
       auto file = nanogui::file_dialog({{"dgl", "DGame Level"}}, false);
-      m_parent.LoadLevel(file);
-      playLevelButton->setEnabled(true);
+      if (!file.empty())
+      {
+         m_parent.LoadLevel(file);
+         playLevelButton->setEnabled(true);
+      }
    });
 
    CreateButton(openLoadLevelLayout, "Save", [&] {
       auto file = nanogui::file_dialog({{"dgl", "DGame Level"}}, true);
-      m_parent.SaveLevel(file);
+      if (!file.empty())
+      {
+         m_parent.SaveLevel(file + ".dgl");
+      }
    });
 
    CreateLabel(toolsWindow, "Create new Level");

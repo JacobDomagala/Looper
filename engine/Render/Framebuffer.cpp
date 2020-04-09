@@ -26,7 +26,7 @@ Framebuffer::SetUp()
    glBindFramebuffer(GL_FRAMEBUFFER, 0);
    glBindTexture(GL_TEXTURE_2D, 0);
 
-   m_shaders.LoadShaders("AfterEffects_vs.glsl", "AfterEffects_fs.glsl");
+   m_shaders.LoadShaders("AfterEffects");
 
    glGenVertexArrays(1, &m_vertexArrayBuffer);
    glGenBuffers(1, &m_vertexBuffer);
@@ -46,7 +46,7 @@ Framebuffer::SetUp()
 void
 Framebuffer::LoadShaders(const std::string& shaderName)
 {
-   m_shaders.LoadShaders(shaderName + "_vs.glsl", shaderName + "_fs.glsl");
+   m_shaders.LoadShaders(shaderName);
 }
 
 void
@@ -82,23 +82,4 @@ Framebuffer::DrawFrameBuffer()
    glBindVertexArray(0);
 
    // m_currentFrame = m_currentFrame >= NUM_FRAMES_TO_SAVE ? 0 : m_currentFrame++;
-}
-
-void
-Framebuffer::DrawPreviousFrameBuffer()
-{
-   glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-   glClear(GL_COLOR_BUFFER_BIT);
-
-   glBindVertexArray(m_vertexArrayBuffer);
-
-   Texture textureForCurrentFrame;
-   textureForCurrentFrame.LoadTextureFromMemory(WIDTH, HEIGHT, m_texturesBytes.at(m_currentFrame).get());
-   textureForCurrentFrame.Use(m_shaders.GetProgram());
-
-   glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-   glBindVertexArray(0);
-
-   m_currentFrame = m_currentFrame <= 0 ? 0 : m_currentFrame--;
 }

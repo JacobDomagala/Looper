@@ -74,6 +74,9 @@ Game::GlobalToScreen(glm::vec2 globalPos)
 void
 Game::Init(const std::string configFile)
 {
+   m_logger.Init("Game");
+   m_isGame = true;
+
    std::ifstream initFile((ASSETS_DIR / configFile).u8string());
 
    if (!initFile)
@@ -121,7 +124,7 @@ Game::CorrectPosition()
 
    auto linearPosition = static_cast< uint32_t >(floor(playerPosition.x + playerPosition.y * levelSize.x));
 
-   byte_vec4* tmpCollision = m_collision.get();
+   byte_vec4* tmpCollision = m_collision;
 
    glm::ivec2 playerDestination = playerPosition;
    glm::ivec2 returnVal = glm::ivec2();
@@ -183,7 +186,7 @@ Game::RenderLine(const glm::ivec2& collided, const glm::vec3& color)
    glm::vec2 lineCollided = m_currentLevel.GetGlobalVec(collided);
 
    Shaders lineShader;
-   lineShader.LoadShaders("../lineVertex.glsl", "../lineFragment.glsl");
+   lineShader.LoadShaders("lineShader");
 
    glm::vec2 vertices[2] = {glm::vec2(m_player->GetCenteredGlobalPosition()), glm::vec2(lineCollided)};
    glm::mat4 modelMatrix = glm::scale(glm::mat4(), glm::vec3(1.0f, 1.0f, 1.0f));
@@ -261,7 +264,7 @@ Game::CheckBulletCollision(Enemy* from, glm::vec2 globalTo, int32_t range)
          }
 
          if (tmpPos.x <= 0 || tmpPos.x >= levelSize.x || tmpPos.y <= 0 || tmpPos.y >= levelSize.y
-             || m_collision.get()[tmpPos.x + tmpPos.y * levelSize.x].w != 0)
+             || m_collision[tmpPos.x + tmpPos.y * levelSize.x].w != 0)
          {
             return {tmpPos, false};
          }
@@ -285,7 +288,7 @@ Game::CheckBulletCollision(Enemy* from, glm::vec2 globalTo, int32_t range)
          }
 
          if (tmpPos.x <= 0 || tmpPos.x >= levelSize.x || tmpPos.y <= 0 || tmpPos.y >= levelSize.y
-             || m_collision.get()[tmpPos.x + tmpPos.y * levelSize.x].w != 0)
+             || m_collision[tmpPos.x + tmpPos.y * levelSize.x].w != 0)
          {
             return {tmpPos, false};
          }
@@ -354,7 +357,7 @@ Game::IsPlayerInVision(Enemy* from, int32_t range)
          }
 
          if (tmpPos.x <= 0 || tmpPos.x >= levelSize.x || tmpPos.y <= 0 || tmpPos.y >= levelSize.y
-             || m_collision.get()[tmpPos.x + tmpPos.y * levelSize.x].w != 0)
+             || m_collision[tmpPos.x + tmpPos.y * levelSize.x].w != 0)
          {
             return false;
          }
@@ -378,7 +381,7 @@ Game::IsPlayerInVision(Enemy* from, int32_t range)
          }
 
          if (tmpPos.x <= 0 || tmpPos.x >= levelSize.x || tmpPos.y <= 0 || tmpPos.y >= levelSize.y
-             || m_collision.get()[tmpPos.x + tmpPos.y * levelSize.x].w != 0)
+             || m_collision[tmpPos.x + tmpPos.y * levelSize.x].w != 0)
          {
             return false;
          }
@@ -450,7 +453,7 @@ Game::CheckBulletCollision(int32_t range)
          }
 
          if (tmpPos.x == 0 || tmpPos.x == levelSize.x || tmpPos.y == 0 || tmpPos.y == levelSize.y
-             || m_collision.get()[tmpPos.x + tmpPos.y * levelSize.x].w != 0)
+             || m_collision[tmpPos.x + tmpPos.y * levelSize.x].w != 0)
          {
             return tmpPos;
          }
@@ -474,7 +477,7 @@ Game::CheckBulletCollision(int32_t range)
          }
 
          if (tmpPos.x == 0 || tmpPos.x == levelSize.x || tmpPos.y == 0 || tmpPos.y == levelSize.y
-             || m_collision.get()[tmpPos.x + tmpPos.y * levelSize.x].w != 0)
+             || m_collision[tmpPos.x + tmpPos.y * levelSize.x].w != 0)
          {
             return tmpPos;
          }
@@ -515,7 +518,7 @@ Game::CheckCollision(glm::ivec2& moveBy)
 
    uint32_t tmpPosition = linearPosition;
    returnVal = moveBy;
-   byte_vec4* tmpCollision = m_collision.get();
+   byte_vec4* tmpCollision = m_collision;
 
    // if player can move to destination (FeelsGoodMan)
    if (tmpCollision[linearDestination].w == 0)
@@ -608,7 +611,7 @@ Game::CheckCollision(const glm::ivec2& currentPosition, const glm::ivec2& moveBy
 
    uint32_t tmpPosition = linearPosition;
    returnVal = moveBy;
-   byte_vec4* tmpCollision = m_collision.get();
+   byte_vec4* tmpCollision = m_collision;
 
    // if player can move to destination (FeelsGoodMan)
    if (tmpCollision[linearDestination].w == 0)
@@ -853,7 +856,7 @@ Game::MouseEvents()
       if (glm::length(glm::vec2(cameraMoveBy)))
       {
          m_currentLevel.Move(cameraMoveBy);
-         // m_player->Move(cameraMoveBy);
+         m_player->Move(cameraMoveBy);
       }
    }
 }
@@ -909,7 +912,7 @@ Game::RenderSecondPass()
 void
 Game::LoadLevel(const std::string& pathToLevel)
 {
-   m_currentLevel.Load(pathToLevel);
+   m_currentLevel.Load(*this, pathToLevel);
    m_player = m_currentLevel.GetPlayer();
    // std::filesystem::path folderPath = LEVELS_DIR / levelName;
    // std::ifstream levelFile((folderPath / levelName).u8string() + ".txt");
@@ -1007,9 +1010,63 @@ Game::LoadLevel(const std::string& pathToLevel)
    //   }
    //}
 
-   // m_currentLevel.Move(-m_player->GetCenteredGlobalPosition());
-   // m_player->Move(-m_player->GetCenteredGlobalPosition());
+    m_currentLevel.Move(-m_player->GetCenteredGlobalPosition());
+    m_player->Move(-m_player->GetCenteredGlobalPosition());
 }
+
+   const glm::mat4&
+   Game::GetProjection() const
+   {
+      return m_window->GetProjection();
+   }
+
+   glm::vec2
+   Game::GetCursor()
+   {
+      return m_window->GetCursor();
+   }
+
+   glm::vec2
+   Game::GetCursorScreenPosition()
+   {
+      return m_window->GetCursorScreenPosition();
+   }
+
+   void
+   Game::SwapBuffers()
+   {
+      m_window->SwapBuffers();
+   }
+
+   bool
+   Game::IsRunning()
+   {
+      return m_window->IsRunning();
+   }
+
+   void
+   Game::PollEvents()
+   {
+      glfwPollEvents();
+   }
+
+   void
+   Game::RegisterForKeyInput(IInputListener* listener)
+   {
+      m_inputManager.RegisterForKeyInput(listener);
+   }
+
+   void
+   Game::SetCollisionMap(byte_vec4* collision)
+   {
+      m_collision = collision;
+   }
+
+float
+Game::GetDeltaTime() const
+   {
+      return m_deltaTime;
+   }
 
 void
 Game::ProcessInput(float deltaTime)
@@ -1023,10 +1080,10 @@ Game::ProcessInput(float deltaTime)
    UpdateGameState();
 }
 
-void
-Game::RenderText(std::string text, const glm::vec2& position, float scale, const glm::vec3& color)
+bool
+Game::IsReverse() const
 {
-   m_font.RenderText(*m_window, text, position, scale, color);
+ return m_reverse;
 }
 
 void

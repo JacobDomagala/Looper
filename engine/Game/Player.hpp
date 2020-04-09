@@ -16,7 +16,7 @@ class Enemy;
 class Player : public GameObject
 {
  public:
-   explicit Player(Game& game, const glm::vec2& position, const glm::ivec2& size, const std::string& sprite, bool isGame = true,
+   explicit Player(Context& game, const glm::vec2& position, const glm::ivec2& size, const std::string& sprite,
                    const std::string& name = "Anonymous");
    ~Player() = default;
 
@@ -65,19 +65,15 @@ class Player : public GameObject
    int32_t
    GetWeaponDmg() const;
 
+   std::vector< std::string >
+   GetWeapons() const;
+
    // shoot with current weapon
    void
    Shoot();
 
    void
    CreateSprite(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName);
-
-   void
-   Render(const glm::mat4& window);
-
-   // draw player
-   void
-   Render(const glm::mat4& window, const Shaders& program) override;
 
    void Hit(int32_t) override
    {
@@ -124,5 +120,4 @@ class Player : public GameObject
    int32_t m_maxHP = 100;
 
    Logger m_logger;
-   bool m_isGame = true;
 };

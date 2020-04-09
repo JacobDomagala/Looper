@@ -10,8 +10,6 @@
 #include <string>
 #include <unordered_map>
 
-class Window;
-
 struct Character
 {
    GLuint textureID;   // ID handle of the glyph texture
@@ -30,7 +28,7 @@ class Font
    SetFont(const std::string& fileName = (ASSETS_DIR / "segoeui.ttf").u8string());
 
    void
-   RenderText(Window& window, std::string text, glm::vec2 position, GLfloat scale, const glm::vec3& color);
+   RenderText(const glm::mat4& projectionMatrix, std::string text, glm::vec2 position, GLfloat scale, const glm::vec3& color);
 
 private:
    GLuint m_VAO{}, m_VBO{};

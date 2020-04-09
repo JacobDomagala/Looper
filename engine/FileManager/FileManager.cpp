@@ -2,6 +2,7 @@
 
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
+
 #include <fstream>
 #include <stb_image.h>
 
@@ -27,25 +28,25 @@ FileManager::ReadFile(const std::string& fileName, FileType type)
    return returnVal;
 }
 
-FileManager::Picture
-FileManager::LoadPicture(const std::string& fileName)
+FileManager::ImageSmart
+FileManager::LoadImage(const std::string& imageName)
 {
-   const auto pathToImage = std::filesystem::path(IMAGES_DIR / fileName).u8string();
+   const auto pathToImage = std::filesystem::path(IMAGES_DIR / imageName).u8string();
    int force_channels = 0;
    int w, h, n;
 
-   pictureHandleType textureData(stbi_load(pathToImage.c_str(), &w, &h, &n, force_channels), stbi_image_free);
+   ImageHandleType textureData(stbi_load(pathToImage.c_str(), &w, &h, &n, force_channels), stbi_image_free);
 
    if (!textureData)
    {
-      m_logger.Log(Logger::TYPE::FATAL, "FileManager::LoadPicture -> " + pathToImage + " can't be opened!");
+      m_logger.Log(Logger::TYPE::FATAL, "FileManager::LoadImage -> " + pathToImage + " can't be opened!");
    }
 
    return {std::move(textureData), {w, h}, n};
 }
 
 uint8_t*
-FileManager::LoadPictureRawBytes(const std::string& fileName)
+FileManager::LoadImageRawBytes(const std::string& fileName)
 {
    const auto pathToImage = std::filesystem::path(IMAGES_DIR / fileName).u8string();
    int force_channels = 0;
@@ -55,14 +56,14 @@ FileManager::LoadPictureRawBytes(const std::string& fileName)
 
    if (!textureData)
    {
-      m_logger.Log(Logger::TYPE::FATAL, "FileManager::LoadPictureRawBytes -> " + pathToImage + " can't be opened!");
+      m_logger.Log(Logger::TYPE::FATAL, "FileManager::LoadImageRawBytes -> " + pathToImage + " can't be opened!");
    }
 
    return textureData;
 }
 
-FileManager::PictureRaw
-FileManager::LoadPictureRawData(const std::string& fileName)
+FileManager::ImageRaw
+FileManager::LoadImageRawData(const std::string& fileName)
 {
    const auto pathToImage = std::filesystem::path(IMAGES_DIR / fileName).u8string();
    int force_channels = 0;
@@ -72,10 +73,10 @@ FileManager::LoadPictureRawData(const std::string& fileName)
 
    if (!textureData)
    {
-      m_logger.Log(Logger::TYPE::FATAL, "FileManager::LoadPictureRawData -> " + pathToImage + " can't be opened!");
+      m_logger.Log(Logger::TYPE::FATAL, "FileManager::LoadImageRawData -> " + pathToImage + " can't be opened!");
    }
 
-   return {std::move(textureData), {w, h}, n};
+   return {textureData, {w, h}, n};
 }
 
 nlohmann::json

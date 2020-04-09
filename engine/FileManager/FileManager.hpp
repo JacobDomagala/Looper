@@ -17,21 +17,18 @@ const std::filesystem::path IMAGES_DIR = ASSETS_DIR / "Images";
 class FileManager
 {
  public:
-   using pictureHandleType = std::unique_ptr< uint8_t[], void (*)(void*) >;
-
-   struct Picture
+   
+   template <typename T>
+   struct ImageData
    {
-      pictureHandleType m_bytes;
+      T m_bytes;
       glm::ivec2 m_size;
       int32_t m_format;
    };
 
-   struct PictureRaw
-   {
-      uint8_t* m_bytes;
-      glm::ivec2 m_size;
-      int32_t m_format;
-   };
+   using ImageHandleType = std::unique_ptr< uint8_t[], std::function<void(uint8_t*)>>;
+   using ImageSmart = ImageData<ImageHandleType>;
+   using ImageRaw = ImageData<uint8_t*>;
 
    enum class FileType
    {
@@ -45,20 +42,20 @@ class FileManager
    static void
    WriteToFile(const std::string& fileName, FileType type = FileType::TEXT);
 
-   static Picture
-   LoadPicture(const std::string& fileName);
-
    // NOTE!
    // image data is not freed
    // TODO: Handle freeing the data
    static uint8_t*
-   LoadPictureRawBytes(const std::string& fileName);
+   LoadImageRawBytes(const std::string& fileName);
+
+   static ImageSmart
+   LoadImage(const std::string& fileName);
 
    // NOTE!
    // image data is not freed
    // TODO: Handle freeing the data
-   static PictureRaw
-   LoadPictureRawData(const std::string& fileName);
+   static ImageRaw
+   LoadImageRawData(const std::string& fileName);
 
    static nlohmann::json
    LoadJsonFile(const std::string& fileName);

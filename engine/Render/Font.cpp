@@ -14,7 +14,7 @@ Font::SetFont(const std::string& fontName)
 {
    m_logger.Init("Font");
 
-   m_program.LoadShaders("Font_vs.glsl", "Font_fs.glsl");
+   m_program.LoadShaders("Font");
 
    FT_Library ft;
 
@@ -80,12 +80,12 @@ Font::SetFont(const std::string& fontName)
 }
 
 void
-Font::RenderText(Window& window, std::string text, glm::vec2 position, GLfloat scale, const glm::vec3& color)
+Font::RenderText(const glm::mat4& projectionMatrix, std::string text, glm::vec2 position, GLfloat scale, const glm::vec3& color)
 {
    // Activate corresponding render state
    m_program.UseProgram();
    m_program.SetUniformFloatVec4(glm::vec4(color, 1.0f), "color");
-   m_program.SetUniformFloatMat4(window.GetProjection(), "projectionMatrix");
+   m_program.SetUniformFloatMat4(projectionMatrix, "projectionMatrix");
    glActiveTexture(GL_TEXTURE0);
    glBindVertexArray(m_VAO);
 

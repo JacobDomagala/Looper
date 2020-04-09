@@ -110,7 +110,7 @@ Window::SetIcon(const std::string& file)
    GLFWimage image;
    image.width = 16;
    image.height = 16;
-   image.pixels = reinterpret_cast< unsigned char* >(texture.LoadTextureFromFile(file).get());
+   image.pixels = reinterpret_cast< uint8_t* >(texture.LoadTextureFromFile(file));
 
    auto cursor = glfwCreateCursor(&image, 0, 0);
    glfwSetCursor(m_pWindow, cursor);

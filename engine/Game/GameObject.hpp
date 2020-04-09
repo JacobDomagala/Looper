@@ -8,6 +8,7 @@
 #include <deque>
 #include <glm/glm.hpp>
 
+class Context;
 class Game;
 class Window;
 
@@ -15,7 +16,7 @@ class GameObject
 {
  public:
    // Constructors and destructors
-   GameObject(Game& game, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite);
+   GameObject(Context& game, const glm::vec2& localPosition, const glm::ivec2& size, const std::string& sprite);
    virtual ~GameObject() = default;
 
    virtual void Hit(int32_t) = 0;
@@ -24,38 +25,52 @@ class GameObject
    DealWithPlayer() = 0;
 
    virtual bool
-   Visible() const
-   {
-      return m_currentState.m_visible;
-   }
+   Visible() const;
 
    // SETERS
    virtual void
    SetColor(const glm::vec3& color);
+   
    virtual void
    SetCenteredLocalPosition(const glm::ivec2& pos);
+   
    virtual void
    SetLocalPosition(const glm::ivec2& position);
+   
    virtual void
    SetGlobalPosition(const glm::vec2& position);
+   
    virtual void
    SetShaders(const Shaders& program);
-   virtual void
-   SetTexture(const Texture& texture);
 
    // GETERS
+
+   // Get size of object
    virtual glm::vec2
-   GetSize() const; // Get size of object
+   GetSize() const; 
+
+   // Get cenetered position in local(level wise) coords
    virtual glm::ivec2
-   GetCenteredLocalPosition() const; // Get cenetered position in local(level wise) coords
+   GetCenteredLocalPosition() const; 
+   
+   // Get centered position in global(OpenGL) coords
    virtual glm::vec2
-   GetCenteredGlobalPosition() const; // Get centered position in global(OpenGL) coords
+   GetCenteredGlobalPosition() const; 
+   
+   // Get position in global (OpenGL) coords
    virtual glm::vec2
-   GetGlobalPosition() const; // Get position in global (OpenGL) coords
+   GetGlobalPosition() const; 
+   
+   // Get position in local (level wise) coords
    virtual glm::ivec2
-   GetLocalPosition() const; // Get position in local (level wise) coords
+   GetLocalPosition() const; 
+   
+   // Get position in (0,0) to (WIDTH, HEIGHT) screen coords (0,0 BEING TOP LEFT CORNER)
    virtual glm::vec2
-   GetScreenPositionPixels() const; // Get position in (0,0) to (WIDTH, HEIGHT) screen coords (0,0 BEING TOP LEFT CORNER)
+   GetScreenPositionPixels() const; 
+   
+   virtual const Sprite&
+   GetSprite() const;
 
    // Create sprite with default texture
    virtual void
@@ -64,7 +79,7 @@ class GameObject
    // Create sprite with texture from 'fileName'
    virtual void
    CreateSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(16, 16),
-                        const std::string& fileName = ".\\Default.png");
+                        const std::string& fileName = "Default.png");
 
    // Move object by 'moveBy'
    virtual void
@@ -83,6 +98,9 @@ class GameObject
    virtual void
    UpdateInternal(bool isReverse) = 0;
 
+   Game*
+   ConvertToGameHandle();
+
    struct State
    {
       // global position (in OpenGL coords)
@@ -99,6 +117,7 @@ class GameObject
 
       // should this object be visible
       bool m_visible;
+
       // matrices for transforming object
       glm::mat4 m_translateMatrix;
       glm::vec2 m_translateVal;
@@ -109,7 +128,7 @@ class GameObject
    std::deque< State > m_statesQueue;
    State m_currentState;
 
-   Game& m_gameHandle;
+   Context& m_contextHandle;
 
    // object's sprite
    Sprite m_sprite;
@@ -118,5 +137,5 @@ class GameObject
    Shaders m_program;
 
    // byte array of sprite used for collision
-   std::unique_ptr< byte_vec4 > m_collision;
+   byte_vec4* m_collision;
 };

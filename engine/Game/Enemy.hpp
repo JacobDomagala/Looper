@@ -18,25 +18,28 @@ class Enemy : public GameObject
 
    bool
    Visible() const override;
+   
    void
    Hit(int32_t dmg) override;
+
    void
    DealWithPlayer() override;
 
    void
    Render(const glm::mat4& window, const Shaders& program) override;
 
+   std::string
+   GetWeapon() const;
+
    int32_t
-   GetDmg() const
-   {
-      return m_weapon->GetDamage();
-   }
+   GetDmg() const;
 
    void
    Animate();
 
  private:
-   void UpdateInternal(bool isReverse) override;
+   void
+   UpdateInternal(bool isReverse) override;
 
    enum class ACTION
    {
@@ -64,12 +67,12 @@ class Enemy : public GameObject
       float m_timeSinceLastShot = 0.0f;
       float m_reactionTime = 0.1f;
       float m_movementSpeed = 500.0f;
-      float m_visionRange;
+      float m_visionRange = 0.0f;
 
-      uint8_t m_currentNodeIdx{};
-      uint8_t m_destinationNodeIdx{};
+      uint8_t m_currentNodeIdx = 0;
+      uint8_t m_destinationNodeIdx = 0;
 
-      bool m_combatStarted;
+      bool m_combatStarted = false;
       bool m_reverse = false;
 
       int32_t m_CurrentAnimationIndex = 0;

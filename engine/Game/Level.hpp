@@ -14,9 +14,7 @@ class Game;
 class Level
 {
  public:
-   Level(Game& game) : m_game(game)
-   {
-   }
+   Level() = default;
 
    ~Level() = default;
 
@@ -36,7 +34,7 @@ class Level
 
    // pathToFile - global path to level file (.dgl)
    void
-   Load(const std::string& pathToFile, bool isGame = true);
+   Load(Game& game, const std::string& pathToFile);
 
    // pathToFile - global path to level file (.dgl)
    void
@@ -132,11 +130,12 @@ class Level
  private:
    Logger m_logger = Logger("Level");
    Sprite m_background;
+   Texture m_collision;
+
 
    Shaders m_shaders{};
    glm::vec2 m_cameraPosition;
    std::shared_ptr< Player > m_player = nullptr;
-   Game& m_game;
 
    bool m_locked = false;
 

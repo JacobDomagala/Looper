@@ -21,8 +21,8 @@ class Sprite
    SetSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(10, 10));
 
    // Create sprite with texture
-   // Returns byte vector used for collision
-   std::unique_ptr< byte_vec4 >
+   // Returns byte data used for collision
+   byte_vec4*
    SetSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(10, 10),
                      const std::string& fileName = "Default.png");
 
@@ -34,6 +34,9 @@ class Sprite
 
    glm::ivec2
    GetSize() const;
+
+   std::string
+   GetTextureName() const;
 
    void
    SetColor(const glm::vec3& color);

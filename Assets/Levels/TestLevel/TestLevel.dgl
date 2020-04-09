@@ -2,31 +2,27 @@
   "BACKGROUND": {
     "texture": "Level1.png",
     "collision": "Level1_collision.png",
-    "width": 3000,
-    "height": 3000
+    "size": [3000, 3000]
   },
   "SHADER": {
     "name": "DefaultShader"
   },
   "PLAYER": {
     "position": [1600, 1600],
-    "width": 128,
-    "height": 128,
+    "size": [128, 128],
     "texture": "Level1_Char.png",
     "weapons": ["Glock"]
   },
   "ENEMIES": [{
     "position": [2800, 2600],
-    "width": 128,
-    "height": 128,
+    "size": [128, 128],
     "texture": "Default128.png",
     "weapons": ["Glock"],
     "animate positions": [[0,0], [1,0], [2,0], [3,0]]
   },
   {
     "position": [1600, 1600],
-    "width": 128,
-    "height": 128,
+    "size": [128, 128],
     "texture": "Default128.png",
     "weapons": ["Glock"],
     "animate positions": [[0,0], [1,0], [2,0], [3,0]]
