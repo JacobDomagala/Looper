@@ -772,8 +772,7 @@ Game::KeyEvents()
       }
       if (m_inputManager.CheckKeyPressed(GLFW_KEY_SPACE))
       {
-         m_currentLevel.Move(-m_player->GetCenteredGlobalPosition());
-         m_player->Move(-m_player->GetCenteredGlobalPosition());
+         CenterCameraOnPlayer();
       }
 
       if (glm::length(glm::vec2(playerMoveBy)))
@@ -914,104 +913,8 @@ Game::LoadLevel(const std::string& pathToLevel)
 {
    m_currentLevel.Load(*this, pathToLevel);
    m_player = m_currentLevel.GetPlayer();
-   // std::filesystem::path folderPath = LEVELS_DIR / levelName;
-   // std::ifstream levelFile((folderPath / levelName).u8string() + ".txt");
-   // if (!levelFile)
-   //{
-   //   logger.Log(Logger::TYPE::FATAL, "Can't open " + (folderPath / levelName).u8string());
-   //}
-
-   // int32_t levelWidth(0), levelHeight(0);
-   // std::string background;
-   // std::string collisionMap;
-
-   // while (!levelFile.eof())
-   //{
-   //   std::string token = "";
-   //   levelFile >> token;
-   //   if (token == "Size:")
-   //   {
-   //      levelFile >> levelWidth;
-   //      levelFile >> levelHeight;
-   //   }
-   //   else if (token == "Background:")
-   //   {
-   //      levelFile >> background;
-   //      m_currentLevel.LoadPremade((folderPath / background).u8string(), glm::ivec2(levelWidth, levelHeight));
-   //   }
-   //   else if (token == "Objects:")
-   //   {
-   //      // TODO KAPPA
-   //   }
-   //   else if (token == "Particles:")
-   //   {
-   //      // TODO KAPPA
-   //   }
-   //   else if (token == "First_pass_shaders:")
-   //   {
-   //      std::string shadersName;
-   //      levelFile >> shadersName;
-   //      m_currentLevel.LoadShaders(shadersName);
-   //   }
-   //   else if (token == "Second_pass_shaders:")
-   //   {
-   //      std::string shadersName;
-   //      levelFile >> shadersName;
-   //      m_frameBuffer.LoadShaders(shadersName);
-   //   }
-   //   else if (token == "Collision:")
-   //   {
-   //      levelFile >> collisionMap;
-
-   //      std::unique_ptr< byte_vec4 > collisionMap(reinterpret_cast<byte_vec4*>(FileManager::LoadPictureRawBytes((folderPath /
-   //      collisionMap).u8string()))); m_collision = std::move(collisionMap);
-   //   }
-   //   else if (token == "Player:")
-   //   {
-   //      glm::vec2 position;
-   //      levelFile >> position.x;
-   //      levelFile >> position.y;
-
-   //      glm::ivec2 size;
-   //      levelFile >> size.x;
-   //      levelFile >> size.y;
-
-   //      std::string textureName, shaderName;
-   //      levelFile >> textureName;
-   //      levelFile >> shaderName;
-
-   //      m_player = std::make_unique< Player >(*this, position, size, (folderPath / textureName).u8string());
-   //      m_player->LoadShaders(shaderName);
-
-   //      m_playerPosition = glm::ivec2(position.x, -position.y);
-   //   }
-   //   else if (token == "Enemies:")
-   //   {
-   //      int32_t numEnemies;
-   //      levelFile >> numEnemies;
-   //      for (int32_t i = 0; i < numEnemies; ++i)
-   //      {
-   //         glm::vec2 position;
-   //         levelFile >> position.x;
-   //         levelFile >> position.y;
-
-   //         glm::ivec2 size;
-   //         levelFile >> size.x;
-   //         levelFile >> size.y;
-
-   //         glm::vec2 centeredPosition{position.x - (size.x / 2.0f), position.y + (size.y / 2.0f)};
-   //         auto globalPosition = m_currentLevel.GetGlobalVec(centeredPosition);
-
-   //         std::string textureName, shaderName;
-   //         levelFile >> textureName;
-   //         m_currentLevel.AddGameObject(*this, globalPosition, size, (folderPath / textureName).u8string());
-   //         levelFile >> shaderName;
-   //      }
-   //   }
-   //}
-
-    m_currentLevel.Move(-m_player->GetCenteredGlobalPosition());
-    m_player->Move(-m_player->GetCenteredGlobalPosition());
+   
+    CenterCameraOnPlayer();
 }
 
    const glm::mat4&

@@ -1,11 +1,12 @@
-#include <Enemy.hpp>
 #include <Context.hpp>
+#include <Enemy.hpp>
 #include <Game.hpp>
 #include <Level.hpp>
 #include <Timer.hpp>
 #include <Weapon.hpp>
 
-Enemy::Enemy(Game& game, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite) : GameObject(game, pos, size, sprite)
+Enemy::Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite)
+   : GameObject(context, pos, size, sprite)
 {
    m_maxHP = 100;
    m_currentState.m_currentHP = m_maxHP;
@@ -137,14 +138,13 @@ Enemy::Shoot()
       if (m_currentState.m_timeSinceLastShot >= m_weapon->GetReloadTime())
       {
          auto collided = gameHandle->CheckBulletCollision(
-            this, m_contextHandle.GetLevel().GetGlobalVec(m_currentState.m_targetShootPosition),
-                                                           m_weapon->GetRange());
+            this, m_contextHandle.GetLevel().GetGlobalVec(m_currentState.m_targetShootPosition), m_weapon->GetRange());
 
          // if we hit anything draw a line
          if (collided.first != glm::ivec2(0, 0))
          {
             gameHandle->DrawLine(GameObject::m_currentState.m_centeredGlobalPosition,
-                                  m_contextHandle.GetLevel().GetGlobalVec(collided.first));
+                                 m_contextHandle.GetLevel().GetGlobalVec(collided.first));
          }
 
          m_currentState.m_timeSinceLastShot = 0.0f;

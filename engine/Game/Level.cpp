@@ -20,7 +20,7 @@ Level::Create(const glm::ivec2& size)
 }
 
 void
-Level::Load(Game& game, const std::string& pathToLevel)
+Level::Load(Context& context, const std::string& pathToLevel)
 {
    const auto json = FileManager::LoadJsonFile(pathToLevel);
 
@@ -35,9 +35,13 @@ Level::Load(Game& game, const std::string& pathToLevel)
 
          // Temporary solution
          // This should be moved to Level class soon
-         const auto collision = json[key]["collision"];
-         m_collision.LoadTextureFromFile(collision);
-         game.SetCollisionMap(reinterpret_cast< byte_vec4* >(m_collision.GetData()));
+         auto gameHandle = static_cast< Game* >(&context);
+         if (gameHandle)
+         {
+            const auto collision = json[key]["collision"];
+            m_collision.LoadTextureFromFile(collision);
+            gameHandle->SetCollisionMap(reinterpret_cast< byte_vec4* >(m_collision.GetData()));
+         }
       }
       else if (key == "SHADER")
       {
@@ -51,7 +55,7 @@ Level::Load(Game& game, const std::string& pathToLevel)
          const auto texture = json[key]["texture"];
          const auto weapons = json[key]["weapons"];
 
-         m_player = std::make_shared< Player >(game, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture);
+         m_player = std::make_shared< Player >(context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture);
       }
       else if (key == "ENEMIES")
       {
@@ -63,10 +67,10 @@ Level::Load(Game& game, const std::string& pathToLevel)
                const auto size = enemy["size"];
                const auto texture = enemy["texture"];
                const auto weapons = enemy["weapons"];
-            //   const auto animatePos = enemy["animate positions"];
+               //   const auto animatePos = enemy["animate positions"];
 
                m_objects.emplace_back(
-                  std::make_unique< Enemy >(game, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture));
+                  std::make_unique< Enemy >(context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture));
             }
          }
          else
@@ -75,10 +79,10 @@ Level::Load(Game& game, const std::string& pathToLevel)
             const auto size = json[key]["size"];
             const auto texture = json[key]["texture"];
             const auto weapons = json[key]["weapons"];
-         //   const auto animatePos = json[key]["animate positions"];
+            //   const auto animatePos = json[key]["animate positions"];
 
             m_objects.emplace_back(
-               std::make_unique< Enemy >(game, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture));
+               std::make_unique< Enemy >(context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture));
          }
       }
       else
@@ -92,8 +96,8 @@ void
 Level::Save(const std::string& pathToLevel)
 {
    nlohmann::json json;
-   
-   //Serialize shader
+
+   // Serialize shader
    json["SHADER"]["name"] = m_shaders.GetName();
 
    // Serialize background

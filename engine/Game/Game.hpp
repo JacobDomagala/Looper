@@ -193,7 +193,6 @@ class Game : public Context
    HandleReverseLogic();
 
  private:
-
    Logger logger = Logger("Game");
 
    bool m_initialized = false;

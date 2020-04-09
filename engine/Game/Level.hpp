@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <unordered_map>
 
+class Context;
 class GameObject;
 class Window;
 class Game;
@@ -34,7 +35,7 @@ class Level
 
    // pathToFile - global path to level file (.dgl)
    void
-   Load(Game& game, const std::string& pathToFile);
+   Load(Context& game, const std::string& pathToFile);
 
    // pathToFile - global path to level file (.dgl)
    void

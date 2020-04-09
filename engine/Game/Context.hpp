@@ -31,6 +31,9 @@ class Context
    void
    RenderText(std::string text, const glm::vec2& position, float scale, const glm::vec3& color = glm::vec3(1.0f, 1.0f, 1.0f));
 
+   void
+   CenterCameraOnPlayer();
+
    virtual const glm::mat4&
    GetProjection() const = 0;
 

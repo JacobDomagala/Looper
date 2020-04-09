@@ -1,6 +1,6 @@
 #include "Context.hpp"
 
-std::shared_ptr<Player>
+std::shared_ptr< Player >
 Context::GetPlayer()
 {
    return m_player;
@@ -28,4 +28,11 @@ void
 Context::RenderText(std::string text, const glm::vec2& position, float scale, const glm::vec3& color)
 {
    m_font.RenderText(GetProjection(), text, position, scale, color);
+}
+
+void
+Context::CenterCameraOnPlayer()
+{
+   m_currentLevel.Move(-m_player->GetCenteredGlobalPosition());
+   m_player->Move(-m_player->GetCenteredGlobalPosition());
 }

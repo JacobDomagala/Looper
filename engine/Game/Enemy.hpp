@@ -8,17 +8,18 @@
 #include <deque>
 #include <vector>
 
+class Context;
 class Window;
 
 class Enemy : public GameObject
 {
  public:
-   Enemy(Game& game, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite);
+   Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite);
    ~Enemy() override = default;
 
    bool
    Visible() const override;
-   
+
    void
    Hit(int32_t dmg) override;
 

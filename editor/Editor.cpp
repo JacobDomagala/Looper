@@ -136,11 +136,11 @@ Editor::LoadLevel(const std::string& levelPath)
 {
    // const auto filename = std::filesystem::path(levelPath).filename().u8string();
    m_levelFileName = levelPath;
-   m_currentLevel.Load(m_game, levelPath);
+   m_currentLevel.Load(*this, levelPath);
    m_player = m_currentLevel.GetPlayer();
-   m_player->SetGlobalPosition(m_currentLevel.GetGlobalVec(m_player->GetLocalPosition()));
-   // m_currentLevel.Move(-m_player->GetCenteredGlobalPosition());
-   m_player->Move(-m_player->GetCenteredGlobalPosition());
+
+   CenterCameraOnPlayer();
+   
    m_levelLoaded = true;
 }
 
