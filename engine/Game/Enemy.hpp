@@ -14,7 +14,8 @@ class Window;
 class Enemy : public GameObject
 {
  public:
-   Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite);
+   Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite,
+         const std::vector< glm::vec2 >& keypoints = {});
    ~Enemy() override = default;
 
    bool
@@ -37,6 +38,12 @@ class Enemy : public GameObject
 
    void
    Animate();
+
+   void
+   SetAnimationKEypoints(std::vector< glm::vec2 >&& keypoints);
+
+   std::vector< glm::vec2 >
+   GetAnimationKEypoints();
 
  private:
    void
@@ -93,8 +100,7 @@ class Enemy : public GameObject
    std::unique_ptr< Weapon > m_weapon;
 
    // animation offsets/positions when IDLE
-   std::vector< glm::vec2 > m_positions{glm::vec2(0.5f, 0.5f), glm::vec2(0.0f, -0.5f), glm::vec2(-0.5f, 0.0f),
-                                        glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 0.0f),  glm::vec2(-0.5f, -0.5f)};
+   std::vector< glm::vec2 > m_positions;
 
    void
    Shoot();

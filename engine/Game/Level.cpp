@@ -65,10 +65,17 @@ Level::Load(Context& context, const std::string& pathToLevel)
             const auto size = enemy["size"];
             const auto texture = enemy["texture"];
             const auto weapons = enemy["weapons"];
-            //   const auto animatePos = enemy["animate positions"];
+            const auto animatePos = enemy["animate positions"];
 
-            m_objects.emplace_back(
-               std::make_unique< Enemy >(context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture));
+            std::vector< glm::vec2 > keypointsPositions = {};
+
+            for (auto& point : animatePos)
+            {
+               keypointsPositions.emplace_back(glm::vec2(point[0], point[1]));
+            }
+
+            m_objects.emplace_back(std::make_unique< Enemy >(context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]),
+                                                             texture, keypointsPositions));
          }
       }
       else
@@ -105,7 +112,17 @@ Level::Save(const std::string& pathToLevel)
       enemyJson["position"] = {object->GetLocalPosition().x, object->GetLocalPosition().y};
       enemyJson["size"] = {object->GetSize().x, object->GetSize().y};
       enemyJson["texture"] = object->GetSprite().GetTextureName();
-      enemyJson["weapons"] = dynamic_cast< Enemy* >(object.get())->GetWeapon();
+
+      auto enemyPtr = dynamic_cast< Enemy* >(object.get());
+
+      enemyJson["weapons"] = enemyPtr->GetWeapon();
+
+      const auto keypoints = enemyPtr->GetAnimationKEypoints();
+
+      for (const auto& point : keypoints)
+      {
+         enemyJson["animate positions"].emplace_back(point.x, point.y);
+      }
 
       json["ENEMIES"].emplace_back(enemyJson);
    }

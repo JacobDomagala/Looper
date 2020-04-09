@@ -5,7 +5,8 @@
 #include <Timer.hpp>
 #include <Weapon.hpp>
 
-Enemy::Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite)
+Enemy::Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite,
+             const std::vector< glm::vec2 >& keypoints)
    : GameObject(context, pos, size, sprite)
 {
    m_maxHP = 100;
@@ -13,6 +14,7 @@ Enemy::Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, con
    m_currentState.m_visionRange = 1000.0f;
    m_weapon = std::make_unique< Glock >();
    m_currentState.m_combatStarted = false;
+   m_positions = keypoints;
 
    m_timer.ToggleTimer();
    m_currentState.m_initialPosition = GameObject::m_currentState.m_centeredLocalPosition;
@@ -365,4 +367,16 @@ Enemy::Animate()
    }
 
    Move(m_currentState.m_counter, false);
+}
+
+void
+Enemy::SetAnimationKEypoints(std::vector< glm::vec2 >&& keypoints)
+{
+   m_positions = keypoints;
+}
+
+std::vector< glm::vec2 >
+Enemy::GetAnimationKEypoints()
+{
+   return m_positions;
 }

@@ -133,7 +133,6 @@ class Level
    Sprite m_background;
    Texture m_collision;
 
-
    Shaders m_shaders{};
    glm::vec2 m_cameraPosition;
    std::shared_ptr< Player > m_player = nullptr;
