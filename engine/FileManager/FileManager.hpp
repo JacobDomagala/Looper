@@ -17,18 +17,16 @@ const std::filesystem::path IMAGES_DIR = ASSETS_DIR / "Images";
 class FileManager
 {
  public:
-   
-   template <typename T>
-   struct ImageData
+   template < typename T > struct ImageData
    {
       T m_bytes;
       glm::ivec2 m_size;
       int32_t m_format;
    };
 
-   using ImageHandleType = std::unique_ptr< uint8_t[], std::function<void(uint8_t*)>>;
-   using ImageSmart = ImageData<ImageHandleType>;
-   using ImageRaw = ImageData<uint8_t*>;
+   using ImageHandleType = std::unique_ptr< uint8_t[], std::function< void(uint8_t*) > >;
+   using ImageSmart = ImageData< ImageHandleType >;
+   using ImageRaw = ImageData< uint8_t* >;
 
    enum class FileType
    {

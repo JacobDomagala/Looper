@@ -912,63 +912,57 @@ Game::LoadLevel(const std::string& pathToLevel)
 {
    m_currentLevel.Load(*this, pathToLevel);
    m_player = m_currentLevel.GetPlayer();
-   
-    CenterCameraOnPlayer();
+
+   CenterCameraOnPlayer();
 }
 
-   const glm::mat4&
-   Game::GetProjection() const
-   {
-      return m_window->GetProjection();
-   }
+const glm::mat4&
+Game::GetProjection() const
+{
+   return m_window->GetProjection();
+}
 
-   glm::vec2
-   Game::GetCursor()
-   {
-      return m_window->GetCursor();
-   }
+glm::vec2
+Game::GetCursor()
+{
+   return m_window->GetCursor();
+}
 
-   glm::vec2
-   Game::GetCursorScreenPosition()
-   {
-      return m_window->GetCursorScreenPosition();
-   }
+glm::vec2
+Game::GetCursorScreenPosition()
+{
+   return m_window->GetCursorScreenPosition();
+}
 
-   void
-   Game::SwapBuffers()
-   {
-      m_window->SwapBuffers();
-   }
+void
+Game::SwapBuffers()
+{
+   m_window->SwapBuffers();
+}
 
-   bool
-   Game::IsRunning()
-   {
-      return m_window->IsRunning();
-   }
+bool
+Game::IsRunning()
+{
+   return m_window->IsRunning();
+}
 
-   void
-   Game::PollEvents()
-   {
-      glfwPollEvents();
-   }
+void
+Game::RegisterForKeyInput(IInputListener* listener)
+{
+   m_inputManager.RegisterForKeyInput(listener);
+}
 
-   void
-   Game::RegisterForKeyInput(IInputListener* listener)
-   {
-      m_inputManager.RegisterForKeyInput(listener);
-   }
-
-   void
-   Game::SetCollisionMap(byte_vec4* collision)
-   {
-      m_collision = collision;
-   }
+void
+Game::SetCollisionMap(byte_vec4* collision)
+{
+   m_collision = collision;
+}
 
 float
 Game::GetDeltaTime() const
-   {
-      return m_deltaTime;
-   }
+{
+   return m_deltaTime;
+}
 
 void
 Game::ProcessInput(float deltaTime)
@@ -985,7 +979,7 @@ Game::ProcessInput(float deltaTime)
 bool
 Game::IsReverse() const
 {
- return m_reverse;
+   return m_reverse;
 }
 
 void

@@ -1,5 +1,7 @@
 #include "Context.hpp"
 
+#include <GLFW/glfw3.h>
+
 std::shared_ptr< Player >
 Context::GetPlayer()
 {
@@ -35,4 +37,10 @@ Context::CenterCameraOnPlayer()
 {
    m_currentLevel.Move(-m_player->GetCenteredGlobalPosition());
    m_player->Move(-m_player->GetCenteredGlobalPosition());
+}
+
+void
+Context::PollEvents()
+{
+   glfwPollEvents();
 }

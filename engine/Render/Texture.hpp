@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Logger.hpp"
 #include "Common.hpp"
 #include "FileManager.hpp"
+#include "Logger.hpp"
 
 #include <GL/glew.h>
-#include <string>
 #include <memory>
+#include <string>
 
 class Texture
 {
@@ -17,7 +17,7 @@ class Texture
    // DEBUG: number of glBindTexture calls
    static inline int32_t m_boundCount = 0;
 
-   // Create new texture which is filled with 'color' 
+   // Create new texture which is filled with 'color'
    void
    CreateColorTexture(const glm::ivec2& size, const glm::vec3& color);
 
@@ -69,7 +69,7 @@ class Texture
    FileManager::ImageHandleType m_data;
 
    // width and size of texture
-   int32_t m_width = 0 ;
+   int32_t m_width = 0;
    int32_t m_height = 0;
 
    std::string m_name = "EmptyName.png";

@@ -4,8 +4,8 @@
 #include <nanogui/button.h>
 #include <nanogui/label.h>
 #include <nanogui/layout.h>
-#include <nanogui/window.h>
 #include <nanogui/textbox.h>
+#include <nanogui/window.h>
 
 class Editor;
 

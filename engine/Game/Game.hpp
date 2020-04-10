@@ -79,7 +79,7 @@ class Game : public Context
    ~Game() = default;
 
    void
-   MainLoop();
+   MainLoop() override;
 
    // Initialize Game using 'configFile'
    void
@@ -109,9 +109,6 @@ class Game : public Context
    void
    Render();
 
-   const glm::mat4&
-   GetProjection() const override;
-
    glm::vec2
    GetCursor();
 
@@ -120,12 +117,6 @@ class Game : public Context
 
    void
    SwapBuffers();
-
-   bool
-   IsRunning();
-
-   void
-   PollEvents();
 
    void
    RegisterForKeyInput(IInputListener* listener);
@@ -136,6 +127,9 @@ class Game : public Context
    // TODO move all collision related code to Level class?
    void
    SetCollisionMap(byte_vec4* collision);
+
+   const glm::mat4&
+   GetProjection() const override;
 
  private:
    // DEBUG
@@ -191,6 +185,9 @@ class Game : public Context
 
    void
    HandleReverseLogic();
+
+   bool
+   IsRunning() override;
 
  private:
    Logger logger = Logger("Game");

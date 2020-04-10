@@ -14,10 +14,10 @@ Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
    glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
 
    glm::vec4 positions[] = {glm::vec4(0.0f + size.x, 0.0f, 1.0f, 1.0f),         glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
-                             glm::vec4(0.0f, 0.0f - size.y, 0.0f, 0.0f),
+                            glm::vec4(0.0f, 0.0f - size.y, 0.0f, 0.0f),
 
-                             glm::vec4(0.0f + size.x, 0.0f, 1.0f, 1.0f),         glm::vec4(0.0f, 0.0f - size.y, 0.0f, 0.0f),
-                             glm::vec4(0.0f + size.x, 0.0f - size.y, 1.0f, 0.0f)};
+                            glm::vec4(0.0f + size.x, 0.0f, 1.0f, 1.0f),         glm::vec4(0.0f, 0.0f - size.y, 0.0f, 0.0f),
+                            glm::vec4(0.0f + size.x, 0.0f - size.y, 1.0f, 0.0f)};
    m_centeredPosition.x = position.x + (size.x / 2.0f);
    m_centeredPosition.y = position.y - (size.y / 2.0f);
    m_currentState.m_position = position;
@@ -45,10 +45,10 @@ Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size, con
    glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
 
    glm::vec4 positions[] = {glm::vec4(0.0f + size.x, 0.0f, 1.0f, 1.0f),         glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
-                             glm::vec4(0.0f, 0.0f - size.y, 0.0f, 0.0f),
+                            glm::vec4(0.0f, 0.0f - size.y, 0.0f, 0.0f),
 
-                             glm::vec4(0.0f + size.x, 0.0f, 1.0f, 1.0f),         glm::vec4(0.0f, 0.0f - size.y, 0.0f, 0.0f),
-                             glm::vec4(0.0f + size.x, 0.0f - size.y, 1.0f, 0.0f)};
+                            glm::vec4(0.0f + size.x, 0.0f, 1.0f, 1.0f),         glm::vec4(0.0f, 0.0f - size.y, 0.0f, 0.0f),
+                            glm::vec4(0.0f + size.x, 0.0f - size.y, 1.0f, 0.0f)};
 
    m_centeredPosition.x = position.x + (size.x / 2.0f);
    m_centeredPosition.y = position.y - (size.y / 2.0f);
@@ -106,13 +106,13 @@ Sprite::Render(const glm::mat4& projectionMat, const Shaders& program)
    // move the sprite back to its original position
    modelMatrix = glm::translate(
       modelMatrix, glm::vec3((m_size.x / 2.0f) * m_currentState.m_scaleVal.x, (m_size.y / -2.0f) * m_currentState.m_scaleVal.y, 0.0f));
-   
+
    modelMatrix = glm::rotate(modelMatrix, glm::radians(m_currentState.m_angle), glm::vec3(0.0f, 0.0f, 1.0f));
-   
+
    // move the sprite so it will be rotated around its center
    modelMatrix = glm::translate(
       modelMatrix, glm::vec3((m_size.x / -2.0f) * m_currentState.m_scaleVal.x, (m_size.y / 2.0f) * m_currentState.m_scaleVal.y, 0.0f));
-   
+
    modelMatrix = glm::scale(modelMatrix, glm::vec3(m_currentState.m_scaleVal, 1.0f));
 
    m_texture.Use(program.GetProgram());

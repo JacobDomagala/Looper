@@ -32,7 +32,7 @@ Framebuffer::SetUp()
    glGenBuffers(1, &m_vertexBuffer);
    glBindVertexArray(m_vertexArrayBuffer);
    glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
-   
+
    // Each vec4 is Position, TexCoord
    glm::vec4 positions[4] = {glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), glm::vec4(-1.0f, 1.0f, 0.0f, 1.0f), glm::vec4(-1.0f, -1.0f, 0.0f, 0.0f),
                              glm::vec4(1.0f, -1.0f, 1.0f, 0.0f)};

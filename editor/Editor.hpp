@@ -54,16 +54,23 @@ class Editor : public nanogui::Screen, public Context
    glm::ivec2
    GetScreenSize();
 
+   void
+   MainLoop() override;
+
    const glm::mat4&
    GetProjection() const override;
 
  private:
+   bool
+   IsRunning() override;
+
    Game m_game;
 
    // string -> file name in which level is stored (used for testing level in game)
    // level -> currently active level in editor
    std::string m_levelFileName;
 
+   bool m_isRunning = true;
    bool m_levelLoaded = false;
    std::unique_ptr< byte_vec4 > m_collision = nullptr;
 
@@ -75,5 +82,8 @@ class Editor : public nanogui::Screen, public Context
    float m_maxZoomIn = 1.5f;
    float m_maxZoomOut = -1.5f;
 
+   float m_cameraSpeed = 400.0f;
+
+   Timer m_timer;
    Gui m_gui;
 };

@@ -34,10 +34,20 @@ class Context
    void
    CenterCameraOnPlayer();
 
+   virtual void
+   MainLoop() = 0;
+
    virtual const glm::mat4&
    GetProjection() const = 0;
 
  protected:
+   virtual bool
+   IsRunning() = 0;
+
+   void
+   PollEvents();
+
+
    Logger m_logger;
    float m_cameraSpeed = 0.0f;
    bool m_isGame = false;

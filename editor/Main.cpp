@@ -1,32 +1,12 @@
 
 #include "Editor.hpp"
-#include "FileManager.hpp"
-#include "Game.hpp"
 
 int
-main()
+main(int /* argc */, char** /* argv */)
 {
-   try
-   {
-      nanogui::init();
+   nanogui::init();
+   Editor editor({1920, 1080});
+   editor.MainLoop();
 
-      /* scoped variables */
-      {
-         nanogui::ref< Editor > app = new Editor({1920, 1080});
-
-         app->drawAll();
-         app->setVisible(true);
-
-         nanogui::mainloop(TARGET_TIME);
-      }
-
-      nanogui::shutdown();
-   }
-   catch (const std::runtime_error& e)
-   {
-      std::string error_msg = std::string("Caught a fatal error: ") + std::string(e.what());
-      return -1;
-   }
-
-   return 0;
+   return EXIT_SUCCESS;
 }

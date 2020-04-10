@@ -1,9 +1,9 @@
 #pragma once
 
 #include "FileManager.hpp"
+#include "Logger.hpp"
 #include "Shaders.hpp"
 #include "Texture.hpp"
-#include "Logger.hpp"
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -30,7 +30,7 @@ class Font
    void
    RenderText(const glm::mat4& projectionMatrix, std::string text, glm::vec2 position, GLfloat scale, const glm::vec3& color);
 
-private:
+ private:
    GLuint m_VAO{}, m_VBO{};
    std::unordered_map< GLchar, Character > m_characters;
    Shaders m_program{};

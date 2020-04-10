@@ -226,7 +226,6 @@ Level::Scale(const glm::vec2& scaleVal)
    {
       m_player->Scale(scaleVal);
    }
-   
 }
 
 void

@@ -20,7 +20,6 @@ Editor::Editor(const glm::ivec2& screenSize)
    m_inputManager.Init(mGLFWWindow);
 
    m_screenSize = screenSize;
-   auto perspective = float(m_screenSize.x) / m_screenSize.y;
 
    const auto left = -m_screenSize.x / 2.0f;
    const auto right = m_screenSize.x / 2.0f;
@@ -30,11 +29,11 @@ Editor::Editor(const glm::ivec2& screenSize)
    const auto far = 1.0f;
 
    m_projectionMatrix = glm::ortho(left, right, top, bottom, near, far);
-   // glm::perspective(180.0f, perspective, 0.1f, 100.0f);
 
    m_gui.Init();
 
    performLayout();
+   setVisible(true);
 }
 
 Editor::~Editor()
@@ -89,7 +88,9 @@ Editor::draw(NVGcontext* ctx)
 void
 Editor::HandleInput()
 {
-   const auto cameraMovement = 20;
+   m_timer.ToggleTimer();
+   const auto cameraMovement = m_cameraSpeed * TARGET_TIME;
+
    auto cameraMoveBy = glm::ivec2();
 
    if (m_inputManager.CheckKeyPressed(GLFW_KEY_W))
@@ -146,14 +147,6 @@ Editor::drawAll()
 void
 Editor::drawContents()
 {
-   // Shaders shaders;
-   // shaders.LoadDefault();
-
-   // Sprite sprite;
-   // sprite.SetSpriteTextured();
-   // sprite.Scale(glm::vec2(80.0f, 80.0f));
-   // sprite.Render(m_projectionMatrix, shaders);
-
    if (m_levelLoaded)
    {
       m_currentLevel.Render(m_projectionMatrix);
@@ -206,4 +199,22 @@ const glm::mat4&
 Editor::GetProjection() const
 {
    return m_projectionMatrix;
+}
+
+bool
+Editor::IsRunning()
+{
+   return m_isRunning;
+}
+
+void
+Editor::MainLoop()
+{
+   Logger::SetLogType(Logger::TYPE::INFO);
+
+   while (IsRunning())
+   {
+      PollEvents();
+      drawAll();
+   }
 }

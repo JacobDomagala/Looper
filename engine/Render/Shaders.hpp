@@ -26,30 +26,29 @@ class Shaders
 
    void
    LoadDefault();
-   
+
    void
    LoadShaders(const std::string& shaderName);
 
    void
    SetUniformFloat(float value, const std::string& name) const;
-   
+
    void
    SetUniformFloatVec2(const glm::vec2& value, const std::string& name) const;
-   
+
    void
    SetUniformFloatVec4(const glm::vec4& value, const std::string& name) const;
-   
+
    void
    SetUniformFloatMat4(const glm::mat4& value, const std::string& name) const;
 
-private:
-
+ private:
    std::string
    ReadShaderFile(std::string fileName);
 
    void
    CheckCompileStatus(GLuint shaderID);
-   
+
    void
    CheckLinkStatus(GLuint programID);
 
