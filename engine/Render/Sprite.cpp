@@ -92,14 +92,27 @@ Sprite::Render(const glm::mat4& projectionMat, const Shaders& program)
    program.UseProgram();
    glBindVertexArray(m_vertexArrayBuffer);
 
-   glm::mat4 modelMatrix;
+   glm::mat4 modelMatrix = glm::mat4(1.0f);
+
+   // All transformations are done in reverse:
+   // 1. Scale
+   // Before rotation transalte
+   // 2. Rotate
+   // After rotation translate
+   // 3. Transalte
 
    modelMatrix = glm::translate(modelMatrix, m_currentState.m_translateVal);
+
+   // move the sprite back to its original position
    modelMatrix = glm::translate(
       modelMatrix, glm::vec3((m_size.x / 2.0f) * m_currentState.m_scaleVal.x, (m_size.y / -2.0f) * m_currentState.m_scaleVal.y, 0.0f));
+   
    modelMatrix = glm::rotate(modelMatrix, glm::radians(m_currentState.m_angle), glm::vec3(0.0f, 0.0f, 1.0f));
+   
+   // move the sprite so it will be rotated around its center
    modelMatrix = glm::translate(
       modelMatrix, glm::vec3((m_size.x / -2.0f) * m_currentState.m_scaleVal.x, (m_size.y / 2.0f) * m_currentState.m_scaleVal.y, 0.0f));
+   
    modelMatrix = glm::scale(modelMatrix, glm::vec3(m_currentState.m_scaleVal, 1.0f));
 
    m_texture.Use(program.GetProgram());
@@ -156,7 +169,7 @@ Sprite::Rotate(float angle)
 void
 Sprite::Scale(const glm::vec2& scaleValue)
 {
-   m_currentState.m_scaleVal = scaleValue;
+   m_currentState.m_scaleVal += scaleValue;
 }
 
 void

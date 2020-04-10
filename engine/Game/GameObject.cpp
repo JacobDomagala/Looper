@@ -132,6 +132,12 @@ GameObject::Move(const glm::vec2& moveBy, bool isCameraMovement)
 }
 
 void
+GameObject::Scale(const glm::vec2& scaleVal)
+{
+   m_sprite.Scale(scaleVal);
+}
+
+void
 GameObject::Update(bool isReverse)
 {
    if (isReverse)

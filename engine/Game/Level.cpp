@@ -213,6 +213,21 @@ Level::Move(const glm::vec2& moveBy)
    MoveCamera(moveBy);
 }
 
+void
+Level::Scale(const glm::vec2& scaleVal)
+{
+   for (auto& obj : m_objects)
+   {
+      obj->Scale(scaleVal);
+   }
+
+   m_background.Scale(scaleVal);
+   if (m_player)
+   {
+      m_player->Scale(scaleVal);
+   }
+   
+}
 
 void
 Level::Update(bool isReverse)

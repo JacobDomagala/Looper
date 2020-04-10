@@ -17,7 +17,7 @@ main()
          app->drawAll();
          app->setVisible(true);
 
-         nanogui::mainloop();
+         nanogui::mainloop(TARGET_TIME);
       }
 
       nanogui::shutdown();

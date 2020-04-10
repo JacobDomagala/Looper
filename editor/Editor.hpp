@@ -45,6 +45,9 @@ class Editor : public nanogui::Screen, public Context
    void
    HandleInput();
 
+   bool
+   scrollEvent(const nanogui::Vector2i& p, const nanogui::Vector2f& rel) override;
+
    void
    PlayLevel();
 
@@ -67,6 +70,10 @@ class Editor : public nanogui::Screen, public Context
    // projection matrix for OpenGL
    glm::mat4 m_projectionMatrix;
    glm::ivec2 m_screenSize;
+
+   float m_zoomScale = 0.0f;
+   float m_maxZoomIn = 1.5f;
+   float m_maxZoomOut = -1.5f;
 
    Gui m_gui;
 };

@@ -54,6 +54,9 @@ class Level
    Move(const glm::vec2& moveBy);
 
    void
+   Scale(const glm::vec2& scaleVal);
+
+   void
    Update(bool isReverse);
 
    void

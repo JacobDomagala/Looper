@@ -24,7 +24,7 @@ class Sprite
    // Returns byte data used for collision
    byte_vec4*
    SetSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(10, 10),
-                     const std::string& fileName = "Default.png");
+                     const std::string& fileName = "Default128.png");
 
    glm::vec2
    GetCenteredPosition() const;

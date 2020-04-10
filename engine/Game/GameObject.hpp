@@ -30,16 +30,16 @@ class GameObject
    // SETERS
    virtual void
    SetColor(const glm::vec3& color);
-   
+
    virtual void
    SetCenteredLocalPosition(const glm::ivec2& pos);
-   
+
    virtual void
    SetLocalPosition(const glm::ivec2& position);
-   
+
    virtual void
    SetGlobalPosition(const glm::vec2& position);
-   
+
    virtual void
    SetShaders(const Shaders& program);
 
@@ -47,28 +47,28 @@ class GameObject
 
    // Get size of object
    virtual glm::vec2
-   GetSize() const; 
+   GetSize() const;
 
    // Get cenetered position in local(level wise) coords
    virtual glm::ivec2
-   GetCenteredLocalPosition() const; 
-   
+   GetCenteredLocalPosition() const;
+
    // Get centered position in global(OpenGL) coords
    virtual glm::vec2
-   GetCenteredGlobalPosition() const; 
-   
+   GetCenteredGlobalPosition() const;
+
    // Get position in global (OpenGL) coords
    virtual glm::vec2
-   GetGlobalPosition() const; 
-   
+   GetGlobalPosition() const;
+
    // Get position in local (level wise) coords
    virtual glm::ivec2
-   GetLocalPosition() const; 
-   
+   GetLocalPosition() const;
+
    // Get position in (0,0) to (WIDTH, HEIGHT) screen coords (0,0 BEING TOP LEFT CORNER)
    virtual glm::vec2
-   GetScreenPositionPixels() const; 
-   
+   GetScreenPositionPixels() const;
+
    virtual const Sprite&
    GetSprite() const;
 
@@ -85,9 +85,12 @@ class GameObject
    virtual void
    Move(const glm::vec2& moveBy, bool isCameraMovement = true);
 
+   virtual void
+   Scale(const glm::vec2& scaleVal);
+
    // Render object
    virtual void
-   Render(const glm::mat4& window, const Shaders& program);
+   Render(const glm::mat4& projectionMatrix, const Shaders& program);
 
    virtual void
    Update(bool isReverse);

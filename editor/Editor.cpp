@@ -9,6 +9,7 @@
 #include <nanovg.h>
 
 #include <fstream>
+#include <string>
 #include <thread>
 
 Editor::Editor(const glm::ivec2& screenSize)
@@ -19,8 +20,17 @@ Editor::Editor(const glm::ivec2& screenSize)
    m_inputManager.Init(mGLFWWindow);
 
    m_screenSize = screenSize;
-   m_projectionMatrix =
-      glm::ortho(-m_screenSize.x / 2.0f, m_screenSize.x / 2.0f, m_screenSize.y / 2.0f, -m_screenSize.y / 2.0f, -1.0f, 1.0f);
+   auto perspective = float(m_screenSize.x) / m_screenSize.y;
+
+   const auto left = -m_screenSize.x / 2.0f;
+   const auto right = m_screenSize.x / 2.0f;
+   const auto top = m_screenSize.y / 2.0f;
+   const auto bottom = -m_screenSize.y / 2.0f;
+   const auto near = -1.0f;
+   const auto far = 1.0f;
+
+   m_projectionMatrix = glm::ortho(left, right, top, bottom, near, far);
+   // glm::perspective(180.0f, perspective, 0.1f, 100.0f);
 
    m_gui.Init();
 
@@ -106,6 +116,25 @@ Editor::HandleInput()
    }
 }
 
+bool
+Editor::scrollEvent(const nanogui::Vector2i& p, const nanogui::Vector2f& rel)
+{
+   m_zoomScale += rel.y() * 0.25f;
+
+   m_zoomScale = std::clamp(m_zoomScale, m_maxZoomOut, m_maxZoomIn);
+
+   const auto left = -m_screenSize.x / (2.0f + m_zoomScale);
+   const auto right = m_screenSize.x / (2.0f + m_zoomScale);
+   const auto top = m_screenSize.y / (2.0f + m_zoomScale);
+   const auto bottom = -m_screenSize.y / (2.0f + m_zoomScale);
+   const auto near = -1.0f;
+   const auto far = 1.0f;
+
+   m_projectionMatrix = glm::ortho(left, right, top, bottom, near, far);
+
+   return false;
+}
+
 void
 Editor::drawAll()
 {
@@ -117,6 +146,14 @@ Editor::drawAll()
 void
 Editor::drawContents()
 {
+   // Shaders shaders;
+   // shaders.LoadDefault();
+
+   // Sprite sprite;
+   // sprite.SetSpriteTextured();
+   // sprite.Scale(glm::vec2(80.0f, 80.0f));
+   // sprite.Render(m_projectionMatrix, shaders);
+
    if (m_levelLoaded)
    {
       m_currentLevel.Render(m_projectionMatrix);
@@ -138,7 +175,7 @@ Editor::LoadLevel(const std::string& levelPath)
    m_player = m_currentLevel.GetPlayer();
 
    CenterCameraOnPlayer();
-   
+
    m_levelLoaded = true;
 }
 
