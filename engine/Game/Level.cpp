@@ -7,6 +7,7 @@
 #include "Timer.hpp"
 #include "Window.hpp"
 
+#include <algorithm>
 #include <fstream>
 #include <functional>
 #include <nlohmann/json.hpp>
@@ -74,7 +75,7 @@ Level::Load(Context& context, const std::string& pathToLevel)
                keypointsPositions.emplace_back(glm::vec2(point[0], point[1]));
             }
 
-            m_objects.emplace_back(std::make_unique< Enemy >(context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]),
+            m_objects.emplace_back(std::make_shared< Enemy >(context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]),
                                                              texture, keypointsPositions));
          }
       }
@@ -287,12 +288,18 @@ Level::GetGameObjectOnLocation(const glm::vec2& screenPosition)
    if (m_player)
    {
       foundObject = m_player->CheckIfCollidedScreenPosion(screenPosition) ? m_player : nullptr;
+
+      if (foundObject)
+      {
+         return foundObject;
+      }
    }
 
-   for (auto& object : m_objects)
-   {
-      foundObject = object->CheckIfCollidedScreenPosion(screenPosition) ? object : nullptr;
-   }
+   auto objectOnLocation = std::find_if(m_objects.begin(), m_objects.end(), [screenPosition](const auto& object) {
+      return object->CheckIfCollidedScreenPosion(screenPosition);
+   });
+
+   foundObject = objectOnLocation != m_objects.end() ? *objectOnLocation : nullptr;
 
    return foundObject;
 }
