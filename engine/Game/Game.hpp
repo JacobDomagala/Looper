@@ -128,8 +128,14 @@ class Game : public Context
    void
    SetCollisionMap(byte_vec4* collision);
 
+   const glm::vec2&
+   GetWindowSize() const override;
+
    const glm::mat4&
    GetProjection() const override;
+
+   float
+   GetZoomLevel() override;
 
  private:
    // DEBUG
@@ -153,10 +159,6 @@ class Game : public Context
 
    glm::ivec2
    CorrectPosition();
-
-   // convert from global position (OpenGL) to screen position (in pixels)
-   glm::ivec2
-   GlobalToScreen(glm::vec2 globalPos);
 
    bool
    CheckMove(glm::ivec2& moveBy);

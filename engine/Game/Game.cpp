@@ -37,8 +37,6 @@ Game::MainLoop()
             m_framesLastSecond = m_frames;
             m_frameTimer = 0.0f;
             m_frames = 0;
-
-            logger.Log(Logger::TYPE::FATAL, "SECOND PASSED");
          }
          RenderText(std::to_string(m_framesLastSecond) + " FPS", glm::vec2(-WIDTH / 2.0f, -HEIGHT / 2.0f), 0.4f,
                     glm::vec3(1.0f, 0.0f, 1.0f));
@@ -48,27 +46,6 @@ Game::MainLoop()
       }
       m_frameTimer += m_timer.GetDeltaTime();
    }
-
-   logger.Log(Logger::TYPE::FATAL, "LEAVING GAME");
-}
-
-
-glm::ivec2
-Game::GlobalToScreen(glm::vec2 globalPos)
-{
-   // convert to <-1, 1>
-   auto screenPosition = m_window->GetProjection() * glm::vec4(globalPos, 0.0f, 1.0f);
-
-   // convert to <0, 1>
-   auto returnPos = (glm::vec2(screenPosition.x, screenPosition.y) + glm::vec2(1.0f, 1.0f)) / glm::vec2(2.0f, 2.0f);
-
-   // convert to <0, WIDTH>, <0, HEIGHT>
-   // with y = 0 in top left corner
-   returnPos.x *= WIDTH;
-   returnPos.y *= -HEIGHT;
-   returnPos.y += HEIGHT;
-
-   return returnPos;
 }
 
 void
@@ -791,10 +768,10 @@ Game::MouseEvents()
    glm::ivec2 cameraMoveBy = glm::ivec2();
 
    cursor = m_window->GetCursorNormalized();
-   // glm::vec2 tmp = CheckBulletCollision(m_player->GetWeaponRange());
+    glm::vec2 tmp = CheckBulletCollision(m_player->GetWeaponRange());
 
-   // DrawLine(m_currentLevel.GetGlobalVec(m_player->GetCenteredLocalPosition()), m_currentLevel.GetGlobalVec(tmp), glm::vec3(0.0f, 1.0f,
-   // 0.0f));
+    DrawLine(m_currentLevel.GetGlobalVec(m_player->GetCenteredLocalPosition()), m_currentLevel.GetGlobalVec(tmp), glm::vec3(0.0f, 1.0f,
+    0.0f));
 
    ////PRIMARY FIRE
    // if (Win_Window::GetKeyState(VK_LBUTTON))
@@ -916,10 +893,22 @@ Game::LoadLevel(const std::string& pathToLevel)
    CenterCameraOnPlayer();
 }
 
+const glm::vec2&
+Game::GetWindowSize() const
+{
+   return m_window->GetSize();
+}
+
 const glm::mat4&
 Game::GetProjection() const
 {
    return m_window->GetProjection();
+}
+
+float
+Game::GetZoomLevel()
+{
+   return 2.0f;
 }
 
 glm::vec2

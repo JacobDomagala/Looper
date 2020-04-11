@@ -19,18 +19,19 @@ Editor::Editor(const glm::ivec2& screenSize)
    InitGLFW();
    m_inputManager.Init(mGLFWWindow);
 
-   m_screenSize = screenSize;
+   m_windowSize = screenSize;
 
-   const auto left = -m_screenSize.x / 2.0f;
-   const auto right = m_screenSize.x / 2.0f;
-   const auto top = m_screenSize.y / 2.0f;
-   const auto bottom = -m_screenSize.y / 2.0f;
+   const auto left = -m_windowSize.x / 2.0f;
+   const auto right = m_windowSize.x / 2.0f;
+   const auto top = m_windowSize.y / 2.0f;
+   const auto bottom = -m_windowSize.y / 2.0f;
    const auto near = -1.0f;
    const auto far = 1.0f;
 
    m_projectionMatrix = glm::ortho(left, right, top, bottom, near, far);
 
    m_gui.Init();
+   m_font.SetFont("segoeui");
 
    performLayout();
    setVisible(true);
@@ -109,6 +110,16 @@ Editor::HandleInput()
    {
       cameraMoveBy += glm::ivec2(-cameraMovement, 0);
    }
+   if (m_inputManager.CheckKeyPressed(GLFW_KEY_O))
+   {
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+   }
+   if (m_inputManager.CheckKeyPressed(GLFW_KEY_P))
+   {
+      glDisable(GL_BLEND);
+      // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+   }
 
    m_currentLevel.Move(cameraMoveBy);
    if (m_player)
@@ -124,16 +135,48 @@ Editor::scrollEvent(const nanogui::Vector2i& p, const nanogui::Vector2f& rel)
 
    m_zoomScale = std::clamp(m_zoomScale, m_maxZoomOut, m_maxZoomIn);
 
-   const auto left = -m_screenSize.x / (2.0f + m_zoomScale);
-   const auto right = m_screenSize.x / (2.0f + m_zoomScale);
-   const auto top = m_screenSize.y / (2.0f + m_zoomScale);
-   const auto bottom = -m_screenSize.y / (2.0f + m_zoomScale);
+   const auto left = -m_windowSize.x / (2.0f + m_zoomScale);
+   const auto right = m_windowSize.x / (2.0f + m_zoomScale);
+   const auto top = m_windowSize.y / (2.0f + m_zoomScale);
+   const auto bottom = -m_windowSize.y / (2.0f + m_zoomScale);
    const auto near = -1.0f;
    const auto far = 1.0f;
 
    m_projectionMatrix = glm::ortho(left, right, top, bottom, near, far);
 
-   return false;
+   return Screen::scrollEvent(p, rel);
+}
+
+bool
+Editor::mouseButtonEvent(const nanogui::Vector2i& p, int button, bool down, int modifiers)
+{
+   auto newSelectedObject = m_currentLevel.GetGameObjectOnLocation(glm::vec2(p.x(), p.y()));
+
+   if (newSelectedObject)
+   {
+      if (m_currentSelectedObject != newSelectedObject)
+      {
+         if (m_currentSelectedObject)
+         {
+            m_currentSelectedObject->SetColor({1.0f, 1.0f, 1.0f});
+         }
+
+         m_currentSelectedObject = newSelectedObject;
+      }
+
+      m_currentSelectedObject->SetColor({1.0f, 0.0f, 0.0f});
+   }
+   else
+   {
+      if (m_currentSelectedObject)
+      {
+         m_currentSelectedObject->SetColor({1.0f, 1.0f, 1.0f});
+      }
+
+      m_objectSelected = false;
+   }
+
+   return Screen::mouseButtonEvent(p, button, down, modifiers);
 }
 
 void
@@ -149,6 +192,8 @@ Editor::drawContents()
 {
    if (m_levelLoaded)
    {
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       m_currentLevel.Render(m_projectionMatrix);
    }
 }
@@ -189,16 +234,22 @@ Editor::PlayLevel()
    }
 }
 
-glm::ivec2
-Editor::GetScreenSize()
+const glm::vec2&
+Editor::GetWindowSize() const
 {
-   return m_screenSize;
+   return m_windowSize;
 }
 
 const glm::mat4&
 Editor::GetProjection() const
 {
    return m_projectionMatrix;
+}
+
+float
+Editor::GetZoomLevel()
+{
+   return m_zoomScale;
 }
 
 bool

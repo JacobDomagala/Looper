@@ -30,6 +30,12 @@ class Editor : public nanogui::Screen, public Context
    void
    drawContents() override;
 
+   bool
+   scrollEvent(const nanogui::Vector2i& p, const nanogui::Vector2f& rel) override;
+
+   bool
+   mouseButtonEvent(const nanogui::Vector2i& p, int button, bool down, int modifiers) override;
+
    void
    CreateLevel(const glm::ivec2& size);
 
@@ -45,20 +51,20 @@ class Editor : public nanogui::Screen, public Context
    void
    HandleInput();
 
-   bool
-   scrollEvent(const nanogui::Vector2i& p, const nanogui::Vector2f& rel) override;
-
    void
    PlayLevel();
-
-   glm::ivec2
-   GetScreenSize();
 
    void
    MainLoop() override;
 
+   const glm::vec2&
+   GetWindowSize() const override;
+
    const glm::mat4&
    GetProjection() const override;
+
+   float
+   GetZoomLevel() override;
 
  private:
    bool
@@ -66,8 +72,6 @@ class Editor : public nanogui::Screen, public Context
 
    Game m_game;
 
-   // string -> file name in which level is stored (used for testing level in game)
-   // level -> currently active level in editor
    std::string m_levelFileName;
 
    bool m_isRunning = true;
@@ -76,13 +80,16 @@ class Editor : public nanogui::Screen, public Context
 
    // projection matrix for OpenGL
    glm::mat4 m_projectionMatrix;
-   glm::ivec2 m_screenSize;
+   glm::ivec2 m_windowSize;
 
    float m_zoomScale = 0.0f;
    float m_maxZoomIn = 1.5f;
    float m_maxZoomOut = -1.5f;
 
    float m_cameraSpeed = 400.0f;
+
+   bool m_objectSelected = false;
+   std::shared_ptr< GameObject > m_currentSelectedObject = nullptr;
 
    Timer m_timer;
    Gui m_gui;

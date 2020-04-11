@@ -65,6 +65,9 @@ class GameObject
    virtual glm::ivec2
    GetLocalPosition() const;
 
+   virtual bool
+   CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const;
+
    // Get position in (0,0) to (WIDTH, HEIGHT) screen coords (0,0 BEING TOP LEFT CORNER)
    virtual glm::vec2
    GetScreenPositionPixels() const;

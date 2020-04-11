@@ -31,14 +31,24 @@ class Context
    void
    RenderText(std::string text, const glm::vec2& position, float scale, const glm::vec3& color = glm::vec3(1.0f, 1.0f, 1.0f));
 
+   // convert from global position (OpenGL) to screen position (in pixels)
+   glm::vec2
+   GlobalToScreen(const glm::vec2& globalPos) const;
+
    void
    CenterCameraOnPlayer();
 
    virtual void
    MainLoop() = 0;
 
+   virtual const glm::vec2&
+   GetWindowSize() const = 0;
+
    virtual const glm::mat4&
    GetProjection() const = 0;
+
+   virtual float
+   GetZoomLevel() = 0;
 
  protected:
    virtual bool
@@ -46,7 +56,6 @@ class Context
 
    void
    PollEvents();
-
 
    Logger m_logger;
    float m_cameraSpeed = 0.0f;

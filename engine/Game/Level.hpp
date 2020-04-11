@@ -122,6 +122,9 @@ class Level
    void
    SetPlayersPosition(const glm::vec2& position);
 
+   std::shared_ptr < GameObject >
+   GetGameObjectOnLocation(const glm::vec2& screenPosition);
+
    void
    MoveCamera(const glm::vec2& moveBy);
 
@@ -143,7 +146,7 @@ class Level
    bool m_locked = false;
 
    glm::ivec2 m_levelSize;
-   std::vector< std::unique_ptr< GameObject > > m_objects;
+   std::vector< std::shared_ptr< GameObject > > m_objects;
    PathFinder m_pathinder{};
 
    // Tile handling stuff (deprecated)

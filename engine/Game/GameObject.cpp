@@ -14,21 +14,35 @@ GameObject::GameObject(Context& game, const glm::vec2& positionOnMap, const glm:
    m_currentState.m_centeredLocalPosition = m_contextHandle.GetLevel().GetLocalVec(m_currentState.m_centeredGlobalPosition);
 }
 
+bool
+GameObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
+{
+   bool collided = false;
+
+   const auto halfSize = GetSize() / 2.0f;
+
+   const auto minBound = m_contextHandle.GlobalToScreen(m_currentState.m_centeredGlobalPosition - halfSize);
+   const auto maxBound = m_contextHandle.GlobalToScreen(m_currentState.m_centeredGlobalPosition + halfSize);
+
+   const auto objectLeftSize = minBound.x;
+   const auto objectRightSize = maxBound.x;
+   const auto objectTopSize = minBound.y;
+   const auto objectBottomSize = maxBound.y;
+
+   // If 'screenPosition' is inside 'object' sprite (rectangle)
+   if (screenPosition.x >= objectLeftSize && screenPosition.x <= objectRightSize && screenPosition.y <= objectBottomSize
+       && screenPosition.y >= objectTopSize)
+   {
+      collided = true;
+   }
+
+   return collided;
+}
+
 glm::vec2
 GameObject::GetScreenPositionPixels() const
 {
-   // Get the world coords
-   glm::vec4 screenPosition = m_contextHandle.GetProjection() * glm::vec4(m_currentState.m_centeredGlobalPosition, 0.0f, 1.0f);
-
-   // convert from <-1,1> to <0,1>
-   glm::vec2 tmpPos = (glm::vec2(screenPosition.x, screenPosition.y) + glm::vec2(1.0f, 1.0f)) / glm::vec2(2.0f, 2.0f);
-
-   // convert from (0,0)->(1,1) [BOTTOM LEFT CORNER] to (0,0)->(WIDTH,HEIGHT) [TOP LEFT CORNER]
-   tmpPos.x *= WIDTH;
-   tmpPos.y *= -HEIGHT;
-   tmpPos.y += HEIGHT;
-
-   return tmpPos;
+   return m_contextHandle.GlobalToScreen(m_currentState.m_centeredGlobalPosition);
 }
 
 bool

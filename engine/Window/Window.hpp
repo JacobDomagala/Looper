@@ -32,6 +32,12 @@ class Window
       return m_projectionMatrix;
    }
 
+   const glm::vec2&
+   GetSize() const
+   {
+      return {m_width, m_height};
+   }
+
    void
    Start()
    {

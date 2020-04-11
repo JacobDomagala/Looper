@@ -50,7 +50,7 @@ Gui::CreateLeftPanel()
 
    CreateLabel(toolsWindow, "Create new Level");
    CreateButton(toolsWindow, "Create", [&, playLevelButton] {
-      auto windowCenter = m_parent.GetScreenSize() / glm::ivec2(2.0f);
+      auto windowCenter = m_parent.GetWindowSize() / glm::vec2(2.0f);
       auto createLevelWindow = CreateWindow(&m_parent, "CREATE LEVEL", windowCenter, new nanogui::GridLayout());
 
       CreateLabel(createLevelWindow, "Width");

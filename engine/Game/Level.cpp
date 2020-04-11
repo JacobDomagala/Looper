@@ -279,6 +279,24 @@ Level::SetPlayersPosition(const glm::vec2& position)
    // m_playerPos /= m_tileSize;
 }
 
+std::shared_ptr< GameObject >
+Level::GetGameObjectOnLocation(const glm::vec2& screenPosition)
+{
+   std::shared_ptr< GameObject > foundObject = nullptr;
+
+   if (m_player)
+   {
+      foundObject = m_player->CheckIfCollidedScreenPosion(screenPosition) ? m_player : nullptr;
+   }
+
+   for (auto& object : m_objects)
+   {
+      foundObject = object->CheckIfCollidedScreenPosion(screenPosition) ? object : nullptr;
+   }
+
+   return foundObject;
+}
+
 void
 Level::MoveCamera(const glm::vec2& moveBy)
 {
