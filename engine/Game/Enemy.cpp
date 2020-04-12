@@ -295,7 +295,7 @@ Enemy::UpdateInternal(bool isReverse)
 }
 
 void
-Enemy::Render(const glm::mat4& window, const Shaders& program)
+Enemy::Render(const glm::mat4& window, Shaders& program)
 {
    if (!m_currentState.m_combatStarted && m_currentState.m_isAtInitialPos)
    {

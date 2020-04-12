@@ -47,8 +47,13 @@ class Sprite
    void
    SetTexture(const Texture& texture);
 
+   // Set rotation angle
    void
    Rotate(float angle);
+
+   // Add 'angle' value to current rotation angle
+   void
+   RotateCumulative(float angle);
 
    void
    Scale(const glm::vec2& scaleValue);
@@ -61,7 +66,7 @@ class Sprite
 
    // Render sprite using 'program'
    void
-   Render(const glm::mat4& projectionMat, const Shaders& program);
+   Render(const glm::mat4& projectionMat, Shaders& program);
 
  private:
    struct State

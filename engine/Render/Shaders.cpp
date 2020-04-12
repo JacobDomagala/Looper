@@ -5,7 +5,6 @@
 #include <fstream>
 #include <glm/gtc/type_ptr.hpp>
 
-
 GLuint Shaders::m_activeProgramID = 0;
 GLuint Shaders::m_numberBound = 0;
 
@@ -115,29 +114,53 @@ Shaders::CheckLinkStatus(GLuint programID)
    }
 }
 
+std::optional< GLint >
+Shaders::GetUniformLocation(const std::string& uniformName)
+{
+   GLint location = glGetUniformLocation(m_programID, uniformName.c_str());
+   if (!location)
+   {
+      m_logger.Log(Logger::TYPE::WARNING, "Uniform location not found. Uniform name: " + uniformName);
+      return {};
+   }
+
+   return {location};
+   //std::optional< GLint >(location);
+}
+
 void
-Shaders::SetUniformFloat(float value, const std::string& name) const
+Shaders::SetUniformBool(int value, const std::string& name)
+{
+   GLint location = glGetUniformLocation(m_programID, name.c_str());
+   glUniform1i(location, value);
+}
+
+void
+Shaders::SetUniformFloat(float value, const std::string& name)
 {
    GLint location = glGetUniformLocation(m_programID, name.c_str());
    glUniform1f(location, value);
 }
 
 void
-Shaders::SetUniformFloatVec2(const glm::vec2& value, const std::string& name) const
+Shaders::SetUniformFloatVec2(const glm::vec2& value, const std::string& name)
 {
-   GLint location = glGetUniformLocation(m_programID, name.c_str());
-   glUniform2fv(location, 1, glm::value_ptr(value));
+   const auto location = GetUniformLocation(name);
+   if (location.has_value())
+   {
+      glUniform2fv(location.value(), 1, glm::value_ptr(value));
+   }
 }
 
 void
-Shaders::SetUniformFloatVec4(const glm::vec4& value, const std::string& name) const
+Shaders::SetUniformFloatVec4(const glm::vec4& value, const std::string& name)
 {
    GLint location = glGetUniformLocation(m_programID, name.c_str());
    glUniform4fv(location, 1, glm::value_ptr(value));
 }
 
 void
-Shaders::SetUniformFloatMat4(const glm::mat4& value, const std::string& name) const
+Shaders::SetUniformFloatMat4(const glm::mat4& value, const std::string& name)
 {
    GLint location = glGetUniformLocation(m_programID, name.c_str());
    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));

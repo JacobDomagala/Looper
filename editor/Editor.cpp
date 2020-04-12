@@ -32,9 +32,6 @@ Editor::Editor(const glm::ivec2& screenSize)
 
    m_gui.Init();
    m_font.SetFont("segoeui");
-
-   performLayout();
-   setVisible(true);
 }
 
 Editor::~Editor()
@@ -87,45 +84,70 @@ Editor::draw(NVGcontext* ctx)
 }
 
 void
+Editor::UpdateCamera()
+{
+   const auto viewDirection = glm::vec3(0.0f, 0.0f, -1.0f);
+   const auto upVector = glm::vec3(0.0f, -1.0f, 0.0f);
+   const auto viewMatrix = glm::lookAt(m_cameraPosition, m_cameraPosition + viewDirection, upVector);
+   m_currentLevel.GetShader().UseProgram();
+   m_currentLevel.GetShader().SetUniformFloatMat4(viewMatrix, "viewMatrix");
+}
+
+void
 Editor::HandleInput()
 {
    m_timer.ToggleTimer();
    const auto cameraMovement = m_cameraSpeed * TARGET_TIME;
 
-   auto cameraMoveBy = glm::ivec2();
+   auto cameraMoveBy = glm::vec2();
 
    if (m_inputManager.CheckKeyPressed(GLFW_KEY_W))
    {
-      cameraMoveBy += glm::ivec2(0, cameraMovement);
+      cameraMoveBy += glm::vec2(0, cameraMovement);
    }
    if (m_inputManager.CheckKeyPressed(GLFW_KEY_S))
    {
-      cameraMoveBy += glm::ivec2(0, -cameraMovement);
+      cameraMoveBy += glm::vec2(0, -cameraMovement);
    }
    if (m_inputManager.CheckKeyPressed(GLFW_KEY_A))
    {
-      cameraMoveBy += glm::ivec2(cameraMovement, 0);
+      cameraMoveBy += glm::vec2(cameraMovement, 0);
    }
    if (m_inputManager.CheckKeyPressed(GLFW_KEY_D))
    {
-      cameraMoveBy += glm::ivec2(-cameraMovement, 0);
+      cameraMoveBy += glm::vec2(-cameraMovement, 0);
    }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_O))
+   if (m_inputManager.CheckKeyPressed(GLFW_KEY_ESCAPE))
    {
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-   }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_P))
-   {
-      glDisable(GL_BLEND);
-      // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      if (m_objectSelected)
+      {
+         if (m_currentSelectedObject)
+         {
+            m_currentSelectedObject->SetColor({1.0f, 1.0f, 1.0f});
+         }
+
+         m_objectSelected = false;
+         m_gui.GameObjectUnselected();
+      }
    }
 
-   m_currentLevel.Move(cameraMoveBy);
-   if (m_player)
+
+   if (m_levelLoaded)
    {
-      m_player->Move(cameraMoveBy);
+      //if (glm::length(cameraMoveBy) > 0)
+      //{
+      //   m_cameraPosition += glm::vec3(cameraMoveBy, 0.0f);
+      //   UpdateCamera();
+      //   Log(Logger::TYPE::INFO, std::to_string(cameraMoveBy.x) + " " + std::to_string(cameraMoveBy.y));
+      //}
+       m_currentLevel.Move(cameraMoveBy);
+
+      if (m_player)
+      {
+         m_player->Move(cameraMoveBy);
+      }
    }
+
 }
 
 bool
@@ -148,35 +170,82 @@ Editor::scrollEvent(const nanogui::Vector2i& p, const nanogui::Vector2f& rel)
 }
 
 bool
+Editor::mouseMotionEvent(const nanogui::Vector2i& p, const nanogui::Vector2i& rel, int button, int modifiers)
+{
+   const auto currentCursorPosition = glm::vec2(p.x(), p.y());
+
+   if (m_mousePressedLastUpdate && m_levelLoaded)
+   {
+      auto mouseMovementLength = glm::length(currentCursorPosition - m_lastCursorPosition);
+      mouseMovementLength = glm::clamp(mouseMovementLength, 0.0f, 100.0f);
+
+      m_mouseDrag = true;
+
+      if (m_inputManager.CheckKeyPressed(GLFW_KEY_LEFT_CONTROL))
+      {
+         m_logger.Log(Logger::TYPE::INFO, "Sprite rotation");
+         /*const auto moveVector = glm::vec2(rel.x(), rel.y()) * mouseMovementLength;
+         const auto tmpVal = GetProjection() * glm::vec4(moveVector, 0.0f, 1.0f);
+         const auto angle = glm::degrees(glm::atan(tmpVal.x, tmpVal.y));
+         m_currentLevel.Rotate(0.4f, true);*/
+      }
+      else
+      {
+         m_logger.Log(Logger::TYPE::INFO, "Camera movement");
+         m_currentLevel.Move(glm::vec2(rel.x(), rel.y()) * mouseMovementLength);
+
+         if (m_player)
+         {
+            m_player->Move(glm::vec2(rel.x(), rel.y()) * mouseMovementLength);
+         }
+      }
+   }
+
+   m_lastCursorPosition = currentCursorPosition;
+   return Screen::mouseMotionEvent(p, rel, button, modifiers);
+}
+
+bool
 Editor::mouseButtonEvent(const nanogui::Vector2i& p, int button, bool down, int modifiers)
 {
-   auto newSelectedObject = m_currentLevel.GetGameObjectOnLocation(glm::vec2(p.x(), p.y()));
+   Log(Logger::TYPE::INFO, "Mouse click event");
 
-   if (newSelectedObject)
+   m_mousePressedLastUpdate = down;
+
+   if (down)
    {
-      if (m_currentSelectedObject != newSelectedObject)
+      auto newSelectedObject = m_currentLevel.GetGameObjectOnLocation(glm::vec2(p.x(), p.y()));
+
+      if (newSelectedObject)
       {
-         if (m_currentSelectedObject)
+         if (m_currentSelectedObject != newSelectedObject)
          {
-            m_currentSelectedObject->SetColor({1.0f, 1.0f, 1.0f});
+            if (m_currentSelectedObject)
+            {
+               m_currentSelectedObject->SetColor({1.0f, 1.0f, 1.0f});
+            }
+
+            m_currentSelectedObject = newSelectedObject;
          }
 
-         m_currentSelectedObject = newSelectedObject;
-      }
+         m_currentSelectedObject->SetColor({1.0f, 0.0f, 0.0f});
 
-      m_currentSelectedObject->SetColor({1.0f, 0.0f, 0.0f});
-   }
-   else
-   {
-      if (m_currentSelectedObject)
-      {
-         m_currentSelectedObject->SetColor({1.0f, 1.0f, 1.0f});
-      }
+         m_objectSelected = true;
 
-      m_objectSelected = false;
+         m_gui.GameObjectSelected(m_currentSelectedObject);
+      }
    }
+
 
    return Screen::mouseButtonEvent(p, button, down, modifiers);
+}
+
+bool
+Editor::mouseDragEvent(const nanogui::Vector2i& p, const nanogui::Vector2i& rel, int button, int modifiers)
+{
+   Log(Logger::TYPE::INFO,
+       std::to_string(p.x()) + "/" + std::to_string(p.x()) + "  " + std::to_string(rel.x()) + "/" + std::to_string(rel.x()));
+   return Screen::mouseDragEvent(p, rel, button, modifiers);
 }
 
 void
@@ -184,6 +253,10 @@ Editor::drawAll()
 {
    // override keyboard input
    HandleInput();
+
+   // Update UI
+   performLayout();
+
    Screen::drawAll();
 }
 
@@ -202,6 +275,8 @@ void
 Editor::CreateLevel(const glm::ivec2& size)
 {
    m_currentLevel.Create(size);
+
+   m_currentLevel.GetShader().SetUniformBool(false, "outlineActive");
    m_levelLoaded = true;
 }
 
@@ -213,6 +288,14 @@ Editor::LoadLevel(const std::string& levelPath)
    m_player = m_currentLevel.GetPlayer();
 
    CenterCameraOnPlayer();
+
+   m_currentLevel.GetShader().SetUniformBool(false, "outlineActive");
+
+   //const auto position = glm::vec3(0.0f, 0.0f, 0.0f);
+   //const auto viewDirection = glm::vec3(0.0f, 0.0f, 1.0f);
+   //const auto upVector = glm::vec3(0.0f, 1.0f, 0.0f);
+   //const auto viewMatrix = glm::lookAt(position, position + viewDirection, upVector);
+   //m_currentLevel.GetShader().SetUniformFloatMat4(viewMatrix, "viewMatrix");
 
    m_levelLoaded = true;
 }
@@ -232,6 +315,13 @@ Editor::PlayLevel()
       m_game.LoadLevel(m_levelFileName);
       m_game.MainLoop();
    }
+}
+
+void
+Editor::ShowWireframe(int wireframeEnabled)
+{
+   m_currentLevel.GetShader().UseProgram();
+   m_currentLevel.GetShader().SetUniformBool(wireframeEnabled, "outlineActive");
 }
 
 const glm::vec2&

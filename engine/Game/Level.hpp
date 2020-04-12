@@ -57,6 +57,9 @@ class Level
    Scale(const glm::vec2& scaleVal);
 
    void
+   Rotate(float angle, bool cumulative = false);
+
+   void
    Update(bool isReverse);
 
    void
@@ -117,6 +120,12 @@ class Level
    GetPlayer()
    {
       return m_player;
+   }
+
+   Shaders&
+   GetShader()
+   {
+      return m_shaders;
    }
 
    void

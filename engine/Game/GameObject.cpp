@@ -111,6 +111,12 @@ GameObject::GetSprite() const
    return m_sprite;
 }
 
+Sprite&
+GameObject::GetSprite()
+{
+   return m_sprite;
+}
+
 void
 GameObject::SetShaders(const Shaders& program)
 {
@@ -132,6 +138,12 @@ GameObject::CreateSpriteTextured(const glm::vec2& position, const glm::ivec2& si
 }
 
 void
+GameObject::SetObjectSelected()
+{
+
+}
+
+void
 GameObject::Move(const glm::vec2& moveBy, bool isCameraMovement)
 {
    m_sprite.Translate(moveBy);
@@ -149,6 +161,12 @@ void
 GameObject::Scale(const glm::vec2& scaleVal)
 {
    m_sprite.Scale(scaleVal);
+}
+
+void
+GameObject::Rotate(float angle, bool cumulative)
+{
+   cumulative ? m_sprite.RotateCumulative(angle) : m_sprite.Rotate(angle);
 }
 
 void
@@ -173,7 +191,7 @@ GameObject::Update(bool isReverse)
 }
 
 void
-GameObject::Render(const glm::mat4& projectionMat, const Shaders& program)
+GameObject::Render(const glm::mat4& projectionMat, Shaders& program)
 {
    m_sprite.Render(projectionMat, program);
 }

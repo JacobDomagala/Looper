@@ -5,6 +5,7 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <string>
+#include <optional>
 
 class Shaders
 {
@@ -31,16 +32,19 @@ class Shaders
    LoadShaders(const std::string& shaderName);
 
    void
-   SetUniformFloat(float value, const std::string& name) const;
+   SetUniformBool(int value, const std::string& name);
 
    void
-   SetUniformFloatVec2(const glm::vec2& value, const std::string& name) const;
+   SetUniformFloat(float value, const std::string& name);
 
    void
-   SetUniformFloatVec4(const glm::vec4& value, const std::string& name) const;
+   SetUniformFloatVec2(const glm::vec2& value, const std::string& name);
 
    void
-   SetUniformFloatMat4(const glm::mat4& value, const std::string& name) const;
+   SetUniformFloatVec4(const glm::vec4& value, const std::string& name);
+
+   void
+   SetUniformFloatMat4(const glm::mat4& value, const std::string& name);
 
  private:
    std::string
@@ -51,6 +55,9 @@ class Shaders
 
    void
    CheckLinkStatus(GLuint programID);
+
+   std::optional< GLint >
+   GetUniformLocation(const std::string& uniformName);
 
    std::string m_name;
    GLuint m_programID;

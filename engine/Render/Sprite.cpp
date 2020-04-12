@@ -87,7 +87,7 @@ Sprite::Update(bool isReverse)
 }
 
 void
-Sprite::Render(const glm::mat4& projectionMat, const Shaders& program)
+Sprite::Render(const glm::mat4& projectionMat, Shaders& program)
 {
    program.UseProgram();
    glBindVertexArray(m_vertexArrayBuffer);
@@ -117,6 +117,7 @@ Sprite::Render(const glm::mat4& projectionMat, const Shaders& program)
 
    m_texture.Use(program.GetProgram());
    program.SetUniformFloatVec4(m_currentState.m_color, "color");
+   program.SetUniformFloatVec2(m_size, "objectSize");
    program.SetUniformFloatMat4(projectionMat, "projectionMatrix");
    program.SetUniformFloatMat4(modelMatrix, "modelMatrix");
 
@@ -164,6 +165,12 @@ void
 Sprite::Rotate(float angle)
 {
    m_currentState.m_angle = angle;
+}
+
+void
+Sprite::RotateCumulative(float angle)
+{
+   m_currentState.m_angle += angle;
 }
 
 void

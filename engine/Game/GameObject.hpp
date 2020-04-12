@@ -75,6 +75,9 @@ class GameObject
    virtual const Sprite&
    GetSprite() const;
 
+   virtual Sprite&
+   GetSprite();
+
    // Create sprite with default texture
    virtual void
    CreateSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(10, 10));
@@ -84,6 +87,10 @@ class GameObject
    CreateSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(16, 16),
                         const std::string& fileName = "Default.png");
 
+   // Only used by editor
+   virtual void
+   SetObjectSelected();
+
    // Move object by 'moveBy'
    virtual void
    Move(const glm::vec2& moveBy, bool isCameraMovement = true);
@@ -91,9 +98,12 @@ class GameObject
    virtual void
    Scale(const glm::vec2& scaleVal);
 
+   virtual void
+   Rotate(float angle, bool cumulative = false);
+
    // Render object
    virtual void
-   Render(const glm::mat4& projectionMatrix, const Shaders& program);
+   Render(const glm::mat4& projectionMatrix, Shaders& program);
 
    virtual void
    Update(bool isReverse);

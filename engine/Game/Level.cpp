@@ -230,6 +230,28 @@ Level::Scale(const glm::vec2& scaleVal)
 }
 
 void
+Level::Rotate(float angle, bool cumulative)
+{
+    // Move objects to center of level
+    // Rotate them
+    // Move them back on position
+
+   for (auto& obj : m_objects)
+   {
+      //obj->Move(m_background.GetCenteredPosition());
+      obj->Rotate(angle, cumulative);
+      //obj->Move(-m_background.GetCenteredPosition());
+   }
+
+   cumulative ? m_background.RotateCumulative(angle) : m_background.Rotate(angle);
+   
+   if (m_player)
+   {
+      m_player->Rotate(angle, cumulative);
+   }
+}
+
+void
 Level::Update(bool isReverse)
 {
    m_background.Update(isReverse);
