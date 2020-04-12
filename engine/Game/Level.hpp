@@ -31,15 +31,18 @@ class Level
    MoveObjs(const glm::vec2& moveBy, bool isCameraMovement = true);
 
    void
-   Create(const glm::ivec2& size);
+   Create(Context* context, const glm::ivec2& size);
 
    // pathToFile - global path to level file (.dgl)
    void
-   Load(Context& game, const std::string& pathToFile);
+   Load(Context* context, const std::string& pathToFile);
 
    // pathToFile - global path to level file (.dgl)
    void
    Save(const std::string& pathToFile);
+
+   void
+   Quit();
 
    void
    LoadPremade(const std::string& fileName, const glm::ivec2& size);
@@ -63,7 +66,7 @@ class Level
    Update(bool isReverse);
 
    void
-   Render(const glm::mat4& projectionMat);
+   Render();
 
    bool
    CheckCollision(const glm::ivec2& localPos, const Player& player);
@@ -145,6 +148,8 @@ class Level
 
  private:
    Logger m_logger = Logger("Level");
+
+   Context* m_contextPointer = nullptr;
    Sprite m_background;
    Texture m_collision;
 

@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 
 class Window;
+class Context;
 
 class Sprite
 {
@@ -66,7 +67,7 @@ class Sprite
 
    // Render sprite using 'program'
    void
-   Render(const glm::mat4& projectionMat, Shaders& program);
+   Render(Context& context, Shaders& program);
 
  private:
    struct State

@@ -1,18 +1,17 @@
 #include "Editor.hpp"
 #include "Game.hpp"
 
+#include <fstream>
 #include <glm/gtc/matrix_transform.hpp>
 #include <nanogui/button.h>
 #include <nanogui/label.h>
 #include <nanogui/layout.h>
 #include <nanogui/window.h>
 #include <nanovg.h>
-
-#include <fstream>
 #include <string>
 #include <thread>
 
-Editor::Editor(const glm::ivec2& screenSize)
+Editor::Editor(const glm::vec2& screenSize)
    : nanogui::Screen(Eigen::Vector2i(screenSize.x, screenSize.y), "DGame Editor", true, false, 8, 8, 24, 8, 0, 4, 5), m_gui(*this)
 {
    m_logger.Init("Editor");
@@ -26,7 +25,7 @@ Editor::Editor(const glm::ivec2& screenSize)
    const auto top = m_windowSize.y / 2.0f;
    const auto bottom = -m_windowSize.y / 2.0f;
    const auto near = -1.0f;
-   const auto far = 1.0f;
+   const auto far = 10.0f;
 
    m_projectionMatrix = glm::ortho(left, right, top, bottom, near, far);
 
@@ -84,38 +83,27 @@ Editor::draw(NVGcontext* ctx)
 }
 
 void
-Editor::UpdateCamera()
-{
-   const auto viewDirection = glm::vec3(0.0f, 0.0f, -1.0f);
-   const auto upVector = glm::vec3(0.0f, -1.0f, 0.0f);
-   const auto viewMatrix = glm::lookAt(m_cameraPosition, m_cameraPosition + viewDirection, upVector);
-   m_currentLevel.GetShader().UseProgram();
-   m_currentLevel.GetShader().SetUniformFloatMat4(viewMatrix, "viewMatrix");
-}
-
-void
 Editor::HandleInput()
 {
    m_timer.ToggleTimer();
-   const auto cameraMovement = m_cameraSpeed * TARGET_TIME;
 
    auto cameraMoveBy = glm::vec2();
 
    if (m_inputManager.CheckKeyPressed(GLFW_KEY_W))
    {
-      cameraMoveBy += glm::vec2(0, cameraMovement);
+      cameraMoveBy += glm::vec2(0.0f, -1.0f);
    }
    if (m_inputManager.CheckKeyPressed(GLFW_KEY_S))
    {
-      cameraMoveBy += glm::vec2(0, -cameraMovement);
+      cameraMoveBy += glm::vec2(0.0f, 1.0f);
    }
    if (m_inputManager.CheckKeyPressed(GLFW_KEY_A))
    {
-      cameraMoveBy += glm::vec2(cameraMovement, 0);
+      cameraMoveBy += glm::vec2(-1.0f, 0.0f);
    }
    if (m_inputManager.CheckKeyPressed(GLFW_KEY_D))
    {
-      cameraMoveBy += glm::vec2(-cameraMovement, 0);
+      cameraMoveBy += glm::vec2(1.0f, 0);
    }
    if (m_inputManager.CheckKeyPressed(GLFW_KEY_ESCAPE))
    {
@@ -131,23 +119,10 @@ Editor::HandleInput()
       }
    }
 
-
    if (m_levelLoaded)
    {
-      //if (glm::length(cameraMoveBy) > 0)
-      //{
-      //   m_cameraPosition += glm::vec3(cameraMoveBy, 0.0f);
-      //   UpdateCamera();
-      //   Log(Logger::TYPE::INFO, std::to_string(cameraMoveBy.x) + " " + std::to_string(cameraMoveBy.y));
-      //}
-       m_currentLevel.Move(cameraMoveBy);
-
-      if (m_player)
-      {
-         m_player->Move(cameraMoveBy);
-      }
+      m_camera.Move(glm::vec3(cameraMoveBy, 0.0f));
    }
-
 }
 
 bool
@@ -169,83 +144,76 @@ Editor::scrollEvent(const nanogui::Vector2i& p, const nanogui::Vector2f& rel)
    return Screen::scrollEvent(p, rel);
 }
 
-bool
-Editor::mouseMotionEvent(const nanogui::Vector2i& p, const nanogui::Vector2i& rel, int button, int modifiers)
+void
+Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis)
 {
-   const auto currentCursorPosition = glm::vec2(p.x(), p.y());
-
    if (m_mousePressedLastUpdate && m_levelLoaded)
    {
-      auto mouseMovementLength = glm::length(currentCursorPosition - m_lastCursorPosition);
-      mouseMovementLength = glm::clamp(mouseMovementLength, 0.0f, 100.0f);
+      auto mouseMovementLength = glm::length(currentCursorPos - m_lastCursorPosition);
+      mouseMovementLength = glm::clamp(mouseMovementLength, 0.0f, 50.0f);
 
       m_mouseDrag = true;
 
       if (m_inputManager.CheckKeyPressed(GLFW_KEY_LEFT_CONTROL))
       {
          m_logger.Log(Logger::TYPE::INFO, "Sprite rotation");
-         /*const auto moveVector = glm::vec2(rel.x(), rel.y()) * mouseMovementLength;
-         const auto tmpVal = GetProjection() * glm::vec4(moveVector, 0.0f, 1.0f);
-         const auto angle = glm::degrees(glm::atan(tmpVal.x, tmpVal.y));
-         m_currentLevel.Rotate(0.4f, true);*/
       }
       else
       {
-         m_logger.Log(Logger::TYPE::INFO, "Camera movement");
-         m_currentLevel.Move(glm::vec2(rel.x(), rel.y()) * mouseMovementLength);
-
-         if (m_player)
-         {
-            m_player->Move(glm::vec2(rel.x(), rel.y()) * mouseMovementLength);
-         }
+         const auto moveBy = glm::vec3(-axis.x, -axis.y, 0.0f) * mouseMovementLength;
+         m_camera.Move(moveBy);
       }
    }
+}
+
+bool
+Editor::mouseMotionEvent(const nanogui::Vector2i& p, const nanogui::Vector2i& rel, int button, int modifiers)
+{
+   const auto currentCursorPosition = glm::vec2(p.x(), p.y());
+
+   HandleMouseDrag(currentCursorPosition, {rel.x(), rel.y()});
 
    m_lastCursorPosition = currentCursorPosition;
    return Screen::mouseMotionEvent(p, rel, button, modifiers);
 }
 
-bool
-Editor::mouseButtonEvent(const nanogui::Vector2i& p, int button, bool down, int modifiers)
+void
+Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
 {
-   Log(Logger::TYPE::INFO, "Mouse click event");
+   auto newSelectedObject = m_currentLevel.GetGameObjectOnLocation(cursorPosition);
 
+   if (newSelectedObject)
+   {
+      if (m_currentSelectedObject != newSelectedObject)
+      {
+         if (m_currentSelectedObject)
+         {
+            // unselect previously selected object
+            m_currentSelectedObject->SetObjectUnselected();
+         }
+
+         m_currentSelectedObject = newSelectedObject;
+      }
+
+      // mark new object as selected
+      m_currentSelectedObject->SetObjectSelected();
+      m_gui.GameObjectSelected(m_currentSelectedObject);
+      m_objectSelected = true;
+   }
+}
+
+bool
+Editor::mouseButtonEvent(const nanogui::Vector2i& position, int button, bool down, int modifiers)
+{
    m_mousePressedLastUpdate = down;
 
    if (down)
    {
-      auto newSelectedObject = m_currentLevel.GetGameObjectOnLocation(glm::vec2(p.x(), p.y()));
-
-      if (newSelectedObject)
-      {
-         if (m_currentSelectedObject != newSelectedObject)
-         {
-            if (m_currentSelectedObject)
-            {
-               m_currentSelectedObject->SetColor({1.0f, 1.0f, 1.0f});
-            }
-
-            m_currentSelectedObject = newSelectedObject;
-         }
-
-         m_currentSelectedObject->SetColor({1.0f, 0.0f, 0.0f});
-
-         m_objectSelected = true;
-
-         m_gui.GameObjectSelected(m_currentSelectedObject);
-      }
+      CheckIfObjectGotSelected({position.x(), position.y()});
    }
 
 
-   return Screen::mouseButtonEvent(p, button, down, modifiers);
-}
-
-bool
-Editor::mouseDragEvent(const nanogui::Vector2i& p, const nanogui::Vector2i& rel, int button, int modifiers)
-{
-   Log(Logger::TYPE::INFO,
-       std::to_string(p.x()) + "/" + std::to_string(p.x()) + "  " + std::to_string(rel.x()) + "/" + std::to_string(rel.x()));
-   return Screen::mouseDragEvent(p, rel, button, modifiers);
+   return Screen::mouseButtonEvent(position, button, down, modifiers);
 }
 
 void
@@ -267,16 +235,18 @@ Editor::drawContents()
    {
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      m_currentLevel.Render(m_projectionMatrix);
+      m_currentLevel.Render();
    }
 }
 
 void
 Editor::CreateLevel(const glm::ivec2& size)
 {
-   m_currentLevel.Create(size);
+   m_currentLevel.Create(this, size);
 
    m_currentLevel.GetShader().SetUniformBool(false, "outlineActive");
+   m_camera.Create(glm::vec3(m_currentLevel.GetLevelPosition(), 0.0f), {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
+
    m_levelLoaded = true;
 }
 
@@ -284,18 +254,14 @@ void
 Editor::LoadLevel(const std::string& levelPath)
 {
    m_levelFileName = levelPath;
-   m_currentLevel.Load(*this, levelPath);
+   m_currentLevel.Load(this, levelPath);
    m_player = m_currentLevel.GetPlayer();
 
-   CenterCameraOnPlayer();
+   // CenterCameraOnPlayer();
 
    m_currentLevel.GetShader().SetUniformBool(false, "outlineActive");
 
-   //const auto position = glm::vec3(0.0f, 0.0f, 0.0f);
-   //const auto viewDirection = glm::vec3(0.0f, 0.0f, 1.0f);
-   //const auto upVector = glm::vec3(0.0f, 1.0f, 0.0f);
-   //const auto viewMatrix = glm::lookAt(position, position + viewDirection, upVector);
-   //m_currentLevel.GetShader().SetUniformFloatMat4(viewMatrix, "viewMatrix");
+   m_camera.Create(glm::vec3(m_player->GetCenteredGlobalPosition(), 0.0f), {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
 
    m_levelLoaded = true;
 }
@@ -334,6 +300,12 @@ const glm::mat4&
 Editor::GetProjection() const
 {
    return m_projectionMatrix;
+}
+
+const glm::mat4&
+Editor::GetViewMatrix() const
+{
+   return m_camera.GetViewMatrix();
 }
 
 float

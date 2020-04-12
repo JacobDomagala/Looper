@@ -154,9 +154,9 @@ Window::GetCursorScreenPosition()
    auto cursorPos = GetCursor();
 
    cursorPos -= glm::vec2((m_width / 2.0f), (m_height / 2.0f));
-   glm::vec4 tmpCursor = m_projectionMatrix * glm::vec4(cursorPos, 0.0f, 1.0f);
+   glm::vec2 tmpCursor = m_projectionMatrix * glm::vec4(cursorPos, 0.0f, 1.0f);
 
-   return glm::vec2(tmpCursor.x, tmpCursor.y);
+   return tmpCursor;
 }
 
 glm::vec2

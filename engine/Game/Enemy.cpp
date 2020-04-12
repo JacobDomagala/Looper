@@ -295,14 +295,14 @@ Enemy::UpdateInternal(bool isReverse)
 }
 
 void
-Enemy::Render(const glm::mat4& window, Shaders& program)
+Enemy::Render(Shaders& program)
 {
    if (!m_currentState.m_combatStarted && m_currentState.m_isAtInitialPos)
    {
       Animate();
    }
 
-   GameObject::Render(window, program);
+   GameObject::Render(program);
 }
 
 void

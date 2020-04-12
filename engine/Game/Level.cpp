@@ -13,15 +13,16 @@
 #include <nlohmann/json.hpp>
 
 void
-Level::Create(const glm::ivec2& size)
+Level::Create(Context* context, const glm::ivec2& size)
 {
    m_levelSize = size;
    m_background.SetSprite(glm::vec2(0.0f, 0.0f), m_levelSize);
    m_shaders.LoadDefault();
+   m_contextPointer = context;
 }
 
 void
-Level::Load(Context& context, const std::string& pathToLevel)
+Level::Load(Context* context, const std::string& pathToLevel)
 {
    const auto json = FileManager::LoadJsonFile(pathToLevel);
 
@@ -36,13 +37,15 @@ Level::Load(Context& context, const std::string& pathToLevel)
 
          // Temporary solution
          // This should be moved to Level class soon
-         auto gameHandle = static_cast< Game* >(&context);
+         auto gameHandle = static_cast< Game* >(context);
          if (gameHandle)
          {
             const auto collision = json[key]["collision"];
             m_collision.LoadTextureFromFile(collision);
             gameHandle->SetCollisionMap(reinterpret_cast< byte_vec4* >(m_collision.GetData()));
          }
+
+         m_contextPointer = context;
       }
       else if (key == "SHADER")
       {
@@ -56,7 +59,7 @@ Level::Load(Context& context, const std::string& pathToLevel)
          const auto texture = json[key]["texture"];
          const auto weapons = json[key]["weapons"];
 
-         m_player = std::make_shared< Player >(context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture);
+         m_player = std::make_shared< Player >(*context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture);
       }
       else if (key == "ENEMIES")
       {
@@ -75,7 +78,7 @@ Level::Load(Context& context, const std::string& pathToLevel)
                keypointsPositions.emplace_back(glm::vec2(point[0], point[1]));
             }
 
-            m_objects.emplace_back(std::make_shared< Enemy >(context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]),
+            m_objects.emplace_back(std::make_shared< Enemy >(*context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]),
                                                              texture, keypointsPositions));
          }
       }
@@ -129,6 +132,13 @@ Level::Save(const std::string& pathToLevel)
    }
 
    FileManager::SaveJsonFile(pathToLevel, json);
+}
+
+void
+Level::Quit()
+{
+   m_objects.clear();
+   m_player.reset();
 }
 
 glm::vec2
@@ -267,22 +277,22 @@ Level::Update(bool isReverse)
 }
 
 void
-Level::Render(const glm::mat4& projectionMat)
+Level::Render()
 {
    // draw background
-   m_background.Render(projectionMat, m_shaders);
+   m_background.Render(*m_contextPointer, m_shaders);
 
    for (auto& obj : m_objects)
    {
       if (obj->Visible())
       {
-         obj->Render(projectionMat, m_shaders);
+         obj->Render(m_shaders);
       }
    }
 
    if (m_player)
    {
-      m_player->Render(projectionMat, m_shaders);
+      m_player->Render(m_shaders);
    }
 }
 

@@ -87,9 +87,13 @@ class GameObject
    CreateSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(16, 16),
                         const std::string& fileName = "Default.png");
 
-   // Only used by editor
+   // Only used by editor when selected by user
    virtual void
    SetObjectSelected();
+
+   // Only used by editor when unselected by user
+   virtual void
+   SetObjectUnselected();
 
    // Move object by 'moveBy'
    virtual void
@@ -103,7 +107,7 @@ class GameObject
 
    // Render object
    virtual void
-   Render(const glm::mat4& projectionMatrix, Shaders& program);
+   Render(Shaders& program);
 
    virtual void
    Update(bool isReverse);

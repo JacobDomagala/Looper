@@ -58,7 +58,7 @@ Game::Init(const std::string configFile)
 
    if (!initFile)
    {
-      logger.Log(Logger::TYPE::FATAL, "Can't open" + (ASSETS_DIR / configFile).u8string());
+      m_logger.Log(Logger::TYPE::FATAL, "Can't open" + (ASSETS_DIR / configFile).u8string());
    }
 
    m_cameraSpeed = 600.0f;
@@ -700,6 +700,7 @@ Game::KeyEvents()
       }
       if (m_inputManager.CheckKeyPressed(GLFW_KEY_ESCAPE))
       {
+         m_currentLevel.Quit();
          m_window->ShutDown();
       }
       if (m_inputManager.CheckKeyPressed(GLFW_KEY_O))
@@ -749,7 +750,7 @@ Game::KeyEvents()
       }
       if (m_inputManager.CheckKeyPressed(GLFW_KEY_SPACE))
       {
-         CenterCameraOnPlayer();
+         m_camera.SetCameraAtObject(m_player);
       }
 
       if (glm::length(glm::vec2(playerMoveBy)))
@@ -768,10 +769,10 @@ Game::MouseEvents()
    glm::ivec2 cameraMoveBy = glm::ivec2();
 
    cursor = m_window->GetCursorNormalized();
-    glm::vec2 tmp = CheckBulletCollision(m_player->GetWeaponRange());
+   glm::vec2 tmp = CheckBulletCollision(m_player->GetWeaponRange());
 
-    DrawLine(m_currentLevel.GetGlobalVec(m_player->GetCenteredLocalPosition()), m_currentLevel.GetGlobalVec(tmp), glm::vec3(0.0f, 1.0f,
-    0.0f));
+   DrawLine(m_currentLevel.GetGlobalVec(m_player->GetCenteredLocalPosition()), m_currentLevel.GetGlobalVec(tmp),
+            glm::vec3(0.0f, 1.0f, 0.0f));
 
    ////PRIMARY FIRE
    // if (Win_Window::GetKeyState(VK_LBUTTON))
@@ -812,27 +813,26 @@ Game::MouseEvents()
       if (cursor.x > borderValue)
       {
          float someX = (cursor.x - borderValue) * multiplier;
-         cameraMoveBy += glm::vec2(-cameraMovement * someX, 0.0f);
+         cameraMoveBy += glm::vec2(cameraMovement * someX, 0.0f);
       }
       else if (cursor.x < -borderValue)
       {
          float someX = (cursor.x + borderValue) * multiplier;
-         cameraMoveBy += glm::vec2(-cameraMovement * someX, 0.0f);
+         cameraMoveBy += glm::vec2(cameraMovement * someX, 0.0f);
       }
       if (cursor.y > borderValue)
       {
          float someY = (cursor.y - borderValue) * multiplier;
-         cameraMoveBy += glm::vec2(0.0f, -cameraMovement * someY);
+         cameraMoveBy += glm::vec2(0.0f, cameraMovement * someY);
       }
       else if (cursor.y < -borderValue)
       {
          float someY = (cursor.y + borderValue) * multiplier;
-         cameraMoveBy += glm::vec2(0.0f, -cameraMovement * someY);
+         cameraMoveBy += glm::vec2(0.0f, cameraMovement * someY);
       }
       if (glm::length(glm::vec2(cameraMoveBy)))
       {
-         m_currentLevel.Move(cameraMoveBy);
-         m_player->Move(cameraMoveBy);
+         m_camera.Move(glm::vec3(cameraMoveBy, 0.0f));
       }
    }
 }
@@ -857,13 +857,14 @@ Game::RenderFirstPass()
       m_playerPosition = m_currentLevel.GetLocalVec(m_player->GetCenteredGlobalPosition());
 
       glm::ivec2 correction = CorrectPosition();
+      m_logger.Log(Logger::TYPE::INFO, std::to_string(correction.x) + "  " + std::to_string(correction.x));
 
       m_player->Move(correction);
       m_playerPosition += correction;
       m_player->SetCenteredLocalPosition(m_playerPosition);
    }
 
-   m_currentLevel.Render(m_window->GetProjection());
+   m_currentLevel.Render();
 
    m_frameBuffer.EndDrawingToTexture();
 }
@@ -887,10 +888,10 @@ Game::RenderSecondPass()
 void
 Game::LoadLevel(const std::string& pathToLevel)
 {
-   m_currentLevel.Load(*this, pathToLevel);
+   m_currentLevel.Load(this, pathToLevel);
    m_player = m_currentLevel.GetPlayer();
 
-   CenterCameraOnPlayer();
+   m_camera.Create(glm::vec3(m_player->GetCenteredGlobalPosition(), 0.0f), {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, 1.0f);
 }
 
 const glm::vec2&
@@ -903,6 +904,12 @@ const glm::mat4&
 Game::GetProjection() const
 {
    return m_window->GetProjection();
+}
+
+const glm::mat4&
+Game::GetViewMatrix() const
+{
+   return m_camera.GetViewMatrix();
 }
 
 float

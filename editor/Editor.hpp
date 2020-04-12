@@ -18,8 +18,23 @@ class Window;
 class Editor : public nanogui::Screen, public Context
 {
  public:
-   Editor(const glm::ivec2& screenSize);
+   Editor(const glm::vec2& screenSize);
    ~Editor();
+
+   void
+   MainLoop() override;
+
+   const glm::vec2&
+   GetWindowSize() const override;
+
+   const glm::mat4&
+   GetProjection() const override;
+
+   const glm::mat4&
+   GetViewMatrix() const override;
+
+   float
+   GetZoomLevel() override;
 
    void
    draw(NVGcontext* ctx) override;
@@ -39,9 +54,6 @@ class Editor : public nanogui::Screen, public Context
    bool
    mouseButtonEvent(const nanogui::Vector2i& p, int button, bool down, int modifiers) override;
 
-   bool
-   mouseDragEvent(const nanogui::Vector2i& p, const nanogui::Vector2i& rel, int button, int modifiers) override;
-
    void
    CreateLevel(const glm::ivec2& size);
 
@@ -52,35 +64,26 @@ class Editor : public nanogui::Screen, public Context
    SaveLevel(const std::string& levelName);
 
    void
-   InitGLFW();
-
-   void
-   HandleInput();
-
-   void
    PlayLevel();
 
    void
    ShowWireframe(int wireframeEnabled);
-
-   void
-   MainLoop() override;
-
-   const glm::vec2&
-   GetWindowSize() const override;
-
-   const glm::mat4&
-   GetProjection() const override;
-
-   float
-   GetZoomLevel() override;
 
  private:
    bool
    IsRunning() override;
 
    void
-   UpdateCamera();
+   InitGLFW();
+
+   void
+   HandleInput();
+
+   void
+   HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis);
+
+   void
+   CheckIfObjectGotSelected(const glm::vec2& cursorPosition);
 
    Game m_game;
 
@@ -99,16 +102,12 @@ class Editor : public nanogui::Screen, public Context
    glm::mat4 m_projectionMatrix;
    glm::vec2 m_windowSize;
 
-   glm::vec3 m_cameraPosition = glm::vec3(0.0f, 0.0f, 0.0f);
    float m_zoomScale = 0.0f;
    float m_maxZoomIn = 1.5f;
    float m_maxZoomOut = -1.5f;
 
-   float m_cameraSpeed = 400.0f;
-
    bool m_objectSelected = false;
    std::shared_ptr< GameObject > m_currentSelectedObject = nullptr;
 
-   Timer m_timer;
    Gui m_gui;
 };

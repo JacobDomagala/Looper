@@ -134,6 +134,9 @@ class Game : public Context
    const glm::mat4&
    GetProjection() const override;
 
+   const glm::mat4&
+   GetViewMatrix() const override;
+
    float
    GetZoomLevel() override;
 
@@ -192,13 +195,9 @@ class Game : public Context
    IsRunning() override;
 
  private:
-   Logger logger = Logger("Game");
-
    bool m_initialized = false;
 
    std::unique_ptr< Window > m_window = nullptr;
-
-   Timer m_timer;
 
    int32_t m_frames = 0;
    float m_frameTimer = 0.0f;
@@ -215,8 +214,10 @@ class Game : public Context
 
    float m_deltaTime = 0.0f;
 
+  // set to true when game runs in reverse mode
    bool m_reverse = false;
 
+   // number of frames saved for reverse mode (max value NUM_FRAMES_TO_SAVE)
    int m_frameCount = 0;
 
    // state of the game

@@ -80,10 +80,11 @@ Player::UpdateInternal(bool isReverse)
          auto gameHandle = ConvertToGameHandle();
          if (!gameHandle->IsReverse())
          {
-            glm::vec2 cursorPos = gameHandle->GetCursorScreenPosition();
+            const auto cursorPos = gameHandle->GetCursorScreenPosition();
+            const auto screenPosition = gameHandle->GetProjection() * gameHandle->GetViewMatrix()
+                                        * glm::vec4(GameObject::m_currentState.m_centeredGlobalPosition, 0.0f, 1.0f);
 
-            glm::vec4 tmpPos = gameHandle->GetProjection() * glm::vec4(GameObject::m_currentState.m_centeredGlobalPosition, 0.0f, 1.0f);
-            m_currentState.m_viewAngle = -glm::degrees(glm::atan(tmpPos.y - cursorPos.y, tmpPos.x - cursorPos.x));
+            m_currentState.m_viewAngle = -glm::degrees(glm::atan(screenPosition.y - cursorPos.y, screenPosition.x - cursorPos.x));
          }
       }
 

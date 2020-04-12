@@ -140,7 +140,13 @@ GameObject::CreateSpriteTextured(const glm::vec2& position, const glm::ivec2& si
 void
 GameObject::SetObjectSelected()
 {
+   SetColor({1.0f, 0.0f, 0.0f});
+}
 
+void
+GameObject::SetObjectUnselected()
+{
+   SetColor({1.0f, 1.0f, 1.0f});
 }
 
 void
@@ -191,9 +197,9 @@ GameObject::Update(bool isReverse)
 }
 
 void
-GameObject::Render(const glm::mat4& projectionMat, Shaders& program)
+GameObject::Render(Shaders& program)
 {
-   m_sprite.Render(projectionMat, program);
+   m_sprite.Render(m_contextHandle, program);
 }
 
 Game*

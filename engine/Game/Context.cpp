@@ -43,7 +43,7 @@ glm::vec2
 Context::GlobalToScreen(const glm::vec2& globalPos) const
 {
    // convert to <-1, 1>
-   glm::vec2 projectedPosition = GetProjection() * glm::vec4(globalPos, 0.0f, 1.0f);
+   glm::vec2 projectedPosition = GetProjection() * GetViewMatrix() * glm::vec4(globalPos, 0.0f, 1.0f);
 
    // convert to <0, 1>
    auto returnPos = (projectedPosition + glm::vec2(1.0f, 1.0f)) / 2.0f;

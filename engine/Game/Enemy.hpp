@@ -28,7 +28,7 @@ class Enemy : public GameObject
    DealWithPlayer() override;
 
    void
-   Render(const glm::mat4& window, Shaders& program) override;
+   Render(Shaders& program) override;
 
    std::string
    GetWeapon() const;

@@ -3,6 +3,8 @@
 #include "Font.hpp"
 #include "InputManager.hpp"
 #include "Level.hpp"
+#include "Camera.hpp"
+#include "Timer.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
@@ -47,6 +49,9 @@ class Context
    virtual const glm::mat4&
    GetProjection() const = 0;
 
+   virtual const glm::mat4&
+   GetViewMatrix() const = 0;
+
    virtual float
    GetZoomLevel() = 0;
 
@@ -65,4 +70,6 @@ class Context
    Font m_font;
 
    InputManager m_inputManager;
+   Camera m_camera;
+   Timer m_timer;
 };
