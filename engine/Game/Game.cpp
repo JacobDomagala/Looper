@@ -152,12 +152,6 @@ Game::CorrectPosition()
 }
 
 void
-Game::DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color)
-{
-   m_debugObjs.push_back(std::make_unique< Line >(from, to, color));
-}
-
-void
 Game::RenderLine(const glm::ivec2& collided, const glm::vec3& color)
 {
    glm::vec2 lineCollided = m_currentLevel.GetGlobalVec(collided);
@@ -765,10 +759,6 @@ Game::KeyEvents()
 void
 Game::MouseEvents()
 {
-   float cameraMovement = floor(m_cameraSpeed * m_deltaTime);
-   glm::ivec2 cameraMoveBy = glm::ivec2();
-
-   cursor = m_window->GetCursorNormalized();
    glm::vec2 tmp = CheckBulletCollision(m_player->GetWeaponRange());
 
    DrawLine(m_currentLevel.GetGlobalVec(m_player->GetCenteredLocalPosition()), m_currentLevel.GetGlobalVec(tmp),
@@ -801,15 +791,18 @@ Game::MouseEvents()
    //}
 
    // TODO: Find some easier formula for this?
-
-   // value to control how fast should camera move
-   int32_t multiplier = 3;
-
-   // cursor's position from center of the screen to trigger camera movement
-   float borderValue = 0.2f;
-
    if (!m_reverse)
    {
+      // value to control how fast should camera move
+      int32_t multiplier = 3;
+
+      // cursor's position from center of the screen to trigger camera movement
+      float borderValue = 0.2f;
+
+      float cameraMovement = floor(m_cameraSpeed * m_deltaTime);
+      auto cameraMoveBy = glm::ivec2();
+      cursor = m_window->GetCursorNormalized();
+
       if (cursor.x > borderValue)
       {
          float someX = (cursor.x - borderValue) * multiplier;
@@ -877,7 +870,7 @@ Game::RenderSecondPass()
    glm::ivec2 debug2 = m_player->GetCenteredLocalPosition();
    for (auto& obj : m_debugObjs)
    {
-      obj->Draw(m_window->GetProjection());
+      obj->Draw(*this);
    }
    m_debugObjs.clear();
 

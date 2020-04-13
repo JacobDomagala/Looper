@@ -1,6 +1,7 @@
 #include "Camera.hpp"
 #include "GameObject.hpp"
 
+#include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/transform.hpp>
 
 void
@@ -29,8 +30,13 @@ Camera::SetCameraAtObject(std::shared_ptr< GameObject > object)
 }
 
 void
-Camera::Move(const glm::vec3& moveBy)
+Camera::Move(const glm::vec3& moveAxes)
 {
+   const auto xAxesVector = glm::cross(m_lookAtDirection, m_upVector);
+   const auto yAxesVector = m_upVector;
+
+   const auto moveBy = (moveAxes.x * xAxesVector) + (moveAxes.y * yAxesVector);
+
    m_position += moveBy * m_cameraSpeed;
 
    UpdateViewMatrix();
@@ -39,6 +45,10 @@ Camera::Move(const glm::vec3& moveBy)
 void
 Camera::Rotate(float angle)
 {
+   m_upVector = glm::rotateZ(m_upVector, angle);
+
+   m_rotationValue += angle;
+
    UpdateViewMatrix();
 }
 
@@ -46,6 +56,18 @@ const glm::mat4&
 Camera::GetViewMatrix() const
 {
    return m_viewMatrx;
+}
+
+const glm::vec3&
+Camera::GetPosition() const
+{
+   return m_position;
+}
+
+float
+Camera::GetRotation()
+{
+   return m_rotationValue;
 }
 
 void

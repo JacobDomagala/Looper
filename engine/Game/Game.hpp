@@ -15,63 +15,6 @@
 #include <glm/gtx/transform.hpp>
 #include <vector>
 
-#pragma region DEBUG
-// THIS CLASS EXISTS ONLY IF WE WOULD NEED SOMETHING ELSE THAN LINE AS DEBUG OBJECT
-class DebugObject
-{
- public:
-   virtual void
-   Draw(const glm::mat4& projection) = 0;
-   virtual ~DebugObject() = default;
-};
-
-class Line : public DebugObject
-{
-   glm::vec2 m_from;
-   glm::vec2 m_to;
-   glm::vec3 m_color;
-
- public:
-   Line(glm::vec2 from, glm::vec2 to, glm::vec3 color) : m_from(from), m_to(to), m_color(color)
-   {
-   }
-
-   ~Line() override = default;
-
-   void
-   Draw(const glm::mat4& projection) override
-   {
-      Shaders lineShader{};
-      lineShader.LoadShaders("lineShader");
-
-      glm::vec2 vertices[2] = {m_from, m_to};
-
-      glm::mat4 modelMatrix = glm::scale(glm::mat4(), glm::vec3(1.0f, 1.0f, 1.0f));
-
-      GLuint lineVertexArray;
-      GLuint lineVertexBuffer;
-
-      glGenVertexArrays(1, &lineVertexArray);
-      glGenBuffers(1, &lineVertexBuffer);
-      glBindVertexArray(lineVertexArray);
-      glBindBuffer(GL_ARRAY_BUFFER, lineVertexBuffer);
-      glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 2, vertices, GL_DYNAMIC_DRAW);
-      glEnableVertexAttribArray(0);
-      glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
-
-      lineShader.UseProgram();
-      lineShader.SetUniformFloatMat4(modelMatrix, "modelMatrix");
-      lineShader.SetUniformFloatMat4(projection, "projectionMatrix");
-      lineShader.SetUniformFloatVec4(glm::vec4(m_color, 1.0f), "color");
-
-      glDrawArrays(GL_LINES, 0, 2);
-      glBindVertexArray(0);
-      glDeleteBuffers(1, &lineVertexBuffer);
-      glDeleteVertexArrays(1, &lineVertexArray);
-   }
-};
-#pragma endregion
-
 class Game : public Context
 {
  public:
@@ -100,8 +43,7 @@ class Game : public Context
    glm::ivec2
    CheckCollision(const glm::ivec2& currentPosition, const glm::ivec2& moveBy);
 
-   void
-   DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f));
+
 
    void
    ProcessInput(float deltaTime);
@@ -142,7 +84,7 @@ class Game : public Context
 
  private:
    // DEBUG
-   std::vector< std::unique_ptr< DebugObject > > m_debugObjs;
+   //std::vector< std::unique_ptr< DebugObject > > m_debugObjs;
 
    void
    RenderLine(const glm::ivec2& collided, const glm::vec3& color);

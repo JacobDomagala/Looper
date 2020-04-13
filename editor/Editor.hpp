@@ -85,6 +85,9 @@ class Editor : public nanogui::Screen, public Context
    void
    CheckIfObjectGotSelected(const glm::vec2& cursorPosition);
 
+   void
+   ShowCursor(bool choice);
+
    Game m_game;
 
    std::string m_levelFileName;

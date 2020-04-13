@@ -1,6 +1,7 @@
 #include "Context.hpp"
 
 #include <GLFW/glfw3.h>
+#include <glm/gtx/rotate_vector.hpp>
 
 std::shared_ptr< Player >
 Context::GetPlayer()
@@ -58,6 +59,30 @@ Context::GlobalToScreen(const glm::vec2& globalPos) const
    return returnPos;
 }
 
+glm::vec2
+Context::ScreenToGlobal(const glm::vec2& screenPos)
+{
+   const auto windowCenterScreen = GetWindowSize() / 2.0f;
+   const auto zoomRatio = (GetWindowSize() / (2.0f + GetZoomLevel())) / windowCenterScreen;
+
+   // Compute distance from ceneter of screen to 'screenPos' value
+   // Remember to multiply it by the current zoomRatio
+   const auto distanceToObject = (screenPos - windowCenterScreen) * zoomRatio;
+
+   // Rotate vector according to current camera's rotation
+   const auto rotatedDistanceToObject = glm::rotateZ(glm::vec3(distanceToObject, 0.0f), m_camera.GetRotation());
+
+   // Compute global position by adding computed distance to camera position (which is located in the center of the screen)
+   const auto globalPos = m_camera.GetPosition() + rotatedDistanceToObject;
+
+   return globalPos;
+}
+
+void
+Context::DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color)
+{
+   m_debugObjs.push_back(std::make_unique< Line >(from, to, color));
+}
 
 void
 Context::PollEvents()

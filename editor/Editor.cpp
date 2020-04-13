@@ -105,6 +105,13 @@ Editor::HandleInput()
    {
       cameraMoveBy += glm::vec2(1.0f, 0);
    }
+   if (m_inputManager.CheckKeyPressed(GLFW_KEY_SPACE))
+   {
+      if (m_levelLoaded)
+      {
+         m_camera.SetCameraAtPosition({0.0f, 0.0f, 0.0f});
+      }
+   }
    if (m_inputManager.CheckKeyPressed(GLFW_KEY_ESCAPE))
    {
       if (m_objectSelected)
@@ -122,6 +129,11 @@ Editor::HandleInput()
    if (m_levelLoaded)
    {
       m_camera.Move(glm::vec3(cameraMoveBy, 0.0f));
+
+      glm::dvec2 cursorPos;
+      glfwGetCursorPos(mGLFWWindow, &cursorPos.x, &cursorPos.y);
+
+      m_currentLevel.GetGameObjectOnLocation(cursorPos);
    }
 }
 
@@ -145,25 +157,44 @@ Editor::scrollEvent(const nanogui::Vector2i& p, const nanogui::Vector2f& rel)
 }
 
 void
+Editor::ShowCursor(bool choice)
+{
+   int mode = choice ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED;
+   glfwSetInputMode(mGLFWWindow, GLFW_CURSOR, mode);
+}
+
+void
 Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis)
 {
-   if (m_mousePressedLastUpdate && m_levelLoaded)
+   // Rotate camera (or currently selected Object)
+   if (m_inputManager.CheckKeyPressed(GLFW_KEY_LEFT_CONTROL))
+   {
+      // Calculate the value of cursor movement
+      // For example:
+      // - cursor was moved to the right then movementVector.x is positive, negative otherwise
+      // - cursor was moved to the top of window then movementVector.y is positive, negative otherwise
+      const auto movementVector = currentCursorPos - m_lastCursorPosition;
+
+      const auto maxRotationAngle = 0.025f;
+      const auto angle = glm::clamp(axis.x ? movementVector.x : -movementVector.y, -maxRotationAngle, maxRotationAngle);
+      m_camera.Rotate(angle);
+   }
+   // Move camera (or currently selected Object)
+   else
    {
       auto mouseMovementLength = glm::length(currentCursorPos - m_lastCursorPosition);
-      mouseMovementLength = glm::clamp(mouseMovementLength, 0.0f, 50.0f);
 
-      m_mouseDrag = true;
+      const auto minCameraMovement = 1.0f;
+      const auto maxCameraMovement = 2.0f;
 
-      if (m_inputManager.CheckKeyPressed(GLFW_KEY_LEFT_CONTROL))
-      {
-         m_logger.Log(Logger::TYPE::INFO, "Sprite rotation");
-      }
-      else
-      {
-         const auto moveBy = glm::vec3(-axis.x, -axis.y, 0.0f) * mouseMovementLength;
-         m_camera.Move(moveBy);
-      }
+      mouseMovementLength = glm::clamp(mouseMovementLength, minCameraMovement, maxCameraMovement);
+
+      const auto moveBy = glm::vec3(-axis.x, -axis.y, 0.0f);
+      //*mouseMovementLength;
+      m_camera.Move(moveBy);
    }
+
+   m_mouseDrag = true;
 }
 
 bool
@@ -171,7 +202,15 @@ Editor::mouseMotionEvent(const nanogui::Vector2i& p, const nanogui::Vector2i& re
 {
    const auto currentCursorPosition = glm::vec2(p.x(), p.y());
 
-   HandleMouseDrag(currentCursorPosition, {rel.x(), rel.y()});
+   if (m_mousePressedLastUpdate && m_levelLoaded)
+   {
+      ShowCursor(false);
+      HandleMouseDrag(currentCursorPosition, {rel.x(), rel.y()});
+   }
+   else
+   {
+      ShowCursor(true);
+   }
 
    m_lastCursorPosition = currentCursorPosition;
    return Screen::mouseMotionEvent(p, rel, button, modifiers);
@@ -233,9 +272,15 @@ Editor::drawContents()
 {
    if (m_levelLoaded)
    {
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      /*glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
       m_currentLevel.Render();
+
+      for (auto& obj : m_debugObjs)
+      {
+         obj->Draw(*this);
+      }
+      m_debugObjs.clear();
    }
 }
 

@@ -77,6 +77,8 @@ Font::SetFont(const std::string& fontName)
    glBindBuffer(GL_ARRAY_BUFFER, 0);
    glBindVertexArray(0);
    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+
+   m_logger.Log(Logger::TYPE::INFO, "Loaded font: " + fontName);
 }
 
 void

@@ -1,9 +1,9 @@
 #pragma once
 
+#include "Camera.hpp"
 #include "Font.hpp"
 #include "InputManager.hpp"
 #include "Level.hpp"
-#include "Camera.hpp"
 #include "Timer.hpp"
 
 #include <glm/glm.hpp>
@@ -11,6 +11,17 @@
 #include <memory>
 
 class Player;
+class Context;
+
+#pragma region DEBUG
+// THIS CLASS EXISTS ONLY IF WE WOULD NEED SOMETHING ELSE THAN LINE AS DEBUG OBJECT
+class DebugObject
+{
+ public:
+   virtual void
+   Draw(Context& context) = 0;
+   virtual ~DebugObject() = default;
+};
 
 class Context
 {
@@ -37,8 +48,15 @@ class Context
    glm::vec2
    GlobalToScreen(const glm::vec2& globalPos) const;
 
+   // convert from global position (OpenGL) to screen position (in pixels)
+   glm::vec2
+   ScreenToGlobal(const glm::vec2& screenPos);
+
    void
    CenterCameraOnPlayer();
+
+   void
+   DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f));
 
    virtual void
    MainLoop() = 0;
@@ -62,6 +80,9 @@ class Context
    void
    PollEvents();
 
+   // DEBUG
+   std::vector< std::unique_ptr< DebugObject > > m_debugObjs;
+
    Logger m_logger;
    float m_cameraSpeed = 0.0f;
    bool m_isGame = false;
@@ -73,3 +94,52 @@ class Context
    Camera m_camera;
    Timer m_timer;
 };
+
+
+class Line : public DebugObject
+{
+   glm::vec2 m_from;
+   glm::vec2 m_to;
+   glm::vec3 m_color;
+
+ public:
+   Line(glm::vec2 from, glm::vec2 to, glm::vec3 color) : m_from(from), m_to(to), m_color(color)
+   {
+   }
+
+   ~Line() override = default;
+
+   void
+   Draw(Context& context) override
+   {
+      Shaders lineShader{};
+      lineShader.LoadShaders("lineShader");
+
+      glm::vec2 vertices[2] = {m_from, m_to};
+
+      //glm::mat4 modelMatrix = glm::scale(glm::mat4(), glm::vec3(1.0f, 1.0f, 1.0f));
+
+      GLuint lineVertexArray;
+      GLuint lineVertexBuffer;
+
+      glGenVertexArrays(1, &lineVertexArray);
+      glGenBuffers(1, &lineVertexBuffer);
+      glBindVertexArray(lineVertexArray);
+      glBindBuffer(GL_ARRAY_BUFFER, lineVertexBuffer);
+      glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 2, vertices, GL_DYNAMIC_DRAW);
+      glEnableVertexAttribArray(0);
+      glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
+
+      lineShader.UseProgram();
+      //lineShader.SetUniformFloatMat4(modelMatrix, "modelMatrix");
+      lineShader.SetUniformFloatMat4(context.GetProjection(), "projectionMatrix");
+      lineShader.SetUniformFloatMat4(context.GetViewMatrix(), "viewMatrix");
+      lineShader.SetUniformFloatVec4(glm::vec4(m_color, 1.0f), "color");
+
+      glDrawArrays(GL_LINES, 0, 2);
+      glBindVertexArray(0);
+      glDeleteBuffers(1, &lineVertexBuffer);
+      glDeleteVertexArrays(1, &lineVertexArray);
+   }
+};
+#pragma endregion

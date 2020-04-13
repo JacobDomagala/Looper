@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Logger.hpp"
+
 #include <glm/glm.hpp>
 #include <memory>
 
@@ -29,11 +31,20 @@ class Camera
    const glm::mat4&
    GetViewMatrix() const;
 
+   const glm::vec3&
+   GetPosition() const;
+
+   float
+   GetRotation();
+
  private:
    void
    UpdateViewMatrix();
 
+   Logger m_logger = Logger("Camera");
+
    float m_cameraSpeed = 0.0f;
+   float m_rotationValue = 0.0f;
 
    glm::vec3 m_position;
    glm::vec3 m_upVector;

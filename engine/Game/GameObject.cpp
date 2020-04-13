@@ -21,17 +21,19 @@ GameObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 
    const auto halfSize = GetSize() / 2.0f;
 
-   const auto minBound = m_contextHandle.GlobalToScreen(m_currentState.m_centeredGlobalPosition - halfSize);
-   const auto maxBound = m_contextHandle.GlobalToScreen(m_currentState.m_centeredGlobalPosition + halfSize);
+   const auto minGlobal = m_currentState.m_centeredGlobalPosition - halfSize;
+   const auto maxGlobal = m_currentState.m_centeredGlobalPosition + halfSize;
 
-   const auto objectLeftSize = minBound.x;
-   const auto objectRightSize = maxBound.x;
-   const auto objectTopSize = minBound.y;
-   const auto objectBottomSize = maxBound.y;
+   const auto objectLeftSizeGlobal = minGlobal.x;
+   const auto objectRightSizeGlobal = maxGlobal.x;
+   const auto objectTopSizeGlobal = minGlobal.y;
+   const auto objectBottomSizeGlobal = maxGlobal.y;
+
+   const auto globalPosition = m_contextHandle.ScreenToGlobal(screenPosition);
 
    // If 'screenPosition' is inside 'object' sprite (rectangle)
-   if (screenPosition.x >= objectLeftSize && screenPosition.x <= objectRightSize && screenPosition.y <= objectBottomSize
-       && screenPosition.y >= objectTopSize)
+   if (globalPosition.x >= objectLeftSizeGlobal && globalPosition.x <= objectRightSizeGlobal && globalPosition.y <= objectBottomSizeGlobal
+       && globalPosition.y >= objectTopSizeGlobal)
    {
       collided = true;
    }
