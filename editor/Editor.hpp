@@ -115,6 +115,7 @@ class Editor : public nanogui::Screen, public Context
    float m_maxZoomIn = 1.5f;
    float m_maxZoomOut = -1.5f;
 
+   bool m_movementOnObject = false;
    bool m_objectSelected = false;
    std::shared_ptr< GameObject > m_currentSelectedObject = nullptr;
 

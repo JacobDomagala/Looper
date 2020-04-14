@@ -107,7 +107,7 @@ Sprite::Render(Context& context, Shaders& program)
    modelMatrix = glm::translate(
       modelMatrix, glm::vec3((m_size.x / 2.0f) * m_currentState.m_scaleVal.x, (m_size.y / -2.0f) * m_currentState.m_scaleVal.y, 0.0f));
 
-   modelMatrix = glm::rotate(modelMatrix, glm::radians(m_currentState.m_angle), glm::vec3(0.0f, 0.0f, 1.0f));
+   modelMatrix = glm::rotate(modelMatrix, m_currentState.m_angle, glm::vec3(0.0f, 0.0f, 1.0f));
 
    // move the sprite so it will be rotated around its center
    modelMatrix = glm::translate(
@@ -170,6 +170,7 @@ Sprite::Rotate(float angle)
 void
 Sprite::RotateCumulative(float angle)
 {
+
    m_currentState.m_angle += angle;
 }
 

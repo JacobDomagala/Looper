@@ -166,6 +166,11 @@ Editor::ShowCursor(bool choice)
 void
 Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis)
 {
+   if (!m_movementOnObject)
+   {
+      m_movementOnObject = m_objectSelected && (m_currentSelectedObject == m_currentLevel.GetGameObjectOnLocation(currentCursorPos));
+   }
+
    // Rotate camera (or currently selected Object)
    if (m_inputManager.CheckKeyPressed(GLFW_KEY_LEFT_CONTROL))
    {
@@ -177,7 +182,8 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
 
       const auto maxRotationAngle = 0.025f;
       const auto angle = glm::clamp(axis.x ? movementVector.x : -movementVector.y, -maxRotationAngle, maxRotationAngle);
-      m_camera.Rotate(angle);
+
+      m_movementOnObject ? m_currentSelectedObject->Rotate(-angle, true) : m_camera.Rotate(angle);
    }
    // Move camera (or currently selected Object)
    else
@@ -190,8 +196,8 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
       mouseMovementLength = glm::clamp(mouseMovementLength, minCameraMovement, maxCameraMovement);
 
       const auto moveBy = glm::vec3(-axis.x, -axis.y, 0.0f);
-      //*mouseMovementLength;
-      m_camera.Move(moveBy);
+
+      m_movementOnObject ? m_currentSelectedObject->Move(-moveBy) : m_camera.Move(moveBy);
    }
 
    m_mouseDrag = true;
@@ -256,7 +262,10 @@ Editor::mouseButtonEvent(const nanogui::Vector2i& position, int button, bool dow
    {
       CheckIfObjectGotSelected({position.x(), position.y()});
    }
-
+   else
+   {
+      m_movementOnObject = false;
+   }
 
    return Screen::mouseButtonEvent(position, button, down, modifiers);
 }

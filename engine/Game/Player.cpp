@@ -84,11 +84,11 @@ Player::UpdateInternal(bool isReverse)
             const auto screenPosition = gameHandle->GetProjection() * gameHandle->GetViewMatrix()
                                         * glm::vec4(GameObject::m_currentState.m_centeredGlobalPosition, 0.0f, 1.0f);
 
-            m_currentState.m_viewAngle = -glm::degrees(glm::atan(screenPosition.y - cursorPos.y, screenPosition.x - cursorPos.x));
+            m_currentState.m_viewAngle = -glm::atan(screenPosition.y - cursorPos.y, screenPosition.x - cursorPos.x);
          }
       }
 
-      m_sprite.Rotate(m_currentState.m_viewAngle + 90.0f);
+      m_sprite.Rotate(m_currentState.m_viewAngle);
       m_sprite.SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
 
       m_statesQueue.push_back(m_currentState);
