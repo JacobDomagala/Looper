@@ -4,7 +4,7 @@
 #include <Window.hpp>
 
 Player::Player(Context& game, const glm::vec2& position, const glm::ivec2& size, const std::string& sprite, const std::string& name)
-   : GameObject(game, position, size, sprite)
+   : GameObject(game, position, size, sprite, TYPE::PLAYER)
 {
    m_logger.Init("Player");
 

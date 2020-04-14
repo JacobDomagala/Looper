@@ -3,7 +3,7 @@
 #include <GameObject.hpp>
 #include <Window.hpp>
 
-GameObject::GameObject(Context& game, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite)
+GameObject::GameObject(Context& game, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite, TYPE type)
    : m_contextHandle(game)
 {
    m_currentState.m_globalPosition = m_contextHandle.GetLevel().GetGlobalVec(positionOnMap);
@@ -12,6 +12,7 @@ GameObject::GameObject(Context& game, const glm::vec2& positionOnMap, const glm:
    m_collision = m_sprite.SetSpriteTextured(m_currentState.m_globalPosition, size, sprite);
    m_currentState.m_centeredGlobalPosition = m_sprite.GetCenteredPosition();
    m_currentState.m_centeredLocalPosition = m_contextHandle.GetLevel().GetLocalVec(m_currentState.m_centeredGlobalPosition);
+   m_type = type;
 }
 
 bool
@@ -119,6 +120,12 @@ GameObject::GetSprite()
    return m_sprite;
 }
 
+GameObject::TYPE
+GameObject::GetType() const
+{
+   return m_type;
+}
+
 void
 GameObject::SetShaders(const Shaders& program)
 {
@@ -196,6 +203,18 @@ GameObject::Update(bool isReverse)
 
    m_sprite.Update(isReverse);
    UpdateInternal(isReverse);
+}
+
+void
+GameObject::StickToCursor()
+{
+   m_sticky = true;
+}
+
+bool 
+GameObject::IsSticky() const
+{
+   return m_sticky;
 }
 
 void

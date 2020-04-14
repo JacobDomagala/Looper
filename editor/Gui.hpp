@@ -5,6 +5,7 @@
 #include <nanogui/checkbox.h>
 #include <nanogui/label.h>
 #include <nanogui/layout.h>
+#include <nanogui/popupbutton.h>
 #include <nanogui/textbox.h>
 #include <nanogui/window.h>
 
@@ -21,7 +22,7 @@ class Gui
    Init();
 
    void
-   GameObjectSelected(std::shared_ptr<GameObject> selectedGameObject);
+   GameObjectSelected(std::shared_ptr< GameObject > selectedGameObject);
 
    void
    GameObjectUnselected();
@@ -45,15 +46,23 @@ class Gui
    CreateLabel(nanogui::Widget* parent, const std::string& caption);
 
    nanogui::Button*
-   CreateButton(nanogui::Widget* parent, const std::string& caption, const std::function< void() >& callback, bool enabled = true);
+   CreateButton(nanogui::Widget* parent, const std::string& caption, const std::function< void() >& callback, int icon = 0,
+                bool enabled = true);
 
    nanogui::TextBox*
-   CreateTextBox(nanogui::Widget* parent, const std::string& value = "dummyValue" , const glm::ivec2& size = glm::ivec2(100, 20),
+   CreateTextBox(nanogui::Widget* parent, const std::string& value = "dummyValue", const glm::ivec2& size = glm::ivec2(100, 20),
                  bool editable = true);
 
    nanogui::CheckBox*
    CreateCheckBox(nanogui::Widget* parent, const std::function< void(bool) >& callback, const std::string& text = "", float fontSize = 16,
                   bool checked = false);
+
+   std::pair< nanogui::PopupButton*, nanogui::Popup* >
+   CreatePopupButton(nanogui::Widget* parent, const std::string& text, nanogui::Layout* = new nanogui::GridLayout, int icon = 0,
+                     bool enabled = true);
+
+   void
+   LevelLoaded();
 
  private:
    struct GameobjectWindow
@@ -61,15 +70,14 @@ class Gui
       nanogui::TextBox* m_objectWidth = nullptr;
       nanogui::TextBox* m_objectHeight = nullptr;
       nanogui::Button* m_textureButton = nullptr;
-
-
    };
 
    Editor& m_parent;
-   
+
    const std::string GAMEOBJECT = "GAMEOBJECT WINDOW";
    const std::string TOOLS = "TOOLS WINDOW";
-   
+
    GameobjectWindow m_currentGameObjectWindow;
    std::unordered_map< std::string, nanogui::Window* > m_windows;
+   std::vector< nanogui::Widget* > m_levelDependentWidgets;
 };

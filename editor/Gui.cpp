@@ -28,54 +28,78 @@ Gui::CreateLeftPanel()
 
    CreateLabel(toolsWindow, "Play current Level");
    auto playLevelButton = CreateButton(
-      toolsWindow, "PlayLevel", [&] { m_parent.PlayLevel(); }, false);
+      toolsWindow, "PlayLevel", [&] { m_parent.PlayLevel(); }, ENTYPO_ICON_ARROW_BOLD_RIGHT, false);
 
-   CreateLabel(toolsWindow, "Open/Save Level");
+
+   CreateLabel(toolsWindow, "Level creation");
    auto openLoadLevelLayout =
       CreateLayout(toolsWindow, new nanogui::BoxLayout(nanogui::Orientation::Horizontal, nanogui::Alignment::Middle, 0, 6));
 
-   CreateButton(openLoadLevelLayout, "Open", [&, playLevelButton] {
-      auto file = nanogui::file_dialog({{"dgl", "DGame Level"}}, false);
-      if (!file.empty())
-      {
-         m_parent.LoadLevel(file);
-         playLevelButton->setEnabled(true);
-      }
-   });
+   CreateButton(
+      openLoadLevelLayout, "Open",
+      [&] {
+         auto file = nanogui::file_dialog({{"dgl", "DGame Level"}}, false);
+         if (!file.empty())
+         {
+            m_parent.LoadLevel(file);
+            LevelLoaded();
+         }
+      },
+      ENTYPO_ICON_NEWSLETTER);
 
-   CreateButton(openLoadLevelLayout, "Save", [&] {
-      std::filesystem::path file = nanogui::file_dialog({{"dgl", "DGame Level"}}, true);
-      if (!file.empty())
-      {
-         const auto fileName = file.has_extension() ? file.u8string() : file.u8string() + ".dgl";
-         m_parent.SaveLevel(fileName);
-      }
-   });
+   CreateButton(
+      openLoadLevelLayout, "Save",
+      [&] {
+         std::filesystem::path file = nanogui::file_dialog({{"dgl", "DGame Level"}}, true);
+         if (!file.empty())
+         {
+            const auto fileName = file.has_extension() ? file.u8string() : file.u8string() + ".dgl";
+            m_parent.SaveLevel(fileName);
+         }
+      },
+      ENTYPO_ICON_SAVE);
 
-   CreateLabel(toolsWindow, "Create new Level");
-   CreateButton(toolsWindow, "Create", [&, playLevelButton] {
-      auto windowCenter = m_parent.GetWindowSize() / glm::vec2(2.0f);
-      auto createLevelWindow = CreateWindow(&m_parent, "CREATE LEVEL", windowCenter, new nanogui::GridLayout());
+   CreateButton(
+      toolsWindow, "Create",
+      [&] {
+         auto windowCenter = m_parent.GetWindowSize() / glm::vec2(2.0f);
+         auto createLevelWindow = CreateWindow(&m_parent, "CREATE LEVEL", windowCenter, new nanogui::GridLayout());
 
-      CreateLabel(createLevelWindow, "Width");
-      auto widthTextBox = CreateTextBox(createLevelWindow, "3000");
+         CreateLabel(createLevelWindow, "Width");
+         auto widthTextBox = CreateTextBox(createLevelWindow, "3000");
 
-      CreateLabel(createLevelWindow, "Height");
-      auto heightTextBox = CreateTextBox(createLevelWindow, "3000");
+         CreateLabel(createLevelWindow, "Height");
+         auto heightTextBox = CreateTextBox(createLevelWindow, "3000");
 
-      CreateButton(createLevelWindow, "Create", [&, createLevelWindow, widthTextBox, heightTextBox, playLevelButton] {
-         m_parent.CreateLevel(glm::ivec2(std::stoi(widthTextBox->value()), std::stoi(heightTextBox->value())));
-         playLevelButton->setEnabled(true);
-         createLevelWindow->dispose();
-      });
-      CreateButton(createLevelWindow, "Cancel", [&, createLevelWindow] {
-         createLevelWindow->dispose();
-      });
-   });
+         CreateButton(createLevelWindow, "Create", [&, createLevelWindow, widthTextBox, heightTextBox] {
+            m_parent.CreateLevel(glm::ivec2(std::stoi(widthTextBox->value()), std::stoi(heightTextBox->value())));
+            LevelLoaded();
+            createLevelWindow->dispose();
+         });
+         CreateButton(createLevelWindow, "Cancel", [&, createLevelWindow] { createLevelWindow->dispose(); });
+      },
+      ENTYPO_ICON_DOCUMENT);
 
    CreateLabel(toolsWindow, "");
    CreateCheckBox(
       toolsWindow, [&](bool checked) { m_parent.ShowWireframe(checked); }, "Render wireframe");
+
+   CreateLabel(toolsWindow, "");
+   auto addObjectPopup = CreatePopupButton(toolsWindow, "Add", new nanogui::GroupLayout, ENTYPO_ICON_NEW, false);
+
+   CreateButton(addObjectPopup.second, "Enemy", [&, addObjectPopup]() {
+      m_parent.AddGameObject(GameObject::TYPE::ENEMY);
+      addObjectPopup.first->setPushed(false);
+   });
+
+   CreateButton(addObjectPopup.second, "Player", [&, addObjectPopup]() {
+      m_parent.AddGameObject(GameObject::TYPE::PLAYER);
+      addObjectPopup.first->setPushed(false);
+   });
+
+
+   m_levelDependentWidgets.push_back(playLevelButton);
+   m_levelDependentWidgets.push_back(addObjectPopup.first);
 }
 
 void
@@ -158,13 +182,13 @@ Gui::CreateLabel(nanogui::Widget* parent, const std::string& caption)
 }
 
 nanogui::Button*
-Gui::CreateButton(nanogui::Widget* parent, const std::string& caption, const std::function< void() >& callback, bool enabled)
+Gui::CreateButton(nanogui::Widget* parent, const std::string& caption, const std::function< void() >& callback, int icon, bool enabled)
 {
-   auto playLevelButton = new nanogui::Button(parent, caption);
-   playLevelButton->setCallback(callback);
-   playLevelButton->setEnabled(enabled);
+   auto button = new nanogui::Button(parent, caption, icon);
+   button->setCallback(callback);
+   button->setEnabled(enabled);
 
-   return playLevelButton;
+   return button;
 }
 
 nanogui::TextBox*
@@ -191,4 +215,25 @@ Gui::CreateCheckBox(nanogui::Widget* parent, const std::function< void(bool) >& 
    checkBox->setCallback(callback);
 
    return checkBox;
+}
+
+std::pair< nanogui::PopupButton*, nanogui::Popup* >
+Gui::CreatePopupButton(nanogui::Widget* parent, const std::string& text, nanogui::Layout* layout, int icon, bool enabled)
+{
+   nanogui::PopupButton* popupBtn = new nanogui::PopupButton(parent, text, icon);
+   popupBtn->setEnabled(enabled);
+
+   nanogui::Popup* popup = popupBtn->popup();
+   popup->setLayout(layout);
+
+   return {popupBtn, popup};
+}
+
+void
+Gui::LevelLoaded()
+{
+   for (auto& widget : m_levelDependentWidgets)
+   {
+      widget->setEnabled(true);
+   }
 }

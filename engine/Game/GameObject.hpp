@@ -15,8 +15,14 @@ class Window;
 class GameObject
 {
  public:
+   enum class TYPE
+   {
+      ENEMY,
+      PLAYER
+   };
+
    // Constructors and destructors
-   GameObject(Context& game, const glm::vec2& localPosition, const glm::ivec2& size, const std::string& sprite);
+   GameObject(Context& game, const glm::vec2& localPosition, const glm::ivec2& size, const std::string& sprite, TYPE type);
    virtual ~GameObject() = default;
 
    virtual void Hit(int32_t) = 0;
@@ -78,6 +84,9 @@ class GameObject
    virtual Sprite&
    GetSprite();
 
+   TYPE
+   GetType() const;
+
    // Create sprite with default texture
    virtual void
    CreateSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(10, 10));
@@ -86,14 +95,6 @@ class GameObject
    virtual void
    CreateSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(16, 16),
                         const std::string& fileName = "Default.png");
-
-   // Only used by editor when selected by user
-   virtual void
-   SetObjectSelected();
-
-   // Only used by editor when unselected by user
-   virtual void
-   SetObjectUnselected();
 
    // Move object by 'moveBy'
    virtual void
@@ -111,6 +112,20 @@ class GameObject
 
    virtual void
    Update(bool isReverse);
+
+   virtual void
+   StickToCursor();
+
+   virtual bool
+   IsSticky() const;
+
+  
+   virtual void
+   SetObjectSelected();
+
+   // Only used by editor when unselected by user
+   virtual void
+   SetObjectUnselected();
 
  protected:
    // should be overriden by derrived class
@@ -149,6 +164,10 @@ class GameObject
    State m_currentState;
 
    Context& m_contextHandle;
+
+   TYPE m_type;
+
+   bool m_sticky = false;
 
    // object's sprite
    Sprite m_sprite;

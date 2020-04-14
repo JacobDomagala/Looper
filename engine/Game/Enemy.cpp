@@ -7,7 +7,7 @@
 
 Enemy::Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite,
              const std::vector< glm::vec2 >& keypoints)
-   : GameObject(context, pos, size, sprite)
+   : GameObject(context, pos, size, sprite, TYPE::ENEMY)
 {
    m_maxHP = 100;
    m_currentState.m_currentHP = m_maxHP;
@@ -18,7 +18,6 @@ Enemy::Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, con
 
    m_timer.ToggleTimer();
    m_currentState.m_initialPosition = GameObject::m_currentState.m_centeredLocalPosition;
-   m_currentState.m_currentNodeIdx = m_contextHandle.GetLevel().GetPathfinder().FindNodeIdx(m_currentState.m_initialPosition);
 }
 
 void
@@ -367,6 +366,11 @@ Enemy::Animate()
    }
 
    Move(m_currentState.m_counter, false);
+}
+
+void
+Enemy::AddAnimationNode(const glm::vec2& animationNodeMapPosition)
+{
 }
 
 void

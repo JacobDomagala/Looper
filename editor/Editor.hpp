@@ -64,6 +64,9 @@ class Editor : public nanogui::Screen, public Context
    SaveLevel(const std::string& levelName);
 
    void
+   AddGameObject(GameObject::TYPE objectType);
+
+   void
    PlayLevel();
 
    void
@@ -84,6 +87,9 @@ class Editor : public nanogui::Screen, public Context
 
    void
    CheckIfObjectGotSelected(const glm::vec2& cursorPosition);
+
+   void
+   HandleObjectSelected(std::shared_ptr< GameObject > newSelectedObject);
 
    void
    ShowCursor(bool choice);

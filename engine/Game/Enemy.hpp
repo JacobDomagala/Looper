@@ -14,7 +14,7 @@ class Window;
 class Enemy : public GameObject
 {
  public:
-   Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite,
+   Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& textureName,
          const std::vector< glm::vec2 >& keypoints = {});
    ~Enemy() override = default;
 
@@ -38,6 +38,9 @@ class Enemy : public GameObject
 
    void
    Animate();
+
+   void
+   AddAnimationNode(const glm::vec2& pathNodeMapPosition);
 
    void
    SetAnimationKEypoints(std::vector< glm::vec2 >&& keypoints);
@@ -104,12 +107,16 @@ class Enemy : public GameObject
 
    void
    Shoot();
+
    void
    ChasePlayer();
+
    void
    ReturnToInitialPosition();
+
    void
    ClearPositions();
+
    void
    SetTargetShootPosition(const glm::vec2& pos);
 };

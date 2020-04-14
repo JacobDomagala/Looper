@@ -19,6 +19,9 @@ class Level
 
    ~Level() = default;
 
+   std::shared_ptr< GameObject >
+   AddGameObject(GameObject::TYPE objectType);
+
    // Convert from OpenGL position to map position
    glm::vec2
    GetLocalVec(const glm::vec2& local) const;

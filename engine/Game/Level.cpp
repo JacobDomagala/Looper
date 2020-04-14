@@ -141,6 +141,33 @@ Level::Quit()
    m_player.reset();
 }
 
+std::shared_ptr< GameObject >
+Level::AddGameObject(GameObject::TYPE objectType)
+{
+   const auto defaultPosition = GetLocalVec(m_contextPointer->GetCamera().GetPosition());
+   const auto defaultSize = glm::ivec2(128, 128);
+   const auto defaultTexture = std::string("Default128.png");
+
+   std::shared_ptr< GameObject > newObject;
+
+   switch (objectType)
+   {
+      case GameObject::TYPE::ENEMY: {
+         newObject = std::make_shared< Enemy >(*m_contextPointer, defaultPosition, defaultSize, defaultTexture, std::vector({glm::vec2(0.0f, 0.0f)}));
+         m_objects.push_back(newObject);
+      }
+      break;
+
+      case GameObject::TYPE::PLAYER: {
+         newObject = std::make_shared< Player >(*m_contextPointer, defaultPosition, defaultSize, defaultTexture);
+         m_player = std::dynamic_pointer_cast< Player >(newObject);
+      }
+      break;
+   }
+
+   return newObject;
+}
+
 glm::vec2
 Level::GetLocalVec(const glm::vec2& global) const
 {
@@ -242,19 +269,19 @@ Level::Scale(const glm::vec2& scaleVal)
 void
 Level::Rotate(float angle, bool cumulative)
 {
-    // Move objects to center of level
-    // Rotate them
-    // Move them back on position
+   // Move objects to center of level
+   // Rotate them
+   // Move them back on position
 
    for (auto& obj : m_objects)
    {
-      //obj->Move(m_background.GetCenteredPosition());
+      // obj->Move(m_background.GetCenteredPosition());
       obj->Rotate(angle, cumulative);
-      //obj->Move(-m_background.GetCenteredPosition());
+      // obj->Move(-m_background.GetCenteredPosition());
    }
 
    cumulative ? m_background.RotateCumulative(angle) : m_background.Rotate(angle);
-   
+
    if (m_player)
    {
       m_player->Rotate(angle, cumulative);

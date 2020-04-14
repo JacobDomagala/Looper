@@ -217,27 +217,33 @@ Editor::mouseMotionEvent(const nanogui::Vector2i& p, const nanogui::Vector2i& re
 }
 
 void
+Editor::HandleObjectSelected(std::shared_ptr< GameObject > newSelectedObject)
+{
+   if (m_currentSelectedObject != newSelectedObject)
+   {
+      if (m_currentSelectedObject)
+      {
+         // unselect previously selected object
+         m_currentSelectedObject->SetObjectUnselected();
+      }
+
+      m_currentSelectedObject = newSelectedObject;
+   }
+
+   // mark new object as selected
+   m_currentSelectedObject->SetObjectSelected();
+   m_gui.GameObjectSelected(m_currentSelectedObject);
+   m_objectSelected = true;
+}
+
+void
 Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
 {
    auto newSelectedObject = m_currentLevel.GetGameObjectOnLocation(cursorPosition);
 
    if (newSelectedObject)
    {
-      if (m_currentSelectedObject != newSelectedObject)
-      {
-         if (m_currentSelectedObject)
-         {
-            // unselect previously selected object
-            m_currentSelectedObject->SetObjectUnselected();
-         }
-
-         m_currentSelectedObject = newSelectedObject;
-      }
-
-      // mark new object as selected
-      m_currentSelectedObject->SetObjectSelected();
-      m_gui.GameObjectSelected(m_currentSelectedObject);
-      m_objectSelected = true;
+      HandleObjectSelected(newSelectedObject);
    }
 }
 
@@ -300,13 +306,10 @@ Editor::LoadLevel(const std::string& levelPath)
 {
    m_levelFileName = levelPath;
    m_currentLevel.Load(this, levelPath);
-   m_player = m_currentLevel.GetPlayer();
-
-   // CenterCameraOnPlayer();
 
    m_currentLevel.GetShader().SetUniformBool(false, "outlineActive");
 
-   m_camera.Create(glm::vec3(m_player->GetCenteredGlobalPosition(), 0.0f), {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
+   m_camera.Create(glm::vec3(m_currentLevel.GetPlayer()->GetCenteredGlobalPosition(), 0.0f), {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
 
    m_levelLoaded = true;
 }
@@ -315,6 +318,12 @@ void
 Editor::SaveLevel(const std::string& levelPath)
 {
    m_currentLevel.Save(levelPath);
+}
+
+void
+Editor::AddGameObject(GameObject::TYPE objectType)
+{
+   HandleObjectSelected(m_currentLevel.AddGameObject(objectType));
 }
 
 void

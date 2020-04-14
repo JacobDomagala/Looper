@@ -35,6 +35,9 @@ class Context
    Level&
    GetLevel();
 
+   Camera&
+   GetCamera();
+
    bool
    IsGame();
 
