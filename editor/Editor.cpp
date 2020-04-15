@@ -274,12 +274,6 @@ Editor::mouseButtonEvent(const nanogui::Vector2i& position, int button, bool dow
 void
 Editor::drawAll()
 {
-   // override keyboard input
-   HandleInput();
-
-   // Update UI
-   performLayout();
-
    Screen::drawAll();
 }
 
@@ -315,6 +309,7 @@ Editor::CreateLevel(const glm::ivec2& size)
    m_camera.Create(glm::vec3(m_currentLevel.GetLevelPosition(), 0.0f), {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
 
    m_levelLoaded = true;
+   m_gui.LevelLoaded(&m_currentLevel);
 }
 
 void
@@ -332,6 +327,7 @@ Editor::LoadLevel(const std::string& levelPath)
    m_camera.Create(glm::vec3(m_currentLevel.GetPlayer()->GetCenteredGlobalPosition(), 0.0f), {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
 
    m_levelLoaded = true;
+   m_gui.LevelLoaded(&m_currentLevel);
 }
 
 void
@@ -358,10 +354,14 @@ Editor::PlayLevel()
 }
 
 void
-Editor::ShowWireframe(int wireframeEnabled)
+Editor::ShowWireframe(bool wireframeEnabled)
 {
-   m_currentLevel.GetShader().UseProgram();
-   m_currentLevel.GetShader().SetUniformBool(wireframeEnabled, "outlineActive");
+   for (auto& object : m_currentLevel.GetObjects())
+   {
+      wireframeEnabled ? object->SetObjectSelected() : object->SetObjectUnselected();
+   }
+
+   wireframeEnabled ? m_currentLevel.GetPlayer()->SetObjectSelected() : m_currentLevel.GetPlayer()->SetObjectUnselected();
 }
 
 const glm::vec2&
@@ -402,6 +402,13 @@ Editor::MainLoop()
    while (IsRunning())
    {
       PollEvents();
+
+      // override keyboard input
+      HandleInput();
+
+      // Update UI
+      m_gui.Update();
+
       drawAll();
    }
 }

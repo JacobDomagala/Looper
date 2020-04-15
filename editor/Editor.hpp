@@ -70,7 +70,7 @@ class Editor : public nanogui::Screen, public Context
    PlayLevel();
 
    void
-   ShowWireframe(int wireframeEnabled);
+   ShowWireframe(bool wireframeEnabled);
 
  private:
    bool

@@ -128,11 +128,17 @@ class Level
       return m_player;
    }
 
+   std::vector<std::shared_ptr<GameObject>> &
+   GetObjects();
+
    Shaders&
    GetShader()
    {
       return m_shaders;
    }
+
+   Sprite&
+   GetSprite();
 
    void
    SetPlayersPosition(const glm::vec2& position);

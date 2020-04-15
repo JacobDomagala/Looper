@@ -1,16 +1,19 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <nanogui/button.h>
-#include <nanogui/checkbox.h>
-#include <nanogui/label.h>
-#include <nanogui/layout.h>
-#include <nanogui/popupbutton.h>
-#include <nanogui/textbox.h>
-#include <nanogui/window.h>
+#include <memory>
+#include <unordered_map>
+#include <vector>
 
 class Editor;
 class GameObject;
+class GameObjectWindow;
+class LevelWindow;
+class Level;
+
+namespace nanogui {
+class Window;
+class Widget;
+} // namespace nanogui
 
 class Gui
 {
@@ -22,10 +25,16 @@ class Gui
    Init();
 
    void
+   Update();
+
+   void
    GameObjectSelected(std::shared_ptr< GameObject > selectedGameObject);
 
    void
    GameObjectUnselected();
+
+   void
+   LevelLoaded(Level* loadedLevel);
 
  private:
    /*
@@ -36,48 +45,12 @@ class Gui
    void
    CreateLeftPanel();
 
-   nanogui::Widget*
-   CreateLayout(nanogui::Widget* parent, nanogui::Layout* layout);
-
-   nanogui::Window*
-   CreateWindow(nanogui::Widget* parent, const std::string& caption, const glm::ivec2& position, nanogui::Layout* layout);
-
-   nanogui::Label*
-   CreateLabel(nanogui::Widget* parent, const std::string& caption);
-
-   nanogui::Button*
-   CreateButton(nanogui::Widget* parent, const std::string& caption, const std::function< void() >& callback, int icon = 0,
-                bool enabled = true);
-
-   nanogui::TextBox*
-   CreateTextBox(nanogui::Widget* parent, const std::string& value = "dummyValue", const glm::ivec2& size = glm::ivec2(100, 20),
-                 bool editable = true);
-
-   nanogui::CheckBox*
-   CreateCheckBox(nanogui::Widget* parent, const std::function< void(bool) >& callback, const std::string& text = "", float fontSize = 16,
-                  bool checked = false);
-
-   std::pair< nanogui::PopupButton*, nanogui::Popup* >
-   CreatePopupButton(nanogui::Widget* parent, const std::string& text, nanogui::Layout* = new nanogui::GridLayout, int icon = 0,
-                     bool enabled = true);
-
-   void
-   LevelLoaded();
-
  private:
-   struct GameobjectWindow
-   {
-      nanogui::TextBox* m_objectWidth = nullptr;
-      nanogui::TextBox* m_objectHeight = nullptr;
-      nanogui::Button* m_textureButton = nullptr;
-   };
-
    Editor& m_parent;
 
-   const std::string GAMEOBJECT = "GAMEOBJECT WINDOW";
-   const std::string TOOLS = "TOOLS WINDOW";
+   GameObjectWindow* m_currentGameObjectWindow = nullptr;
+   LevelWindow* m_levelWindow = nullptr;
 
-   GameobjectWindow m_currentGameObjectWindow;
    std::unordered_map< std::string, nanogui::Window* > m_windows;
    std::vector< nanogui::Widget* > m_levelDependentWidgets;
 };

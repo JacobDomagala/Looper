@@ -334,6 +334,12 @@ Level::MoveObjs(const glm::vec2& moveBy, bool isCameraMovement)
    }
 }
 
+std::vector< std::shared_ptr< GameObject > >&
+Level::GetObjects()
+{
+   return m_objects;
+}
+
 void
 Level::SetPlayersPosition(const glm::vec2& position)
 {
@@ -391,4 +397,10 @@ Level::GetTilePosition(const glm::vec2& position) const
    int32_t tileY = static_cast< int32_t >(ceilf(tmpY / static_cast< float >(m_tileSize.y)));
 
    return glm::ivec2(tileX, tileY);
+}
+
+Sprite&
+Level::GetSprite()
+{
+   return m_background;
 }
