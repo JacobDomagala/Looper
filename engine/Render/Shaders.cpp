@@ -129,7 +129,7 @@ Shaders::GetUniformLocation(const std::string& uniformName)
 }
 
 void
-Shaders::SetUniformBool(int value, const std::string& name)
+Shaders::SetUniformBool(bool value, const std::string& name)
 {
    GLint location = glGetUniformLocation(m_programID, name.c_str());
    glUniform1i(location, value);

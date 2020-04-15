@@ -112,13 +112,6 @@ class GameObject
 
    virtual void
    Update(bool isReverse);
-
-   virtual void
-   StickToCursor();
-
-   virtual bool
-   IsSticky() const;
-
   
    virtual void
    SetObjectSelected();
@@ -167,7 +160,7 @@ class GameObject
 
    TYPE m_type;
 
-   bool m_sticky = false;
+   bool m_selected = false;
 
    // object's sprite
    Sprite m_sprite;

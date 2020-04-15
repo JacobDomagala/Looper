@@ -307,6 +307,8 @@ void
 Level::Render()
 {
    // draw background
+   m_shaders.UseProgram();
+   m_shaders.SetUniformBool(0, "objectSelected");
    m_background.Render(*m_contextPointer, m_shaders);
 
    for (auto& obj : m_objects)

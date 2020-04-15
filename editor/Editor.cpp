@@ -118,7 +118,7 @@ Editor::HandleInput()
       {
          if (m_currentSelectedObject)
          {
-            m_currentSelectedObject->SetColor({1.0f, 1.0f, 1.0f});
+            m_currentSelectedObject->SetObjectUnselected();
          }
 
          m_objectSelected = false;
@@ -159,7 +159,7 @@ Editor::scrollEvent(const nanogui::Vector2i& p, const nanogui::Vector2f& rel)
 void
 Editor::ShowCursor(bool choice)
 {
-   int mode = choice ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED;
+   int mode = choice ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN;
    glfwSetInputMode(mGLFWWindow, GLFW_CURSOR, mode);
 }
 
@@ -197,7 +197,7 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
 
       const auto moveBy = glm::vec3(-axis.x, -axis.y, 0.0f);
 
-      m_movementOnObject ? m_currentSelectedObject->Move(-moveBy) : m_camera.Move(moveBy);
+      m_movementOnObject ? m_currentSelectedObject->Move(m_camera.ConvertToCameraVector(-moveBy)) : m_camera.Move(moveBy);
    }
 
    m_mouseDrag = true;
@@ -265,6 +265,7 @@ Editor::mouseButtonEvent(const nanogui::Vector2i& position, int button, bool dow
    else
    {
       m_movementOnObject = false;
+      ShowCursor(true);
    }
 
    return Screen::mouseButtonEvent(position, button, down, modifiers);
@@ -287,8 +288,8 @@ Editor::drawContents()
 {
    if (m_levelLoaded)
    {
-      /*glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       m_currentLevel.Render();
 
       for (auto& obj : m_debugObjs)
@@ -302,9 +303,15 @@ Editor::drawContents()
 void
 Editor::CreateLevel(const glm::ivec2& size)
 {
-   m_currentLevel.Create(this, size);
+   if (m_levelLoaded)
+   {
+      m_currentLevel.Quit();
+   }
 
-   m_currentLevel.GetShader().SetUniformBool(false, "outlineActive");
+   m_currentLevel.Create(this, size);
+   m_currentLevel.LoadShaders("Editor");
+
+
    m_camera.Create(glm::vec3(m_currentLevel.GetLevelPosition(), 0.0f), {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
 
    m_levelLoaded = true;
@@ -313,10 +320,14 @@ Editor::CreateLevel(const glm::ivec2& size)
 void
 Editor::LoadLevel(const std::string& levelPath)
 {
+   if (m_levelLoaded)
+   {
+      m_currentLevel.Quit();
+   }
+
    m_levelFileName = levelPath;
    m_currentLevel.Load(this, levelPath);
-
-   m_currentLevel.GetShader().SetUniformBool(false, "outlineActive");
+   m_currentLevel.LoadShaders("Editor");
 
    m_camera.Create(glm::vec3(m_currentLevel.GetPlayer()->GetCenteredGlobalPosition(), 0.0f), {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
 

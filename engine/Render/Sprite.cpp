@@ -117,6 +117,7 @@ Sprite::Render(Context& context, Shaders& program)
 
    m_texture.Use(program.GetProgram());
    program.SetUniformFloatVec4(m_currentState.m_color, "color");
+   program.SetUniformFloatVec2(GetSize(), "objectSize");
    program.SetUniformFloatMat4(context.GetProjection(), "projectionMatrix");
    program.SetUniformFloatMat4(context.GetViewMatrix(), "viewMatrix");
    program.SetUniformFloatMat4(modelMatrix, "modelMatrix");

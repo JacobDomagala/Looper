@@ -1,12 +1,17 @@
 
 #include "Editor.hpp"
 
+#include <GLFW/glfw3.h>
+
 int
 main(int /* argc */, char** /* argv */)
 {
    nanogui::init();
-   Editor editor({1920, 1080});
-   editor.MainLoop();
+   
+   const auto mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
+   Editor editor({mode->width, mode->height});
+   editor.MainLoop();
+   
    return EXIT_SUCCESS;
 }

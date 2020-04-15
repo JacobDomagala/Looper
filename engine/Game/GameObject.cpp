@@ -150,11 +150,13 @@ void
 GameObject::SetObjectSelected()
 {
    SetColor({1.0f, 0.0f, 0.0f});
+   m_selected = true;
 }
 
 void
 GameObject::SetObjectUnselected()
 {
+   m_selected = false;
    SetColor({1.0f, 1.0f, 1.0f});
 }
 
@@ -206,20 +208,9 @@ GameObject::Update(bool isReverse)
 }
 
 void
-GameObject::StickToCursor()
-{
-   m_sticky = true;
-}
-
-bool 
-GameObject::IsSticky() const
-{
-   return m_sticky;
-}
-
-void
 GameObject::Render(Shaders& program)
 {
+   program.SetUniformBool(int(m_selected), "objectSelected");
    m_sprite.Render(m_contextHandle, program);
 }
 

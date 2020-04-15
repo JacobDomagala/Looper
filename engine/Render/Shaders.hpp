@@ -32,7 +32,7 @@ class Shaders
    LoadShaders(const std::string& shaderName);
 
    void
-   SetUniformBool(int value, const std::string& name);
+   SetUniformBool(bool value, const std::string& name);
 
    void
    SetUniformFloat(float value, const std::string& name);
