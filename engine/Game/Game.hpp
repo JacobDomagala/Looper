@@ -31,9 +31,6 @@ class Game : public Context
    bool
    IsReverse() const;
 
-   float
-   GetDeltaTime() const;
-
    std::pair< glm::ivec2, bool >
    CheckBulletCollision(Enemy* from, glm::vec2 targetPosition, int32_t range);
 
@@ -43,10 +40,8 @@ class Game : public Context
    glm::ivec2
    CheckCollision(const glm::ivec2& currentPosition, const glm::ivec2& moveBy);
 
-
-
    void
-   ProcessInput(float deltaTime);
+   ProcessInput(Timer::milliseconds deltaTime);
 
    void
    Render();
@@ -72,6 +67,9 @@ class Game : public Context
 
    const glm::vec2&
    GetWindowSize() const override;
+
+   const glm::ivec2&
+   GetFrameBufferwSize() const override;
 
    const glm::mat4&
    GetProjection() const override;
@@ -153,8 +151,6 @@ class Game : public Context
 
    // framebuffer for first pass
    Framebuffer m_frameBuffer;
-
-   float m_deltaTime = 0.0f;
 
   // set to true when game runs in reverse mode
    bool m_reverse = false;

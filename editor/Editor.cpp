@@ -1,4 +1,5 @@
 #include "Editor.hpp"
+#include "Enemy.hpp"
 #include "Game.hpp"
 
 #include <fstream>
@@ -16,7 +17,7 @@ Editor::Editor(const glm::vec2& screenSize)
 {
    m_logger.Init("Editor");
    InitGLFW();
-   m_inputManager.Init(mGLFWWindow);
+   // m_inputManager.Init(mGLFWWindow);
 
    m_windowSize = screenSize;
 
@@ -76,6 +77,13 @@ Editor::InitGLFW()
 }
 
 void
+Editor::ShowCursor(bool choice)
+{
+   int mode = choice ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED;
+   glfwSetInputMode(mGLFWWindow, GLFW_CURSOR, mode);
+}
+
+void
 Editor::draw(NVGcontext* ctx)
 {
    /* Draw the user interface */
@@ -89,30 +97,30 @@ Editor::HandleInput()
 
    auto cameraMoveBy = glm::vec2();
 
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_W))
+   if (IsKeyDown(GLFW_KEY_W))
    {
       cameraMoveBy += glm::vec2(0.0f, -1.0f);
    }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_S))
+   if (IsKeyDown(GLFW_KEY_S))
    {
       cameraMoveBy += glm::vec2(0.0f, 1.0f);
    }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_A))
+   if (IsKeyDown(GLFW_KEY_A))
    {
       cameraMoveBy += glm::vec2(-1.0f, 0.0f);
    }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_D))
+   if (IsKeyDown(GLFW_KEY_D))
    {
       cameraMoveBy += glm::vec2(1.0f, 0);
    }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_SPACE))
+   if (IsKeyDown(GLFW_KEY_SPACE))
    {
       if (m_levelLoaded)
       {
          m_camera.SetCameraAtPosition({0.0f, 0.0f, 0.0f});
       }
    }
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_ESCAPE))
+   if (IsKeyDown(GLFW_KEY_ESCAPE))
    {
       if (m_objectSelected)
       {
@@ -140,27 +148,23 @@ Editor::HandleInput()
 bool
 Editor::scrollEvent(const nanogui::Vector2i& p, const nanogui::Vector2f& rel)
 {
-   m_zoomScale += rel.y() * 0.25f;
+   if (!Screen::scrollEvent(p, rel))
+   {
+      m_zoomScale += rel.y() * 0.25f;
 
-   m_zoomScale = std::clamp(m_zoomScale, m_maxZoomOut, m_maxZoomIn);
+      m_zoomScale = std::clamp(m_zoomScale, m_maxZoomOut, m_maxZoomIn);
 
-   const auto left = -m_windowSize.x / (2.0f + m_zoomScale);
-   const auto right = m_windowSize.x / (2.0f + m_zoomScale);
-   const auto top = m_windowSize.y / (2.0f + m_zoomScale);
-   const auto bottom = -m_windowSize.y / (2.0f + m_zoomScale);
-   const auto near = -1.0f;
-   const auto far = 1.0f;
+      const auto left = -m_windowSize.x / (2.0f + m_zoomScale);
+      const auto right = m_windowSize.x / (2.0f + m_zoomScale);
+      const auto top = m_windowSize.y / (2.0f + m_zoomScale);
+      const auto bottom = -m_windowSize.y / (2.0f + m_zoomScale);
+      const auto near = -1.0f;
+      const auto far = 1.0f;
 
-   m_projectionMatrix = glm::ortho(left, right, top, bottom, near, far);
+      m_projectionMatrix = glm::ortho(left, right, top, bottom, near, far);
+   }
 
-   return Screen::scrollEvent(p, rel);
-}
-
-void
-Editor::ShowCursor(bool choice)
-{
-   int mode = choice ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN;
-   glfwSetInputMode(mGLFWWindow, GLFW_CURSOR, mode);
+   return true;
 }
 
 void
@@ -172,7 +176,7 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
    }
 
    // Rotate camera (or currently selected Object)
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_LEFT_CONTROL))
+   if (IsKeyDown(GLFW_KEY_LEFT_CONTROL))
    {
       // Calculate the value of cursor movement
       // For example:
@@ -197,7 +201,7 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
 
       const auto moveBy = glm::vec3(-axis.x, -axis.y, 0.0f);
 
-      m_movementOnObject ? m_currentSelectedObject->Move(m_camera.ConvertToCameraVector(-moveBy)) : m_camera.Move(moveBy);
+      m_movementOnObject ? m_currentSelectedObject->Move(m_camera.ConvertToCameraVector(-moveBy), false) : m_camera.Move(moveBy);
    }
 
    m_mouseDrag = true;
@@ -206,20 +210,24 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
 bool
 Editor::mouseMotionEvent(const nanogui::Vector2i& p, const nanogui::Vector2i& rel, int button, int modifiers)
 {
-   const auto currentCursorPosition = glm::vec2(p.x(), p.y());
-
-   if (m_mousePressedLastUpdate && m_levelLoaded)
+   if (!Screen::mouseMotionEvent(p, rel, button, modifiers))
    {
-      ShowCursor(false);
-      HandleMouseDrag(currentCursorPosition, {rel.x(), rel.y()});
-   }
-   else
-   {
-      ShowCursor(true);
+      const auto currentCursorPosition = glm::vec2(p.x(), p.y());
+
+      if (m_mousePressedLastUpdate && m_levelLoaded)
+      {
+         ShowCursor(false);
+         HandleMouseDrag(currentCursorPosition, {rel.x(), rel.y()});
+      }
+      else
+      {
+         ShowCursor(true);
+      }
+
+      m_lastCursorPosition = currentCursorPosition;
    }
 
-   m_lastCursorPosition = currentCursorPosition;
-   return Screen::mouseMotionEvent(p, rel, button, modifiers);
+   return true;
 }
 
 void
@@ -234,12 +242,12 @@ Editor::HandleObjectSelected(std::shared_ptr< GameObject > newSelectedObject)
       }
 
       m_currentSelectedObject = newSelectedObject;
-   }
 
-   // mark new object as selected
-   m_currentSelectedObject->SetObjectSelected();
-   m_gui.GameObjectSelected(m_currentSelectedObject);
-   m_objectSelected = true;
+      // mark new object as selected
+      m_currentSelectedObject->SetObjectSelected();
+      m_objectSelected = true;
+      m_gui.GameObjectSelected(m_currentSelectedObject);
+   }
 }
 
 void
@@ -256,19 +264,41 @@ Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
 bool
 Editor::mouseButtonEvent(const nanogui::Vector2i& position, int button, bool down, int modifiers)
 {
-   m_mousePressedLastUpdate = down;
-
-   if (down)
+   if (!Screen::mouseButtonEvent(position, button, down, modifiers))
    {
-      CheckIfObjectGotSelected({position.x(), position.y()});
-   }
-   else
-   {
-      m_movementOnObject = false;
-      ShowCursor(true);
+      m_mousePressedLastUpdate = down;
+
+      if (down)
+      {
+         CheckIfObjectGotSelected({position.x(), position.y()});
+      }
+      else
+      {
+         // Object movement finished
+         ShowCursor(true);
+
+         if (m_movementOnObject && m_currentSelectedObject)
+         {
+            const auto cursporPos = m_currentSelectedObject->GetScreenPositionPixels();
+            glfwSetCursorPos(mGLFWWindow, cursporPos.x, cursporPos.y);
+         }
+
+         m_movementOnObject = false;
+      }
    }
 
-   return Screen::mouseButtonEvent(position, button, down, modifiers);
+   return true;
+}
+
+bool
+Editor::keyboardEvent(int key, int scancode, int action, int modifiers)
+{
+   if (!Screen::keyboardEvent(key, scancode, action, modifiers))
+   {
+      m_keyMap[key] = action;
+   }
+
+   return true;
 }
 
 void
@@ -305,8 +335,8 @@ Editor::CreateLevel(const glm::ivec2& size)
    m_currentLevel.Create(this, size);
    m_currentLevel.LoadShaders("Editor");
 
-
    m_camera.Create(glm::vec3(m_currentLevel.GetLevelPosition(), 0.0f), {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
+   m_camera.SetLevelSize(m_currentLevel.GetSize());
 
    m_levelLoaded = true;
    m_gui.LevelLoaded(&m_currentLevel);
@@ -325,6 +355,7 @@ Editor::LoadLevel(const std::string& levelPath)
    m_currentLevel.LoadShaders("Editor");
 
    m_camera.Create(glm::vec3(m_currentLevel.GetPlayer()->GetCenteredGlobalPosition(), 0.0f), {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
+   m_camera.SetLevelSize(m_currentLevel.GetSize());
 
    m_levelLoaded = true;
    m_gui.LevelLoaded(&m_currentLevel);
@@ -340,6 +371,12 @@ void
 Editor::AddGameObject(GameObject::TYPE objectType)
 {
    HandleObjectSelected(m_currentLevel.AddGameObject(objectType));
+}
+
+void
+Editor::AnimateObject(float value)
+{
+   m_animateObject = true;
 }
 
 void
@@ -361,13 +398,40 @@ Editor::ShowWireframe(bool wireframeEnabled)
       wireframeEnabled ? object->SetObjectSelected() : object->SetObjectUnselected();
    }
 
-   wireframeEnabled ? m_currentLevel.GetPlayer()->SetObjectSelected() : m_currentLevel.GetPlayer()->SetObjectUnselected();
+   if (m_player)
+   {
+      wireframeEnabled ? m_currentLevel.GetPlayer()->SetObjectSelected() : m_currentLevel.GetPlayer()->SetObjectUnselected();
+   }
+
+   // Make sure currenlty selected object stays selected
+   if (m_objectSelected)
+   {
+      m_currentSelectedObject->SetObjectSelected();
+   }
+}
+
+void
+Editor::Update()
+{
+   if (m_animateObject)
+   {
+      m_currentSelectedObject->Update(false);
+   }
 }
 
 const glm::vec2&
 Editor::GetWindowSize() const
 {
    return m_windowSize;
+}
+
+const glm::ivec2&
+Editor::GetFrameBufferwSize() const
+{
+   int viewportWidth, viewportHeight;
+   glfwGetFramebufferSize(mGLFWWindow, &viewportWidth, &viewportHeight);
+
+   return {viewportWidth, viewportHeight};
 }
 
 const glm::mat4&
@@ -394,6 +458,12 @@ Editor::IsRunning()
    return m_isRunning;
 }
 
+bool
+Editor::IsKeyDown(uint8_t keycode)
+{
+   return m_keyMap[keycode];
+}
+
 void
 Editor::MainLoop()
 {
@@ -408,6 +478,7 @@ Editor::MainLoop()
 
       // Update UI
       m_gui.Update();
+      Update();
 
       drawAll();
    }

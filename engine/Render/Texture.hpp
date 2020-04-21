@@ -59,6 +59,9 @@ class Texture
    void
    Use(GLuint programID);
 
+   GLuint
+   Create();
+
  private:
    // Load texture from 'data' memory
    void

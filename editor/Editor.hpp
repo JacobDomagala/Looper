@@ -21,11 +21,15 @@ class Editor : public nanogui::Screen, public Context
    Editor(const glm::vec2& screenSize);
    ~Editor();
 
+   // CONTEXT OVERRIDES
    void
    MainLoop() override;
 
    const glm::vec2&
    GetWindowSize() const override;
+
+   const glm::ivec2&
+   GetFrameBufferwSize() const override;
 
    const glm::mat4&
    GetProjection() const override;
@@ -36,6 +40,8 @@ class Editor : public nanogui::Screen, public Context
    float
    GetZoomLevel() override;
 
+
+   // NANOGUI::SCREEN OVERRIDES
    void
    draw(NVGcontext* ctx) override;
 
@@ -54,6 +60,11 @@ class Editor : public nanogui::Screen, public Context
    bool
    mouseButtonEvent(const nanogui::Vector2i& p, int button, bool down, int modifiers) override;
 
+   bool
+   keyboardEvent(int key, int scancode, int action, int modifiers) override;
+
+
+   // EDITOR SPECIFIC FUNCTIONS
    void
    CreateLevel(const glm::ivec2& size);
 
@@ -67,10 +78,16 @@ class Editor : public nanogui::Screen, public Context
    AddGameObject(GameObject::TYPE objectType);
 
    void
+   AnimateObject(float value);
+
+   void
    PlayLevel();
 
    void
    ShowWireframe(bool wireframeEnabled);
+
+   void
+   Update();
 
  private:
    bool
@@ -94,6 +111,9 @@ class Editor : public nanogui::Screen, public Context
    void
    ShowCursor(bool choice);
 
+   bool
+   IsKeyDown(uint8_t keycode);
+
    Game m_game;
 
    std::string m_levelFileName;
@@ -115,9 +135,11 @@ class Editor : public nanogui::Screen, public Context
    float m_maxZoomIn = 1.5f;
    float m_maxZoomOut = -1.5f;
 
+   bool m_animateObject = false;
    bool m_movementOnObject = false;
    bool m_objectSelected = false;
    std::shared_ptr< GameObject > m_currentSelectedObject = nullptr;
 
+   std::map< uint8_t, bool > m_keyMap;
    Gui m_gui;
 };

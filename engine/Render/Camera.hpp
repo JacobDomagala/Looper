@@ -17,6 +17,9 @@ class Camera
    Create(const glm::vec3& position, const glm::vec3& lookAt, const glm::vec3& upVec, float cameraSpeed = 5.0f);
 
    void
+   SetLevelSize(const glm::vec2& size);
+   
+   void
    SetCameraAtPosition(const glm::vec3& globalPosition);
 
    void
@@ -26,7 +29,7 @@ class Camera
    Move(const glm::vec3& conventionalVector);
 
    void
-   Rotate(float angle);
+   Rotate(float angle, bool cumulative = true);
 
    const glm::mat4&
    GetViewMatrix() const;
@@ -53,6 +56,8 @@ class Camera
 
    float m_cameraSpeed = 0.0f;
    float m_rotationValue = 0.0f;
+
+   glm::vec2 m_levelSize;
 
    glm::vec3 m_position;
    glm::vec3 m_upVector;

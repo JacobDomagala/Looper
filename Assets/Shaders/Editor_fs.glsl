@@ -11,7 +11,7 @@ out vec4 fColor;
 
 void main()
 {
-	const float outlineWidthLeft = max(0.008f, min(objectSize.x * 0.0001f, 0.008f));
+	const float outlineWidthLeft = max(0.01f, min(objectSize.x * 0.0001f, 0.015f));
 	const float outlineWidthRight = 1.0f - outlineWidthLeft;
 
 	if(objectSelected)

@@ -45,6 +45,9 @@ class Gui
    void
    CreateLeftPanel();
 
+   nanogui::Widget*
+   CreatePlayButton(nanogui::Widget* parent);
+
  private:
    Editor& m_parent;
 

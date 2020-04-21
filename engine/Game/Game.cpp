@@ -17,18 +17,20 @@ Game::MainLoop()
 {
    // m_window->Start();
    Logger::SetLogType(Logger::TYPE::INFO);
-
+   
+   auto singleFrameTimer = 0.0f;
+   
    while (IsRunning())
    {
       PollEvents();
 
       m_timer.ToggleTimer();
 
-      if (m_timer.GetTotalTime() > TARGET_TIME)
+      if (singleFrameTimer >= TARGET_TIME)
       {
          SwapBuffers();
 
-         const auto dt = TARGET_TIME * Timer::AreTimersRunning();
+         const auto dt = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000 * Timer::AreTimersRunning()));
          ProcessInput(dt);
 
          Render();
@@ -42,9 +44,17 @@ Game::MainLoop()
                     glm::vec3(1.0f, 0.0f, 1.0f));
 
          ++m_frames;
-         m_timer.ResetTotalTime();
+         m_frameTimer += singleFrameTimer;
+         singleFrameTimer = 0.0f;
       }
-      m_frameTimer += m_timer.GetDeltaTime();
+      else
+      {
+         // Temporary solution for locking FPS
+         while (singleFrameTimer < TARGET_TIME)
+         {
+            singleFrameTimer += m_timer.GetDeltaTime();
+         }
+      }
    }
 }
 
@@ -61,7 +71,7 @@ Game::Init(const std::string configFile)
       m_logger.Log(Logger::TYPE::FATAL, "Can't open" + (ASSETS_DIR / configFile).u8string());
    }
 
-   m_cameraSpeed = 600.0f;
+   m_cameraSpeed = 1.0f;
    m_window = std::make_unique< Window >(WIDTH, HEIGHT, "WindowTitle");
    m_frameBuffer.SetUp();
 
@@ -667,20 +677,13 @@ Game::CheckMove(glm::ivec2& moveBy)
 void
 Game::KeyEvents()
 {
-   int32_t cameraMovement = static_cast< int32_t >(300.0f * m_deltaTime);
-   int32_t playerMovement = static_cast< int32_t >(500.0f * m_deltaTime);
+   int32_t cameraMovement = static_cast< int32_t >(0.8f * m_deltaTime.count());
+   int32_t playerMovement = static_cast< int32_t >(1.5f * m_deltaTime.count());
 
    glm::ivec2 playerMoveBy = glm::ivec2();
    glm::ivec2 cameraMoveBy = glm::ivec2();
 
-   if (m_inputManager.CheckKeyPressed(GLFW_KEY_LEFT_CONTROL))
-   {
-      m_reverse = true;
-   }
-   else
-   {
-      m_reverse = false;
-   }
+   m_reverse = m_inputManager.CheckKeyPressed(GLFW_KEY_LEFT_CONTROL);
 
    if (!m_reverse)
    {
@@ -799,7 +802,7 @@ Game::MouseEvents()
       // cursor's position from center of the screen to trigger camera movement
       float borderValue = 0.2f;
 
-      float cameraMovement = floor(m_cameraSpeed * m_deltaTime);
+      float cameraMovement = floor(m_cameraSpeed * m_deltaTime.count());
       auto cameraMoveBy = glm::ivec2();
       cursor = m_window->GetCursorNormalized();
 
@@ -850,7 +853,6 @@ Game::RenderFirstPass()
       m_playerPosition = m_currentLevel.GetLocalVec(m_player->GetCenteredGlobalPosition());
 
       glm::ivec2 correction = CorrectPosition();
-      m_logger.Log(Logger::TYPE::INFO, std::to_string(correction.x) + "  " + std::to_string(correction.x));
 
       m_player->Move(correction);
       m_playerPosition += correction;
@@ -867,14 +869,13 @@ Game::RenderSecondPass()
 {
    m_frameBuffer.DrawFrameBuffer();
 
-   glm::ivec2 debug2 = m_player->GetCenteredLocalPosition();
    for (auto& obj : m_debugObjs)
    {
       obj->Draw(*this);
    }
    m_debugObjs.clear();
 
-   RenderText(std::to_string(m_deltaTime * 1000) + " ms",
+   RenderText(std::to_string(m_deltaTime.count()) + " ms",
               glm::vec2(static_cast< float >(-WIDTH / 2), static_cast< float >(-HEIGHT / 2) + 20), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));
 }
 
@@ -885,12 +886,19 @@ Game::LoadLevel(const std::string& pathToLevel)
    m_player = m_currentLevel.GetPlayer();
 
    m_camera.Create(glm::vec3(m_player->GetCenteredGlobalPosition(), 0.0f), {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, 1.0f);
+   m_camera.SetLevelSize(m_currentLevel.GetSize());
 }
 
 const glm::vec2&
 Game::GetWindowSize() const
 {
    return m_window->GetSize();
+}
+
+const glm::ivec2&
+Game::GetFrameBufferwSize() const
+{
+   return {};
 }
 
 const glm::mat4&
@@ -947,14 +955,8 @@ Game::SetCollisionMap(byte_vec4* collision)
    m_collision = collision;
 }
 
-float
-Game::GetDeltaTime() const
-{
-   return m_deltaTime;
-}
-
 void
-Game::ProcessInput(float deltaTime)
+Game::ProcessInput(Timer::milliseconds deltaTime)
 {
    m_deltaTime = deltaTime;
 

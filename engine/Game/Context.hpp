@@ -20,6 +20,10 @@ class DebugObject
  public:
    virtual void
    Draw(Context& context) = 0;
+
+   virtual void
+   SetViewMatrix(const glm::mat4& mat) = 0;
+
    virtual ~DebugObject() = default;
 };
 
@@ -37,6 +41,9 @@ class Context
 
    Camera&
    GetCamera();
+
+   Timer::milliseconds
+   GetDeltaTime();
 
    bool
    IsGame();
@@ -59,13 +66,16 @@ class Context
    CenterCameraOnPlayer();
 
    void
-   DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f));
+   DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f), glm::mat4 view = glm::mat4(1.0f));
 
    virtual void
    MainLoop() = 0;
 
    virtual const glm::vec2&
    GetWindowSize() const = 0;
+
+   virtual const glm::ivec2&
+   GetFrameBufferwSize() const = 0;
 
    virtual const glm::mat4&
    GetProjection() const = 0;
@@ -96,6 +106,7 @@ class Context
    InputManager m_inputManager;
    Camera m_camera;
    Timer m_timer;
+   Timer::milliseconds m_deltaTime;
 };
 
 
@@ -105,6 +116,7 @@ class Line : public DebugObject
    glm::vec2 m_to;
    glm::vec3 m_color;
 
+   glm::mat4 m_viewMatrix;
  public:
    Line(glm::vec2 from, glm::vec2 to, glm::vec3 color) : m_from(from), m_to(to), m_color(color)
    {
@@ -120,7 +132,7 @@ class Line : public DebugObject
 
       glm::vec2 vertices[2] = {m_from, m_to};
 
-      //glm::mat4 modelMatrix = glm::scale(glm::mat4(), glm::vec3(1.0f, 1.0f, 1.0f));
+      // glm::mat4 modelMatrix = glm::scale(glm::mat4(), glm::vec3(1.0f, 1.0f, 1.0f));
 
       GLuint lineVertexArray;
       GLuint lineVertexBuffer;
@@ -134,15 +146,21 @@ class Line : public DebugObject
       glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
 
       lineShader.UseProgram();
-      //lineShader.SetUniformFloatMat4(modelMatrix, "modelMatrix");
+      // lineShader.SetUniformFloatMat4(modelMatrix, "modelMatrix");
       lineShader.SetUniformFloatMat4(context.GetProjection(), "projectionMatrix");
-      lineShader.SetUniformFloatMat4(context.GetViewMatrix(), "viewMatrix");
+      lineShader.SetUniformFloatMat4(m_viewMatrix, "viewMatrix");
       lineShader.SetUniformFloatVec4(glm::vec4(m_color, 1.0f), "color");
 
       glDrawArrays(GL_LINES, 0, 2);
       glBindVertexArray(0);
       glDeleteBuffers(1, &lineVertexBuffer);
       glDeleteVertexArrays(1, &lineVertexArray);
+   }
+
+   void
+   SetViewMatrix(const glm::mat4& mat) override
+   {
+      m_viewMatrix = mat;
    }
 };
 #pragma endregion

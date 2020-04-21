@@ -49,10 +49,13 @@ class GameObject
    virtual void
    SetShaders(const Shaders& program);
 
+   virtual void
+   SetName(const std::string& name);
+
    // GETERS
 
    // Get size of object
-   virtual glm::vec2
+   virtual glm::ivec2
    GetSize() const;
 
    // Get cenetered position in local(level wise) coords
@@ -87,6 +90,12 @@ class GameObject
    TYPE
    GetType() const;
 
+   std::string
+   GetTypeString() const;
+
+   std::string
+   GetName() const;
+
    // Create sprite with default texture
    virtual void
    CreateSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(10, 10));
@@ -101,7 +110,7 @@ class GameObject
    Move(const glm::vec2& moveBy, bool isCameraMovement = true);
 
    virtual void
-   Scale(const glm::vec2& scaleVal);
+   Scale(const glm::vec2& scaleVal, bool cumulative = false);
 
    virtual void
    Rotate(float angle, bool cumulative = false);
@@ -170,4 +179,6 @@ class GameObject
 
    // byte array of sprite used for collision
    byte_vec4* m_collision;
+
+   std::string m_name = "DummyName";
 };

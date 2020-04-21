@@ -71,11 +71,16 @@ Level::Load(Context* context, const std::string& pathToLevel)
             const auto weapons = enemy["weapons"];
             const auto animatePos = enemy["animate positions"];
 
-            std::vector< glm::vec2 > keypointsPositions = {};
+            Animatable::AnimationPoints keypointsPositions = {};
 
             for (auto& point : animatePos)
             {
-               keypointsPositions.emplace_back(glm::vec2(point[0], point[1]));
+               Animatable::AnimationPoint animationPoint;
+               animationPoint.ID = 0;
+               animationPoint.m_destination = glm::vec2(point[0], point[1]);
+               animationPoint.m_timeDuration = Timer::seconds(1);
+               
+               keypointsPositions.emplace_back(animationPoint);
             }
 
             m_objects.emplace_back(std::make_shared< Enemy >(*context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]),
@@ -121,11 +126,11 @@ Level::Save(const std::string& pathToLevel)
 
       enemyJson["weapons"] = enemyPtr->GetWeapon();
 
-      const auto keypoints = enemyPtr->GetAnimationKEypoints();
+      const auto keypoints = enemyPtr->GetAnimationKeypoints();
 
       for (const auto& point : keypoints)
       {
-         enemyJson["animate positions"].emplace_back(point.x, point.y);
+         enemyJson["animate positions"].emplace_back(point.m_destination.x, point.m_destination.y);
       }
 
       json["ENEMIES"].emplace_back(enemyJson);
@@ -153,7 +158,15 @@ Level::AddGameObject(GameObject::TYPE objectType)
    switch (objectType)
    {
       case GameObject::TYPE::ENEMY: {
-         newObject = std::make_shared< Enemy >(*m_contextPointer, defaultPosition, defaultSize, defaultTexture, std::vector({glm::vec2(0.0f, 0.0f)}));
+
+         Animatable::AnimationPoint animationPoint;
+         animationPoint.ID = 0;
+         animationPoint.m_destination = {0,0};
+         animationPoint.m_timeDuration = Timer::seconds(1);
+         
+
+         newObject = std::make_shared< Enemy >(*m_contextPointer, defaultPosition, defaultSize, defaultTexture,
+                                               Animatable::AnimationPoints{animationPoint});
          m_objects.push_back(newObject);
       }
       break;

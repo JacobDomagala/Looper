@@ -18,13 +18,13 @@
     "size": [128, 128],
     "texture": "Default128.png",
     "weapons": ["Glock"],
-    "animate positions": [[2,0], [1,0], [2,0], [3,0]]
+    "animate positions": [[-50,0], [20,30], [-20,50], [100,70]]
   },
   {
     "position": [1600, 1600],
     "size": [128, 128],
     "texture": "Default128.png",
     "weapons": ["Glock"],
-    "animate positions": [[1,0], [1,0], [2,0], [3,0]]
+    "animate positions": [[50,0], [-40,20], [20,100], [0,-200]]
   }]
 }

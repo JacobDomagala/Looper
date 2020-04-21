@@ -57,6 +57,9 @@ class Timer
       m_totalTime = milliseconds(0);
    }
 
+   static milliseconds
+   ConvertToMs(seconds);
+
  private:
    // Time period between last Toggle() function call
    milliseconds m_deltaTime;

@@ -8,9 +8,9 @@ main(int /* argc */, char** /* argv */)
 {
    nanogui::init();
    
-   const auto mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+   //const auto mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
-   Editor editor({mode->width, mode->height});
+   Editor editor({1920, 1080});
    editor.MainLoop();
    
    return EXIT_SUCCESS;

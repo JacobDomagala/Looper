@@ -95,25 +95,23 @@ Sprite::Render(Context& context, Shaders& program)
    glm::mat4 modelMatrix = glm::mat4(1.0f);
 
    // All transformations are done in reverse:
+   // Translate object to 0,0
    // 1. Scale
-   // Before rotation transalte
    // 2. Rotate
-   // After rotation translate
+   // Translate object back to its position
    // 3. Transalte
 
    modelMatrix = glm::translate(modelMatrix, m_currentState.m_translateVal);
 
    // move the sprite back to its original position
-   modelMatrix = glm::translate(
-      modelMatrix, glm::vec3((m_size.x / 2.0f) * m_currentState.m_scaleVal.x, (m_size.y / -2.0f) * m_currentState.m_scaleVal.y, 0.0f));
+   modelMatrix = glm::translate(modelMatrix, glm::vec3((m_size.x / 2.0f), (m_size.y / -2.0f), 0.0f));
 
    modelMatrix = glm::rotate(modelMatrix, m_currentState.m_angle, glm::vec3(0.0f, 0.0f, 1.0f));
+   modelMatrix = glm::scale(modelMatrix, glm::vec3(m_currentState.m_scaleVal.x + m_currentState.m_uniformScaleValue,
+                                                   m_currentState.m_scaleVal.y + m_currentState.m_uniformScaleValue, 1.0f));
 
-   // move the sprite so it will be rotated around its center
-   modelMatrix = glm::translate(
-      modelMatrix, glm::vec3((m_size.x / -2.0f) * m_currentState.m_scaleVal.x, (m_size.y / 2.0f) * m_currentState.m_scaleVal.y, 0.0f));
-
-   modelMatrix = glm::scale(modelMatrix, glm::vec3(m_currentState.m_scaleVal, 1.0f));
+   // move the sprite so it will be scaled/rotated around its center
+   modelMatrix = glm::translate(modelMatrix, glm::vec3((m_size.x / -2.0f), (m_size.y / 2.0f), 0.0f));
 
    m_texture.Use(program.GetProgram());
    program.SetUniformFloatVec4(m_currentState.m_color, "color");
@@ -142,7 +140,7 @@ Sprite::GetPosition() const
 glm::ivec2
 Sprite::GetSize() const
 {
-   return m_size;
+   return static_cast< glm::vec2 >(m_size) * (m_currentState.m_scaleVal + m_currentState.m_uniformScaleValue);
 }
 
 std::string
@@ -150,6 +148,25 @@ Sprite::GetTextureName() const
 {
    return m_texture.GetName();
 }
+
+glm::vec2
+Sprite::GetTranslation() const
+{
+   return m_currentState.m_translateVal;
+}
+
+float
+Sprite::GetRotation(RotationType type) const
+{
+   return type == RotationType::DEGREES ? glm::degrees(m_currentState.m_angle) : m_currentState.m_angle;
+}
+
+glm::vec2
+Sprite::GetScale() const
+{
+   return m_currentState.m_scaleVal;
+}
+
 void
 Sprite::SetColor(const glm::vec3& color)
 {
@@ -162,23 +179,40 @@ Sprite::SetTextureFromFile(const std::string& filePath)
    m_texture.LoadTextureFromFile(filePath);
 }
 
-void
-Sprite::Rotate(float angle)
+Texture&
+Sprite::GetTexture()
 {
-   m_currentState.m_angle = angle;
+   return m_texture;
 }
 
 void
-Sprite::RotateCumulative(float angle)
+Sprite::Rotate(float angle, RotationType type)
 {
+   m_currentState.m_angle = type == RotationType::DEGREES ? glm::degrees(angle) : angle;
+   m_currentState.m_angle = glm::clamp(m_currentState.m_angle, glm::radians(-360.0f), glm::radians(360.0f));
+}
 
-   m_currentState.m_angle += angle;
+void
+Sprite::RotateCumulative(float angle, RotationType type)
+{
+   m_currentState.m_angle += type == RotationType::DEGREES ? glm::degrees(angle) : angle;
+   m_currentState.m_angle = glm::clamp(m_currentState.m_angle, glm::radians(-360.0f), glm::radians(360.0f));
 }
 
 void
 Sprite::Scale(const glm::vec2& scaleValue)
 {
+   m_currentState.m_scaleVal = scaleValue;
+   m_currentState.m_scaleVal.x = glm::clamp(m_currentState.m_scaleVal.x, m_scaleRange.first, m_scaleRange.second);
+   m_currentState.m_scaleVal.y = glm::clamp(m_currentState.m_scaleVal.y, m_scaleRange.first, m_scaleRange.second);
+}
+
+void
+Sprite::ScaleCumulative(const glm::vec2& scaleValue)
+{
    m_currentState.m_scaleVal += scaleValue;
+   m_currentState.m_scaleVal.x = glm::clamp(m_currentState.m_scaleVal.x, m_scaleRange.first, m_scaleRange.second);
+   m_currentState.m_scaleVal.y = glm::clamp(m_currentState.m_scaleVal.y, m_scaleRange.first, m_scaleRange.second);
 }
 
 void
@@ -186,4 +220,43 @@ Sprite::Translate(const glm::vec2& translateValue)
 {
    m_currentState.m_position += translateValue;
    m_currentState.m_translateVal += glm::vec3(translateValue, 0.0f);
+}
+
+void
+Sprite::ScaleUniformly(const float scaleValue)
+{
+   m_currentState.m_uniformScaleValue = scaleValue;
+   /*  m_currentState.m_scaleVal += glm::vec2(scaleValue, scaleValue);
+     m_currentState.m_scaleVal.x = glm::clamp(m_currentState.m_scaleVal.x, m_scaleRange.first, m_scaleRange.second);
+     m_currentState.m_scaleVal.y = glm::clamp(m_currentState.m_scaleVal.y, m_scaleRange.first, m_scaleRange.second);*/
+}
+
+float
+Sprite::GetUniformScaleValue() const
+{
+   return m_currentState.m_uniformScaleValue;
+}
+
+std::array< glm::vec2, 4 >
+Sprite::GetTransformedRectangle() const
+{
+   auto modelMatrix = glm::mat4(1.0f);
+   modelMatrix = glm::translate(modelMatrix, m_currentState.m_translateVal);
+
+   // move the sprite back to its original position
+   modelMatrix = glm::translate(modelMatrix, glm::vec3((m_size.x / 2.0f), (m_size.y / -2.0f), 0.0f));
+
+   modelMatrix = glm::rotate(modelMatrix, m_currentState.m_angle, glm::vec3(0.0f, 0.0f, 1.0f));
+   modelMatrix = glm::scale(modelMatrix, glm::vec3(m_currentState.m_scaleVal.x + m_currentState.m_uniformScaleValue,
+                                                   m_currentState.m_scaleVal.y + m_currentState.m_uniformScaleValue, 1.0f));
+
+   // move the sprite so it will be scaled/rotated around its center
+   modelMatrix = glm::translate(modelMatrix, glm::vec3((m_size.x / -2.0f), (m_size.y / 2.0f), 0.0f));
+
+   const glm::vec2 topLeft = modelMatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+   const glm::vec2 bottomLeft = modelMatrix * glm::vec4(0.0f, -m_size.y, 0.0f, 1.0f);
+   const glm::vec2 topRight = modelMatrix * glm::vec4(m_size.x, 0.0f, 0.0f, 1.0f);
+   const glm::vec2 bottomRight = modelMatrix * glm::vec4(m_size.x, -m_size.y, 0.0f, 1.0f);
+
+   return {topRight, topLeft, bottomLeft, bottomRight};
 }

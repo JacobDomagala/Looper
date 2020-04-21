@@ -6,7 +6,10 @@
 void
 Texture::CreateColorTexture(const glm::ivec2& size, const glm::vec3& color)
 {
-   const auto sizeArray = size.x * size.y * sizeof(byte_vec4);
+   m_width = size.x;
+   m_height = size.y;
+
+   const auto sizeArray = m_width * m_height * sizeof(byte_vec4);
 
    m_data = std::make_unique< uint8_t[] >(sizeArray);
    std::memset(m_data.get(), 0xFF, sizeArray);
@@ -20,7 +23,10 @@ Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenu
    auto picture = FileManager::LoadImage(fileName);
 
    m_data = std::move(picture.m_bytes);
-   LoadTextureFromMemory(picture.m_size, m_data.get(), fileName);
+   m_width = picture.m_size.x;
+   m_height = picture.m_size.y;
+
+   LoadTextureFromMemory({m_width, m_height}, m_data.get(), fileName);
 
    return reinterpret_cast< byte_vec4* >(GetData());
 }
@@ -60,4 +66,21 @@ Texture::Use(GLuint program)
    m_nowBound = m_unit;
 
    ++m_boundCount;
+}
+
+GLuint
+Texture::Create()
+{
+   glGenTextures(1, &m_textureID);
+   glBindTexture(GL_TEXTURE_2D, m_textureID);
+
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_data.get());
+   glGenerateMipmap(GL_TEXTURE_2D);
+
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+   return m_textureID;
 }

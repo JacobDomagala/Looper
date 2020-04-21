@@ -3,8 +3,8 @@
 #include <GameObject.hpp>
 #include <Window.hpp>
 
-GameObject::GameObject(Context& game, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite, TYPE type)
-   : m_contextHandle(game)
+GameObject::GameObject(Context& contextHandle, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite, TYPE type)
+   : m_contextHandle(contextHandle)
 {
    m_currentState.m_globalPosition = m_contextHandle.GetLevel().GetGlobalVec(positionOnMap);
    m_currentState.m_localPosition = positionOnMap;
@@ -20,21 +20,25 @@ GameObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 {
    bool collided = false;
 
-   const auto halfSize = GetSize() / 2.0f;
+   Camera camera = m_contextHandle.GetCamera();
+   camera.Rotate(m_sprite.GetRotation(), false);
 
-   const auto minGlobal = m_currentState.m_centeredGlobalPosition - halfSize;
-   const auto maxGlobal = m_currentState.m_centeredGlobalPosition + halfSize;
+   const auto boundingRectangle = m_sprite.GetTransformedRectangle();
 
-   const auto objectLeftSizeGlobal = minGlobal.x;
-   const auto objectRightSizeGlobal = maxGlobal.x;
-   const auto objectTopSizeGlobal = minGlobal.y;
-   const auto objectBottomSizeGlobal = maxGlobal.y;
+   const auto transformed0 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[0], 0.0f, 1.0f);
+   const auto transformed1 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[1], 0.0f, 1.0f);
+   const auto transformed2 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[2], 0.0f, 1.0f);
+   const auto transformed3 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[3], 0.0f, 1.0f);
 
-   const auto globalPosition = m_contextHandle.ScreenToGlobal(screenPosition);
+   const auto minX = transformed1.x;
+   const auto maxX = transformed0.x;
+   const auto minY = transformed3.y;
+   const auto maxY = transformed0.y;
+
+   const auto globalPosition = camera.GetViewMatrix() * glm::vec4(m_contextHandle.ScreenToGlobal(screenPosition), 0.0f, 1.0f);
 
    // If 'screenPosition' is inside 'object' sprite (rectangle)
-   if (globalPosition.x >= objectLeftSizeGlobal && globalPosition.x <= objectRightSizeGlobal && globalPosition.y <= objectBottomSizeGlobal
-       && globalPosition.y >= objectTopSizeGlobal)
+   if (globalPosition.x >= minX && globalPosition.x <= maxX && globalPosition.y <= maxY && globalPosition.y >= minY)
    {
       collided = true;
    }
@@ -60,7 +64,7 @@ GameObject::SetColor(const glm::vec3& color)
    m_sprite.SetColor(color);
 }
 
-glm::vec2
+glm::ivec2
 GameObject::GetSize() const
 {
    return m_sprite.GetSize();
@@ -126,6 +130,26 @@ GameObject::GetType() const
    return m_type;
 }
 
+std::string
+GameObject::GetTypeString() const
+{
+   std::string typeStr = "";
+
+   switch (m_type)
+   {
+      case TYPE::ENEMY: {
+         typeStr = "Enemy";
+      }
+      break;
+
+      case TYPE::PLAYER: {
+         typeStr = "Player";
+      }
+   }
+
+   return typeStr;
+}
+
 void
 GameObject::SetShaders(const Shaders& program)
 {
@@ -161,6 +185,18 @@ GameObject::SetObjectUnselected()
 }
 
 void
+GameObject::SetName(const std::string& name)
+{
+   m_name = name;
+}
+
+std::string
+GameObject::GetName() const
+{
+   return m_name;
+}
+
+void
 GameObject::Move(const glm::vec2& moveBy, bool isCameraMovement)
 {
    m_sprite.Translate(moveBy);
@@ -175,9 +211,9 @@ GameObject::Move(const glm::vec2& moveBy, bool isCameraMovement)
 }
 
 void
-GameObject::Scale(const glm::vec2& scaleVal)
+GameObject::Scale(const glm::vec2& scaleVal, bool cumulative)
 {
-   m_sprite.Scale(scaleVal);
+   cumulative ? m_sprite.ScaleCumulative(scaleVal) : m_sprite.Scale(scaleVal);
 }
 
 void

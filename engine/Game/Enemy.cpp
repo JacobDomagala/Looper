@@ -6,18 +6,19 @@
 #include <Weapon.hpp>
 
 Enemy::Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite,
-             const std::vector< glm::vec2 >& keypoints)
-   : GameObject(context, pos, size, sprite, TYPE::ENEMY)
+             const std::list< AnimationPoint >& keypoints, Animatable::ANIMATION_TYPE animationType)
+   : GameObject(context, pos, size, sprite, TYPE::ENEMY), Animatable(animationType)
 {
    m_maxHP = 100;
    m_currentState.m_currentHP = m_maxHP;
    m_currentState.m_visionRange = 1000.0f;
    m_weapon = std::make_unique< Glock >();
    m_currentState.m_combatStarted = false;
-   m_positions = keypoints;
+   m_animationPoints = keypoints;
 
    m_timer.ToggleTimer();
    m_currentState.m_initialPosition = GameObject::m_currentState.m_centeredLocalPosition;
+   ResetAnimation();
 }
 
 void
@@ -35,9 +36,7 @@ Enemy::DealWithPlayer()
       m_currentState.m_action = ACTION::SHOOTING;
       m_currentState.m_lastPlayersPos = gameHandle->GetPlayer()->GetCenteredLocalPosition();
       m_currentState.m_timeSinceCombatEnded = 0.0f;
-      m_currentState.m_CurrentAnimationIndex = 0;
-      m_currentState.m_counter = glm::vec2(0.0f, 0.0f);
-      m_currentState.m_reverse = false;
+      ResetAnimation();
 
       if (m_currentState.m_combatStarted)
       {
@@ -163,7 +162,7 @@ Enemy::ChasePlayer()
    auto gameHandle = ConvertToGameHandle();
 
    auto playerPos = m_currentState.m_lastPlayersPos; // m_contextHandle.GetPlayer()->GetCenteredLocalPosition();
-   auto moveBy = 500.0f * gameHandle->GetDeltaTime();
+   auto moveBy = 500.0f * gameHandle->GetDeltaTime().count();
 
    auto distanceToNode =
       glm::length(static_cast< glm::vec2 >(m_currentState.m_targetMovePosition - GameObject::m_currentState.m_centeredLocalPosition));
@@ -219,7 +218,7 @@ Enemy::ReturnToInitialPosition()
 
    gameHandle->RenderText("RETURNING", glm::vec2(128.0f, 256.0f), 1.0f, glm::vec3(0.0f, 0.1f, 0.4f));
 
-   auto moveBy = m_currentState.m_movementSpeed * gameHandle->GetDeltaTime();
+   auto moveBy = m_currentState.m_movementSpeed * gameHandle->GetDeltaTime().count();
    auto vectorToInitialPos =
       static_cast< glm::vec2 >(m_currentState.m_initialPosition - GameObject::m_currentState.m_centeredLocalPosition);
    auto lengthToInitialPos = glm::length(vectorToInitialPos);
@@ -285,102 +284,23 @@ Enemy::UpdateInternal(bool isReverse)
    }
    else
    {
+      if (!m_currentState.m_combatStarted && m_currentState.m_isAtInitialPos)
+      {
+         Move(Animate(m_contextHandle.GetDeltaTime()), false);
+      }
+
       m_statesQueue.push_back(m_currentState);
       if (m_statesQueue.size() >= NUM_FRAMES_TO_SAVE)
       {
          m_statesQueue.pop_front();
       }
    }
+
+   Animatable::Update(isReverse);
 }
 
 void
 Enemy::Render(Shaders& program)
 {
-   if (!m_currentState.m_combatStarted && m_currentState.m_isAtInitialPos)
-   {
-      Animate();
-   }
-
    GameObject::Render(program);
-}
-
-void
-Enemy::Animate()
-{
-   auto gameHandle = ConvertToGameHandle();
-
-   auto deltaTime = gameHandle->GetDeltaTime();
-   auto currentAnimation = m_positions.at(m_currentState.m_CurrentAnimationIndex);
-   auto currentAnimationStep = glm::vec2(currentAnimation.x * deltaTime, currentAnimation.y * deltaTime);
-
-   if (!m_currentState.m_reverse)
-   {
-      auto nextStep = m_currentState.m_counter + currentAnimationStep;
-
-      if ((nextStep.x <= currentAnimation.x) && (nextStep.y <= currentAnimation.y))
-      {
-         m_currentState.m_counter += currentAnimationStep;
-      }
-      else if ((nextStep.x >= currentAnimation.x) && (nextStep.y >= currentAnimation.y))
-      {
-         m_currentState.m_counter = currentAnimation;
-
-         Move(m_currentState.m_counter, false);
-
-         ++m_currentState.m_CurrentAnimationIndex;
-         if (m_currentState.m_CurrentAnimationIndex == m_positions.size())
-         {
-            m_currentState.m_reverse = true;
-            --m_currentState.m_CurrentAnimationIndex;
-         }
-
-         m_currentState.m_counter = glm::vec2();
-      }
-   }
-   else // reverse
-   {
-      currentAnimation *= -1.0f;
-      currentAnimationStep *= -1.0f;
-
-      auto nextStep = m_currentState.m_counter + currentAnimationStep;
-
-      if ((nextStep.x >= currentAnimation.x) && (nextStep.y >= currentAnimation.y))
-      {
-         m_currentState.m_counter += currentAnimationStep;
-      }
-      else if ((nextStep.x <= currentAnimation.x) && (nextStep.y <= currentAnimation.y))
-      {
-         m_currentState.m_counter = currentAnimation;
-
-         Move(m_currentState.m_counter, false);
-
-         --m_currentState.m_CurrentAnimationIndex;
-         if (m_currentState.m_CurrentAnimationIndex == -1)
-         {
-            m_currentState.m_reverse = false;
-            ++m_currentState.m_CurrentAnimationIndex;
-         }
-
-         m_currentState.m_counter = glm::vec2();
-      }
-   }
-
-   Move(m_currentState.m_counter, false);
-}
-
-void
-Enemy::AddAnimationNode(const glm::vec2& animationNodeMapPosition)
-{
-}
-
-void
-Enemy::SetAnimationKEypoints(std::vector< glm::vec2 >&& keypoints)
-{
-   m_positions = keypoints;
-}
-
-std::vector< glm::vec2 >
-Enemy::GetAnimationKEypoints()
-{
-   return m_positions;
 }

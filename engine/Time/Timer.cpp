@@ -16,3 +16,8 @@ Timer::ToggleTimer()
    m_timeStamp = currentTimeStamp;
    m_totalTime += m_deltaTime;
 }
+
+Timer::milliseconds Timer::ConvertToMs(seconds sec)
+{
+   return std::chrono::duration_cast< Timer::milliseconds >(sec);
+}

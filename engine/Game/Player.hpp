@@ -107,9 +107,6 @@ class Player : public GameObject
    std::deque< State > m_statesQueue;
    State m_currentState;
 
-   // name of the player
-   std::string m_name;
-
    // array of player's weapons
    std::array< std::unique_ptr< Weapon >, 3 > m_weapons;
 

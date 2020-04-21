@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Animatable.hpp"
 #include "Common.hpp"
 #include "GameObject.hpp"
 #include "Timer.hpp"
@@ -11,11 +12,12 @@
 class Context;
 class Window;
 
-class Enemy : public GameObject
+class Enemy : public GameObject, public Animatable
 {
  public:
    Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& textureName,
-         const std::vector< glm::vec2 >& keypoints = {});
+         const std::list< AnimationPoint >& keypoints = {},
+         Animatable::ANIMATION_TYPE animationType = Animatable::ANIMATION_TYPE::REVERSABLE);
    ~Enemy() override = default;
 
    bool
@@ -36,22 +38,7 @@ class Enemy : public GameObject
    int32_t
    GetDmg() const;
 
-   void
-   Animate();
-
-   void
-   AddAnimationNode(const glm::vec2& pathNodeMapPosition);
-
-   void
-   SetAnimationKEypoints(std::vector< glm::vec2 >&& keypoints);
-
-   std::vector< glm::vec2 >
-   GetAnimationKEypoints();
-
  private:
-   void
-   UpdateInternal(bool isReverse) override;
-
    enum class ACTION
    {
       IDLE,
@@ -60,6 +47,25 @@ class Enemy : public GameObject
       RETURNING
    };
 
+ private:
+   void
+   UpdateInternal(bool isReverse) override;
+   void
+   Shoot();
+
+   void
+   ChasePlayer();
+
+   void
+   ReturnToInitialPosition();
+
+   void
+   ClearPositions();
+
+   void
+   SetTargetShootPosition(const glm::vec2& pos);
+
+ private:
    struct EnemyState
    {
       ACTION m_action = ACTION::IDLE;
@@ -80,14 +86,9 @@ class Enemy : public GameObject
       float m_movementSpeed = 500.0f;
       float m_visionRange = 0.0f;
 
-      uint8_t m_currentNodeIdx = 0;
-      uint8_t m_destinationNodeIdx = 0;
-
       bool m_combatStarted = false;
-      bool m_reverse = false;
 
-      int32_t m_CurrentAnimationIndex = 0;
-      glm::vec2 m_counter{0.0f, 0.0f};
+      int m_currentNodeIdx;
    };
 
    std::deque< EnemyState > m_statesQueue;
@@ -101,22 +102,4 @@ class Enemy : public GameObject
 
    // current weapon
    std::unique_ptr< Weapon > m_weapon;
-
-   // animation offsets/positions when IDLE
-   std::vector< glm::vec2 > m_positions;
-
-   void
-   Shoot();
-
-   void
-   ChasePlayer();
-
-   void
-   ReturnToInitialPosition();
-
-   void
-   ClearPositions();
-
-   void
-   SetTargetShootPosition(const glm::vec2& pos);
 };

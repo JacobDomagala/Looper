@@ -1,9 +1,11 @@
 #pragma once
 
 #include <nanogui/window.h>
+#include <functional>
 
 class Editor;
 class Level;
+class Section;
 
 class LevelWindow : public nanogui::Window
 {
@@ -18,6 +20,13 @@ class LevelWindow : public nanogui::Window
    LevelLoaded(Level* loadedLevel);
 
  private:
+   void
+   CreateGeneralSection();
+
+   void
+   CreateShaderSection();
+
+ private:
    nanogui::TextBox* m_width = nullptr;
    nanogui::TextBox* m_height = nullptr;
    nanogui::Button* m_textureButton = nullptr;
@@ -25,7 +34,13 @@ class LevelWindow : public nanogui::Window
    nanogui::CheckBox* m_wireframe = nullptr;
    nanogui::CheckBox* m_showCollision = nullptr;
 
+   Section* m_generalSection = nullptr;
+   Section* m_shaderSection = nullptr;
+
    Editor& m_parent;
-   Level* m_loadedLevel = nullptr;
+   
    bool m_created = false;
+   
+   Level* m_loadedLevel = nullptr;
+   std::function< void() > m_textureChangeCallback;
 };

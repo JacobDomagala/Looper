@@ -55,20 +55,13 @@ LevelWindow::LevelLoaded(Level* loadedLevel)
    else
    {
       const auto windowSize = m_parent.GetWindowSize();
+
       mPos = nanogui::Vector2i(0, windowSize.y / 2);
       mLayout = new nanogui::GroupLayout();
+      setFixedSize(nanogui::Vector2i(250, 400));
 
-      const auto objectSize = m_loadedLevel->GetSize();
-
-      GuiBuilder::CreateLabel(this, "Width");
-      m_width = GuiBuilder::CreateTextBox(this, std::to_string(objectSize.x));
-
-      GuiBuilder::CreateLabel(this, "Height");
-      m_height = GuiBuilder::CreateTextBox(this, std::to_string(objectSize.y));
-
-      const auto textureName = m_loadedLevel->GetSprite().GetTextureName();
-      GuiBuilder::CreateLabel(this, "Texture");
-      m_textureButton = GuiBuilder::CreateButton(this, textureName, textureButtonLambda);
+      CreateGeneralSection();
+      CreateShaderSection();
 
       GuiBuilder::CreateLabel(this, "");
       GuiBuilder::CreateCheckBox(
@@ -76,4 +69,38 @@ LevelWindow::LevelLoaded(Level* loadedLevel)
 
       m_created = true;
    }
+}
+
+void
+LevelWindow::CreateGeneralSection()
+{
+   const auto objectSize = glm::ivec2(m_loadedLevel->GetSize());
+
+   m_generalSection = GuiBuilder::CreateSection(this, "General");
+
+   auto layout = GuiBuilder::CreateLayout(this, GuiBuilder::LayoutType::GRID);
+
+   m_generalSection->AddWidget(GuiBuilder::CreateLabel(layout, "Width"));
+
+   m_width = GuiBuilder::CreateTextBox(layout, std::to_string(objectSize.x));
+   m_generalSection->AddWidget(m_width);
+
+   m_generalSection->AddWidget(GuiBuilder::CreateLabel(layout, "Height"));
+
+   m_height = GuiBuilder::CreateTextBox(layout, std::to_string(objectSize.y));
+   m_generalSection->AddWidget(m_height);
+}
+
+void
+LevelWindow::CreateShaderSection()
+{
+   m_shaderSection = GuiBuilder::CreateSection(this, "Shader");
+
+   auto layout = GuiBuilder::CreateLayout(this, GuiBuilder::LayoutType::GRID);
+
+   const auto textureName = m_loadedLevel->GetSprite().GetTextureName();
+   m_shaderSection->AddWidget(GuiBuilder::CreateLabel(layout, "Texture"));
+   m_textureButton = GuiBuilder::CreateButton(layout, textureName, m_textureChangeCallback);
+
+   m_shaderSection->AddWidget(m_textureButton);
 }
