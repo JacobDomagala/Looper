@@ -49,7 +49,11 @@ class GuiBuilder
 
    static nanogui::Button*
    CreateButton(nanogui::Widget* parent, const std::string& caption, const std::function< void() >& callback, int icon = 0,
-                bool enabled = true);
+                int fixedWidth = 0, bool enabled = true);
+
+   static nanogui::Button*
+   CreateRadioButton(nanogui::Widget* parent, const std::string& caption, const std::function< void() >& callback, int icon = 0,
+                     int fixedWidth = 0, bool enabled = true);
 
    static nanogui::TextBox*
    CreateTextBox(

@@ -90,11 +90,22 @@ GuiBuilder::CreateTitleLabel(nanogui::Widget* parent, const std::string& caption
 
 nanogui::Button*
 GuiBuilder::CreateButton(nanogui::Widget* parent, const std::string& caption, const std::function< void() >& callback, int icon,
-                         bool enabled)
+                         int fixedWidth, bool enabled)
 {
    auto button = new nanogui::Button(parent, caption, icon);
    button->setCallback(callback);
    button->setEnabled(enabled);
+   button->setFixedWidth(fixedWidth);
+
+   return button;
+}
+
+nanogui::Button*
+GuiBuilder::CreateRadioButton(nanogui::Widget* parent, const std::string& caption, const std::function< void() >& callback, int icon,
+                              int fixedWidth, bool enabled)
+{
+   auto button = GuiBuilder::CreateButton(parent, caption, callback, icon, fixedWidth, enabled);
+   button->setFlags(nanogui::Button::RadioButton);
 
    return button;
 }
@@ -146,7 +157,6 @@ GuiBuilder::CreateFloatingPointBox(nanogui::Widget* parent, float value, std::pa
    textBox->setEditable(editable);
    textBox->setFixedSize(nanogui::Vector2i(size.x, size.y));
 
-   
 
    textBox->setValue(CustomFloatToStr(value));
    textBox->setFontSize(16);

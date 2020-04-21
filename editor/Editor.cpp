@@ -127,6 +127,7 @@ Editor::HandleInput()
          if (m_currentSelectedObject)
          {
             m_currentSelectedObject->SetObjectUnselected();
+            m_currentSelectedObject.reset();
          }
 
          m_objectSelected = false;
@@ -413,7 +414,7 @@ Editor::ShowWireframe(bool wireframeEnabled)
 void
 Editor::Update()
 {
-   if (m_animateObject)
+   if (m_animateObject && m_currentSelectedObject)
    {
       m_currentSelectedObject->Update(false);
    }

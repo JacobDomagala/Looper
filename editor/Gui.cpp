@@ -113,7 +113,7 @@ nanogui::Widget*
 Gui::CreatePlayButton(nanogui::Widget* parent)
 {
    auto playLevelButton = GuiBuilder::CreateButton(
-      parent, "Play Level", [&] { m_parent.PlayLevel(); }, ENTYPO_ICON_ARROW_BOLD_RIGHT, false);
+      parent, "Play Level", [&] { m_parent.PlayLevel(); }, ENTYPO_ICON_ARROW_BOLD_RIGHT, 0, false);
 
    playLevelButton->setBackgroundColor(nanogui::Color(0.4f, 0.1f, 0.1f, 0.5));
    playLevelButton->setIconPosition(nanogui::Button::IconPosition::RightCentered);

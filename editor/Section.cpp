@@ -7,7 +7,7 @@ Section::Section(nanogui::Widget* parent, const std::string& name, bool activeBy
 {
    m_sectionActive = activeByDefault;
    setActive(m_sectionActive);
-   setBackgroundColor(nanogui::Color(0.1f, 0.1f, 0.15f, 0.8f));
+   setBackgroundColor(nanogui::Color(0, 0, 255, 25));
 
    auto updateWidgets = [&](bool active) {
 

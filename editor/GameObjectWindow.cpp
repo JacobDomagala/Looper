@@ -326,8 +326,18 @@ GameObjectWindow::CreateAnimationSection()
    bool active = m_currentlySelectedObject->GetType() != GameObject::TYPE::PLAYER;
    m_animationSection = GuiBuilder::CreateSection(this, "Animation", active);
 
+   auto animationTypeLayout =
+      GuiBuilder::CreateLayout(this, GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal, 3, nanogui::Alignment::Middle, 15, 10);
+
+   m_animationSection->AddWidget(GuiBuilder::CreateLabel(animationTypeLayout, "Type"));
+   m_animationSection->AddWidget(GuiBuilder::CreateRadioButton(
+      animationTypeLayout, "LOOP", []() {}, 0, mFixedSize.x() / 3));
+   m_animationSection->AddWidget(GuiBuilder::CreateRadioButton(
+      animationTypeLayout, "REVERSE", []() {}, 0, mFixedSize.x() / 3));
+
    m_showAnimationSteps = GuiBuilder::CreateCheckBox(
-      this, [&](bool) {}, "Show animation steps");
+      GuiBuilder::CreateLayout(this, GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal, 1, nanogui::Alignment::Middle, 5, 20),
+      [&](bool) {}, "Animation steps visible");
    m_animationSection->AddWidget(m_showAnimationSteps);
 
    m_animationSection->AddWidget(GuiBuilder::CreateLabel(
@@ -343,12 +353,16 @@ GameObjectWindow::CreateAnimationSection()
 
    CreateAnimationSteps();
 
+   auto animateLayout =
+      GuiBuilder::CreateLayout(this, GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal, 2, nanogui::Alignment::Middle);
+
+   m_animateButton = GuiBuilder::CreateButton(
+      animateLayout, "Animate", []() {}, 0, mFixedSize.x() / 3);
+
    m_animationTimeSlider = GuiBuilder::CreateSlider(
-      GuiBuilder::CreateLayout(this, GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal, 1, nanogui::Alignment::Maximum),
-      [&](float value) { m_parent.AnimateObject(value); }, {0.0f, 5.0f}, mFixedSize.x());
+      animateLayout, [&](float value) { m_parent.AnimateObject(value); }, {0.0f, 5.0f}, 0.0f, mFixedSize.x() / 2);
 
-   m_animateButton = GuiBuilder::CreateButton(this, "Animate", []() {});
-
+   m_animationSection->AddWidget(animateLayout);
    m_animationSection->AddWidget(m_animationTimeSlider);
    m_animationSection->AddWidget(m_animateButton);
 }
@@ -373,18 +387,6 @@ GameObjectWindow::ClearAnimationSteps()
       m_animationSection->RemoveWidget(rotation);
       m_animationSection->RemoveWidget(time);
    }
-
-   if (m_animationTimeSlider)
-   {
-      m_animationSection->RemoveWidget(m_animationTimeSlider);
-
-      auto layout = m_animationTimeSlider->parent();
-      layout->removeChild(m_animationTimeSlider);
-      layout->parent()->removeChild(layout);
-
-      m_animationTimeSlider = nullptr;
-   }
-
 
    m_animationSteps.clear();
 }
@@ -426,12 +428,5 @@ GameObjectWindow::CreateAnimationSteps()
       {
          m_animationTimeSlider->setRange({0.0f, animatablePtr->GetAnimationDuration().count()});
       }
-
-
-      // m_animationTimeSlider = GuiBuilder::CreateSlider(
-      //   GuiBuilder::CreateLayout(this, GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal, 1, nanogui::Alignment::Maximum),
-      //   [](float val) {}, , 0.0f);
-
-      // m_animationSection->AddWidget(m_animationTimeSlider);
    }
 }
