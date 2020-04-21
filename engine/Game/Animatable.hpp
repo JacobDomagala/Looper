@@ -27,9 +27,9 @@ class Animatable
  public:
    Animatable(ANIMATION_TYPE type);
    
-   void SetType(ANIMATION_TYPE);
+   void SetAnimationType(ANIMATION_TYPE);
    
-   ANIMATION_TYPE GetType();
+   ANIMATION_TYPE GetAnimationType();
 
    glm::vec2
    Animate(Timer::milliseconds updateTime);

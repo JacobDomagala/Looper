@@ -9,13 +9,13 @@ Animatable::Animatable(ANIMATION_TYPE type)
 }
 
 void
-Animatable::SetType(ANIMATION_TYPE type)
+Animatable::SetAnimationType(ANIMATION_TYPE type)
 {
    m_type = type;
 }
 
 Animatable::ANIMATION_TYPE
-Animatable::GetType()
+Animatable::GetAnimationType()
 {
    return m_type;
 }
@@ -44,10 +44,6 @@ Animatable::Animate(Timer::milliseconds updateTime)
       }
       else
       {
-         //m_currentAnimationState.m_currentAnimationPosition = currentDestination;
-
-         //animationValue = m_currentAnimationState.m_currentAnimationPosition;
-
          ++m_currentAnimationState.m_currentAnimationPoint;
 
          if (m_currentAnimationState.m_currentAnimationPoint == m_animationPoints.end())
@@ -82,10 +78,6 @@ Animatable::Animate(Timer::milliseconds updateTime)
       }
       else
       {
-         //m_currentAnimationState.m_currentAnimationPosition = currentDestination;
-
-        // animationValue = m_currentAnimationState.m_currentAnimationPosition;
-
          if (m_currentAnimationState.m_currentAnimationPoint == m_animationPoints.begin())
          {
             m_currentAnimationState.m_isReverse = false;
@@ -97,7 +89,7 @@ Animatable::Animate(Timer::milliseconds updateTime)
          }
 
          m_currentAnimationState.m_currentAnimationPosition = glm::vec2();
-         m_currentAnimationState.m_currentAnimationStep = 0;  
+         m_currentAnimationState.m_currentAnimationStep = 0;
       }
    }
 

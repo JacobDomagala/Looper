@@ -24,11 +24,7 @@ GameObjectWindow::Update()
       UpdateGeneralSection();
       UpdateTransformSection();
       UpdateShaderSection();
-
-      if (m_currentlySelectedObject->GetType() != GameObject::TYPE::PLAYER)
-      {
-         UpdateAnimationSection();
-      }
+      UpdateAnimationSection();
    }
 }
 
@@ -72,6 +68,16 @@ GameObjectWindow::GameObjectSelected(std::shared_ptr< GameObject > selectedGameO
       m_scaleUniformSlider->setValue(m_currentlySelectedObject->GetSprite().GetScale().x);
 
       m_animationSection->setActive(m_currentlySelectedObject->GetType() != GameObject::TYPE::PLAYER);
+
+      const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentlySelectedObject);
+
+      if (animatablePtr)
+      {
+         const auto type = animatablePtr->GetAnimationType();
+
+         m_loopAnimationButton->setPushed(type == Animatable::ANIMATION_TYPE::LOOP);
+         m_reversalAnimationButton->setPushed(type == Animatable::ANIMATION_TYPE::REVERSABLE);
+      }
 
       ClearAnimationSteps();
       CreateAnimationSteps();
@@ -330,10 +336,34 @@ GameObjectWindow::CreateAnimationSection()
       GuiBuilder::CreateLayout(this, GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal, 3, nanogui::Alignment::Middle, 15, 10);
 
    m_animationSection->AddWidget(GuiBuilder::CreateLabel(animationTypeLayout, "Type"));
-   m_animationSection->AddWidget(GuiBuilder::CreateRadioButton(
-      animationTypeLayout, "LOOP", []() {}, 0, mFixedSize.x() / 3));
-   m_animationSection->AddWidget(GuiBuilder::CreateRadioButton(
-      animationTypeLayout, "REVERSE", []() {}, 0, mFixedSize.x() / 3));
+
+   const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentlySelectedObject);
+
+   m_loopAnimationButton = GuiBuilder::CreateRadioButton(
+      animationTypeLayout, "LOOP",
+      [&]() {
+         const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentlySelectedObject);
+         animatablePtr->SetAnimationType(Animatable::ANIMATION_TYPE::LOOP);
+      },
+      0, mFixedSize.x() / 3);
+  
+   m_reversalAnimationButton = GuiBuilder::CreateRadioButton(
+      animationTypeLayout, "REVERSE",
+      [&]() {
+         const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentlySelectedObject);
+         animatablePtr->SetAnimationType(Animatable::ANIMATION_TYPE::REVERSABLE);
+      },
+      0, mFixedSize.x() / 3);
+
+   if (animatablePtr)
+   {
+      const auto type = animatablePtr->GetAnimationType();
+
+      type == Animatable::ANIMATION_TYPE::LOOP ? m_loopAnimationButton->setPushed(true) : m_reversalAnimationButton->setPushed(true);
+   }
+
+   m_animationSection->AddWidget(m_loopAnimationButton);
+   m_animationSection->AddWidget(m_reversalAnimationButton);
 
    m_showAnimationSteps = GuiBuilder::CreateCheckBox(
       GuiBuilder::CreateLayout(this, GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal, 1, nanogui::Alignment::Middle, 5, 20),

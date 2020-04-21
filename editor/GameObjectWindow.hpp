@@ -86,6 +86,8 @@ class GameObjectWindow : public nanogui::Window
 
    // ANIMATE SECTION
    Section* m_animationSection = nullptr;
+   nanogui::Button* m_loopAnimationButton = nullptr;
+   nanogui::Button* m_reversalAnimationButton = nullptr;
    nanogui::CheckBox* m_showAnimationSteps = nullptr;
    nanogui::Widget* m_animationStepsLayout = nullptr;
    std::vector< std::tuple< nanogui::TextBox*, nanogui::TextBox*, nanogui::TextBox*, nanogui::TextBox* > > m_animationSteps;
