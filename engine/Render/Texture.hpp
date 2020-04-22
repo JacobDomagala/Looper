@@ -12,7 +12,7 @@ class Texture
 {
  public:
    Texture() = default;
-   ~Texture() = default;
+   ~Texture();
 
    // DEBUG: number of glBindTexture calls
    static inline int32_t m_boundCount = 0;

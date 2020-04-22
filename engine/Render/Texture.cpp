@@ -3,6 +3,11 @@
 #include <Texture.hpp>
 #include <Window.hpp>
 
+Texture::~Texture()
+{
+   glDeleteTextures(1, &m_textureID);
+}
+
 void
 Texture::CreateColorTexture(const glm::ivec2& size, const glm::vec3& color)
 {
