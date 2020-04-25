@@ -111,7 +111,6 @@ GameObjectWindow::GameObjectUnselected()
 void
 GameObjectWindow::AnimationPointSelected(int ID)
 {
-
 }
 
 void
@@ -417,6 +416,7 @@ GameObjectWindow::CreateAnimationSection()
 void
 GameObjectWindow::UpdateAnimationSection()
 {
+
 }
 
 void

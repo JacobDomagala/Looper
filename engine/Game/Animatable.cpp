@@ -121,12 +121,12 @@ Animatable::UpdateAnimationNode(std::shared_ptr< AnimationPoint > updatedAnimati
 }
 
 void
-Animatable::SetAnimationKeypoints(AnimationPoint::list&& keypoints)
+Animatable::SetAnimationKeypoints(AnimationPoint::vector&& keypoints)
 {
    m_animationPoints = keypoints;
 }
 
-AnimationPoint::list
+AnimationPoint::vector
 Animatable::GetAnimationKeypoints()
 {
    return m_animationPoints;

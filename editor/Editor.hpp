@@ -6,9 +6,9 @@
 #include "Gui.hpp"
 #include "Level.hpp"
 #include "Logger.hpp"
+#include "Object.hpp"
 #include "Player.hpp"
 #include "Timer.hpp"
-#include "Object.hpp"
 
 #include <glm/matrix.hpp>
 #include <nanogui/screen.h>
@@ -114,7 +114,13 @@ class Editor : public nanogui::Screen, public Context
    CheckIfObjectGotSelected(const glm::vec2& cursorPosition);
 
    void
-   HandleObjectSelected(std::shared_ptr< GameObject > newSelectedObject);
+   HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameObject);
+
+   void
+   HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedObject);
+
+   void
+   UnselectEditorObject();
 
    void
    ShowCursor(bool choice);
@@ -143,16 +149,20 @@ class Editor : public nanogui::Screen, public Context
    float m_maxZoomIn = 1.5f;
    float m_maxZoomOut = -1.5f;
 
-   bool m_animateObject = false;
-   bool m_movementOnObject = false;
-   bool m_objectSelected = false;
-   std::shared_ptr< GameObject > m_currentSelectedObject;
+   // Handling game objects (which are visible in game)
+   bool m_animateGameObject = false;
+   bool m_movementOnGameObject = false;
+   bool m_gameObjectSelected = false;
+   std::shared_ptr< GameObject > m_currentSelectedGameObject;
 
+   // Handling of editor objects (drawable objects linked to object in game)
+   bool m_movementOnEditorObject = false;
    bool m_editorObjectSelected = false;
-   std::vector< EditorObject > m_editorObjects;
-   std::vector< EditorObject >::iterator m_currentEditorObjectSelected = m_editorObjects.end(); 
+   std::vector< std::shared_ptr< EditorObject > > m_editorObjects;
+   std::shared_ptr< EditorObject > m_currentEditorObjectSelected;
 
-   std::list< std::shared_ptr<::Object> > m_objects;
+   // Represents all objects located in game, such as Gameobjects, light sources, particle emiters etc.
+   std::vector< std::shared_ptr<::Object > > m_objects;
 
    std::map< uint8_t, bool > m_keyMap;
    Gui m_gui;
