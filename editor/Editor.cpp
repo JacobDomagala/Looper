@@ -187,7 +187,16 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
       {
          // Editor objects selected have higher priority of movement
          // for example when animation point is selected and its placed on top of game object)
-         m_movementOnEditorObject ? m_currentEditorObjectSelected->Rotate(-angle, true) : m_currentSelectedGameObject->Rotate(-angle, true);
+         if (m_movementOnEditorObject)
+         {
+            m_currentEditorObjectSelected->Rotate(-angle, true);
+            m_gui.ObjectUpdated(m_currentEditorObjectSelected->GetLinkedObject()->GetID());
+         }
+         else
+         {
+            m_currentSelectedGameObject->Rotate(-angle, true);
+            m_gui.ObjectUpdated(m_currentSelectedGameObject->GetID());
+         }
       }
       else
       {
@@ -210,8 +219,16 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
       {
          // Editor objects selected have higher priority of movement
          // for example when animation point is selected and its placed on top of game object)
-         m_movementOnEditorObject ? m_currentEditorObjectSelected->Move(m_camera.ConvertToCameraVector(-moveBy), false)
-                                  : m_currentSelectedGameObject->Move(m_camera.ConvertToCameraVector(-moveBy), false);
+         if (m_movementOnEditorObject)
+         {
+            m_currentEditorObjectSelected->Move(m_camera.ConvertToCameraVector(-moveBy), false);
+            m_gui.ObjectUpdated(m_currentEditorObjectSelected->GetLinkedObject()->GetID());
+         }
+         else
+         {
+            m_currentSelectedGameObject->Move(m_camera.ConvertToCameraVector(-moveBy), false);
+            m_gui.ObjectUpdated(m_currentSelectedGameObject->GetID());
+         }
       }
       else
       {
@@ -278,8 +295,7 @@ Editor::HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedEd
 {
    if (m_editorObjectSelected && (newSelectedEditorObject != m_currentEditorObjectSelected))
    {
-      // Handle currently selected object
-      m_currentEditorObjectSelected->Scale({1.0f, 1.0f});
+      UnselectEditorObject();
    }
 
    m_currentEditorObjectSelected = newSelectedEditorObject;
@@ -332,7 +348,7 @@ Editor::mouseButtonEvent(const nanogui::Vector2i& position, int button, bool dow
          // Object movement finished
          ShowCursor(true);
 
-         if (m_movementOnEditorObject || m_movementOnGameObject)
+         if (m_mouseDrag &&( m_movementOnEditorObject || m_movementOnGameObject))
          {
             if (m_movementOnEditorObject)
             {
@@ -348,6 +364,7 @@ Editor::mouseButtonEvent(const nanogui::Vector2i& position, int button, bool dow
 
          m_movementOnEditorObject = false;
          m_movementOnGameObject = false;
+         m_mouseDrag = false;
       }
    }
 

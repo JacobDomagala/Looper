@@ -169,6 +169,12 @@ EditorObject::GetName() const
    return m_name;
 }
 
+std::shared_ptr< Object >
+EditorObject::GetLinkedObject()
+{
+   return m_linkedObject;
+}
+
 void
 EditorObject::Move(const glm::vec2& moveBy, bool isCameraMovement)
 {

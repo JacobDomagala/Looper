@@ -85,6 +85,8 @@ class EditorObject
    std::string
    GetName() const;
 
+   std::shared_ptr< Object >
+   GetLinkedObject();
 
    // Create sprite with default texture
    void

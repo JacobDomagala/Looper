@@ -3,6 +3,7 @@
 #include "Enemy.hpp"
 #include "GameObject.hpp"
 #include "GuiBuilder.hpp"
+
 #include "Utils.hpp"
 
 #include <fstream>
@@ -17,21 +18,59 @@ GameObjectWindow::GameObjectWindow(Editor& editor) : nanogui::Window(&editor, "S
 }
 
 void
+GameObjectWindow::ObjectUpdated(int ID)
+{
+   auto object = std::find_if(m_objects.begin(), m_objects.end(), [ID](auto& object) { return object->GetID() == ID; });
+
+   if (object != m_objects.end())
+   {
+      switch ((*object)->GetType())
+      {
+         case ::Object::TYPE::PLAYER:
+         case ::Object::TYPE::ENEMY: {
+            UpdateGeneralSection();
+            UpdateTransformSection();
+            UpdateShaderSection();
+         }
+         break;
+
+         case ::Object::TYPE::ANIMATION_POINT: {
+            auto point = std::find_if(m_animationSteps.begin(), m_animationSteps.end(), [ID](auto& point) { return point.id == ID; });
+
+            if (point != m_animationSteps.end())
+            {
+               auto animatioinPoint = std::dynamic_pointer_cast< ::AnimationPoint >(*object);
+
+               point->m_xPos->setValue(CustomFloatToStr(animatioinPoint->m_destination.x));
+               point->m_yPos->setValue(CustomFloatToStr(animatioinPoint->m_destination.y));
+               point->m_rotation->setValue(CustomFloatToStr(0.0f));
+               point->m_time->setValue(CustomFloatToStr(animatioinPoint->m_timeDuration.count()));
+            }
+         }
+         break;
+
+         default: {
+         }
+      }
+   }
+}
+
+void
 GameObjectWindow::Update()
 {
-   if (mVisible)
-   {
-      UpdateGeneralSection();
-      UpdateTransformSection();
-      UpdateShaderSection();
-      UpdateAnimationSection();
-   }
+   UpdateAnimationSection();
 }
 
 void
 GameObjectWindow::GameObjectSelected(std::shared_ptr< GameObject > selectedGameObject)
 {
    m_currentlySelectedObject = selectedGameObject;
+
+   if (m_objects.end() == std::find(m_objects.begin(), m_objects.end(), std::dynamic_pointer_cast<::Object >(selectedGameObject)))
+   {
+      m_objects.push_back(std::dynamic_pointer_cast<::Object >(selectedGameObject));
+   }
+
    const auto windowSize = m_parent.GetWindowSize();
    const auto frameBuffersize = m_parent.GetFrameBufferwSize();
 
@@ -87,6 +126,13 @@ GameObjectWindow::GameObjectSelected(std::shared_ptr< GameObject > selectedGameO
    else
    {
       mLayout = new nanogui::GroupLayout();
+
+      /* m_selectedTheme = new nanogui::Theme(m_parent.nvgContext());
+       m_unSelectedTheme = new nanogui::Theme(m_parent.nvgContext());
+
+       m_selectedTheme->mTextColor = {255, 0, 0, 255};
+       m_unSelectedTheme->mTextColor = {255, 255, 255, 255};*/
+
       setFixedSize(nanogui::Vector2i(300, frameBuffersize.y));
 
       CreateGeneralSection();
@@ -111,11 +157,45 @@ GameObjectWindow::GameObjectUnselected()
 void
 GameObjectWindow::AnimationPointSelected(int ID)
 {
+   /*if (m_currentlySelectedObject)
+   {
+      const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentlySelectedObject);
+
+      if (animatablePtr)
+      {
+         auto it = std::find_if(m_animationSteps.begin(), m_animationSteps.end(), [ID](auto& point) { return point.id == ID; });
+
+         if (it != m_animationSteps.end())
+         {
+            it->m_xPos->setTheme(m_selectedTheme);
+            it->m_yPos->setTheme(m_selectedTheme);
+            it->m_rotation->setTheme(m_selectedTheme);
+            it->m_time->setTheme(m_selectedTheme);
+         }
+      }
+   }*/
 }
 
 void
-GameObjectWindow::AnimationPointUnselected()
+GameObjectWindow::AnimationPointUnselected(int ID)
 {
+   // if (m_currentlySelectedObject)
+   //{
+   //   const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentlySelectedObject);
+
+   //   if (animatablePtr)
+   //   {
+   //      auto it = std::find_if(m_animationSteps.begin(), m_animationSteps.end(), [ID](auto& point) { return point.id == ID; });
+
+   //      if (it != m_animationSteps.end())
+   //      {
+   //         it->m_xPos->setTheme(m_unSelectedTheme);
+   //         it->m_yPos->setTheme(m_unSelectedTheme);
+   //         it->m_rotation->setTheme(m_unSelectedTheme);
+   //         it->m_time->setTheme(m_unSelectedTheme);
+   //      }
+   //   }
+   //}
 }
 
 void
@@ -416,7 +496,6 @@ GameObjectWindow::CreateAnimationSection()
 void
 GameObjectWindow::UpdateAnimationSection()
 {
-
 }
 
 void
@@ -433,6 +512,9 @@ GameObjectWindow::ClearAnimationSteps()
       m_animationSection->RemoveWidget(animationPoint.m_yPos);
       m_animationSection->RemoveWidget(animationPoint.m_rotation);
       m_animationSection->RemoveWidget(animationPoint.m_time);
+
+      m_objects.erase(
+         std::find_if(m_objects.begin(), m_objects.end(), [animationPoint](auto& object) { return object->GetID() == animationPoint.id; }));
    }
 
    m_animationSteps.clear();
@@ -469,6 +551,11 @@ GameObjectWindow::CreateAnimationSteps()
          m_animationSection->AddWidget(yValue);
          m_animationSection->AddWidget(rotation);
          m_animationSection->AddWidget(time);
+
+         if (m_objects.end() == std::find(m_objects.begin(), m_objects.end(), point))
+         {
+            m_objects.push_back(point);
+         }
       }
 
       if (m_animationTimeSlider)

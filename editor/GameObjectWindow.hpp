@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Object.hpp"
+
 #include <functional>
 #include <nanogui/window.h>
 
@@ -40,7 +42,10 @@ class GameObjectWindow : public nanogui::Window
    AnimationPointSelected(int id);
 
    void
-   AnimationPointUnselected();
+   AnimationPointUnselected(int id);
+
+   void
+   ObjectUpdated(int ID);
 
  private:
    void
@@ -74,6 +79,8 @@ class GameObjectWindow : public nanogui::Window
    CreateAnimationSteps();
 
  private:
+   Editor& m_parent;
+
    // GENERAL SECTION
    Section* m_generalSection = nullptr;
    nanogui::TextBox* m_width = nullptr;
@@ -111,10 +118,9 @@ class GameObjectWindow : public nanogui::Window
    nanogui::Button* m_animateButton = nullptr;
    nanogui::Slider* m_animationTimeSlider = nullptr;
 
-   Editor& m_parent;
-
    bool m_created = false;
 
+   std::vector< std::shared_ptr< ::Object > > m_objects;
    std::shared_ptr< GameObject > m_currentlySelectedObject;
 
    std::function< void() > m_textureChangeCallback;

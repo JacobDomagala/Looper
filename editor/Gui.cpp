@@ -139,15 +139,15 @@ Gui::GameObjectUnselected()
 }
 
 void
-Gui::AnimationPointSelected(int id)
+Gui::EditorObjectSelected(int id)
 {
    m_currentGameObjectWindow->AnimationPointSelected(id);
 }
 
 void
-Gui::AnimationPointUnselected()
+Gui::EditorObjectUnselected(int id)
 {
-   m_currentGameObjectWindow->AnimationPointUnselected();
+   m_currentGameObjectWindow->AnimationPointUnselected(id);
 }
 
 void
@@ -172,4 +172,10 @@ Gui::LevelLoaded(Level* levelLoaded)
    }
 
    m_levelWindow->LevelLoaded(levelLoaded);
+}
+
+void
+Gui::ObjectUpdated(int ID)
+{
+   m_currentGameObjectWindow->ObjectUpdated(ID);
 }
