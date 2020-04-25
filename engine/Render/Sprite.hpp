@@ -23,6 +23,7 @@ class Sprite
  public:
    Sprite() = default;
    ~Sprite() = default;
+   Sprite(Sprite&&) = default;
 
    // Create sprite without texture
    void

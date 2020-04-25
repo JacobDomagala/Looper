@@ -8,12 +8,14 @@
     "name": "DefaultShader"
   },
   "PLAYER": {
+    "name": "Player",
     "position": [1000, 1000],
     "size": [128, 128],
     "texture": "Level1_Char.png",
     "weapons": ["Glock"]
   },
   "ENEMIES": [{
+    "name": "Enemy1",
     "position": [2800, 2600],
     "size": [128, 128],
     "texture": "Default128.png",
@@ -21,6 +23,7 @@
     "animate positions": [[-50,0], [20,30], [-20,50], [100,70]]
   },
   {
+    "name": "Enemy2",
     "position": [1600, 1600],
     "size": [128, 128],
     "texture": "Default128.png",

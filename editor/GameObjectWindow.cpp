@@ -77,6 +77,8 @@ GameObjectWindow::GameObjectSelected(std::shared_ptr< GameObject > selectedGameO
 
          m_loopAnimationButton->setPushed(type == Animatable::ANIMATION_TYPE::LOOP);
          m_reversalAnimationButton->setPushed(type == Animatable::ANIMATION_TYPE::REVERSABLE);
+         m_showAnimationSteps->setChecked(animatablePtr->GetRenderAnimationSteps());
+         m_lockAnimationSteps->setChecked(animatablePtr->GetLockAnimationSteps());
       }
 
       ClearAnimationSteps();
@@ -106,6 +108,16 @@ GameObjectWindow::GameObjectUnselected()
    mVisible = false;
 }
 
+void
+GameObjectWindow::AnimationPointSelected(int ID)
+{
+
+}
+
+void
+GameObjectWindow::AnimationPointUnselected()
+{
+}
 
 void
 GameObjectWindow::CreateGeneralSection()
@@ -346,7 +358,7 @@ GameObjectWindow::CreateAnimationSection()
          animatablePtr->SetAnimationType(Animatable::ANIMATION_TYPE::LOOP);
       },
       0, mFixedSize.x() / 3);
-  
+
    m_reversalAnimationButton = GuiBuilder::CreateRadioButton(
       animationTypeLayout, "REVERSE",
       [&]() {
@@ -367,8 +379,13 @@ GameObjectWindow::CreateAnimationSection()
 
    m_showAnimationSteps = GuiBuilder::CreateCheckBox(
       GuiBuilder::CreateLayout(this, GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal, 1, nanogui::Alignment::Middle, 5, 20),
-      [&](bool) {}, "Animation steps visible");
+      [&](bool choice) { m_parent.SetRenderAnimationPoints(choice); }, "Animation steps visible");
    m_animationSection->AddWidget(m_showAnimationSteps);
+
+   m_lockAnimationSteps = GuiBuilder::CreateCheckBox(
+      GuiBuilder::CreateLayout(this, GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal, 1, nanogui::Alignment::Middle, 5, 20),
+      [&](bool choice) { m_parent.SetLockAnimationPoints(choice); }, "Lock animation steps");
+   m_animationSection->AddWidget(m_lockAnimationSteps);
 
    m_animationSection->AddWidget(GuiBuilder::CreateLabel(
       GuiBuilder::CreateLayout(this, GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal, 1, nanogui::Alignment::Middle, 5, 20),
@@ -405,17 +422,17 @@ GameObjectWindow::UpdateAnimationSection()
 void
 GameObjectWindow::ClearAnimationSteps()
 {
-   for (auto& [X, Y, rotation, time] : m_animationSteps)
+   for (auto& animationPoint : m_animationSteps)
    {
-      m_animationStepsLayout->removeChild(X);
-      m_animationStepsLayout->removeChild(Y);
-      m_animationStepsLayout->removeChild(rotation);
-      m_animationStepsLayout->removeChild(time);
+      m_animationStepsLayout->removeChild(animationPoint.m_xPos);
+      m_animationStepsLayout->removeChild(animationPoint.m_yPos);
+      m_animationStepsLayout->removeChild(animationPoint.m_rotation);
+      m_animationStepsLayout->removeChild(animationPoint.m_time);
 
-      m_animationSection->RemoveWidget(X);
-      m_animationSection->RemoveWidget(Y);
-      m_animationSection->RemoveWidget(rotation);
-      m_animationSection->RemoveWidget(time);
+      m_animationSection->RemoveWidget(animationPoint.m_xPos);
+      m_animationSection->RemoveWidget(animationPoint.m_yPos);
+      m_animationSection->RemoveWidget(animationPoint.m_rotation);
+      m_animationSection->RemoveWidget(animationPoint.m_time);
    }
 
    m_animationSteps.clear();
@@ -434,19 +451,19 @@ GameObjectWindow::CreateAnimationSteps()
 
       for (auto& point : animationSteps)
       {
-         auto xValue = GuiBuilder::CreateFloatingPointBox(m_animationStepsLayout, point.m_destination.x, animationStepRange,
+         auto xValue = GuiBuilder::CreateFloatingPointBox(m_animationStepsLayout, point->m_destination.x, animationStepRange,
                                                           [&](const std::string& val) { return true; }, {fixtedWidth, 0});
 
-         auto yValue = GuiBuilder::CreateFloatingPointBox(m_animationStepsLayout, point.m_destination.y, animationStepRange,
+         auto yValue = GuiBuilder::CreateFloatingPointBox(m_animationStepsLayout, point->m_destination.y, animationStepRange,
                                                           [&](const std::string& val) { return true; }, {fixtedWidth, 0});
 
          auto rotation = GuiBuilder::CreateFloatingPointBox(m_animationStepsLayout, 0.0f, animationStepRange,
                                                             [&](const std::string& val) { return true; }, {fixtedWidth, 0});
 
-         auto time = GuiBuilder::CreateFloatingPointBox(m_animationStepsLayout, point.m_timeDuration.count(), animationStepRange,
+         auto time = GuiBuilder::CreateFloatingPointBox(m_animationStepsLayout, point->m_timeDuration.count(), animationStepRange,
                                                         [&](const std::string& val) { return true; }, {fixtedWidth, 0});
 
-         m_animationSteps.push_back(std::make_tuple(xValue, yValue, rotation, time));
+         m_animationSteps.push_back({point->GetID(), xValue, yValue, rotation, time});
 
          m_animationSection->AddWidget(xValue);
          m_animationSection->AddWidget(yValue);

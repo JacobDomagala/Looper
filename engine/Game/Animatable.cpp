@@ -25,10 +25,11 @@ Animatable::Animate(Timer::milliseconds updateTime)
 {
    auto animationValue = glm::vec2();
 
-   const auto animationDurationMs = Timer::ConvertToMs(m_currentAnimationState.m_currentAnimationPoint->m_timeDuration);
+   const auto currentAnimationPoint = *m_currentAnimationState.m_currentAnimationPoint;
+   const auto animationDurationMs = Timer::ConvertToMs(currentAnimationPoint->m_timeDuration);
    const auto numOfSteps = animationDurationMs.count() / updateTime.count();
 
-   auto currentDestination = m_currentAnimationState.m_currentAnimationPoint->m_destination;
+   auto currentDestination = currentAnimationPoint->m_destination;
    auto currentAnimationStep = currentDestination / glm::vec2(numOfSteps, numOfSteps);
 
    // Forward animation
@@ -97,34 +98,35 @@ Animatable::Animate(Timer::milliseconds updateTime)
 }
 
 void
-Animatable::AddAnimationNode(const AnimationPoint& newAnimationPoint)
+Animatable::AddAnimationNode(std::shared_ptr< AnimationPoint > newAnimationPoint)
 {
    m_animationPoints.push_back(newAnimationPoint);
 }
 
 void
-Animatable::UpdateAnimationNode(const AnimationPoint& updatedAnimationPoint)
+Animatable::UpdateAnimationNode(std::shared_ptr< AnimationPoint > updatedAnimationPoint)
 {
    auto updatedPointIt =
-      std::find_if(m_animationPoints.begin(), m_animationPoints.end(),
-                   [updatedAnimationPoint](const AnimationPoint& animationPoint) { return animationPoint.ID == updatedAnimationPoint.ID; });
+      std::find_if(m_animationPoints.begin(), m_animationPoints.end(), [updatedAnimationPoint](const auto animationPoint) {
+         return animationPoint->GetID() == updatedAnimationPoint->GetID();
+      });
 
    if (updatedPointIt != m_animationPoints.end())
    {
-      updatedPointIt->m_destination = updatedAnimationPoint.m_destination;
-      updatedPointIt->m_timeDuration = updatedAnimationPoint.m_timeDuration;
+      (*updatedPointIt)->m_destination = updatedAnimationPoint->m_destination;
+      (*updatedPointIt)->m_timeDuration = updatedAnimationPoint->m_timeDuration;
    }
 
    UpdateNodes();
 }
 
 void
-Animatable::SetAnimationKeypoints(std::list< AnimationPoint >&& keypoints)
+Animatable::SetAnimationKeypoints(AnimationPoint::list&& keypoints)
 {
    m_animationPoints = keypoints;
 }
 
-std::list< Animatable::AnimationPoint >
+AnimationPoint::list
 Animatable::GetAnimationKeypoints()
 {
    return m_animationPoints;
@@ -137,7 +139,7 @@ Animatable::GetAnimationDuration() const
 
    for (auto& animationPoint : m_animationPoints)
    {
-      totalDuration += animationPoint.m_timeDuration;
+      totalDuration += animationPoint->m_timeDuration;
    }
 
    return totalDuration;
@@ -172,4 +174,28 @@ Animatable::ResetAnimation()
    m_currentAnimationState.m_currentAnimationPoint = m_animationPoints.begin();
    m_currentAnimationState.m_currentAnimationPosition = glm::vec2(0.0f, 0.0f);
    m_currentAnimationState.m_isReverse = false;
+}
+
+void
+Animatable::RenderAnimationSteps(bool choice)
+{
+   m_renderAnimationSteps = choice;
+}
+
+bool
+Animatable::GetRenderAnimationSteps()
+{
+   return m_renderAnimationSteps;
+}
+
+void
+Animatable::LockAnimationSteps(bool lock)
+{
+   m_lockAnimationSteps = lock;
+}
+
+bool
+Animatable::GetLockAnimationSteps()
+{
+   return m_lockAnimationSteps;
 }

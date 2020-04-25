@@ -14,6 +14,16 @@ class Section;
 class GameObjectWindow : public nanogui::Window
 {
  public:
+   struct AnimationPoint
+   {
+      int id;
+      nanogui::TextBox* m_xPos = nullptr;
+      nanogui::TextBox* m_yPos = nullptr;
+      nanogui::TextBox* m_rotation = nullptr;
+      nanogui::TextBox* m_time = nullptr;
+   };
+
+ public:
    GameObjectWindow(Editor& parent);
    ~GameObjectWindow() = default;
 
@@ -25,6 +35,12 @@ class GameObjectWindow : public nanogui::Window
 
    void
    GameObjectUnselected();
+
+   void
+   AnimationPointSelected(int id);
+
+   void
+   AnimationPointUnselected();
 
  private:
    void
@@ -89,8 +105,9 @@ class GameObjectWindow : public nanogui::Window
    nanogui::Button* m_loopAnimationButton = nullptr;
    nanogui::Button* m_reversalAnimationButton = nullptr;
    nanogui::CheckBox* m_showAnimationSteps = nullptr;
+   nanogui::CheckBox* m_lockAnimationSteps = nullptr;
    nanogui::Widget* m_animationStepsLayout = nullptr;
-   std::vector< std::tuple< nanogui::TextBox*, nanogui::TextBox*, nanogui::TextBox*, nanogui::TextBox* > > m_animationSteps;
+   std::vector< AnimationPoint > m_animationSteps;
    nanogui::Button* m_animateButton = nullptr;
    nanogui::Slider* m_animationTimeSlider = nullptr;
 

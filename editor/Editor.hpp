@@ -1,12 +1,14 @@
 #pragma once
 
 #include "Context.hpp"
+#include "EditorObject.hpp"
 #include "Game.hpp"
 #include "Gui.hpp"
 #include "Level.hpp"
 #include "Logger.hpp"
 #include "Player.hpp"
 #include "Timer.hpp"
+#include "Object.hpp"
 
 #include <glm/matrix.hpp>
 #include <nanogui/screen.h>
@@ -87,6 +89,12 @@ class Editor : public nanogui::Screen, public Context
    ShowWireframe(bool wireframeEnabled);
 
    void
+   SetRenderAnimationPoints(bool render);
+
+   void
+   SetLockAnimationPoints(bool render);
+
+   void
    Update();
 
  private:
@@ -138,7 +146,13 @@ class Editor : public nanogui::Screen, public Context
    bool m_animateObject = false;
    bool m_movementOnObject = false;
    bool m_objectSelected = false;
-   std::shared_ptr< GameObject > m_currentSelectedObject = nullptr;
+   std::shared_ptr< GameObject > m_currentSelectedObject;
+
+   bool m_editorObjectSelected = false;
+   std::vector< EditorObject > m_editorObjects;
+   std::vector< EditorObject >::iterator m_currentEditorObjectSelected = m_editorObjects.end(); 
+
+   std::list< std::shared_ptr<::Object> > m_objects;
 
    std::map< uint8_t, bool > m_keyMap;
    Gui m_gui;

@@ -79,11 +79,6 @@ class Player : public GameObject
    {
    }
 
-   void
-   DealWithPlayer() override
-   {
-   }
-
  private:
    void
    UpdateInternal(bool isReverse) override;

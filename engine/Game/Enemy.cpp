@@ -5,8 +5,8 @@
 #include <Timer.hpp>
 #include <Weapon.hpp>
 
-Enemy::Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite,
-             const std::list< AnimationPoint >& keypoints, Animatable::ANIMATION_TYPE animationType)
+Enemy::Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite, AnimationPoint::list keypoints,
+             Animatable::ANIMATION_TYPE animationType)
    : GameObject(context, pos, size, sprite, TYPE::ENEMY), Animatable(animationType)
 {
    m_maxHP = 100;

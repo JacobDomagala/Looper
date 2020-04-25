@@ -58,8 +58,9 @@ Level::Load(Context* context, const std::string& pathToLevel)
          const auto size = json[key]["size"];
          const auto texture = json[key]["texture"];
          const auto weapons = json[key]["weapons"];
+         const auto name = json[key]["name"];
 
-         m_player = std::make_shared< Player >(*context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture);
+         m_player = std::make_shared< Player >(*context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture, name);
       }
       else if (key == "ENEMIES")
       {
@@ -70,21 +71,24 @@ Level::Load(Context* context, const std::string& pathToLevel)
             const auto texture = enemy["texture"];
             const auto weapons = enemy["weapons"];
             const auto animatePos = enemy["animate positions"];
+            const auto name = enemy["name"];
 
-            Animatable::AnimationPoints keypointsPositions = {};
+            AnimationPoint::list keypointsPositions = {};
 
             for (auto& point : animatePos)
             {
-               Animatable::AnimationPoint animationPoint;
-               animationPoint.ID = 0;
-               animationPoint.m_destination = glm::vec2(point[0], point[1]);
-               animationPoint.m_timeDuration = Timer::seconds(1);
+               auto animationPoint = std::make_shared<AnimationPoint>();
+               animationPoint->m_destination = glm::vec2(point[0], point[1]);
+               animationPoint->m_timeDuration = Timer::seconds(1);
                
                keypointsPositions.emplace_back(animationPoint);
             }
 
-            m_objects.emplace_back(std::make_shared< Enemy >(*context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]),
-                                                             texture, keypointsPositions));
+            auto object = std::make_shared< Enemy >(*context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture,
+                                                    keypointsPositions);
+            object->SetName(name);
+
+            m_objects.emplace_back(object);
          }
       }
       else
@@ -130,7 +134,7 @@ Level::Save(const std::string& pathToLevel)
 
       for (const auto& point : keypoints)
       {
-         enemyJson["animate positions"].emplace_back(point.m_destination.x, point.m_destination.y);
+         enemyJson["animate positions"].emplace_back(point->m_destination.x, point->m_destination.y);
       }
 
       json["ENEMIES"].emplace_back(enemyJson);
@@ -159,14 +163,12 @@ Level::AddGameObject(GameObject::TYPE objectType)
    {
       case GameObject::TYPE::ENEMY: {
 
-         Animatable::AnimationPoint animationPoint;
-         animationPoint.ID = 0;
-         animationPoint.m_destination = {0,0};
-         animationPoint.m_timeDuration = Timer::seconds(1);
+         auto animationPoint = std::make_shared< AnimationPoint >();
+         animationPoint->m_destination = {0,0};
+         animationPoint->m_timeDuration = Timer::seconds(1);
          
-
          newObject = std::make_shared< Enemy >(*m_contextPointer, defaultPosition, defaultSize, defaultTexture,
-                                               Animatable::AnimationPoints{animationPoint});
+                                               AnimationPoint::list{animationPoint});
          m_objects.push_back(newObject);
       }
       break;
@@ -310,7 +312,11 @@ Level::Update(bool isReverse)
    {
       if (obj->Visible())
       {
-         obj->DealWithPlayer();
+         if (obj->GetType() == Object::TYPE::ENEMY)
+         {
+            std::dynamic_pointer_cast<Enemy>(obj)->DealWithPlayer();
+         }
+         
          obj->Update(isReverse);
       }
    }
@@ -321,7 +327,7 @@ Level::Render()
 {
    // draw background
    m_shaders.UseProgram();
-   m_shaders.SetUniformBool(0, "objectSelected");
+   m_shaders.SetUniformBool(false, "objectSelected");
    m_background.Render(*m_contextPointer, m_shaders);
 
    for (auto& obj : m_objects)

@@ -34,6 +34,12 @@ class Gui
    GameObjectUnselected();
 
    void
+   AnimationPointSelected(int ID);
+
+   void
+   AnimationPointUnselected();
+
+   void
    LevelLoaded(Level* loadedLevel);
 
  private:

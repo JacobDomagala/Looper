@@ -3,8 +3,9 @@
 #include <GameObject.hpp>
 #include <Window.hpp>
 
-GameObject::GameObject(Context& contextHandle, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite, TYPE type)
-   : m_contextHandle(contextHandle)
+GameObject::GameObject(Context& contextHandle, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite,
+                       Object::TYPE type)
+   : Object(type), m_contextHandle(contextHandle)
 {
    m_currentState.m_globalPosition = m_contextHandle.GetLevel().GetGlobalVec(positionOnMap);
    m_currentState.m_localPosition = positionOnMap;
@@ -13,6 +14,9 @@ GameObject::GameObject(Context& contextHandle, const glm::vec2& positionOnMap, c
    m_currentState.m_centeredGlobalPosition = m_sprite.GetCenteredPosition();
    m_currentState.m_centeredLocalPosition = m_contextHandle.GetLevel().GetLocalVec(m_currentState.m_centeredGlobalPosition);
    m_type = type;
+
+   m_id = s_currentID;
+   ++s_currentID;
 }
 
 bool
@@ -122,32 +126,6 @@ Sprite&
 GameObject::GetSprite()
 {
    return m_sprite;
-}
-
-GameObject::TYPE
-GameObject::GetType() const
-{
-   return m_type;
-}
-
-std::string
-GameObject::GetTypeString() const
-{
-   std::string typeStr = "";
-
-   switch (m_type)
-   {
-      case TYPE::ENEMY: {
-         typeStr = "Enemy";
-      }
-      break;
-
-      case TYPE::PLAYER: {
-         typeStr = "Player";
-      }
-   }
-
-   return typeStr;
 }
 
 void

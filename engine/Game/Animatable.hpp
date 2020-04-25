@@ -1,10 +1,23 @@
 #pragma once
 
+#include "Object.hpp"
 #include "Timer.hpp"
 
 #include <deque>
 #include <glm/glm.hpp>
 #include <list>
+#include <memory>
+
+struct AnimationPoint : public Object
+{
+   AnimationPoint() : Object(Object::TYPE::ANIMATION_POINT)
+   {
+   }
+   using list = std::list< std::shared_ptr<AnimationPoint> >;
+
+   Timer::seconds m_timeDuration = Timer::seconds(0);
+   glm::vec2 m_destination;
+};
 
 class Animatable
 {
@@ -15,39 +28,43 @@ class Animatable
       REVERSABLE
    };
 
-   struct AnimationPoint
-   {
-      int ID;
-      Timer::seconds m_timeDuration;
-      glm::vec2 m_destination;
-   };
-
-   using AnimationPoints = std::list< AnimationPoint >;
-
  public:
    Animatable(ANIMATION_TYPE type);
-   
+
    void SetAnimationType(ANIMATION_TYPE);
-   
-   ANIMATION_TYPE GetAnimationType();
+
+   ANIMATION_TYPE
+   GetAnimationType();
 
    glm::vec2
    Animate(Timer::milliseconds updateTime);
 
    void
-   AddAnimationNode(const AnimationPoint& pathNodeMapPosition);
+   AddAnimationNode(std::shared_ptr< AnimationPoint > pathNodeMapPosition);
 
    void
-   UpdateAnimationNode(const AnimationPoint& pathNodeMapPosition);
+   UpdateAnimationNode(std::shared_ptr< AnimationPoint > pathNodeMapPosition);
 
    void
-   SetAnimationKeypoints(std::list< AnimationPoint >&& keypoints);
+   SetAnimationKeypoints(AnimationPoint::list&& keypoints);
 
-   std::list< AnimationPoint >
+   AnimationPoint::list
    GetAnimationKeypoints();
 
    Timer::seconds
    GetAnimationDuration() const;
+
+   void
+   RenderAnimationSteps(bool choice);
+
+   bool
+   GetRenderAnimationSteps();
+
+   void
+   LockAnimationSteps(bool lock);
+
+   bool
+   GetLockAnimationSteps();
 
    void
    Update(bool isReverse);
@@ -61,7 +78,7 @@ class Animatable
 
    struct AnimationState
    {
-      std::list< AnimationPoint >::iterator m_currentAnimationPoint;
+      AnimationPoint::list::iterator m_currentAnimationPoint;
       glm::vec2 m_currentAnimationPosition{0.0f, 0.0f};
       uint32_t m_currentAnimationStep = 0;
       bool m_isReverse = false;
@@ -70,6 +87,9 @@ class Animatable
    std::deque< AnimationState > m_statesQueue;
    AnimationState m_currentAnimationState;
 
-   std::list< AnimationPoint > m_animationPoints;
+   AnimationPoint::list m_animationPoints;
    ANIMATION_TYPE m_type = ANIMATION_TYPE::LOOP;
+
+   bool m_renderAnimationSteps = false;
+   bool m_lockAnimationSteps = false;
 };

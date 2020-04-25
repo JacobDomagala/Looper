@@ -16,8 +16,7 @@ class Enemy : public GameObject, public Animatable
 {
  public:
    Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& textureName,
-         const std::list< AnimationPoint >& keypoints = {},
-         Animatable::ANIMATION_TYPE animationType = Animatable::ANIMATION_TYPE::REVERSABLE);
+         AnimationPoint::list keypoints = {}, Animatable::ANIMATION_TYPE animationType = Animatable::ANIMATION_TYPE::REVERSABLE);
    ~Enemy() override = default;
 
    bool
@@ -27,10 +26,10 @@ class Enemy : public GameObject, public Animatable
    Hit(int32_t dmg) override;
 
    void
-   DealWithPlayer() override;
+   Render(Shaders& program) override;
 
    void
-   Render(Shaders& program) override;
+   DealWithPlayer();
 
    std::string
    GetWeapon() const;
