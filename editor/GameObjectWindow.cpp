@@ -39,10 +39,10 @@ GameObjectWindow::ObjectUpdated(int ID)
 
             if (point != m_animationSteps.end())
             {
-               auto animatioinPoint = std::dynamic_pointer_cast< ::AnimationPoint >(*object);
+               auto animatioinPoint = std::dynamic_pointer_cast<::AnimationPoint >(*object);
 
-               point->m_xPos->setValue(CustomFloatToStr(animatioinPoint->m_destination.x));
-               point->m_yPos->setValue(CustomFloatToStr(animatioinPoint->m_destination.y));
+               point->m_xPos->setValue(CustomFloatToStr(animatioinPoint->m_end.x));
+               point->m_yPos->setValue(CustomFloatToStr(animatioinPoint->m_end.y));
                point->m_rotation->setValue(CustomFloatToStr(0.0f));
                point->m_time->setValue(CustomFloatToStr(animatioinPoint->m_timeDuration.count()));
             }
@@ -118,6 +118,8 @@ GameObjectWindow::GameObjectSelected(std::shared_ptr< GameObject > selectedGameO
          m_reversalAnimationButton->setPushed(type == Animatable::ANIMATION_TYPE::REVERSABLE);
          m_showAnimationSteps->setChecked(animatablePtr->GetRenderAnimationSteps());
          m_lockAnimationSteps->setChecked(animatablePtr->GetLockAnimationSteps());
+         m_animationTimeSlider->setRange({0, animatablePtr->GetAnimationDuration().count()});
+         m_animationTimeSlider->setValue(0);
       }
 
       ClearAnimationSteps();
@@ -483,10 +485,10 @@ GameObjectWindow::CreateAnimationSection()
       GuiBuilder::CreateLayout(this, GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal, 2, nanogui::Alignment::Middle);
 
    m_animateButton = GuiBuilder::CreateButton(
-      animateLayout, "Animate", []() {}, 0, mFixedSize.x() / 3);
+      animateLayout, "Animate", [&]() { m_parent.ToggleAnimateObject(); }, 0, mFixedSize.x() / 3);
 
    m_animationTimeSlider = GuiBuilder::CreateSlider(
-      animateLayout, [&](float value) { m_parent.AnimateObject(value); }, {0.0f, 5.0f}, 0.0f, mFixedSize.x() / 2);
+      animateLayout, [&](float value) {}, {0.0f, 5.0f}, 0.0f, mFixedSize.x() / 2);
 
    m_animationSection->AddWidget(animateLayout);
    m_animationSection->AddWidget(m_animationTimeSlider);
@@ -496,6 +498,18 @@ GameObjectWindow::CreateAnimationSection()
 void
 GameObjectWindow::UpdateAnimationSection()
 {
+   const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentlySelectedObject);
+
+   if (animatablePtr && m_parent.IsObjectAnimated())
+   {
+      m_animationTimeSlider->setRange({0, animatablePtr->GetAnimationDuration().count()});
+      m_animationTimeSlider->setValue(m_animationTimeSlider->value() + static_cast<float>(m_parent.GetDeltaTime().count())/1000.0f);
+
+      if (m_animationTimeSlider->value() >= m_animationTimeSlider->range().second)
+      {
+         m_animationTimeSlider->setValue(0);
+      }
+   }
 }
 
 void
@@ -533,10 +547,10 @@ GameObjectWindow::CreateAnimationSteps()
 
       for (auto& point : animationSteps)
       {
-         auto xValue = GuiBuilder::CreateFloatingPointBox(m_animationStepsLayout, point->m_destination.x, animationStepRange,
+         auto xValue = GuiBuilder::CreateFloatingPointBox(m_animationStepsLayout, point->m_end.x, animationStepRange,
                                                           [&](const std::string& val) { return true; }, {fixtedWidth, 0});
 
-         auto yValue = GuiBuilder::CreateFloatingPointBox(m_animationStepsLayout, point->m_destination.y, animationStepRange,
+         auto yValue = GuiBuilder::CreateFloatingPointBox(m_animationStepsLayout, point->m_end.y, animationStepRange,
                                                           [&](const std::string& val) { return true; }, {fixtedWidth, 0});
 
          auto rotation = GuiBuilder::CreateFloatingPointBox(m_animationStepsLayout, 0.0f, animationStepRange,

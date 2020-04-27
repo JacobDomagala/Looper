@@ -20,7 +20,7 @@
     "size": [128, 128],
     "texture": "Default128.png",
     "weapons": ["Glock"],
-    "animate positions": [[-50,0], [20,30], [-20,50], [100,70]]
+    "animate positions": [[2750,2600], [2770,2630], [2750,2690], [2850,2760]]
   },
   {
     "name": "Enemy2",
@@ -28,6 +28,6 @@
     "size": [128, 128],
     "texture": "Default128.png",
     "weapons": ["Glock"],
-    "animate positions": [[50,0], [-40,20], [20,100], [0,-200]]
+    "animate positions": [[1650,1600], [1610,1620], [1630,1720], [1630,1520]]
   }]
 }

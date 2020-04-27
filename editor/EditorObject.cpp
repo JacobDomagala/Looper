@@ -191,7 +191,7 @@ EditorObject::Move(const glm::vec2& moveBy, bool isCameraMovement)
       switch (m_linkedObject->GetType())
       {
          case Object::TYPE::ANIMATION_POINT: {
-            std::dynamic_pointer_cast< AnimationPoint >(m_linkedObject)->m_destination += moveBy;
+            std::dynamic_pointer_cast< AnimationPoint >(m_linkedObject)->m_end += moveBy;
          }
          default: {
          }

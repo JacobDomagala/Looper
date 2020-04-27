@@ -80,7 +80,10 @@ class Editor : public nanogui::Screen, public Context
    AddGameObject(GameObject::TYPE objectType);
 
    void
-   AnimateObject(float value);
+   ToggleAnimateObject();
+
+   bool
+   IsObjectAnimated();
 
    void
    PlayLevel();

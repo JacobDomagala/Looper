@@ -37,6 +37,9 @@ class Enemy : public GameObject, public Animatable
    int32_t
    GetDmg() const;
 
+   glm::ivec2
+   GetInitialPosition() const;
+
  private:
    enum class ACTION
    {
@@ -72,7 +75,6 @@ class Enemy : public GameObject, public Animatable
       glm::vec2 m_targetShootPosition;
       glm::ivec2 m_targetMovePosition;
 
-      glm::ivec2 m_initialPosition;
       glm::ivec2 m_lastPlayersPos;
 
       bool m_isChasingPlayer = false;
@@ -101,4 +103,6 @@ class Enemy : public GameObject, public Animatable
 
    // current weapon
    std::unique_ptr< Weapon > m_weapon;
+
+   glm::ivec2 m_initialPosition;
 };

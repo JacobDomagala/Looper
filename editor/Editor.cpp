@@ -32,6 +32,8 @@ Editor::Editor(const glm::vec2& screenSize)
 
    m_gui.Init();
    m_font.SetFont("segoeui");
+
+   m_deltaTime = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000));
 }
 
 Editor::~Editor()
@@ -94,6 +96,7 @@ void
 Editor::HandleInput()
 {
    m_timer.ToggleTimer();
+   m_deltaTime = Timer::milliseconds(static_cast<long>(m_timer.GetDeltaTime()*1000.0f));
 
    auto cameraMoveBy = glm::vec2();
 
@@ -348,7 +351,7 @@ Editor::mouseButtonEvent(const nanogui::Vector2i& position, int button, bool dow
          // Object movement finished
          ShowCursor(true);
 
-         if (m_mouseDrag &&( m_movementOnEditorObject || m_movementOnGameObject))
+         if (m_mouseDrag && (m_movementOnEditorObject || m_movementOnGameObject))
          {
             if (m_movementOnEditorObject)
             {
@@ -452,12 +455,10 @@ Editor::LoadLevel(const std::string& levelPath)
       if (animatablePtr)
       {
          auto animationPoints = animatablePtr->GetAnimationKeypoints();
-         auto objectLocalPosition = static_cast< glm::vec2 >(object->GetLocalPosition());
 
          for (auto& point : animationPoints)
          {
-            objectLocalPosition = objectLocalPosition + point->m_destination;
-            auto editorObject = std::make_shared< EditorObject >(*this, objectLocalPosition, glm::ivec2(20, 20), "Default128.png",
+            auto editorObject = std::make_shared< EditorObject >(*this, point->m_end, glm::ivec2(20, 20), "Default128.png",
                                                                  std::dynamic_pointer_cast<::Object >(point));
             editorObject->SetName("Animationpoint" + object->GetName());
 
@@ -487,9 +488,24 @@ Editor::AddGameObject(GameObject::TYPE objectType)
 }
 
 void
-Editor::AnimateObject(float value)
+Editor::ToggleAnimateObject()
 {
-   m_animateGameObject = value;
+   if (m_animateGameObject)
+   {
+      auto enemyPtr = std::dynamic_pointer_cast< Enemy >(m_currentSelectedGameObject);
+      enemyPtr->SetLocalPosition(enemyPtr->GetInitialPosition());
+      m_animateGameObject = false;
+   }
+   else
+   {
+      m_animateGameObject = true;
+   }
+}
+
+bool
+Editor::IsObjectAnimated()
+{
+   return m_animateGameObject;
 }
 
 void

@@ -74,14 +74,18 @@ Level::Load(Context* context, const std::string& pathToLevel)
             const auto name = enemy["name"];
 
             AnimationPoint::vector keypointsPositions = {};
+            glm::vec2 beginPoint = glm::vec2(position[0], position[1]);
 
             for (auto& point : animatePos)
             {
                auto animationPoint = std::make_shared<AnimationPoint>();
-               animationPoint->m_destination = glm::vec2(point[0], point[1]);
+               animationPoint->m_start = beginPoint;
+               animationPoint->m_end = glm::vec2(point[0], point[1]);
                animationPoint->m_timeDuration = Timer::seconds(1);
                
                keypointsPositions.emplace_back(animationPoint);
+
+               beginPoint = animationPoint->m_end;
             }
 
             auto object = std::make_shared< Enemy >(*context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture,
@@ -134,7 +138,7 @@ Level::Save(const std::string& pathToLevel)
 
       for (const auto& point : keypoints)
       {
-         enemyJson["animate positions"].emplace_back(point->m_destination.x, point->m_destination.y);
+         enemyJson["animate positions"].emplace_back(point->m_end.x, point->m_end.y);
       }
 
       json["ENEMIES"].emplace_back(enemyJson);
@@ -164,7 +168,8 @@ Level::AddGameObject(GameObject::TYPE objectType)
       case GameObject::TYPE::ENEMY: {
 
          auto animationPoint = std::make_shared< AnimationPoint >();
-         animationPoint->m_destination = {0,0};
+         animationPoint->m_start = defaultPosition;
+         animationPoint->m_end = defaultPosition;
          animationPoint->m_timeDuration = Timer::seconds(1);
          
          newObject = std::make_shared< Enemy >(*m_contextPointer, defaultPosition, defaultSize, defaultTexture,

@@ -17,8 +17,12 @@ Enemy::Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, con
    m_animationPoints = keypoints;
 
    m_timer.ToggleTimer();
-   m_currentState.m_initialPosition = GameObject::m_currentState.m_centeredLocalPosition;
+   m_initialPosition = GameObject::m_currentState.m_centeredLocalPosition;
+
    ResetAnimation();
+   m_currentAnimationState.m_currentAnimationBegin = m_initialPosition;
+   m_currentAnimationState.m_currentAnimationPosition = m_initialPosition;
+   m_animationStartPosition = m_initialPosition;
 }
 
 void
@@ -102,6 +106,12 @@ int32_t
 Enemy::GetDmg() const
 {
    return m_weapon->GetDamage();
+}
+
+glm::ivec2
+Enemy::GetInitialPosition() const
+{
+   return m_initialPosition;
 }
 
 bool
@@ -220,7 +230,7 @@ Enemy::ReturnToInitialPosition()
 
    auto moveBy = m_currentState.m_movementSpeed * gameHandle->GetDeltaTime().count();
    auto vectorToInitialPos =
-      static_cast< glm::vec2 >(m_currentState.m_initialPosition - GameObject::m_currentState.m_centeredLocalPosition);
+      static_cast< glm::vec2 >(m_initialPosition - GameObject::m_currentState.m_centeredLocalPosition);
    auto lengthToInitialPos = glm::length(vectorToInitialPos);
    auto distanceToNode =
       glm::length(static_cast< glm::vec2 >(m_currentState.m_targetMovePosition - GameObject::m_currentState.m_centeredLocalPosition));
@@ -244,7 +254,7 @@ Enemy::ReturnToInitialPosition()
       m_currentState.m_currentNodeIdx =
          gameHandle->GetLevel().GetPathfinder().FindNodeIdx(GameObject::m_currentState.m_centeredLocalPosition);
       m_currentState.m_targetMovePosition = gameHandle->GetLevel().GetPathfinder().GetNearestPosition(
-         /*m_centeredLocalPosition*/ m_currentState.m_currentNodeIdx, m_currentState.m_initialPosition);
+         /*m_centeredLocalPosition*/ m_currentState.m_currentNodeIdx, m_initialPosition);
       auto move = m_currentState.m_targetMovePosition - GameObject::m_currentState.m_centeredLocalPosition;
       auto nMove = glm::normalize(static_cast< glm::vec2 >(move));
 
@@ -253,7 +263,7 @@ Enemy::ReturnToInitialPosition()
    else
    {
       m_currentState.m_targetMovePosition = gameHandle->GetLevel().GetPathfinder().GetNearestPosition(
-         /*m_centeredLocalPosition*/ m_currentState.m_currentNodeIdx, m_currentState.m_initialPosition);
+         /*m_centeredLocalPosition*/ m_currentState.m_currentNodeIdx, m_initialPosition);
 
       if (m_currentState.m_targetMovePosition != glm::ivec2(0, 0))
       {

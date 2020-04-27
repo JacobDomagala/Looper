@@ -1,5 +1,6 @@
 #include "Animatable.hpp"
 #include "Common.hpp"
+#include "Utils.hpp"
 
 Animatable::Animatable(ANIMATION_TYPE type)
 {
@@ -27,70 +28,67 @@ Animatable::Animate(Timer::milliseconds updateTime)
 
    const auto currentAnimationPoint = *m_currentAnimationState.m_currentAnimationPoint;
    const auto animationDurationMs = Timer::ConvertToMs(currentAnimationPoint->m_timeDuration);
-   const auto numOfSteps = animationDurationMs.count() / updateTime.count();
+   const auto numOfSteps = std::ceil(animationDurationMs.count() / static_cast< float >(updateTime.count()));
 
-   auto currentDestination = currentAnimationPoint->m_destination;
-   auto currentAnimationStep = currentDestination / glm::vec2(numOfSteps, numOfSteps);
+   auto currentAnimationSectonLength = m_currentAnimationState.m_isReverse
+                                          ? m_currentAnimationState.m_currentAnimationBegin - currentAnimationPoint->m_end
+                                          : currentAnimationPoint->m_end - m_currentAnimationState.m_currentAnimationBegin;
 
-   // Forward animation
-   if (m_type == ANIMATION_TYPE::LOOP || !m_currentAnimationState.m_isReverse)
+   auto currentAnimationStep = currentAnimationSectonLength / numOfSteps;
+
+   auto nextStep = m_currentAnimationState.m_currentAnimationPosition + currentAnimationStep;
+
+   if (!IsPositionClose(
+          m_currentAnimationState.m_isReverse ? m_currentAnimationState.m_currentAnimationBegin : currentAnimationPoint->m_end, nextStep, 2.0f))
    {
-      auto nextStep = m_currentAnimationState.m_currentAnimationPosition + currentAnimationStep;
-      m_currentAnimationState.m_currentAnimationStep++;
+      m_currentAnimationState.m_currentAnimationPosition = nextStep;
+      animationValue = currentAnimationStep;
+   }
+   else if (m_type == ANIMATION_TYPE::LOOP || !m_currentAnimationState.m_isReverse)
+   {
+      animationValue = currentAnimationPoint->m_end - m_currentAnimationState.m_currentAnimationPosition;
+      m_currentAnimationState.m_currentAnimationPosition = currentAnimationPoint->m_end;
+      m_currentAnimationState.m_currentAnimationBegin = m_currentAnimationState.m_currentAnimationPosition;
 
-      if (m_currentAnimationState.m_currentAnimationStep < numOfSteps)
-      {
-         m_currentAnimationState.m_currentAnimationPosition += currentAnimationStep;
-         animationValue = currentAnimationStep;
-      }
-      else
-      {
-         ++m_currentAnimationState.m_currentAnimationPoint;
+      ++m_currentAnimationState.m_currentAnimationPoint;
 
-         if (m_currentAnimationState.m_currentAnimationPoint == m_animationPoints.end())
+      if (m_currentAnimationState.m_currentAnimationPoint == m_animationPoints.end())
+      {
+         if (m_type == ANIMATION_TYPE::LOOP)
          {
-            if (m_type == ANIMATION_TYPE::LOOP)
-            {
-               m_currentAnimationState.m_currentAnimationPoint = m_animationPoints.begin();
-            }
-            else
-            {
-               m_currentAnimationState.m_isReverse = true;
-               --m_currentAnimationState.m_currentAnimationPoint;
-            }
+            m_currentAnimationState.m_currentAnimationPoint = m_animationPoints.begin();
+            m_currentAnimationState.m_currentAnimationBegin = m_animationStartPosition;
          }
-
-         m_currentAnimationState.m_currentAnimationPosition = glm::vec2();
-         m_currentAnimationState.m_currentAnimationStep = 0;
+         else
+         {
+            m_currentAnimationState.m_isReverse = true;
+            --m_currentAnimationState.m_currentAnimationPoint;
+            m_currentAnimationState.m_currentAnimationBegin = (*std::prev(m_currentAnimationState.m_currentAnimationPoint))->m_end;
+         }
       }
    }
    else // reverse
    {
-      currentDestination *= glm::vec2(-1.0f);
-      currentAnimationStep *= -1.0f;
+      m_currentAnimationState.m_currentAnimationPosition = m_currentAnimationState.m_currentAnimationBegin;
+      m_currentAnimationState.m_currentAnimationBegin = m_currentAnimationState.m_currentAnimationPosition;
 
-      auto nextStep = m_currentAnimationState.m_currentAnimationPosition + currentAnimationStep;
-      m_currentAnimationState.m_currentAnimationStep++;
-
-      if (m_currentAnimationState.m_currentAnimationStep < numOfSteps)
+      if (m_currentAnimationState.m_currentAnimationPoint == m_animationPoints.begin())
       {
-         m_currentAnimationState.m_currentAnimationPosition += currentAnimationStep;
-         animationValue = currentAnimationStep;
+         m_currentAnimationState.m_isReverse = false;
+         m_currentAnimationState.m_currentAnimationBegin = m_animationStartPosition;
       }
       else
       {
-         if (m_currentAnimationState.m_currentAnimationPoint == m_animationPoints.begin())
+         --m_currentAnimationState.m_currentAnimationPoint;
+
+         if (m_currentAnimationState.m_currentAnimationPoint != m_animationPoints.begin())
          {
-            m_currentAnimationState.m_isReverse = false;
-            m_currentAnimationState.m_currentAnimationPoint = m_animationPoints.begin();
+            m_currentAnimationState.m_currentAnimationBegin = (*std::prev(m_currentAnimationState.m_currentAnimationPoint))->m_end;
          }
          else
          {
-            --m_currentAnimationState.m_currentAnimationPoint;
+            m_currentAnimationState.m_currentAnimationBegin = m_animationStartPosition;
          }
-
-         m_currentAnimationState.m_currentAnimationPosition = glm::vec2();
-         m_currentAnimationState.m_currentAnimationStep = 0;
       }
    }
 
@@ -113,7 +111,7 @@ Animatable::UpdateAnimationNode(std::shared_ptr< AnimationPoint > updatedAnimati
 
    if (updatedPointIt != m_animationPoints.end())
    {
-      (*updatedPointIt)->m_destination = updatedAnimationPoint->m_destination;
+      (*updatedPointIt)->m_end = updatedAnimationPoint->m_end;
       (*updatedPointIt)->m_timeDuration = updatedAnimationPoint->m_timeDuration;
    }
 
@@ -142,7 +140,7 @@ Animatable::GetAnimationDuration() const
       totalDuration += animationPoint->m_timeDuration;
    }
 
-   return totalDuration;
+   return m_type == ANIMATION_TYPE::REVERSABLE ? 2 * totalDuration : totalDuration;
 }
 
 void

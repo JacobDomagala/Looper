@@ -10,13 +10,18 @@
 
 struct AnimationPoint : public Object
 {
+   using vector = std::vector< std::shared_ptr<AnimationPoint> >;
+   
    AnimationPoint() : Object(Object::TYPE::ANIMATION_POINT)
    {
    }
-   using vector = std::vector< std::shared_ptr<AnimationPoint> >;
 
    Timer::seconds m_timeDuration = Timer::seconds(0);
-   glm::vec2 m_destination;
+
+   glm::vec2 m_start;
+   glm::vec2 m_end;
+
+   float m_rotation = 0.0f;
 };
 
 class Animatable
@@ -79,8 +84,9 @@ class Animatable
    struct AnimationState
    {
       AnimationPoint::vector::iterator m_currentAnimationPoint;
+      glm::vec2 m_currentAnimationBegin;
+      glm::vec2 m_currentAnimationEnd;
       glm::vec2 m_currentAnimationPosition{0.0f, 0.0f};
-      uint32_t m_currentAnimationStep = 0;
       bool m_isReverse = false;
    };
 
@@ -89,6 +95,7 @@ class Animatable
 
    AnimationPoint::vector m_animationPoints;
    ANIMATION_TYPE m_type = ANIMATION_TYPE::LOOP;
+   glm::vec2 m_animationStartPosition;
 
    bool m_renderAnimationSteps = false;
    bool m_lockAnimationSteps = false;
