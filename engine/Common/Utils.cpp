@@ -16,13 +16,33 @@ CustomFloatToStr(float value, int precision)
 
 
 bool
-IsPositionClose(const glm::vec2& targetPos, const glm::vec2& currentPos, float mariginValue)
+IsPositionClose(const glm::vec2& targetPos, const glm::vec2& startPos, const glm::vec2& currentPos, float mariginValue)
 {
+   bool xCheck = false;
+   bool yCheck = false;
+
    const auto targetPosWithPositiveMarigin = targetPos + mariginValue;
    const auto targetPosWithNegativeMarigin = targetPos - mariginValue;
-   
-   bool xRange = targetPosWithNegativeMarigin.x <= currentPos.x && targetPosWithPositiveMarigin.x >= currentPos.x;
-   bool yRange = targetPosWithNegativeMarigin.y <= currentPos.y && targetPosWithPositiveMarigin.y >= currentPos.y;
 
-   return xRange && yRange;
+   // calculate the direction
+   const auto direction = targetPos - startPos;
+   if (direction.x >= 0)
+   {
+      xCheck = currentPos.x >= targetPosWithNegativeMarigin.x;
+   }
+   else
+   {
+      xCheck = currentPos.x <= targetPosWithPositiveMarigin.x;
+   }
+
+   if (direction.y >= 0)
+   {
+      yCheck = currentPos.y >= targetPosWithNegativeMarigin.y;
+   }
+   else
+   {
+      yCheck = currentPos.y <= targetPosWithPositiveMarigin.y;
+   }
+
+   return xCheck && yCheck;
 }

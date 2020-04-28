@@ -591,6 +591,7 @@ Editor::Update()
       if (moveBy.has_value())
       {
          m_currentSelectedGameObject->Move(moveBy.value(), false);
+         //m_currentSelectedGameObject->GetSprite().SetTranslateValue(moveBy.value());
       }
       else
       {

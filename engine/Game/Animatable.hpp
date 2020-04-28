@@ -102,11 +102,17 @@ class Animatable
       AnimationPoint::vectorPtr::iterator m_currentAnimationPoint;
       glm::vec2 m_currentAnimationBegin;
       glm::vec2 m_currentAnimationEnd;
-      glm::vec2 m_currentAnimationPosition{0.0f, 0.0f};
-      glm::vec2 m_currentAnimationDistance{0.0f, 0.0f};
-      Timer::milliseconds m_currentTimeElapsed = Timer::milliseconds(0);
+      glm::vec2 m_currentAnimationPosition;
+      glm::vec2 m_currentAnimationDistance;
+
       bool m_isReverse = false;
       bool m_animationFinished = false;
+
+      // time from current Animation Point start
+      Timer::milliseconds m_currentTimeElapsed = Timer::milliseconds(0);
+
+      // time from Animation start
+      Timer::milliseconds m_totalTimeElapsed = Timer::milliseconds(0);
    };
 
    std::deque< AnimationState > m_statesQueue;
@@ -142,4 +148,15 @@ class Animatable
    // - updateTime -> (2000ms -> 2s)
    glm::vec2
    SetCorrectAnimationPoint(Timer::milliseconds& updateTime);
+
+   // Updates animation in current section
+   // This should only be called after SetCorrectAnimationPoint
+   glm::vec2
+   AnimateInCurrentSection(Timer::milliseconds updateTime);
+
+   void
+   UpdateAnimationPoint();
+
+   glm::vec2
+   CalculateNextStep(Timer::milliseconds updateTime);
 };

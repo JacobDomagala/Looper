@@ -58,6 +58,7 @@ GameObjectWindow::ObjectUpdated(int ID)
 void
 GameObjectWindow::Update()
 {
+   UpdateGeneralSection();
    UpdateAnimationSection();
 }
 
@@ -123,7 +124,7 @@ GameObjectWindow::GameObjectSelected(std::shared_ptr< GameObject > selectedGameO
          m_animationTimeSlider->setRange({0, animatablePtr->GetAnimationDuration().count()});
          m_animationTimeSlider->setValue(0);
          m_animationTimeSlider->setCallback([animatablePtr](float value) {
-            animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(value * 1000.0f)));
+            animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(value * 1000.0)));
             return true;
          });
       }
@@ -526,7 +527,7 @@ GameObjectWindow::UpdateAnimationSection()
       }
       else
       {
-         // m_animationTimeSlider->setValue(0);
+         //m_animationTimeSlider->setValue(0);
       }
    }
 }
