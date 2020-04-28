@@ -44,6 +44,9 @@ class Sprite
    void
    SetTexture(const Texture& texture);
 
+   void
+   SetTranslateValue(const glm::vec2& translateBy);
+
    glm::vec2
    GetCenteredPosition() const;
 
@@ -108,7 +111,7 @@ class Sprite
       glm::vec4 m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
       // sprite's position
-      glm::vec2 m_position;
+      glm::vec2 m_currentPosition;
 
       // transofmation values
       glm::vec3 m_translateVal;
@@ -133,6 +136,8 @@ class Sprite
    // OpenGL buffers
    GLuint m_vertexArrayBuffer;
    GLuint m_vertexBuffer;
+
+   glm::vec2 m_initialPosition;
 
    // width and height
    glm::ivec2 m_size;

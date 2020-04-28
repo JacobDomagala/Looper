@@ -96,7 +96,7 @@ void
 Editor::HandleInput()
 {
    m_timer.ToggleTimer();
-   m_deltaTime = Timer::milliseconds(static_cast<long>(m_timer.GetDeltaTime()*1000.0f));
+   m_deltaTime = m_timer.GetMsDeltaTime();
 
    auto cameraMoveBy = glm::vec2();
 
@@ -586,7 +586,16 @@ Editor::Update()
 {
    if (m_animateGameObject && m_currentSelectedGameObject)
    {
-      m_currentSelectedGameObject->Update(false);
+      auto moveBy = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject)->SingleAnimate(m_deltaTime);
+
+      if (moveBy.has_value())
+      {
+         m_currentSelectedGameObject->Move(moveBy.value(), false);
+      }
+      else
+      {
+         m_animateGameObject = false;
+      }
    }
 }
 

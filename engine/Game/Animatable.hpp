@@ -1,22 +1,28 @@
 #pragma once
 
+#include "Logger.hpp"
 #include "Object.hpp"
 #include "Timer.hpp"
 
 #include <deque>
 #include <glm/glm.hpp>
-#include <vector>
 #include <memory>
+#include <optional>
+#include <vector>
 
 struct AnimationPoint : public Object
 {
-   using vector = std::vector< std::shared_ptr<AnimationPoint> >;
-   
+   using vectorPtr = std::vector< std::shared_ptr< AnimationPoint > >;
+
    AnimationPoint() : Object(Object::TYPE::ANIMATION_POINT)
    {
    }
 
+   // duration of adnimation throughout entire animation section
    Timer::seconds m_timeDuration = Timer::seconds(0);
+
+   // duration of pause which object will make after reaching endpoint of this animation section
+   Timer::seconds m_pauseDuration = Timer::seconds(0);
 
    glm::vec2 m_start;
    glm::vec2 m_end;
@@ -42,7 +48,17 @@ class Animatable
    GetAnimationType();
 
    glm::vec2
+   SetAnimation(Timer::milliseconds updateTime);
+
+   // Perform looped animation
+   // Returns animate distance
+   glm::vec2
    Animate(Timer::milliseconds updateTime);
+
+   // Perform single animation route
+   // Returns animate distance or empty when animation is finished
+   std::optional< glm::vec2 >
+   SingleAnimate(Timer::milliseconds updateTime);
 
    void
    AddAnimationNode(std::shared_ptr< AnimationPoint > pathNodeMapPosition);
@@ -51,9 +67,9 @@ class Animatable
    UpdateAnimationNode(std::shared_ptr< AnimationPoint > pathNodeMapPosition);
 
    void
-   SetAnimationKeypoints(AnimationPoint::vector&& keypoints);
+   SetAnimationKeypoints(AnimationPoint::vectorPtr&& keypoints);
 
-   AnimationPoint::vector
+   AnimationPoint::vectorPtr
    GetAnimationKeypoints();
 
    Timer::seconds
@@ -83,20 +99,47 @@ class Animatable
 
    struct AnimationState
    {
-      AnimationPoint::vector::iterator m_currentAnimationPoint;
+      AnimationPoint::vectorPtr::iterator m_currentAnimationPoint;
       glm::vec2 m_currentAnimationBegin;
       glm::vec2 m_currentAnimationEnd;
       glm::vec2 m_currentAnimationPosition{0.0f, 0.0f};
+      glm::vec2 m_currentAnimationDistance{0.0f, 0.0f};
+      Timer::milliseconds m_currentTimeElapsed = Timer::milliseconds(0);
       bool m_isReverse = false;
+      bool m_animationFinished = false;
    };
 
    std::deque< AnimationState > m_statesQueue;
    AnimationState m_currentAnimationState;
 
-   AnimationPoint::vector m_animationPoints;
+   AnimationPoint::vectorPtr m_animationPoints;
    ANIMATION_TYPE m_type = ANIMATION_TYPE::LOOP;
    glm::vec2 m_animationStartPosition;
 
    bool m_renderAnimationSteps = false;
    bool m_lockAnimationSteps = false;
+
+ private:
+   Logger m_logger = Logger("Animatable");
+
+ private:
+   // Uses 'updateTime' value to determine which animation point is appropriate for this time value
+   // Will fill internal structure 'm_currentAnimationState' with correct values
+   // Returns animationDistance calculated by traversing all Animation Points using 'updateTime'
+   // 'updateTime' will be changed to the remaining time in current Animation Point
+   //
+   // Example:
+   // Animation Points:
+   // 1. X=20 Y=40  Time=3s
+   // 2. X=2  Y=100 Time=5s
+   // 3. X=40 Y=1   Time=1s
+   //
+   // updateTime = 5000ms -> 5s
+   //
+   // Return:
+   // - Current Animation Point -> (2)
+   // - animationDistance -> (20,40)
+   // - updateTime -> (2000ms -> 2s)
+   glm::vec2
+   SetCorrectAnimationPoint(Timer::milliseconds& updateTime);
 };

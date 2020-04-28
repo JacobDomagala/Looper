@@ -5,7 +5,7 @@
 #include <Timer.hpp>
 #include <Weapon.hpp>
 
-Enemy::Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite, AnimationPoint::vector keypoints,
+Enemy::Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite, AnimationPoint::vectorPtr keypoints,
              Animatable::ANIMATION_TYPE animationType)
    : GameObject(context, pos, size, sprite, TYPE::ENEMY), Animatable(animationType)
 {
@@ -44,7 +44,7 @@ Enemy::DealWithPlayer()
 
       if (m_currentState.m_combatStarted)
       {
-         m_currentState.m_timeSinceCombatStarted += m_timer.GetDeltaTime();
+         m_currentState.m_timeSinceCombatStarted += m_timer.GetFloatDeltaTime();
 
          if (m_currentState.m_timeSinceCombatStarted > m_currentState.m_reactionTime)
          {
@@ -62,7 +62,7 @@ Enemy::DealWithPlayer()
    // player is out of range, clear enemy's 'memory'
    else
    {
-      m_currentState.m_timeSinceCombatEnded += m_timer.GetDeltaTime();
+      m_currentState.m_timeSinceCombatEnded += m_timer.GetFloatDeltaTime();
 
       if ((m_currentState.m_action != ACTION::IDLE) && (m_currentState.m_timeSinceCombatEnded < 3.0f))
       {
@@ -138,7 +138,7 @@ Enemy::Shoot()
 {
    auto gameHandle = ConvertToGameHandle();
 
-   m_currentState.m_timeSinceLastShot += m_timer.GetDeltaTime();
+   m_currentState.m_timeSinceLastShot += m_timer.GetFloatDeltaTime();
 
    m_contextHandle.RenderText("POW POW", glm::vec2(128.0f, 64.0f), 1.0f, glm::vec3(0.0f, 0.1f, 0.4f));
    if (glm::length(static_cast< glm::vec2 >(m_contextHandle.GetPlayer()->GetCenteredLocalPosition()

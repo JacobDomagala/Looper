@@ -73,7 +73,7 @@ Level::Load(Context* context, const std::string& pathToLevel)
             const auto animatePos = enemy["animate positions"];
             const auto name = enemy["name"];
 
-            AnimationPoint::vector keypointsPositions = {};
+            AnimationPoint::vectorPtr keypointsPositions = {};
             glm::vec2 beginPoint = glm::vec2(position[0], position[1]);
 
             for (auto& point : animatePos)
@@ -173,7 +173,7 @@ Level::AddGameObject(GameObject::TYPE objectType)
          animationPoint->m_timeDuration = Timer::seconds(1);
          
          newObject = std::make_shared< Enemy >(*m_contextPointer, defaultPosition, defaultSize, defaultTexture,
-                                               AnimationPoint::vector{animationPoint});
+                                               AnimationPoint::vectorPtr{animationPoint});
          m_objects.push_back(newObject);
       }
       break;

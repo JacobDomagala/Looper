@@ -20,7 +20,8 @@ Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
                             glm::vec4(0.0f + size.x, 0.0f - size.y, 1.0f, 0.0f)};
    m_centeredPosition.x = position.x + (size.x / 2.0f);
    m_centeredPosition.y = position.y - (size.y / 2.0f);
-   m_currentState.m_position = position;
+   m_currentState.m_currentPosition = position;
+   m_initialPosition = position;
    m_size = size;
 
    m_currentState.m_translateVal = glm::vec3(position, 0.0f);
@@ -52,7 +53,8 @@ Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size, con
 
    m_centeredPosition.x = position.x + (size.x / 2.0f);
    m_centeredPosition.y = position.y - (size.y / 2.0f);
-   m_currentState.m_position = position;
+   m_initialPosition = position;
+   m_currentState.m_currentPosition = position;
    m_size = size;
 
    m_currentState.m_translateVal = glm::vec3(position, 0.0f);
@@ -134,7 +136,7 @@ Sprite::GetCenteredPosition() const
 glm::vec2
 Sprite::GetPosition() const
 {
-   return m_currentState.m_position;
+   return m_currentState.m_currentPosition;
 }
 
 glm::ivec2
@@ -179,6 +181,13 @@ Sprite::SetTextureFromFile(const std::string& filePath)
    m_texture.LoadTextureFromFile(filePath);
 }
 
+void
+Sprite::SetTranslateValue(const glm::vec2& translateBy)
+{
+   m_currentState.m_currentPosition = m_initialPosition + translateBy;
+   m_currentState.m_translateVal = glm::vec3(m_initialPosition + translateBy, 0.0f);
+}
+
 Texture&
 Sprite::GetTexture()
 {
@@ -218,7 +227,7 @@ Sprite::ScaleCumulative(const glm::vec2& scaleValue)
 void
 Sprite::Translate(const glm::vec2& translateValue)
 {
-   m_currentState.m_position += translateValue;
+   m_currentState.m_currentPosition += translateValue;
    m_currentState.m_translateVal += glm::vec3(translateValue, 0.0f);
 }
 

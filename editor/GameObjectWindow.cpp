@@ -43,7 +43,7 @@ GameObjectWindow::ObjectUpdated(int ID)
 
                point->m_xPos->setValue(CustomFloatToStr(animatioinPoint->m_end.x));
                point->m_yPos->setValue(CustomFloatToStr(animatioinPoint->m_end.y));
-               point->m_rotation->setValue(CustomFloatToStr(0.0f));
+               point->m_rotation->setValue(CustomFloatToStr(animatioinPoint->m_rotation));
                point->m_time->setValue(CustomFloatToStr(animatioinPoint->m_timeDuration.count()));
             }
          }
@@ -106,6 +106,8 @@ GameObjectWindow::GameObjectSelected(std::shared_ptr< GameObject > selectedGameO
       m_rotateSlider->setValue(m_currentlySelectedObject->GetSprite().GetRotation(Sprite::RotationType::DEGREES));
       m_scaleUniformSlider->setValue(m_currentlySelectedObject->GetSprite().GetScale().x);
 
+      UpdateShaderSection();
+
       m_animationSection->setActive(m_currentlySelectedObject->GetType() != GameObject::TYPE::PLAYER);
 
       const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentlySelectedObject);
@@ -120,6 +122,10 @@ GameObjectWindow::GameObjectSelected(std::shared_ptr< GameObject > selectedGameO
          m_lockAnimationSteps->setChecked(animatablePtr->GetLockAnimationSteps());
          m_animationTimeSlider->setRange({0, animatablePtr->GetAnimationDuration().count()});
          m_animationTimeSlider->setValue(0);
+         m_animationTimeSlider->setCallback([animatablePtr](float value) {
+            animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(value * 1000.0f)));
+            return true;
+         });
       }
 
       ClearAnimationSteps();
@@ -490,6 +496,17 @@ GameObjectWindow::CreateAnimationSection()
    m_animationTimeSlider = GuiBuilder::CreateSlider(
       animateLayout, [&](float value) {}, {0.0f, 5.0f}, 0.0f, mFixedSize.x() / 2);
 
+   if (animatablePtr)
+   {
+      m_animationTimeSlider->setRange({0.0f, animatablePtr->GetAnimationDuration().count()});
+      m_animationTimeSlider->setCallback([&, animatablePtr](float value) {
+         m_currentlySelectedObject->GetSprite().SetTranslateValue(
+            animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(value * 1000.0))));
+         return true;
+      });
+   }
+
+
    m_animationSection->AddWidget(animateLayout);
    m_animationSection->AddWidget(m_animationTimeSlider);
    m_animationSection->AddWidget(m_animateButton);
@@ -500,14 +517,16 @@ GameObjectWindow::UpdateAnimationSection()
 {
    const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentlySelectedObject);
 
-   if (animatablePtr && m_parent.IsObjectAnimated())
+   if (animatablePtr)
    {
-      m_animationTimeSlider->setRange({0, animatablePtr->GetAnimationDuration().count()});
-      m_animationTimeSlider->setValue(m_animationTimeSlider->value() + static_cast<float>(m_parent.GetDeltaTime().count())/1000.0f);
-
-      if (m_animationTimeSlider->value() >= m_animationTimeSlider->range().second)
+      if (m_parent.IsObjectAnimated())
       {
-         m_animationTimeSlider->setValue(0);
+         m_animationTimeSlider->setRange({0, Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count()});
+         m_animationTimeSlider->setValue(m_animationTimeSlider->value() + m_parent.GetDeltaTime().count());
+      }
+      else
+      {
+         // m_animationTimeSlider->setValue(0);
       }
    }
 }
@@ -548,16 +567,32 @@ GameObjectWindow::CreateAnimationSteps()
       for (auto& point : animationSteps)
       {
          auto xValue = GuiBuilder::CreateFloatingPointBox(m_animationStepsLayout, point->m_end.x, animationStepRange,
-                                                          [&](const std::string& val) { return true; }, {fixtedWidth, 0});
+                                                          [point](const std::string& val) {
+                                                             point->m_end.x = std::stof(val);
+                                                             return true;
+                                                          },
+                                                          {fixtedWidth, 0});
 
          auto yValue = GuiBuilder::CreateFloatingPointBox(m_animationStepsLayout, point->m_end.y, animationStepRange,
-                                                          [&](const std::string& val) { return true; }, {fixtedWidth, 0});
+                                                          [point](const std::string& val) {
+                                                             point->m_end.y = std::stof(val);
+                                                             return true;
+                                                          },
+                                                          {fixtedWidth, 0});
 
          auto rotation = GuiBuilder::CreateFloatingPointBox(m_animationStepsLayout, 0.0f, animationStepRange,
-                                                            [&](const std::string& val) { return true; }, {fixtedWidth, 0});
+                                                            [point](const std::string& val) {
+                                                               point->m_rotation = std::stof(val);
+                                                               return true;
+                                                            },
+                                                            {fixtedWidth, 0});
 
          auto time = GuiBuilder::CreateFloatingPointBox(m_animationStepsLayout, point->m_timeDuration.count(), animationStepRange,
-                                                        [&](const std::string& val) { return true; }, {fixtedWidth, 0});
+                                                        [point](const std::string& val) {
+                                                           point->m_timeDuration = Timer::seconds(static_cast< uint64_t >(std::stof(val)));
+                                                           return true;
+                                                        },
+                                                        {fixtedWidth, 0});
 
          m_animationSteps.push_back({point->GetID(), xValue, yValue, rotation, time});
 

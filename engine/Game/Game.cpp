@@ -52,7 +52,7 @@ Game::MainLoop()
          // Temporary solution for locking FPS
          while (singleFrameTimer < TARGET_TIME)
          {
-            singleFrameTimer += m_timer.GetDeltaTime();
+            singleFrameTimer += m_timer.GetFloatDeltaTime();
          }
       }
    }

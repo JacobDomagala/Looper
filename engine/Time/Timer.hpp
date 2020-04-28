@@ -37,11 +37,17 @@ class Timer
    ToggleTimer();
 
    // Get time elapsed between calling ToggleTimer() functions
-   // Returned value is in seconds (float value)
+   // Returned value is in miliseconds (float value)
    float
-   GetDeltaTime() const
+   GetFloatDeltaTime() const
    {
-      return m_deltaTime.count() / 1000.0f;
+      return m_deltaTime.count();
+   }
+
+   milliseconds
+   GetMsDeltaTime() const
+   {
+      return m_deltaTime;
    }
 
    // Returned value in seconds
@@ -57,8 +63,7 @@ class Timer
       m_totalTime = milliseconds(0);
    }
 
-   static milliseconds
-   ConvertToMs(seconds);
+   static milliseconds ConvertToMs(seconds);
 
  private:
    // Time period between last Toggle() function call
