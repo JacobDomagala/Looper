@@ -47,6 +47,9 @@ class Sprite
    void
    SetTranslateValue(const glm::vec2& translateBy);
 
+   void
+   SetInitialPosition(const glm::vec2& globalPosition);
+
    glm::vec2
    GetCenteredPosition() const;
 

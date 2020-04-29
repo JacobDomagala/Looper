@@ -66,7 +66,7 @@ class Context
    CenterCameraOnPlayer();
 
    void
-   DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f), glm::mat4 view = glm::mat4(1.0f));
+   DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f));
 
    virtual void
    MainLoop() = 0;
@@ -148,7 +148,7 @@ class Line : public DebugObject
       lineShader.UseProgram();
       // lineShader.SetUniformFloatMat4(modelMatrix, "modelMatrix");
       lineShader.SetUniformFloatMat4(context.GetProjection(), "projectionMatrix");
-      lineShader.SetUniformFloatMat4(m_viewMatrix, "viewMatrix");
+      lineShader.SetUniformFloatMat4(context.GetCamera().GetViewMatrix(), "viewMatrix");
       lineShader.SetUniformFloatVec4(glm::vec4(m_color, 1.0f), "color");
 
       glDrawArrays(GL_LINES, 0, 2);

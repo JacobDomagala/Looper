@@ -107,6 +107,8 @@ Animatable::CalculateNextStep(Timer::milliseconds updateTime)
    const auto animationDurationMs = Timer::ConvertToMs((*m_currentAnimationState.m_currentAnimationPoint)->m_timeDuration);
 
    const auto timeLeft = static_cast< float >((animationDurationMs - m_currentAnimationState.m_currentTimeElapsed).count());
+
+   // Make sure we don't divide by 0
    const auto sizeOfStep = (timeLeft > 0) ? (updateTime.count() / timeLeft) : 0.0f;
 
    const auto currentAnimationSectonLength = destination - startPosition;
@@ -229,6 +231,7 @@ Animatable::GetAnimationDuration() const
       totalDuration += animationPoint->m_pauseDuration;
    }
 
+   // REVERSABLE animation takes twice as long
    return m_type == ANIMATION_TYPE::REVERSABLE ? 2 * totalDuration : totalDuration;
 }
 
@@ -292,4 +295,24 @@ bool
 Animatable::GetLockAnimationSteps()
 {
    return m_lockAnimationSteps;
+}
+
+void
+Animatable::SetAnimationStartLocation(const glm::vec2& localPosition)
+{
+   m_animationStartPosition = localPosition;
+
+   if (m_currentAnimationState.m_currentAnimationPoint == m_animationPoints.begin())
+   {
+      m_currentAnimationState.m_currentAnimationBegin = m_animationStartPosition;
+      m_currentAnimationState.m_currentAnimationPosition = m_animationStartPosition;
+      m_currentAnimationState.m_currentAnimationDistance = glm::vec2(0.0f, 0.0f);
+      m_currentAnimationState.m_currentTimeElapsed = Timer::milliseconds(0);
+   }
+}
+
+glm::vec2
+Animatable::GetAnimationStartLocation() const
+{
+   return m_animationStartPosition;
 }

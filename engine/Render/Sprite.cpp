@@ -188,6 +188,12 @@ Sprite::SetTranslateValue(const glm::vec2& translateBy)
    m_currentState.m_translateVal = glm::vec3(m_initialPosition + translateBy, 0.0f);
 }
 
+void
+Sprite::SetInitialPosition(const glm::vec2& globalPosition)
+{
+   m_initialPosition = globalPosition;
+}
+
 Texture&
 Sprite::GetTexture()
 {

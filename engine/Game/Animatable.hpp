@@ -88,6 +88,12 @@ class Animatable
    GetLockAnimationSteps();
 
    void
+   SetAnimationStartLocation(const glm::vec2& localPosition);
+
+   glm::vec2
+   GetAnimationStartLocation() const;
+
+   void
    Update(bool isReverse);
 
  protected:
@@ -151,8 +157,8 @@ class Animatable
    glm::vec2
    AnimateInCurrentSection(Timer::milliseconds updateTime);
 
-   // Iterate to next animation point and set all internal data related to it 
-   // For Reverse it's backward iteration, forward otherwise 
+   // Iterate to next animation point and set all internal data related to it
+   // For Reverse it's backward iteration, forward otherwise
    void
    UpdateAnimationPoint();
 
@@ -160,6 +166,6 @@ class Animatable
    glm::vec2
    CalculateNextStep(Timer::milliseconds updateTime);
 
-private:
+ private:
    Logger m_logger = Logger("Animatable");
 };

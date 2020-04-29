@@ -230,7 +230,13 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
          else
          {
             m_currentSelectedGameObject->Move(m_camera.ConvertToCameraVector(-moveBy), false);
+            m_currentSelectedGameObject->GetSprite().SetInitialPosition(m_currentSelectedGameObject->GetGlobalPosition());
             m_gui.ObjectUpdated(m_currentSelectedGameObject->GetID());
+            auto animatable = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
+            if (animatable)
+            {
+               animatable->SetAnimationStartLocation(m_currentSelectedGameObject->GetCenteredLocalPosition());
+            }
          }
       }
       else
@@ -394,6 +400,8 @@ Editor::drawAll()
 void
 Editor::drawContents()
 {
+   // TODO: Cleanup this function in future
+
    if (m_levelLoaded)
    {
       glEnable(GL_BLEND);
@@ -406,10 +414,33 @@ Editor::drawContents()
       }
       m_debugObjs.clear();
 
+      auto animaltionPointIDs = std::vector< int >{};
+      if (m_currentSelectedGameObject)
+      {
+         auto animatePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
+         if (animatePtr && animatePtr->GetRenderAnimationSteps())
+         {
+            const auto animationPoints = animatePtr->GetAnimationKeypoints(); 
+            std::transform(animationPoints.begin(), animationPoints.end(), std::back_inserter(animaltionPointIDs),
+                           [](const auto& animationKeyPoint) { return animationKeyPoint->GetID(); });
+         }
+      }
+      
+      auto animatePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
+      auto lineStart = animatePtr ? m_currentLevel.GetGlobalVec(animatePtr->GetAnimationStartLocation()) : glm::vec2();
       for (auto& object : m_editorObjects)
       {
          if (object->GetVisible())
          {
+            if (object->GetLinkedObject())
+            {
+               auto it = std::find(animaltionPointIDs.begin(), animaltionPointIDs.end(), object->GetLinkedObject()->GetID());
+               if (it != animaltionPointIDs.end())
+               {
+                  DrawLine(lineStart, object->GetCenteredGlobalPosition());
+                  lineStart = object->GetCenteredGlobalPosition();
+               }
+            }
             object->Render(m_currentLevel.GetShader());
          }
       }
@@ -591,7 +622,6 @@ Editor::Update()
       if (moveBy.has_value())
       {
          m_currentSelectedGameObject->Move(moveBy.value(), false);
-         //m_currentSelectedGameObject->GetSprite().SetTranslateValue(moveBy.value());
       }
       else
       {

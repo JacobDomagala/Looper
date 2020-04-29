@@ -123,8 +123,9 @@ GameObjectWindow::GameObjectSelected(std::shared_ptr< GameObject > selectedGameO
          m_lockAnimationSteps->setChecked(animatablePtr->GetLockAnimationSteps());
          m_animationTimeSlider->setRange({0, Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count()});
          m_animationTimeSlider->setValue(0);
-         m_animationTimeSlider->setCallback([animatablePtr](float value) {
-            animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(value)));
+         m_animationTimeSlider->setCallback([&, animatablePtr](float value) {
+            m_currentlySelectedObject->GetSprite().SetTranslateValue(
+               animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(value))));
             return true;
          });
       }
@@ -527,7 +528,7 @@ GameObjectWindow::UpdateAnimationSection()
       }
       else
       {
-         //m_animationTimeSlider->setValue(0);
+         // m_animationTimeSlider->setValue(0);
       }
    }
 }

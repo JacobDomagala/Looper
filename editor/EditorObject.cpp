@@ -13,6 +13,7 @@ EditorObject::EditorObject(Context& contextHandle, const glm::vec2& positionOnMa
 
    m_centeredLocalPosition = m_contextHandle.GetLevel().GetLocalVec(m_centeredGlobalPosition);
    m_linkedObject = linkedObject;
+   m_objectID = m_linkedObject ? m_linkedObject->GetID() : -1;
 }
 
 bool
@@ -209,6 +210,19 @@ void
 EditorObject::Rotate(float angle, bool cumulative)
 {
    cumulative ? m_sprite.RotateCumulative(angle) : m_sprite.Rotate(angle);
+
+   auto rotate = m_sprite.GetRotation(Sprite::RotationType::DEGREES);
+   if (m_linkedObject)
+   {
+      switch (m_linkedObject->GetType())
+      {
+         case Object::TYPE::ANIMATION_POINT: {
+            std::dynamic_pointer_cast< AnimationPoint >(m_linkedObject)->m_rotation = rotate;
+         }
+         default: {
+         }
+      }
+   }
 }
 
 void
