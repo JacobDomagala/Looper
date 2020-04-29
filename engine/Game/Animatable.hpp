@@ -126,9 +126,6 @@ class Animatable
    bool m_lockAnimationSteps = false;
 
  private:
-   Logger m_logger = Logger("Animatable");
-
- private:
    // Uses 'updateTime' value to determine which animation point is appropriate for this time value
    // Will fill internal structure 'm_currentAnimationState' with correct values
    // Returns animationDistance calculated by traversing all Animation Points using 'updateTime'
@@ -154,9 +151,15 @@ class Animatable
    glm::vec2
    AnimateInCurrentSection(Timer::milliseconds updateTime);
 
+   // Iterate to next animation point and set all internal data related to it 
+   // For Reverse it's backward iteration, forward otherwise 
    void
    UpdateAnimationPoint();
 
+   // Calculate next animation step based on current animation point and 'updateTime'
    glm::vec2
    CalculateNextStep(Timer::milliseconds updateTime);
+
+private:
+   Logger m_logger = Logger("Animatable");
 };

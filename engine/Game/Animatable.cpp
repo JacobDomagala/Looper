@@ -122,8 +122,8 @@ Animatable::AnimateInCurrentSection(Timer::milliseconds updateTime)
 
    // Object position after adding animation step
    m_currentAnimationState.m_currentAnimationPosition += animationValue;
-   m_currentAnimationState.m_currentAnimationDistance = animationValue;
-   m_currentAnimationState.m_currentTimeElapsed = updateTime;
+   m_currentAnimationState.m_currentAnimationDistance += animationValue;
+   m_currentAnimationState.m_currentTimeElapsed += updateTime;
 
    return animationValue;
 }
@@ -140,26 +140,20 @@ Animatable::SetAnimation(Timer::milliseconds updateTime)
 glm::vec2
 Animatable::Animate(Timer::milliseconds updateTime)
 {
-   auto animateBy = glm::vec2(0.0f, 0.0f);
+   auto animateBy = glm::vec2();
+
    m_currentAnimationState.m_animationFinished = false;
 
-   const auto currentAnimationStepSize = CalculateNextStep(updateTime);
 
-   // Object position after adding animation step
-   auto nextStep = m_currentAnimationState.m_currentAnimationPosition + currentAnimationStepSize;
-
-   if (glm::length(currentAnimationStepSize) > 0.0f
-       && !IsPositionClose(m_currentAnimationState.m_currentAnimationEnd, m_currentAnimationState.m_currentAnimationBegin, nextStep, 0.5f))
+   auto currentAnimationStepSize = AnimateInCurrentSection(updateTime);
+   if (m_currentAnimationState.m_currentTimeElapsed < (*m_currentAnimationState.m_currentAnimationPoint)->m_timeDuration)
    {
-      m_currentAnimationState.m_currentAnimationPosition = nextStep;
       animateBy = currentAnimationStepSize;
-      m_currentAnimationState.m_currentAnimationDistance += animateBy;
    }
    else
    {
       m_currentAnimationState.m_currentTimeElapsed = Timer::milliseconds(0);
       m_currentAnimationState.m_currentAnimationDistance = glm::vec2(0.0f, 0.0f);
-      animateBy = m_currentAnimationState.m_currentAnimationEnd - m_currentAnimationState.m_currentAnimationPosition;
 
       if (m_currentAnimationState.m_isReverse && m_animationPoints.begin() == m_currentAnimationState.m_currentAnimationPoint)
       {
@@ -171,8 +165,6 @@ Animatable::Animate(Timer::milliseconds updateTime)
          UpdateAnimationPoint();
       }
    }
-
-   m_currentAnimationState.m_currentTimeElapsed += updateTime;
 
    return animateBy;
 }

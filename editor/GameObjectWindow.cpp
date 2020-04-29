@@ -121,10 +121,10 @@ GameObjectWindow::GameObjectSelected(std::shared_ptr< GameObject > selectedGameO
          m_reversalAnimationButton->setPushed(type == Animatable::ANIMATION_TYPE::REVERSABLE);
          m_showAnimationSteps->setChecked(animatablePtr->GetRenderAnimationSteps());
          m_lockAnimationSteps->setChecked(animatablePtr->GetLockAnimationSteps());
-         m_animationTimeSlider->setRange({0, animatablePtr->GetAnimationDuration().count()});
+         m_animationTimeSlider->setRange({0, Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count()});
          m_animationTimeSlider->setValue(0);
          m_animationTimeSlider->setCallback([animatablePtr](float value) {
-            animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(value * 1000.0)));
+            animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(value)));
             return true;
          });
       }
@@ -499,10 +499,10 @@ GameObjectWindow::CreateAnimationSection()
 
    if (animatablePtr)
    {
-      m_animationTimeSlider->setRange({0.0f, animatablePtr->GetAnimationDuration().count()});
+      m_animationTimeSlider->setRange({0.0f, Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count()});
       m_animationTimeSlider->setCallback([&, animatablePtr](float value) {
          m_currentlySelectedObject->GetSprite().SetTranslateValue(
-            animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(value * 1000.0))));
+            animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(value))));
          return true;
       });
    }
@@ -610,7 +610,7 @@ GameObjectWindow::CreateAnimationSteps()
 
       if (m_animationTimeSlider)
       {
-         m_animationTimeSlider->setRange({0.0f, animatablePtr->GetAnimationDuration().count()});
+         m_animationTimeSlider->setRange({0.0f, Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count()});
       }
    }
 }
