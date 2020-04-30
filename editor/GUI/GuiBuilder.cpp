@@ -193,13 +193,6 @@ GuiBuilder::CreatePopupButton(nanogui::Widget* parent, const std::string& text, 
    return {popupBtn, popup};
 }
 
-Section*
-GuiBuilder::CreateSection(nanogui::Widget* parent, const std::string& name, bool active)
-{
-   return new Section(parent, name, active);
-}
-
-
 template nanogui::IntBox< uint32_t >*
 GuiBuilder::CreateNumericBox< uint32_t >(nanogui::Widget* parent, const uint32_t& value, std::pair< uint32_t, uint32_t > range,
                                          const std::function< bool(const uint32_t&) >& callback, const glm::ivec2& size, bool editable);

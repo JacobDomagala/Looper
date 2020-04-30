@@ -81,7 +81,4 @@ class GuiBuilder
    static std::pair< nanogui::PopupButton*, nanogui::Popup* >
    CreatePopupButton(nanogui::Widget* parent, const std::string& text, nanogui::Layout* = new nanogui::GridLayout, int icon = 0,
                      bool enabled = true);
-
-   static Section*
-   CreateSection(nanogui::Widget* parent, const std::string& name, bool active = true);
 };

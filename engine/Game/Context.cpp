@@ -6,13 +6,13 @@
 std::shared_ptr< Player >
 Context::GetPlayer()
 {
-   return m_currentLevel.GetPlayer();
+   return m_currentLevel->GetPlayer();
 }
 
 Level&
 Context::GetLevel()
 {
-   return m_currentLevel;
+   return *m_currentLevel;
 }
 
 Camera&
@@ -48,7 +48,7 @@ Context::RenderText(std::string text, const glm::vec2& position, float scale, co
 void
 Context::CenterCameraOnPlayer()
 {
-   m_camera.SetCameraAtObject(m_currentLevel.GetPlayer());
+   m_camera.SetCameraAtObject(m_currentLevel->GetPlayer());
 }
 
 glm::vec2

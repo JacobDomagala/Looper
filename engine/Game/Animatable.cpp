@@ -274,6 +274,38 @@ Animatable::ResetAnimation()
 }
 
 void
+Animatable::UpdateAnimationData()
+{
+   if (m_currentAnimationState.m_isReverse)
+   {
+      if (m_currentAnimationState.m_currentAnimationPoint != m_animationPoints.begin())
+      {
+         m_currentAnimationState.m_currentAnimationEnd = (*std::prev(m_currentAnimationState.m_currentAnimationPoint))->m_end;
+      }
+      else
+      {
+         m_currentAnimationState.m_currentAnimationEnd = m_animationStartPosition;
+      }
+
+      m_currentAnimationState.m_currentAnimationBegin = (*m_currentAnimationState.m_currentAnimationPoint)->m_end;
+   }
+   else
+   {
+      if (m_currentAnimationState.m_currentAnimationPoint != m_animationPoints.begin())
+      {
+         m_currentAnimationState.m_currentAnimationBegin = (*std::prev(m_currentAnimationState.m_currentAnimationPoint))->m_end;
+      }
+      else
+      {
+         m_currentAnimationState.m_currentAnimationBegin = m_animationStartPosition;
+      }
+
+      m_currentAnimationState.m_currentAnimationEnd =
+         m_animationPoints.empty() ? m_animationStartPosition : (*m_currentAnimationState.m_currentAnimationPoint)->m_end;
+   }
+}
+
+void
 Animatable::RenderAnimationSteps(bool choice)
 {
    m_renderAnimationSteps = choice;

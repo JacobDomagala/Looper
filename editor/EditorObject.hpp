@@ -8,14 +8,15 @@
 #include <deque>
 #include <glm/glm.hpp>
 
-class Context;
+class Editor;
 class Object;
 
 class EditorObject
 {
  public:
    // Constructors and destructors
-   EditorObject(Context& game, const glm::vec2& localPosition, const glm::ivec2& size, const std::string& sprite, std::shared_ptr<Object> linkedObject);
+   EditorObject(Editor& editor, const glm::vec2& localPosition, const glm::ivec2& size, const std::string& sprite,
+                std::shared_ptr< Object > linkedObject);
    ~EditorObject() = default;
    EditorObject(EditorObject&&) = default;
 
@@ -148,7 +149,7 @@ class EditorObject
    
    int m_objectID = -1;
    std::shared_ptr< Object > m_linkedObject = nullptr;
-   Context& m_contextHandle;
+   Editor& m_editor;
 
    bool m_selected = false;
 

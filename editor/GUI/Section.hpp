@@ -4,10 +4,12 @@
 #include <vector>
 #include <string>
 
+class Editor;
+
 class Section : public nanogui::Button
 {
  public:
-   Section(nanogui::Widget* parent, const std::string& name, bool activeByDefault = true);
+   Section(nanogui::Widget* parent, Editor& editor, const std::string& name, bool activeByDefault = true);
 
    void
    AddWidget(nanogui::Widget* widget);
@@ -21,7 +23,8 @@ class Section : public nanogui::Button
    void
    UpdateWidgets(bool visible);
 
- private:
+ protected:
+   Editor& m_editor;
    bool m_sectionActive = true;
    std::vector< nanogui::Widget* > m_widgets;
 };

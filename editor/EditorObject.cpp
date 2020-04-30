@@ -1,17 +1,17 @@
 #include "EditorObject.hpp"
 #include "Animatable.hpp"
-#include "Context.hpp"
+#include "Editor.hpp"
 
-EditorObject::EditorObject(Context& contextHandle, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite,
+EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite,
                            std::shared_ptr< Object > linkedObject)
-   : m_contextHandle(contextHandle)
+   : m_editor(editor)
 {
-   m_globalPosition = m_contextHandle.GetLevel().GetGlobalVec(positionOnMap);
+   m_globalPosition = m_editor.GetLevel().GetGlobalVec(positionOnMap);
    m_localPosition = positionOnMap;
    m_sprite.SetSpriteTextured(m_globalPosition, size, sprite);
    m_centeredGlobalPosition = m_sprite.GetCenteredPosition();
 
-   m_centeredLocalPosition = m_contextHandle.GetLevel().GetLocalVec(m_centeredGlobalPosition);
+   m_centeredLocalPosition = m_editor.GetLevel().GetLocalVec(m_centeredGlobalPosition);
    m_linkedObject = linkedObject;
    m_objectID = m_linkedObject ? m_linkedObject->GetID() : -1;
 }
@@ -21,7 +21,7 @@ EditorObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 {
    bool collided = false;
 
-   Camera camera = m_contextHandle.GetCamera();
+   Camera camera = m_editor.GetCamera();
    camera.Rotate(m_sprite.GetRotation(), false);
 
    const auto boundingRectangle = m_sprite.GetTransformedRectangle();
@@ -36,7 +36,7 @@ EditorObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
    const auto minY = transformed3.y;
    const auto maxY = transformed0.y;
 
-   const auto globalPosition = camera.GetViewMatrix() * glm::vec4(m_contextHandle.ScreenToGlobal(screenPosition), 0.0f, 1.0f);
+   const auto globalPosition = camera.GetViewMatrix() * glm::vec4(m_editor.ScreenToGlobal(screenPosition), 0.0f, 1.0f);
 
    // If 'screenPosition' is inside 'object' sprite (rectangle)
    if (globalPosition.x >= minX && globalPosition.x <= maxX && globalPosition.y <= maxY && globalPosition.y >= minY)
@@ -50,7 +50,7 @@ EditorObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 glm::vec2
 EditorObject::GetScreenPositionPixels() const
 {
-   return m_contextHandle.GlobalToScreen(m_centeredGlobalPosition);
+   return m_editor.GlobalToScreen(m_centeredGlobalPosition);
 }
 
 bool
@@ -193,6 +193,7 @@ EditorObject::Move(const glm::vec2& moveBy, bool isCameraMovement)
       {
          case Object::TYPE::ANIMATION_POINT: {
             std::dynamic_pointer_cast< AnimationPoint >(m_linkedObject)->m_end += moveBy;
+            m_editor.UpdateAnimationData();
          }
          default: {
          }
@@ -218,6 +219,7 @@ EditorObject::Rotate(float angle, bool cumulative)
       {
          case Object::TYPE::ANIMATION_POINT: {
             std::dynamic_pointer_cast< AnimationPoint >(m_linkedObject)->m_rotation = rotate;
+            m_editor.UpdateAnimationData();
          }
          default: {
          }
@@ -234,7 +236,7 @@ void
 EditorObject::Render(Shaders& program)
 {
    program.SetUniformBool(int(m_selected), "objectSelected");
-   m_sprite.Render(m_contextHandle, program);
+   m_sprite.Render(m_editor, program);
 }
 
 void

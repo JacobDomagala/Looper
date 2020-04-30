@@ -96,12 +96,15 @@ class Animatable
    void
    Update(bool isReverse);
 
+   void
+   ResetAnimation();
+
+   void
+   UpdateAnimationData();
+
  protected:
    void
    UpdateNodes();
-
-   void
-   ResetAnimation();
 
    struct AnimationState
    {

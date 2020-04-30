@@ -1,9 +1,10 @@
 #include "Section.hpp"
+#include "Editor.hpp"
 
 #include <nanogui/entypo.h>
 
-Section::Section(nanogui::Widget* parent, const std::string& name, bool activeByDefault)
-   : Button(parent, name, ENTYPO_ICON_CHEVRON_THIN_DOWN)
+Section::Section(nanogui::Widget* parent, Editor& editor, const std::string& name, bool activeByDefault)
+   : Button(parent, name, ENTYPO_ICON_CHEVRON_THIN_DOWN), m_editor(editor)
 {
    m_sectionActive = activeByDefault;
    setActive(m_sectionActive);

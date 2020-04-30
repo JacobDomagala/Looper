@@ -39,11 +39,16 @@ class Gui
    void
    EditorObjectUnselected(int id);
 
-   void
-   LevelLoaded(Level* loadedLevel);
+   void LevelLoaded(std::shared_ptr < Level > loadedLevel);
 
    void
    ObjectUpdated(int ID);
+
+   void
+   AnimationPaused();
+
+   void
+   AnimationFinished();
 
  private:
    /*

@@ -100,7 +100,7 @@ class Context
    float m_cameraSpeed = 0.0f;
    bool m_isGame = false;
    std::shared_ptr< Player > m_player = nullptr;
-   Level m_currentLevel;
+   std::shared_ptr<Level> m_currentLevel;
    Font m_font;
 
    InputManager m_inputManager;

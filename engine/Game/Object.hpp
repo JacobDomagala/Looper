@@ -1,9 +1,14 @@
 #pragma once
 
+#include <memory>
 #include <string>
+#include <vector>
 
 class Object
 {
+ public:
+   using VectorPtr = std::vector< std::shared_ptr< Object > >;
+
  public:
    enum class TYPE
    {

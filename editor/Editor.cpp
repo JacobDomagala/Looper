@@ -145,7 +145,7 @@ Editor::HandleInput()
       glm::dvec2 cursorPos;
       glfwGetCursorPos(mGLFWWindow, &cursorPos.x, &cursorPos.y);
 
-      m_currentLevel.GetGameObjectOnLocation(cursorPos);
+      m_currentLevel->GetGameObjectOnLocation(cursorPos);
    }
 }
 
@@ -236,6 +236,7 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
             if (animatable)
             {
                animatable->SetAnimationStartLocation(m_currentSelectedGameObject->GetCenteredLocalPosition());
+               UpdateAnimationData();
             }
          }
       }
@@ -333,7 +334,7 @@ Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
       HandleEditorObjectSelected(*newSelectedEditorObject);
    }
 
-   auto newSelectedObject = m_currentLevel.GetGameObjectOnLocation(cursorPosition);
+   auto newSelectedObject = m_currentLevel->GetGameObjectOnLocation(cursorPosition);
 
    if (newSelectedObject)
    {
@@ -406,7 +407,7 @@ Editor::drawContents()
    {
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      m_currentLevel.Render();
+      m_currentLevel->Render();
 
       for (auto& obj : m_debugObjs)
       {
@@ -427,7 +428,7 @@ Editor::drawContents()
       }
       
       auto animatePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
-      auto lineStart = animatePtr ? m_currentLevel.GetGlobalVec(animatePtr->GetAnimationStartLocation()) : glm::vec2();
+      auto lineStart = animatePtr ? m_currentLevel->GetGlobalVec(animatePtr->GetAnimationStartLocation()) : glm::vec2();
       for (auto& object : m_editorObjects)
       {
          if (object->GetVisible())
@@ -441,7 +442,7 @@ Editor::drawContents()
                   lineStart = object->GetCenteredGlobalPosition();
                }
             }
-            object->Render(m_currentLevel.GetShader());
+            object->Render(m_currentLevel->GetShader());
          }
       }
    }
@@ -452,17 +453,18 @@ Editor::CreateLevel(const glm::ivec2& size)
 {
    if (m_levelLoaded)
    {
-      m_currentLevel.Quit();
+      m_currentLevel.reset();
    }
 
-   m_currentLevel.Create(this, size);
-   m_currentLevel.LoadShaders("Editor");
+   m_currentLevel = std::make_shared< Level >();
+   m_currentLevel->Create(this, size);
+   m_currentLevel->LoadShaders("Editor");
 
-   m_camera.Create(glm::vec3(m_currentLevel.GetLevelPosition(), 0.0f), {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
-   m_camera.SetLevelSize(m_currentLevel.GetSize());
+   m_camera.Create(glm::vec3(m_currentLevel->GetLevelPosition(), 0.0f), {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
+   m_camera.SetLevelSize(m_currentLevel->GetSize());
 
    m_levelLoaded = true;
-   m_gui.LevelLoaded(&m_currentLevel);
+   m_gui.LevelLoaded(m_currentLevel);
 }
 
 void
@@ -470,15 +472,16 @@ Editor::LoadLevel(const std::string& levelPath)
 {
    if (m_levelLoaded)
    {
-      m_currentLevel.Quit();
+      m_currentLevel.reset();
    }
 
    m_levelFileName = levelPath;
-   m_currentLevel.Load(this, levelPath);
-   m_currentLevel.LoadShaders("Editor");
+   m_currentLevel = std::make_shared< Level >();
+   m_currentLevel->Load(this, levelPath);
+   m_currentLevel->LoadShaders("Editor");
 
    // Populate editor objects
-   const auto gameObjects = m_currentLevel.GetObjects();
+   const auto gameObjects = m_currentLevel->GetObjects();
    for (const auto& object : gameObjects)
    {
       const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(object);
@@ -499,23 +502,23 @@ Editor::LoadLevel(const std::string& levelPath)
       }
    }
 
-   m_camera.Create(glm::vec3(m_currentLevel.GetPlayer()->GetCenteredGlobalPosition(), 0.0f), {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
-   m_camera.SetLevelSize(m_currentLevel.GetSize());
+   m_camera.Create(glm::vec3(m_currentLevel->GetPlayer()->GetCenteredGlobalPosition(), 0.0f), {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
+   m_camera.SetLevelSize(m_currentLevel->GetSize());
 
    m_levelLoaded = true;
-   m_gui.LevelLoaded(&m_currentLevel);
+   m_gui.LevelLoaded(m_currentLevel);
 }
 
 void
 Editor::SaveLevel(const std::string& levelPath)
 {
-   m_currentLevel.Save(levelPath);
+   m_currentLevel->Save(levelPath);
 }
 
 void
 Editor::AddGameObject(GameObject::TYPE objectType)
 {
-   HandleGameObjectSelected(m_currentLevel.AddGameObject(objectType));
+   HandleGameObjectSelected(m_currentLevel->AddGameObject(objectType));
 }
 
 void
@@ -544,23 +547,24 @@ Editor::PlayLevel()
 {
    if (m_levelLoaded)
    {
-      m_game.Init("GameInit.txt");
-      m_game.LoadLevel(m_levelFileName);
-      m_game.MainLoop();
+      m_game = std::make_unique< Game >();
+      m_game->Init("GameInit.txt");
+      m_game->LoadLevel(m_levelFileName);
+      m_game->MainLoop();
    }
 }
 
 void
 Editor::ShowWireframe(bool wireframeEnabled)
 {
-   for (auto& object : m_currentLevel.GetObjects())
+   for (auto& object : m_currentLevel->GetObjects())
    {
       wireframeEnabled ? object->SetObjectSelected() : object->SetObjectUnselected();
    }
 
    if (m_player)
    {
-      wireframeEnabled ? m_currentLevel.GetPlayer()->SetObjectSelected() : m_currentLevel.GetPlayer()->SetObjectUnselected();
+      wireframeEnabled ? m_currentLevel->GetPlayer()->SetObjectSelected() : m_currentLevel->GetPlayer()->SetObjectUnselected();
    }
 
    // Make sure currenlty selected object stays selected
@@ -627,6 +631,17 @@ Editor::Update()
       {
          m_animateGameObject = false;
       }
+   }
+}
+
+void
+Editor::UpdateAnimationData()
+{
+   const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
+
+   if (animatablePtr)
+   {
+      animatablePtr->UpdateAnimationData();
    }
 }
 

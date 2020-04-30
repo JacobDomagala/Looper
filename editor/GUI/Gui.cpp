@@ -141,17 +141,17 @@ Gui::GameObjectUnselected()
 void
 Gui::EditorObjectSelected(int id)
 {
-   m_currentGameObjectWindow->AnimationPointSelected(id);
+   //m_currentGameObjectWindow->AnimationPointSelected(id);
 }
 
 void
 Gui::EditorObjectUnselected(int id)
 {
-   m_currentGameObjectWindow->AnimationPointUnselected(id);
+   //m_currentGameObjectWindow->AnimationPointUnselected(id);
 }
 
 void
-Gui::LevelLoaded(Level* levelLoaded)
+Gui::LevelLoaded(std::shared_ptr<Level> levelLoaded)
 {
    for (auto& widget : m_levelDependentWidgets)
    {
