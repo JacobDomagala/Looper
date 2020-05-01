@@ -92,8 +92,6 @@ Gui::CreateLeftPanel()
    auto addObjectPopup = GuiBuilder::CreatePopupButton(toolsWindow, "Add", new nanogui::GroupLayout, ENTYPO_ICON_SQUARED_PLUS, false);
    addObjectPopup.first->setIconPosition(nanogui::Button::IconPosition::RightCentered);
 
-   // auto vscroll = new nanogui::VScrollPanel(addObjectPopup.second);
-
    GuiBuilder::CreateButton(addObjectPopup.second, "Enemy", [&, addObjectPopup]() {
       m_parent.AddGameObject(GameObject::TYPE::ENEMY);
       addObjectPopup.first->setPushed(false);
@@ -126,6 +124,7 @@ Gui::GameObjectSelected(std::shared_ptr< GameObject > selectedGameObject)
 {
    if (!m_currentGameObjectWindow)
    {
+      // auto vscroll = new nanogui::VScrollPanel(addObjectPopup.second);
       m_currentGameObjectWindow = new GameObjectWindow(m_parent);
    }
 

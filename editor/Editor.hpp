@@ -104,6 +104,12 @@ class Editor : public nanogui::Screen, public Context
    UpdateAnimationData();
 
  private:
+   void
+   DrawEditorObjects();
+
+   void
+   DrawAnimationPoints();
+
    bool
    IsRunning() override;
 

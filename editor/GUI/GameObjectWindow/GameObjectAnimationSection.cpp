@@ -1,13 +1,14 @@
 #include "GameObjectAnimationSection.hpp"
 #include "Animatable.hpp"
 #include "Editor.hpp"
-#include "GameObject.hpp"
+#include "Enemy.hpp"
 #include "GuiBuilder.hpp"
 #include "Utils.hpp"
 
 #include <nanogui/entypo.h>
 
-GameObjectAnimationSection::GameObjectAnimationSection(nanogui::Widget* parent, Editor& editor, bool activeByDefault) : Section(parent, editor, "ANIMATION")
+GameObjectAnimationSection::GameObjectAnimationSection(nanogui::Widget* parent, Editor& editor, bool activeByDefault)
+   : Section(parent, editor, "ANIMATION")
 {
 }
 
@@ -117,6 +118,11 @@ GameObjectAnimationSection::GameObjectSelected(std::shared_ptr< GameObject > sel
 {
    m_currentlySelectedObject = selectedGameObject;
 
+   if (m_objects.end() == std::find(m_objects.begin(), m_objects.end(), m_currentlySelectedObject))
+   {
+      m_objects.push_back(m_currentlySelectedObject);
+   }
+
    const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentlySelectedObject);
 
    if (animatablePtr)
@@ -124,6 +130,7 @@ GameObjectAnimationSection::GameObjectSelected(std::shared_ptr< GameObject > sel
       if (m_created)
       {
          setActive(true);
+         ObjectUpdated(m_currentlySelectedObject->GetID());
          ClearAnimationSteps();
          CreateAnimationSteps(animatablePtr);
       }
@@ -145,16 +152,27 @@ GameObjectAnimationSection::ObjectUpdated(int ID)
 
    if (object != m_objects.end())
    {
-      auto point = std::find_if(m_animationSteps.begin(), m_animationSteps.end(), [ID](auto& point) { return point.id == ID; });
-
-      if (point != m_animationSteps.end())
+      switch ((*object)->GetType())
       {
-         auto animatioinPoint = std::dynamic_pointer_cast<::AnimationPoint >(*object);
+         case ::Object::TYPE::ANIMATION_POINT: {
+            auto point = std::find_if(m_animationSteps.begin(), m_animationSteps.end(), [ID](auto& point) { return point.id == ID; });
 
-         point->m_xPos->setValue(CustomFloatToStr(animatioinPoint->m_end.x));
-         point->m_yPos->setValue(CustomFloatToStr(animatioinPoint->m_end.y));
-         point->m_rotation->setValue(CustomFloatToStr(animatioinPoint->m_rotation));
-         point->m_time->setValue(CustomFloatToStr(animatioinPoint->m_timeDuration.count()));
+            if (point != m_animationSteps.end())
+            {
+               auto animatioinPoint = std::dynamic_pointer_cast<::AnimationPoint >(*object);
+
+               point->m_xPos->setValue(CustomFloatToStr(animatioinPoint->m_end.x));
+               point->m_yPos->setValue(CustomFloatToStr(animatioinPoint->m_end.y));
+               point->m_rotation->setValue(CustomFloatToStr(animatioinPoint->m_rotation));
+               point->m_time->setValue(CustomFloatToStr(animatioinPoint->m_timeDuration.count()));
+            }
+         }
+         break;
+
+         case ::Object::TYPE::ENEMY: {
+            m_showAnimationSteps->setChecked(std::dynamic_pointer_cast< Enemy >(*object)->GetRenderAnimationSteps());
+         }
+         break;
       }
    }
 }

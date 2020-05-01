@@ -13,29 +13,10 @@ GameObjectWindow::GameObjectWindow(Editor& editor) : nanogui::Window(&editor, "S
 void
 GameObjectWindow::ObjectUpdated(int ID)
 {
-   auto object = std::find_if(m_objects.begin(), m_objects.end(), [ID](auto& object) { return object->GetID() == ID; });
-
-   if (object != m_objects.end())
-   {
-      switch ((*object)->GetType())
-      {
-         case ::Object::TYPE::PLAYER:
-         case ::Object::TYPE::ENEMY: {
-            m_generalSection->Update();
-            m_transformSection->Update();
-            m_shaderSection->Update();
-         }
-         break;
-
-         case ::Object::TYPE::ANIMATION_POINT: {
-            m_animationSection->ObjectUpdated(ID);
-         }
-         break;
-
-         default: {
-         }
-      }
-   }
+   m_generalSection->ObjectUpdated(ID);
+   m_transformSection->ObjectUpdated(ID);
+   m_shaderSection->ObjectUpdated(ID);
+   m_animationSection->ObjectUpdated(ID);
 }
 
 void

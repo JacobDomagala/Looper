@@ -279,6 +279,8 @@ Editor::HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameOb
    {
       if (m_currentSelectedGameObject)
       {
+         SetRenderAnimationPoints(false);
+
          // unselect previously selected object
          m_currentSelectedGameObject->SetObjectUnselected();
       }
@@ -292,6 +294,12 @@ Editor::HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameOb
       if (m_editorObjectSelected)
       {
          UnselectEditorObject();
+      }
+
+      auto animatePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
+      if (animatePtr)
+      {
+         SetRenderAnimationPoints(animatePtr->GetRenderAnimationSteps());
       }
 
       m_gui.GameObjectSelected(m_currentSelectedGameObject);
@@ -405,45 +413,67 @@ Editor::drawContents()
 
    if (m_levelLoaded)
    {
+      // Renderer::BeginScene()
+
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       m_currentLevel->Render();
+      DrawEditorObjects();
+      DrawAnimationPoints();
 
-      for (auto& obj : m_debugObjs)
-      {
-         obj->Draw(*this);
-      }
-      m_debugObjs.clear();
+      // Renderer::EndScene()
+   }
+}
 
-      auto animaltionPointIDs = std::vector< int >{};
-      if (m_currentSelectedGameObject)
+void
+Editor::DrawEditorObjects()
+{
+   for (auto& object : m_editorObjects)
+   {
+      if (object->GetVisible())
       {
-         auto animatePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
-         if (animatePtr && animatePtr->GetRenderAnimationSteps())
-         {
-            const auto animationPoints = animatePtr->GetAnimationKeypoints(); 
-            std::transform(animationPoints.begin(), animationPoints.end(), std::back_inserter(animaltionPointIDs),
-                           [](const auto& animationKeyPoint) { return animationKeyPoint->GetID(); });
-         }
+         object->Render(m_currentLevel->GetShader());
       }
-      
+   }
+}
+
+void
+Editor::DrawAnimationPoints()
+{
+   if (m_currentSelectedGameObject)
+   {
       auto animatePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
-      auto lineStart = animatePtr ? m_currentLevel->GetGlobalVec(animatePtr->GetAnimationStartLocation()) : glm::vec2();
-      for (auto& object : m_editorObjects)
+
+      if (animatePtr && animatePtr->GetRenderAnimationSteps())
       {
-         if (object->GetVisible())
+         auto animaltionPointIDs = std::vector< int >{};
+         const auto animationPoints = animatePtr->GetAnimationKeypoints();
+         std::transform(animationPoints.begin(), animationPoints.end(), std::back_inserter(animaltionPointIDs),
+                        [](const auto& animationKeyPoint) { return animationKeyPoint->GetID(); });
+
+         auto lineStart = m_currentLevel->GetGlobalVec(animatePtr->GetAnimationStartLocation());
+         for (auto& object : m_editorObjects)
          {
-            if (object->GetLinkedObject())
+            if (object->GetVisible())
             {
-               auto it = std::find(animaltionPointIDs.begin(), animaltionPointIDs.end(), object->GetLinkedObject()->GetID());
-               if (it != animaltionPointIDs.end())
+               if (object->GetLinkedObject())
                {
-                  DrawLine(lineStart, object->GetCenteredGlobalPosition());
-                  lineStart = object->GetCenteredGlobalPosition();
+                  auto it = std::find(animaltionPointIDs.begin(), animaltionPointIDs.end(), object->GetLinkedObject()->GetID());
+                  if (it != animaltionPointIDs.end())
+                  {
+                     DrawLine(lineStart, object->GetCenteredGlobalPosition());
+                     lineStart = object->GetCenteredGlobalPosition();
+                  }
                }
+               object->Render(m_currentLevel->GetShader());
             }
-            object->Render(m_currentLevel->GetShader());
          }
+
+         for (auto& obj : m_debugObjs)
+         {
+            obj->Draw(*this);
+         }
+         m_debugObjs.clear();
       }
    }
 }

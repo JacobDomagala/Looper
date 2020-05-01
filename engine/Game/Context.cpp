@@ -92,11 +92,7 @@ Context::ScreenToGlobal(const glm::vec2& screenPos)
 void
 Context::DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color)
 {
-   std::unique_ptr< DebugObject > line = std::make_unique< Line >(from, to, color);
-
-   line->SetViewMatrix(m_camera.GetViewMatrix());
-
-   m_debugObjs.push_back(std::move(line));
+   m_debugObjs.emplace_back(std::make_unique< Line >(from, to, color));
 }
 
 void
