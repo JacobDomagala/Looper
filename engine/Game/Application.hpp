@@ -11,7 +11,7 @@
 #include <memory>
 
 class Player;
-class Context;
+class Application;
 
 #pragma region DEBUG
 // THIS CLASS EXISTS ONLY IF WE WOULD NEED SOMETHING ELSE THAN LINE AS DEBUG OBJECT
@@ -19,7 +19,7 @@ class DebugObject
 {
  public:
    virtual void
-   Draw(Context& context) = 0;
+   Draw(Application& context) = 0;
 
    virtual void
    SetViewMatrix(const glm::mat4& mat) = 0;
@@ -27,11 +27,11 @@ class DebugObject
    virtual ~DebugObject() = default;
 };
 
-class Context
+class Application
 {
  public:
-   Context() = default;
-   ~Context() = default;
+   Application() = default;
+   ~Application() = default;
 
    std::shared_ptr< Player >
    GetPlayer();
@@ -125,7 +125,7 @@ class Line : public DebugObject
    ~Line() override = default;
 
    void
-   Draw(Context& context) override
+   Draw(Application& context) override
    {
       Shaders lineShader{};
       lineShader.LoadShaders("lineShader");

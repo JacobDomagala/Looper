@@ -13,7 +13,7 @@
 #include <nlohmann/json.hpp>
 
 void
-Level::Create(Context* context, const glm::ivec2& size)
+Level::Create(Application* context, const glm::ivec2& size)
 {
    m_levelSize = size;
    m_background.SetSprite(glm::vec2(0.0f, 0.0f), m_levelSize);
@@ -22,7 +22,7 @@ Level::Create(Context* context, const glm::ivec2& size)
 }
 
 void
-Level::Load(Context* context, const std::string& pathToLevel)
+Level::Load(Application* context, const std::string& pathToLevel)
 {
    const auto json = FileManager::LoadJsonFile(pathToLevel);
 

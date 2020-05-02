@@ -1,5 +1,5 @@
 #include "Sprite.hpp"
-#include "Context.hpp"
+#include "Application.hpp"
 
 #include <glm/gtx/transform.hpp>
 
@@ -89,7 +89,7 @@ Sprite::Update(bool isReverse)
 }
 
 void
-Sprite::Render(Context& context, Shaders& program)
+Sprite::Render(Application& context, Shaders& program)
 {
    program.UseProgram();
    glBindVertexArray(m_vertexArrayBuffer);

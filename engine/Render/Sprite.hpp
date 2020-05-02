@@ -9,7 +9,7 @@
 #include <glm/glm.hpp>
 
 class Window;
-class Context;
+class Application;
 
 class Sprite
 {
@@ -105,7 +105,7 @@ class Sprite
 
    // Render sprite using 'program'
    void
-   Render(Context& context, Shaders& program);
+   Render(Application& context, Shaders& program);
 
  private:
    struct State

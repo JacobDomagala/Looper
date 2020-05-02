@@ -3,7 +3,7 @@
 #include <Player.hpp>
 #include <Window.hpp>
 
-Player::Player(Context& game, const glm::vec2& position, const glm::ivec2& size, const std::string& sprite, const std::string& name)
+Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& size, const std::string& sprite, const std::string& name)
    : GameObject(game, position, size, sprite, TYPE::PLAYER)
 {
    m_logger.Init("Player");
@@ -61,7 +61,7 @@ Player::CheckCollision(const glm::ivec2& bulletPosition, Enemy const* enemy, boo
 glm::vec2
 Player::GetScreenPosition() const
 {
-   glm::vec4 screenPosition = m_contextHandle.GetProjection() * glm::vec4(GameObject::m_currentState.m_centeredGlobalPosition, 0.0f, 1.0f);
+   glm::vec4 screenPosition = m_appHandle.GetProjection() * glm::vec4(GameObject::m_currentState.m_centeredGlobalPosition, 0.0f, 1.0f);
    return glm::vec2(screenPosition.x, screenPosition.y);
 }
 
@@ -75,7 +75,7 @@ Player::UpdateInternal(bool isReverse)
    }
    else
    {
-      if (m_contextHandle.IsGame())
+      if (m_appHandle.IsGame())
       {
          auto gameHandle = ConvertToGameHandle();
          if (!gameHandle->IsReverse())
@@ -121,9 +121,9 @@ Player::SetCenteredLocalPosition(const glm::ivec2& pos)
    GameObject::m_currentState.m_centeredLocalPosition = pos;
    GameObject::m_currentState.m_localPosition = glm::ivec2(GameObject::m_currentState.m_centeredLocalPosition.x - m_sprite.GetSize().x / 2,
                                                            GameObject::m_currentState.m_centeredLocalPosition.y - m_sprite.GetSize().y / 2);
-   GameObject::m_currentState.m_globalPosition = m_contextHandle.GetLevel().GetGlobalVec(GameObject::m_currentState.m_localPosition);
+   GameObject::m_currentState.m_globalPosition = m_appHandle.GetLevel().GetGlobalVec(GameObject::m_currentState.m_localPosition);
    GameObject::m_currentState.m_centeredGlobalPosition =
-      m_contextHandle.GetLevel().GetGlobalVec(GameObject::m_currentState.m_centeredLocalPosition);
+      m_appHandle.GetLevel().GetGlobalVec(GameObject::m_currentState.m_centeredLocalPosition);
 }
 
 void

@@ -9,13 +9,13 @@
 #include <deque>
 #include <vector>
 
-class Context;
+class Application;
 class Window;
 
 class Enemy : public GameObject, public Animatable
 {
  public:
-   Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& textureName,
+   Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& textureName,
          AnimationPoint::vectorPtr keypoints = {}, Animatable::ANIMATION_TYPE animationType = Animatable::ANIMATION_TYPE::REVERSABLE);
    ~Enemy() override = default;
 

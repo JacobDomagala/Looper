@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 #include <unordered_map>
 
-class Context;
+class Application;
 class GameObject;
 class Window;
 class Game;
@@ -34,11 +34,11 @@ class Level
    MoveObjs(const glm::vec2& moveBy, bool isCameraMovement = true);
 
    void
-   Create(Context* context, const glm::ivec2& size);
+   Create(Application* context, const glm::ivec2& size);
 
    // pathToFile - global path to level file (.dgl)
    void
-   Load(Context* context, const std::string& pathToFile);
+   Load(Application* context, const std::string& pathToFile);
 
    // pathToFile - global path to level file (.dgl)
    void
@@ -158,7 +158,7 @@ class Level
  private:
    Logger m_logger = Logger("Level");
 
-   Context* m_contextPointer = nullptr;
+   Application* m_contextPointer = nullptr;
    Sprite m_background;
    Texture m_collision;
 

@@ -1,11 +1,11 @@
-#include <Context.hpp>
+#include <Application.hpp>
 #include <Enemy.hpp>
 #include <Game.hpp>
 #include <Level.hpp>
 #include <Timer.hpp>
 #include <Weapon.hpp>
 
-Enemy::Enemy(Context& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite, AnimationPoint::vectorPtr keypoints,
+Enemy::Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite, AnimationPoint::vectorPtr keypoints,
              Animatable::ANIMATION_TYPE animationType)
    : GameObject(context, pos, size, sprite, TYPE::ENEMY), Animatable(animationType)
 {
@@ -123,7 +123,7 @@ Enemy::Visible() const
 void
 Enemy::SetTargetShootPosition(const glm::vec2& playerPos)
 {
-   auto& playerSize = m_contextHandle.GetPlayer()->GetSize();
+   auto& playerSize = m_appHandle.GetPlayer()->GetSize();
 
    // compute small offset value which simulates the 'aim wiggle'
    auto xOffset = fmod(rand(), playerSize.x) + (-playerSize.x / 2);
@@ -140,21 +140,21 @@ Enemy::Shoot()
 
    m_currentState.m_timeSinceLastShot += m_timer.GetFloatDeltaTime();
 
-   m_contextHandle.RenderText("POW POW", glm::vec2(128.0f, 64.0f), 1.0f, glm::vec3(0.0f, 0.1f, 0.4f));
-   if (glm::length(static_cast< glm::vec2 >(m_contextHandle.GetPlayer()->GetCenteredLocalPosition()
+   m_appHandle.RenderText("POW POW", glm::vec2(128.0f, 64.0f), 1.0f, glm::vec3(0.0f, 0.1f, 0.4f));
+   if (glm::length(static_cast< glm::vec2 >(m_appHandle.GetPlayer()->GetCenteredLocalPosition()
                                             - GameObject::m_currentState.m_centeredLocalPosition))
        <= m_weapon->GetRange())
    {
       if (m_currentState.m_timeSinceLastShot >= m_weapon->GetReloadTime())
       {
          auto collided = gameHandle->CheckBulletCollision(
-            this, m_contextHandle.GetLevel().GetGlobalVec(m_currentState.m_targetShootPosition), m_weapon->GetRange());
+            this, m_appHandle.GetLevel().GetGlobalVec(m_currentState.m_targetShootPosition), m_weapon->GetRange());
 
          // if we hit anything draw a line
          if (collided.first != glm::ivec2(0, 0))
          {
             gameHandle->DrawLine(GameObject::m_currentState.m_centeredGlobalPosition,
-                                 m_contextHandle.GetLevel().GetGlobalVec(collided.first));
+                                 m_appHandle.GetLevel().GetGlobalVec(collided.first));
          }
 
          m_currentState.m_timeSinceLastShot = 0.0f;
@@ -296,7 +296,7 @@ Enemy::UpdateInternal(bool isReverse)
    {
       if (!m_currentState.m_combatStarted && m_currentState.m_isAtInitialPos)
       {
-         Move(Animate(m_contextHandle.GetDeltaTime()), false);
+         Move(Animate(m_appHandle.GetDeltaTime()), false);
       }
 
       m_statesQueue.push_back(m_currentState);

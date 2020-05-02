@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Context.hpp"
+#include "Application.hpp"
 #include "EditorObject.hpp"
 #include "Game.hpp"
 #include "Gui.hpp"
@@ -17,7 +17,7 @@
 class Player;
 class Window;
 
-class Editor : public nanogui::Screen, public Context
+class Editor : public nanogui::Screen, public Application
 {
  public:
    Editor(const glm::vec2& screenSize);

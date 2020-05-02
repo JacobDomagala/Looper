@@ -9,7 +9,7 @@
 #include <deque>
 #include <glm/glm.hpp>
 
-class Context;
+class Application;
 class Game;
 class Window;
 
@@ -18,7 +18,7 @@ class GameObject : public Object
  public:
 
    // Constructors and destructors
-   GameObject(Context& game, const glm::vec2& localPosition, const glm::ivec2& size, const std::string& sprite, Object::TYPE type);
+   GameObject(Application& game, const glm::vec2& localPosition, const glm::ivec2& size, const std::string& sprite, Object::TYPE type);
    virtual ~GameObject() = default;
 
    virtual void Hit(int32_t) = 0;
@@ -152,7 +152,7 @@ class GameObject : public Object
    std::deque< State > m_statesQueue;
    State m_currentState;
 
-   Context& m_contextHandle;
+   Application& m_appHandle;
 
    TYPE m_type;
 

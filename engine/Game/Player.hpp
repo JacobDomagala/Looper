@@ -16,7 +16,7 @@ class Enemy;
 class Player : public GameObject
 {
  public:
-   explicit Player(Context& game, const glm::vec2& position, const glm::ivec2& size, const std::string& sprite,
+   explicit Player(Application& game, const glm::vec2& position, const glm::ivec2& size, const std::string& sprite,
                    const std::string& name = "Anonymous");
    ~Player() = default;
 

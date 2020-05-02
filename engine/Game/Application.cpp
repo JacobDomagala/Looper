@@ -1,58 +1,58 @@
-#include "Context.hpp"
+#include "Application.hpp"
 
 #include <GLFW/glfw3.h>
 #include <glm/gtx/rotate_vector.hpp>
 
 std::shared_ptr< Player >
-Context::GetPlayer()
+Application::GetPlayer()
 {
    return m_currentLevel->GetPlayer();
 }
 
 Level&
-Context::GetLevel()
+Application::GetLevel()
 {
    return *m_currentLevel;
 }
 
 Camera&
-Context::GetCamera()
+Application::GetCamera()
 {
    return m_camera;
 }
 
 Timer::milliseconds
-Context::GetDeltaTime()
+Application::GetDeltaTime()
 {
    return m_deltaTime;
 }
 
 bool
-Context::IsGame()
+Application::IsGame()
 {
    return m_isGame;
 }
 
 void
-Context::Log(Logger::TYPE t, const std::string& log)
+Application::Log(Logger::TYPE t, const std::string& log)
 {
    m_logger.Log(t, log);
 }
 
 void
-Context::RenderText(std::string text, const glm::vec2& position, float scale, const glm::vec3& color)
+Application::RenderText(std::string text, const glm::vec2& position, float scale, const glm::vec3& color)
 {
    m_font.RenderText(GetProjection(), text, position, scale, color);
 }
 
 void
-Context::CenterCameraOnPlayer()
+Application::CenterCameraOnPlayer()
 {
    m_camera.SetCameraAtObject(m_currentLevel->GetPlayer());
 }
 
 glm::vec2
-Context::GlobalToScreen(const glm::vec2& globalPos) const
+Application::GlobalToScreen(const glm::vec2& globalPos) const
 {
    // convert to <-1, 1>
    glm::vec2 projectedPosition = GetProjection() * GetViewMatrix() * glm::vec4(globalPos, 0.0f, 1.0f);
@@ -71,7 +71,7 @@ Context::GlobalToScreen(const glm::vec2& globalPos) const
 }
 
 glm::vec2
-Context::ScreenToGlobal(const glm::vec2& screenPos)
+Application::ScreenToGlobal(const glm::vec2& screenPos)
 {
    const auto windowCenterScreen = GetWindowSize() / 2.0f;
    const auto zoomRatio = (GetWindowSize() / (2.0f + GetZoomLevel())) / windowCenterScreen;
@@ -90,13 +90,13 @@ Context::ScreenToGlobal(const glm::vec2& screenPos)
 }
 
 void
-Context::DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color)
+Application::DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color)
 {
    m_debugObjs.emplace_back(std::make_unique< Line >(from, to, color));
 }
 
 void
-Context::PollEvents()
+Application::PollEvents()
 {
    glfwPollEvents();
 }

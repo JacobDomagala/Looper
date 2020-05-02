@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Context.hpp"
+#include "Application.hpp"
 #include "Font.hpp"
 #include "Framebuffer.hpp"
 #include "InputManager.hpp"
@@ -15,7 +15,7 @@
 #include <glm/gtx/transform.hpp>
 #include <vector>
 
-class Game : public Context
+class Game : public Application
 {
  public:
    Game() = default;
