@@ -182,13 +182,16 @@ GuiBuilder::CreateCheckBox(nanogui::Widget* parent, const std::function< void(bo
 }
 
 std::pair< nanogui::PopupButton*, nanogui::Popup* >
-GuiBuilder::CreatePopupButton(nanogui::Widget* parent, const std::string& text, nanogui::Layout* layout, int icon, bool enabled)
+GuiBuilder::CreatePopupButton(nanogui::Widget* parent, const std::string& text, nanogui::Popup::Side side, nanogui::Layout* layout, int icon,
+                              bool enabled)
 {
    nanogui::PopupButton* popupBtn = new nanogui::PopupButton(parent, text, icon);
    popupBtn->setEnabled(enabled);
+   popupBtn->setSide(side);
 
    nanogui::Popup* popup = popupBtn->popup();
    popup->setLayout(layout);
+   popup->setSide(side);
 
    return {popupBtn, popup};
 }

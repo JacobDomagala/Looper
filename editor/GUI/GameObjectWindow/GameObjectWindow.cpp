@@ -52,7 +52,6 @@ GameObjectWindow::GameObjectSelected(std::shared_ptr< GameObject > selectedGameO
    else
    {
       mLayout = new nanogui::GroupLayout();
-
       setFixedSize(nanogui::Vector2i(300, frameBuffersize.y));
 
       m_generalSection = new GameObjectGeneralSection(this, m_parent);

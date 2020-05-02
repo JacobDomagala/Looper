@@ -79,6 +79,7 @@ class GuiBuilder
                   bool checked = false);
 
    static std::pair< nanogui::PopupButton*, nanogui::Popup* >
-   CreatePopupButton(nanogui::Widget* parent, const std::string& text, nanogui::Layout* = new nanogui::GridLayout, int icon = 0,
+   CreatePopupButton(nanogui::Widget* parent, const std::string& text, nanogui::Popup::Side side = nanogui::Popup::Side::Right,
+                     nanogui::Layout* = new nanogui::GridLayout, int icon = 0,
                      bool enabled = true);
 };

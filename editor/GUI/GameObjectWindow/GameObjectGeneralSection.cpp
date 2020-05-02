@@ -22,7 +22,7 @@ GameObjectGeneralSection::Create(std::shared_ptr< GameObject > selectedGameObjec
    const auto objectSize = m_currentlySelectedObject->GetSize();
 
    auto nameLayout =
-      GuiBuilder::CreateLayout(parent(), GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal, 2, nanogui::Alignment::Fill);
+      GuiBuilder::CreateLayout(parent(), GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal, 2, nanogui::Alignment::Fill, 2);
 
    AddWidget(GuiBuilder::CreateLabel(nameLayout, "Name"));
 

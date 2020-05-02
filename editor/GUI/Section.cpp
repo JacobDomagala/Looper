@@ -10,10 +10,6 @@ Section::Section(nanogui::Widget* parent, Editor& editor, const std::string& nam
    setActive(m_sectionActive);
    setBackgroundColor(nanogui::Color(0, 0, 255, 25));
 
-   auto updateWidgets = [&](bool active) {
-
-   };
-
    setCallback([&]() {
       if (m_sectionActive)
       {

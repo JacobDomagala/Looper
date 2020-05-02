@@ -89,7 +89,8 @@ Gui::CreateLeftPanel()
       ENTYPO_ICON_DOCUMENT);
 
    GuiBuilder::CreateLabel(toolsWindow, "");
-   auto addObjectPopup = GuiBuilder::CreatePopupButton(toolsWindow, "Add", new nanogui::GroupLayout, ENTYPO_ICON_SQUARED_PLUS, false);
+   auto addObjectPopup = GuiBuilder::CreatePopupButton(toolsWindow, "Add", nanogui::Popup::Side::Right, new nanogui::GroupLayout,
+                                                       ENTYPO_ICON_SQUARED_PLUS, false);
    addObjectPopup.first->setIconPosition(nanogui::Button::IconPosition::RightCentered);
 
    GuiBuilder::CreateButton(addObjectPopup.second, "Enemy", [&, addObjectPopup]() {
@@ -140,17 +141,17 @@ Gui::GameObjectUnselected()
 void
 Gui::EditorObjectSelected(int id)
 {
-   //m_currentGameObjectWindow->AnimationPointSelected(id);
+   // m_currentGameObjectWindow->AnimationPointSelected(id);
 }
 
 void
 Gui::EditorObjectUnselected(int id)
 {
-   //m_currentGameObjectWindow->AnimationPointUnselected(id);
+   // m_currentGameObjectWindow->AnimationPointUnselected(id);
 }
 
 void
-Gui::LevelLoaded(std::shared_ptr<Level> levelLoaded)
+Gui::LevelLoaded(std::shared_ptr< Level > levelLoaded)
 {
    for (auto& widget : m_levelDependentWidgets)
    {

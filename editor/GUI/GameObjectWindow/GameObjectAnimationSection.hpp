@@ -20,6 +20,7 @@ class GameObjectAnimationSection : public Section
       nanogui::TextBox* m_yPos = nullptr;
       nanogui::TextBox* m_rotation = nullptr;
       nanogui::TextBox* m_time = nullptr;
+      nanogui::Button* m_removePoint = nullptr;
    };
 
  public:
@@ -50,7 +51,9 @@ class GameObjectAnimationSection : public Section
    nanogui::CheckBox* m_showAnimationSteps = nullptr;
    nanogui::CheckBox* m_lockAnimationSteps = nullptr;
    nanogui::Widget* m_animationStepsLayout = nullptr;
+   std::pair< nanogui::PopupButton*, nanogui::Popup* > m_showStepsButton;
    std::vector< AnimationPoint > m_animationSteps;
+   nanogui::Button* m_addNewPointButton = nullptr;
    nanogui::Button* m_animateButton = nullptr;
    nanogui::Slider* m_animationTimeSlider = nullptr;
 

@@ -55,16 +55,18 @@ GameObjectAnimationSection::Create(std::shared_ptr< GameObject > selectedGameObj
          [&](bool choice) { m_editor.SetLockAnimationPoints(choice); }, "Lock animation steps");
       AddWidget(m_lockAnimationSteps);
 
-      AddWidget(GuiBuilder::CreateLabel(GuiBuilder::CreateLayout(parent(), GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal,
-                                                                 1, nanogui::Alignment::Middle, 5, 20),
-                                        "Animation Steps"));
+      m_showStepsButton = GuiBuilder::CreatePopupButton(parent(), "Animation Steps", nanogui::Popup::Side::Left);
+      m_showStepsButton.second->setFixedWidth(500);
 
-      m_animationStepsLayout = GuiBuilder::CreateLayout(parent(), GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal, 4);
+      m_animationStepsLayout = GuiBuilder::CreateLayout(m_showStepsButton.second, GuiBuilder::LayoutType::GRID,
+                                                        nanogui::Orientation::Horizontal, 5, nanogui::Alignment::Middle, 2, 2);
+      m_animationStepsLayout->setFixedWidth(500);
 
       AddWidget(GuiBuilder::CreateLabel(m_animationStepsLayout, "X"));
       AddWidget(GuiBuilder::CreateLabel(m_animationStepsLayout, "Y"));
       AddWidget(GuiBuilder::CreateLabel(m_animationStepsLayout, "Rotation"));
       AddWidget(GuiBuilder::CreateLabel(m_animationStepsLayout, "Time"));
+      AddWidget(GuiBuilder::CreateLabel(m_animationStepsLayout, ""));
 
       CreateAnimationSteps(animatablePtr);
 
@@ -84,6 +86,8 @@ GameObjectAnimationSection::Create(std::shared_ptr< GameObject > selectedGameObj
          return true;
       });
 
+      AddWidget(m_showStepsButton.first);
+      AddWidget(m_showStepsButton.second);
       AddWidget(animateLayout);
       AddWidget(m_animationTimeSlider);
       AddWidget(m_animateButton);
@@ -186,11 +190,13 @@ GameObjectAnimationSection::ClearAnimationSteps()
       m_animationStepsLayout->removeChild(animationPoint.m_yPos);
       m_animationStepsLayout->removeChild(animationPoint.m_rotation);
       m_animationStepsLayout->removeChild(animationPoint.m_time);
+      m_animationStepsLayout->removeChild(animationPoint.m_removePoint);
 
       RemoveWidget(animationPoint.m_xPos);
       RemoveWidget(animationPoint.m_yPos);
       RemoveWidget(animationPoint.m_rotation);
       RemoveWidget(animationPoint.m_time);
+      RemoveWidget(animationPoint.m_removePoint);
 
       m_objects.erase(
          std::find_if(m_objects.begin(), m_objects.end(), [animationPoint](auto& object) { return object->GetID() == animationPoint.id; }));
@@ -236,12 +242,16 @@ GameObjectAnimationSection::CreateAnimationSteps(const std::shared_ptr< Animatab
                                                      },
                                                      {fixtedWidth, 0});
 
-      m_animationSteps.push_back({point->GetID(), xValue, yValue, rotation, time});
+      auto removePoint = GuiBuilder::CreateButton(
+         m_animationStepsLayout, "", []() {}, ENTYPO_ICON_TRASH, fixtedWidth);
+
+      m_animationSteps.push_back({point->GetID(), xValue, yValue, rotation, time, removePoint});
 
       AddWidget(xValue);
       AddWidget(yValue);
       AddWidget(rotation);
       AddWidget(time);
+      AddWidget(removePoint);
 
       if (m_objects.end() == std::find(m_objects.begin(), m_objects.end(), point))
       {
