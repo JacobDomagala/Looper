@@ -511,6 +511,14 @@ Editor::LoadLevel(const std::string& levelPath)
    m_currentLevel->LoadShaders("Editor");
 
    // Populate editor objects
+
+   const auto pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
+   std::for_each(pathfinderNodes.begin(), pathfinderNodes.end(), [this](const auto& node) {
+      m_editorObjects.push_back(std::make_shared< EditorObject >(*this, node->m_position, glm::ivec2(20, 20), "Default128.png",
+                                              std::dynamic_pointer_cast<::Object >(node)));
+      m_objects.push_back(std::dynamic_pointer_cast<::Object >(node));
+   });
+
    const auto gameObjects = m_currentLevel->GetObjects();
    for (const auto& object : gameObjects)
    {

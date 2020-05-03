@@ -1,9 +1,11 @@
 #pragma once
 
+#include "Object.hpp"
+
 #include <glm/glm.hpp>
 #include <vector>
 
-struct Node
+struct Node : public Object
 {
    glm::ivec2 m_position;
    uint8_t m_ID;
@@ -12,11 +14,14 @@ struct Node
 
 class PathFinder
 {
-   std::vector< Node > m_nodes;
+   std::vector< std::shared_ptr<Node >> m_nodes;
 
  public:
    PathFinder();
-   PathFinder(std::vector< Node >&& nodes);
+   PathFinder(std::vector< std::shared_ptr< Node > >&& nodes);
+
+   void
+   AddNode(std::shared_ptr< Node > newNode);
 
    uint8_t
    FindNodeIdx(const glm::ivec2& position) const;
@@ -26,4 +31,7 @@ class PathFinder
 
    uint8_t
    GetNearestNode(const glm::ivec2& position) const;
+
+   std::vector< std::shared_ptr< Node > > 
+   GetAllNodes() const;
 };
