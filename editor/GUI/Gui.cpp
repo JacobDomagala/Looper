@@ -2,6 +2,7 @@
 #include "Editor.hpp"
 #include "GameObject.hpp"
 #include "GameObjectWindow.hpp"
+#include "EditorObjectWindow.hpp"
 #include "GuiBuilder.hpp"
 #include "LevelWindow.hpp"
 
@@ -139,15 +140,20 @@ Gui::GameObjectUnselected()
 }
 
 void
-Gui::EditorObjectSelected(int id)
+Gui::EditorObjectSelected(std::shared_ptr<EditorObject> object)
 {
-   // m_currentGameObjectWindow->AnimationPointSelected(id);
+   if (!m_currentEditorObjectWindow)
+   {
+      m_currentEditorObjectWindow = new EditorObjectWindow(m_parent);
+   }
+
+   m_currentEditorObjectWindow->EditorObjectSelected(object);
 }
 
 void
-Gui::EditorObjectUnselected(int id)
+Gui::EditorObjectUnselected()
 {
-   // m_currentGameObjectWindow->AnimationPointUnselected(id);
+   m_currentEditorObjectWindow->EditorObjectUnselected();
 }
 
 void
@@ -177,5 +183,18 @@ Gui::LevelLoaded(std::shared_ptr< Level > levelLoaded)
 void
 Gui::ObjectUpdated(int ID)
 {
-   m_currentGameObjectWindow->ObjectUpdated(ID);
+   if (m_currentGameObjectWindow)
+   {
+      m_currentGameObjectWindow->ObjectUpdated(ID);
+   }
+
+   if (m_currentEditorObjectWindow)
+   {
+      m_currentEditorObjectWindow->ObjectUpdated(ID);
+   }
+   
+   if (m_levelWindow)
+   {
+      
+   }
 }

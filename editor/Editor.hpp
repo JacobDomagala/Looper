@@ -117,7 +117,7 @@ class Editor : public nanogui::Screen, public Application
    InitGLFW();
 
    void
-   HandleInput();
+   HandleCamera();
 
    void
    HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis);

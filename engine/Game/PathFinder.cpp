@@ -3,14 +3,25 @@
 
 PathFinder::PathFinder()
 {
-   /*std::vector< Node > nodes = {Node{{370, 1000}, 0, {1, 7}},   Node{{960, 1000}, 1, {0, 2}},    Node{{1600, 1000}, 2, {1, 3, 8, 13}},
-                                Node{{1664, 1536}, 3, {2, 4}},  Node{{1600, 2200}, 4, {3, 5}},   Node{{960, 2200}, 5, {4, 6}},
-                                Node{{370, 2200}, 6, {5, 7}},   Node{{370, 1600}, 7, {0, 6}},    Node{{2200, 1000}, 8, {2, 9}},
-                                Node{{2800, 1000}, 9, {8, 10}}, Node{{2800, 1600}, 10, {9, 11}}, Node{{2700, 2100}, 11, {10, 12}},
-                                Node{{2864, 2536}, 12, {11}},   Node{{1600, 600}, 13, {2, 14}},  Node{{1600, 135}, 14, {13, 15, 16}},
-                                Node{{1300, 135}, 15, {14}},    Node{{1800, 135}, 16, {14}}};
+   std::vector< std::shared_ptr< Node > > nodes = {std::make_shared< Node >(glm::ivec2(370, 1000), 0, std::vector< uint8_t >{1, 7}),
+                                                   std::make_shared< Node >(glm::ivec2(960, 1000), 1, std::vector< uint8_t >{0, 2}),
+                                                   std::make_shared< Node >(glm::ivec2(1600, 1000), 2, std::vector< uint8_t >{1, 3, 8, 13}),
+                                                   std::make_shared< Node >(glm::ivec2(1664, 1536), 3, std::vector< uint8_t >{2, 4}),
+                                                   std::make_shared< Node >(glm::ivec2(1600, 2200), 4, std::vector< uint8_t >{3, 5}),
+                                                   std::make_shared< Node >(glm::ivec2(960, 2200), 5, std::vector< uint8_t >{4, 6}),
+                                                   std::make_shared< Node >(glm::ivec2(370, 2200), 6, std::vector< uint8_t >{5, 7}),
+                                                   std::make_shared< Node >(glm::ivec2(370, 1600), 7, std::vector< uint8_t >{0, 6}),
+                                                   std::make_shared< Node >(glm::ivec2(2200, 1000), 8, std::vector< uint8_t >{2, 9}),
+                                                   std::make_shared< Node >(glm::ivec2(2800, 1000), 9, std::vector< uint8_t >{8, 10}),
+                                                   std::make_shared< Node >(glm::ivec2(2800, 1600), 10, std::vector< uint8_t >{9, 11}),
+                                                   std::make_shared< Node >(glm::ivec2(2700, 2100), 11, std::vector< uint8_t >{10, 12}),
+                                                   std::make_shared< Node >(glm::ivec2(2864, 2536), 12, std::vector< uint8_t >{11}),
+                                                   std::make_shared< Node >(glm::ivec2(1600, 600), 13, std::vector< uint8_t >{2, 14}),
+                                                   std::make_shared< Node >(glm::ivec2(1600, 135), 14, std::vector< uint8_t >{13, 15, 16}),
+                                                   std::make_shared< Node >(glm::ivec2(1300, 135), 15, std::vector< uint8_t >{14}),
+                                                   std::make_shared< Node >(glm::ivec2(1800, 135), 16, std::vector< uint8_t >{14})};
 
-   m_nodes = nodes;*/
+   m_nodes = nodes;
 }
 
 PathFinder::PathFinder(std::vector< std::shared_ptr< Node > >&& nodes) : m_nodes(nodes)

@@ -93,7 +93,7 @@ Editor::draw(NVGcontext* ctx)
 }
 
 void
-Editor::HandleInput()
+Editor::HandleCamera()
 {
    m_timer.ToggleTimer();
    m_deltaTime = m_timer.GetMsDeltaTime();
@@ -121,20 +121,6 @@ Editor::HandleInput()
       if (m_levelLoaded)
       {
          m_camera.SetCameraAtPosition({0.0f, 0.0f, 0.0f});
-      }
-   }
-   if (IsKeyDown(GLFW_KEY_ESCAPE))
-   {
-      if (m_gameObjectSelected)
-      {
-         if (m_currentSelectedGameObject)
-         {
-            m_currentSelectedGameObject->SetObjectUnselected();
-            m_currentSelectedGameObject.reset();
-         }
-
-         m_gameObjectSelected = false;
-         m_gui.GameObjectUnselected();
       }
    }
 
@@ -319,7 +305,9 @@ Editor::HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedEd
    m_currentEditorObjectSelected = newSelectedEditorObject;
    m_editorObjectSelected = true;
    m_movementOnEditorObject = true;
-   m_currentEditorObjectSelected->Scale({2.0f, 2.0f});
+
+   m_currentEditorObjectSelected->SetObjectSelected();
+   m_gui.EditorObjectSelected(newSelectedEditorObject);
 }
 
 void
@@ -327,7 +315,7 @@ Editor::UnselectEditorObject()
 {
    m_editorObjectSelected = false;
    m_movementOnEditorObject = false;
-   m_currentEditorObjectSelected->Scale({1.0f, 1.0f});
+   m_currentEditorObjectSelected->SetObjectUnselected();
 }
 
 void
@@ -341,12 +329,14 @@ Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
    {
       HandleEditorObjectSelected(*newSelectedEditorObject);
    }
-
-   auto newSelectedObject = m_currentLevel->GetGameObjectOnLocation(cursorPosition);
-
-   if (newSelectedObject)
+   else
    {
-      HandleGameObjectSelected(newSelectedObject);
+      auto newSelectedObject = m_currentLevel->GetGameObjectOnLocation(cursorPosition);
+
+      if (newSelectedObject)
+      {
+         HandleGameObjectSelected(newSelectedObject);
+      }
    }
 }
 
@@ -395,6 +385,32 @@ Editor::keyboardEvent(int key, int scancode, int action, int modifiers)
    if (!Screen::keyboardEvent(key, scancode, action, modifiers))
    {
       m_keyMap[key] = action;
+
+      if ((key == GLFW_KEY_ESCAPE) && (action == GLFW_PRESS))
+      {
+         if (m_editorObjectSelected)
+         {
+            if (m_currentEditorObjectSelected)
+            {
+               m_currentEditorObjectSelected->SetObjectUnselected();
+               m_currentEditorObjectSelected.reset();
+            }
+
+            m_editorObjectSelected = false;
+            m_gui.EditorObjectUnselected();
+         }
+         else if (m_gameObjectSelected)
+         {
+            if (m_currentSelectedGameObject)
+            {
+               m_currentSelectedGameObject->SetObjectUnselected();
+               m_currentSelectedGameObject.reset();
+            }
+
+            m_gameObjectSelected = false;
+            m_gui.GameObjectUnselected();
+         }
+      }
    }
 
    return true;
@@ -514,8 +530,11 @@ Editor::LoadLevel(const std::string& levelPath)
 
    const auto pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
    std::for_each(pathfinderNodes.begin(), pathfinderNodes.end(), [this](const auto& node) {
-      m_editorObjects.push_back(std::make_shared< EditorObject >(*this, node->m_position, glm::ivec2(20, 20), "Default128.png",
-                                              std::dynamic_pointer_cast<::Object >(node)));
+      auto object = std::make_shared< EditorObject >(*this, node->m_position, glm::ivec2(40, 40), "NodeSprite.png",
+                                                     std::dynamic_pointer_cast<::Object >(node));
+
+      object->SetVisible(true);
+      m_editorObjects.push_back(object);
       m_objects.push_back(std::dynamic_pointer_cast<::Object >(node));
    });
 
@@ -738,7 +757,7 @@ Editor::MainLoop()
       PollEvents();
 
       // override keyboard input
-      HandleInput();
+      HandleCamera();
 
       // Update UI
       m_gui.Update();

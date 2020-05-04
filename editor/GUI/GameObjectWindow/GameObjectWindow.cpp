@@ -6,7 +6,7 @@
 
 #include <nanogui/layout.h>
 
-GameObjectWindow::GameObjectWindow(Editor& editor) : nanogui::Window(&editor, "Selected Object"), m_parent(editor)
+GameObjectWindow::GameObjectWindow(Editor& editor) : nanogui::Window(&editor, "Game Object"), m_parent(editor)
 {
 }
 

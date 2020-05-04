@@ -7,6 +7,15 @@
 
 struct Node : public Object
 {
+   Node() = default;
+
+   Node(glm::ivec2 pos, uint8_t ID, std::vector< uint8_t > connectedTo) : Object(Object::TYPE::PATHFINDER_NODE)
+   {
+      m_position = pos;
+      m_ID = ID;
+      m_connectedNodes = connectedTo;
+   }
+
    glm::ivec2 m_position;
    uint8_t m_ID;
    std::vector< uint8_t > m_connectedNodes;
@@ -14,7 +23,7 @@ struct Node : public Object
 
 class PathFinder
 {
-   std::vector< std::shared_ptr<Node >> m_nodes;
+   std::vector< std::shared_ptr< Node > > m_nodes;
 
  public:
    PathFinder();
@@ -32,6 +41,6 @@ class PathFinder
    uint8_t
    GetNearestNode(const glm::ivec2& position) const;
 
-   std::vector< std::shared_ptr< Node > > 
+   std::vector< std::shared_ptr< Node > >
    GetAllNodes() const;
 };

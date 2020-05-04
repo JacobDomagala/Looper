@@ -14,7 +14,8 @@ class Object
    {
       ENEMY,
       PLAYER,
-      ANIMATION_POINT
+      ANIMATION_POINT,
+      PATHFINDER_NODE
    };
 
    // Constructors and destructors

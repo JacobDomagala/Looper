@@ -6,7 +6,9 @@
 
 class Editor;
 class GameObject;
+class EditorObject;
 class GameObjectWindow;
+class EditorObjectWindow;
 class LevelWindow;
 class Level;
 
@@ -34,10 +36,10 @@ class Gui
    GameObjectUnselected();
 
    void
-   EditorObjectSelected(int ID);
+   EditorObjectSelected(std::shared_ptr< EditorObject > object);
 
    void
-   EditorObjectUnselected(int id);
+   EditorObjectUnselected();
 
    void LevelLoaded(std::shared_ptr < Level > loadedLevel);
 
@@ -66,6 +68,7 @@ class Gui
    Editor& m_parent;
 
    GameObjectWindow* m_currentGameObjectWindow = nullptr;
+   EditorObjectWindow* m_currentEditorObjectWindow = nullptr;
    LevelWindow* m_levelWindow = nullptr;
 
    std::unordered_map< std::string, nanogui::Window* > m_windows;
