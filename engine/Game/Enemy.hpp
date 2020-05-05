@@ -9,6 +9,8 @@
 #include <deque>
 #include <vector>
 
+namespace dgame {
+
 class Application;
 class Window;
 
@@ -106,3 +108,5 @@ class Enemy : public GameObject, public Animatable
 
    glm::ivec2 m_initialPosition;
 };
+
+} // namespace dgame

@@ -10,7 +10,7 @@ main(int /* argc */, char** /* argv */)
    
    //const auto mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
-   Editor editor({1920, 1080});
+   dgame::Editor editor({1920, 1080});
    editor.MainLoop();
    
    return EXIT_SUCCESS;

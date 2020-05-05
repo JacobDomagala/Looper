@@ -7,6 +7,8 @@
 #include <array>
 #include <memory>
 
+namespace dgame {
+
 class Framebuffer
 {
  public:
@@ -39,3 +41,5 @@ class Framebuffer
    GLuint m_vertexArrayBuffer{};
    GLuint m_vertexBuffer{};
 };
+
+} // namespace dgame

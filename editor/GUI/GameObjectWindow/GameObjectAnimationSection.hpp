@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+namespace dgame {
+
 class Animatable;
 class GameObject;
 class Editor;
@@ -58,7 +60,9 @@ class GameObjectAnimationSection : public Section
    nanogui::Slider* m_animationTimeSlider = nullptr;
 
    std::shared_ptr< GameObject > m_currentlySelectedObject;
-   ::Object::VectorPtr m_objects;
+   dgame::Object::VectorPtr m_objects;
 
    bool m_created = false;
 };
+
+} // namespace dgame

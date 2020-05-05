@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+namespace dgame {
+
 class Logger
 {
  public:
@@ -58,3 +60,5 @@ class Logger
    std::string m_moduleName;
    static TYPE m_currentLogType;
 };
+
+} // namespace dgame

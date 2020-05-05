@@ -1,16 +1,12 @@
 #pragma once
 
 #include "Section.hpp"
+#include "GuiAPI.hpp"
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
-#include <nanogui/button.h>
-#include <nanogui/checkbox.h>
-#include <nanogui/label.h>
-#include <nanogui/layout.h>
-#include <nanogui/popupbutton.h>
-#include <nanogui/slider.h>
-#include <nanogui/textbox.h>
+
+namespace dgame {
 
 class Sprite;
 class GuiBuilder
@@ -24,62 +20,63 @@ class GuiBuilder
    };
 
  public:
-   static nanogui::Widget*
-   CreateLayout(nanogui::Widget* parent, LayoutType type, nanogui::Orientation orientation = nanogui::Orientation::Horizontal,
-                int resolution = 2, nanogui::Alignment alignment = nanogui::Alignment::Middle, int marigin = 0, int spacing = 6);
+   static Widget*
+   CreateLayout(Widget* parent, LayoutType type, Orientation orientation = Orientation::Horizontal, int resolution = 2,
+                Alignment alignment = Alignment::Middle, int marigin = 0, int spacing = 6);
 
-   static nanogui::Window*
-   CreateWindow(nanogui::Widget* parent, const std::string& caption, const glm::ivec2& position, nanogui::Layout* layout);
+   static GuiWindow*
+   CreateWindow(Widget* parent, const std::string& caption, const glm::ivec2& position, Layout* layout);
 
-   static nanogui::ImageView*
-   CreateImageView(nanogui::Widget* parent, GLuint textureID, const glm::ivec2& size);
+   static ImageView*
+   CreateImageView(Widget* parent, GLuint textureID, const glm::ivec2& size);
 
-   static nanogui::Slider*
-   CreateSlider(nanogui::Widget* parent, const std::function< void(float) >& dragCallback, std::pair< float, float > range, float value,
+   static Slider*
+   CreateSlider(Widget* parent, const std::function< void(float) >& dragCallback, std::pair< float, float > range, float value,
                 int fixedWidth = 0);
 
-   static nanogui::Widget*
-   CreateBlankSpace(nanogui::Widget* parent);
+   static Widget*
+   CreateBlankSpace(Widget* parent);
 
-   static nanogui::Label*
-   CreateLabel(nanogui::Widget* parent, const std::string& caption);
+   static Label*
+   CreateLabel(Widget* parent, const std::string& caption);
 
-   static nanogui::Label*
-   CreateTitleLabel(nanogui::Widget* parent, const std::string& caption);
+   static Label*
+   CreateTitleLabel(Widget* parent, const std::string& caption);
 
-   static nanogui::Button*
-   CreateButton(nanogui::Widget* parent, const std::string& caption, const std::function< void() >& callback, int icon = 0,
-                int fixedWidth = 0, bool enabled = true);
+   static Button*
+   CreateButton(Widget* parent, const std::string& caption, const std::function< void() >& callback, int icon = 0, int fixedWidth = 0,
+                bool enabled = true);
 
-   static nanogui::Button*
-   CreateRadioButton(nanogui::Widget* parent, const std::string& caption, const std::function< void() >& callback, int icon = 0,
-                     int fixedWidth = 0, bool enabled = true);
+   static Button*
+   CreateRadioButton(Widget* parent, const std::string& caption, const std::function< void() >& callback, int icon = 0, int fixedWidth = 0,
+                     bool enabled = true);
 
-   static nanogui::TextBox*
+   static TextBox*
    CreateTextBox(
-      nanogui::Widget* parent, const std::string& value,
+      Widget* parent, const std::string& value,
       const std::function< bool(const std::string&) >& callback = [](const std::string&) { return true; }, bool numeric = true,
       const glm::ivec2& size = glm::ivec2(0, 0), bool editable = false);
 
    template < typename T >
-   static nanogui::IntBox< T >*
+   static IntBox< T >*
    CreateNumericBox(
-      nanogui::Widget* parent, const T& value, std::pair< T, T > range = {T(), T()},
+      Widget* parent, const T& value, std::pair< T, T > range = {T(), T()},
       const std::function< bool(const T&) >& callback = [](const T&) { return true; }, const glm::ivec2& size = glm::ivec2(0, 0),
       bool editable = true);
 
-   static nanogui::TextBox*
+   static TextBox*
    CreateFloatingPointBox(
-      nanogui::Widget* parent, float value, std::pair< float, float > range = {0.0f, 1.0f},
+      Widget* parent, float value, std::pair< float, float > range = {0.0f, 1.0f},
       const std::function< bool(const std::string&) >& callback = [](const std::string&) { return true; },
       const glm::ivec2& size = glm::ivec2(0, 0), bool editable = true);
 
-   static nanogui::CheckBox*
-   CreateCheckBox(nanogui::Widget* parent, const std::function< void(bool) >& callback, const std::string& text = "", float fontSize = 16,
+   static CheckBox*
+   CreateCheckBox(Widget* parent, const std::function< void(bool) >& callback, const std::string& text = "", float fontSize = 16,
                   bool checked = false);
 
-   static std::pair< nanogui::PopupButton*, nanogui::Popup* >
-   CreatePopupButton(nanogui::Widget* parent, const std::string& text, nanogui::Popup::Side side = nanogui::Popup::Side::Right,
-                     nanogui::Layout* = new nanogui::GridLayout, int icon = 0,
+   static std::pair< PopupButton*, Popup* >
+   CreatePopupButton(Widget* parent, const std::string& text, Popup::Side side = Popup::Side::Right, Layout* = new GridLayout, int icon = 0,
                      bool enabled = true);
 };
+
+} // namespace dgame

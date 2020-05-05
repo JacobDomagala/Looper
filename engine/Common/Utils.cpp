@@ -5,6 +5,8 @@
 #include <iomanip>
 #include <sstream>
 
+namespace dgame {
+
 std::string
 CustomFloatToStr(float value, int precision)
 {
@@ -46,3 +48,5 @@ IsPositionClose(const glm::vec2& targetPos, const glm::vec2& startPos, const glm
 
    return xCheck && yCheck;
 }
+
+} // namespace dgame

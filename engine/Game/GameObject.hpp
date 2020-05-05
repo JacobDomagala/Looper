@@ -9,6 +9,8 @@
 #include <deque>
 #include <glm/glm.hpp>
 
+namespace dgame {
+
 class Application;
 class Game;
 class Window;
@@ -16,7 +18,6 @@ class Window;
 class GameObject : public Object
 {
  public:
-
    // Constructors and destructors
    GameObject(Application& game, const glm::vec2& localPosition, const glm::ivec2& size, const std::string& sprite, Object::TYPE type);
    virtual ~GameObject() = default;
@@ -172,3 +173,5 @@ class GameObject : public Object
 
    static inline int s_currentID = 0;
 };
+
+} // namespace dgame

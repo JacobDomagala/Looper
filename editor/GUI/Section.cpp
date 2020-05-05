@@ -3,6 +3,8 @@
 
 #include <nanogui/entypo.h>
 
+namespace dgame {
+
 Section::Section(nanogui::Widget* parent, Editor& editor, const std::string& name, bool activeByDefault)
    : Button(parent, name, ENTYPO_ICON_CHEVRON_THIN_DOWN), m_editor(editor)
 {
@@ -59,3 +61,5 @@ Section::UpdateWidgets(bool visible)
 
    m_sectionActive = visible;
 }
+
+} // namespace dgame

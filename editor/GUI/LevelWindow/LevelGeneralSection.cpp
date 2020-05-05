@@ -5,9 +5,9 @@
 #include "GuiBuilder.hpp"
 #include "Utils.hpp"
 
-#include <nanogui/entypo.h>
+namespace dgame {
 
-LevelGeneralSection::LevelGeneralSection(nanogui::Widget* parent, Editor& editor, bool activeByDefault) : Section(parent, editor, "GENERAL")
+LevelGeneralSection::LevelGeneralSection(Widget* parent, Editor& editor, bool activeByDefault) : Section(parent, editor, "GENERAL")
 {
 }
 
@@ -38,8 +38,8 @@ LevelGeneralSection::Create(std::shared_ptr< Level > level)
    const auto levelSize = m_loadedLevel->GetSize();
 
    m_showNodesButton = GuiBuilder::CreatePopupButton(parent(), "Pathfinder nodes");
-   m_pathfinderNodesLayout = GuiBuilder::CreateLayout(m_showNodesButton.second, GuiBuilder::LayoutType::GRID,
-                                                      nanogui::Orientation::Horizontal, 3, nanogui::Alignment::Middle, 2, 2);
+   m_pathfinderNodesLayout =
+      GuiBuilder::CreateLayout(m_showNodesButton.second, GuiBuilder::LayoutType::GRID, Orientation::Horizontal, 3, Alignment::Middle, 2, 2);
 
    AddWidget(GuiBuilder::CreateLabel(m_pathfinderNodesLayout, "X"));
    AddWidget(GuiBuilder::CreateLabel(m_pathfinderNodesLayout, "Y"));
@@ -97,3 +97,5 @@ void
 LevelGeneralSection::ObjectUpdated(int ID)
 {
 }
+
+} // namespace dgame

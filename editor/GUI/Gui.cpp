@@ -1,12 +1,12 @@
 #include "Gui.hpp"
 #include "Editor.hpp"
+#include "EditorObjectWindow.hpp"
 #include "GameObject.hpp"
 #include "GameObjectWindow.hpp"
-#include "EditorObjectWindow.hpp"
 #include "GuiBuilder.hpp"
 #include "LevelWindow.hpp"
 
-#include <nanogui/vscrollpanel.h>
+namespace dgame {
 
 Gui::Gui(Editor& parent) : m_parent(parent)
 {
@@ -40,7 +40,7 @@ Gui::Update()
 void
 Gui::CreateLeftPanel()
 {
-   auto toolsWindow = GuiBuilder::CreateWindow(&m_parent, "TOOLS", glm::ivec2(0, 0), new nanogui::GroupLayout());
+   auto toolsWindow = GuiBuilder::CreateWindow(&m_parent, "TOOLS", glm::ivec2(0, 0), new GroupLayout);
 
    auto playLevelButton = CreatePlayButton(toolsWindow);
 
@@ -73,7 +73,7 @@ Gui::CreateLeftPanel()
       toolsWindow, "Create",
       [&] {
          auto windowCenter = m_parent.GetWindowSize() / glm::vec2(2.0f);
-         auto createLevelWindow = GuiBuilder::CreateWindow(&m_parent, "CREATE LEVEL", windowCenter, new nanogui::GridLayout());
+         auto createLevelWindow = GuiBuilder::CreateWindow(&m_parent, "CREATE LEVEL", windowCenter, new GridLayout);
 
          GuiBuilder::CreateLabel(createLevelWindow, "Width");
          auto widthTextBox = GuiBuilder::CreateTextBox(createLevelWindow, "3000");
@@ -90,9 +90,9 @@ Gui::CreateLeftPanel()
       ENTYPO_ICON_DOCUMENT);
 
    GuiBuilder::CreateLabel(toolsWindow, "");
-   auto addObjectPopup = GuiBuilder::CreatePopupButton(toolsWindow, "Add", nanogui::Popup::Side::Right, new nanogui::GroupLayout,
-                                                       ENTYPO_ICON_SQUARED_PLUS, false);
-   addObjectPopup.first->setIconPosition(nanogui::Button::IconPosition::RightCentered);
+   auto addObjectPopup =
+      GuiBuilder::CreatePopupButton(toolsWindow, "Add", Popup::Side::Right, new GroupLayout, ENTYPO_ICON_SQUARED_PLUS, false);
+   addObjectPopup.first->setIconPosition(Button::IconPosition::RightCentered);
 
    GuiBuilder::CreateButton(addObjectPopup.second, "Enemy", [&, addObjectPopup]() {
       m_parent.AddGameObject(GameObject::TYPE::ENEMY);
@@ -109,14 +109,14 @@ Gui::CreateLeftPanel()
    m_levelDependentWidgets.push_back(addObjectPopup.first);
 }
 
-nanogui::Widget*
-Gui::CreatePlayButton(nanogui::Widget* parent)
+Widget*
+Gui::CreatePlayButton(Widget* parent)
 {
    auto playLevelButton = GuiBuilder::CreateButton(
       parent, "Play Level", [&] { m_parent.PlayLevel(); }, ENTYPO_ICON_ARROW_BOLD_RIGHT, 0, false);
 
-   playLevelButton->setBackgroundColor(nanogui::Color(0.4f, 0.1f, 0.1f, 0.5));
-   playLevelButton->setIconPosition(nanogui::Button::IconPosition::RightCentered);
+   playLevelButton->setBackgroundColor({0.4f, 0.1f, 0.1f, 0.5});
+   playLevelButton->setIconPosition(Button::IconPosition::RightCentered);
 
    return playLevelButton;
 }
@@ -126,7 +126,7 @@ Gui::GameObjectSelected(std::shared_ptr< GameObject > selectedGameObject)
 {
    if (!m_currentGameObjectWindow)
    {
-      // auto vscroll = new nanogui::VScrollPanel(addObjectPopup.second);
+      // auto vscroll = new VScrollPanel(addObjectPopup.second);
       m_currentGameObjectWindow = new GameObjectWindow(m_parent);
    }
 
@@ -140,7 +140,7 @@ Gui::GameObjectUnselected()
 }
 
 void
-Gui::EditorObjectSelected(std::shared_ptr<EditorObject> object)
+Gui::EditorObjectSelected(std::shared_ptr< EditorObject > object)
 {
    if (!m_currentEditorObjectWindow)
    {
@@ -192,9 +192,10 @@ Gui::ObjectUpdated(int ID)
    {
       m_currentEditorObjectWindow->ObjectUpdated(ID);
    }
-   
+
    if (m_levelWindow)
    {
-      
    }
 }
+
+} // namespace dgame

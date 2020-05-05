@@ -3,6 +3,8 @@
 #include "GameObject.hpp"
 #include "Window.hpp"
 
+namespace dgame {
+
 GameObject::GameObject(Application& contextHandle, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite,
                        Object::TYPE type)
    : Object(type), m_appHandle(contextHandle)
@@ -239,3 +241,5 @@ GameObject::ConvertToGameHandle()
 
    return gameHandle;
 }
+
+} // namespace dgame

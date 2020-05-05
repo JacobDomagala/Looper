@@ -14,6 +14,8 @@
 #include <nanogui/screen.h>
 #include <utility>
 
+namespace dgame {
+
 class Player;
 class Window;
 
@@ -140,7 +142,7 @@ class Editor : public nanogui::Screen, public Application
    bool
    IsKeyDown(uint8_t keycode);
 
-   std::unique_ptr<Game> m_game;
+   std::unique_ptr< Game > m_game;
    std::shared_ptr< Level > m_level;
 
    std::string m_levelFileName;
@@ -175,8 +177,10 @@ class Editor : public nanogui::Screen, public Application
    std::shared_ptr< EditorObject > m_currentEditorObjectSelected;
 
    // Represents all objects located in game, such as Gameobjects, light sources, particle emiters etc.
-   std::vector< std::shared_ptr<::Object > > m_objects;
+   std::vector< std::shared_ptr<Object > > m_objects;
 
    std::map< uint8_t, bool > m_keyMap;
    Gui m_gui;
 };
+
+} // namespace dgame

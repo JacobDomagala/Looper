@@ -5,8 +5,10 @@
 #include <Timer.hpp>
 #include <Weapon.hpp>
 
-Enemy::Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite, AnimationPoint::vectorPtr keypoints,
-             Animatable::ANIMATION_TYPE animationType)
+namespace dgame {
+
+Enemy::Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite,
+             AnimationPoint::vectorPtr keypoints, Animatable::ANIMATION_TYPE animationType)
    : GameObject(context, pos, size, sprite, TYPE::ENEMY), Animatable(animationType)
 {
    m_maxHP = 100;
@@ -147,14 +149,13 @@ Enemy::Shoot()
    {
       if (m_currentState.m_timeSinceLastShot >= m_weapon->GetReloadTime())
       {
-         auto collided = gameHandle->CheckBulletCollision(
-            this, m_appHandle.GetLevel().GetGlobalVec(m_currentState.m_targetShootPosition), m_weapon->GetRange());
+         auto collided = gameHandle->CheckBulletCollision(this, m_appHandle.GetLevel().GetGlobalVec(m_currentState.m_targetShootPosition),
+                                                          m_weapon->GetRange());
 
          // if we hit anything draw a line
          if (collided.first != glm::ivec2(0, 0))
          {
-            gameHandle->DrawLine(GameObject::m_currentState.m_centeredGlobalPosition,
-                                 m_appHandle.GetLevel().GetGlobalVec(collided.first));
+            gameHandle->DrawLine(GameObject::m_currentState.m_centeredGlobalPosition, m_appHandle.GetLevel().GetGlobalVec(collided.first));
          }
 
          m_currentState.m_timeSinceLastShot = 0.0f;
@@ -229,8 +230,7 @@ Enemy::ReturnToInitialPosition()
    gameHandle->RenderText("RETURNING", glm::vec2(128.0f, 256.0f), 1.0f, glm::vec3(0.0f, 0.1f, 0.4f));
 
    auto moveBy = m_currentState.m_movementSpeed * gameHandle->GetDeltaTime().count();
-   auto vectorToInitialPos =
-      static_cast< glm::vec2 >(m_initialPosition - GameObject::m_currentState.m_centeredLocalPosition);
+   auto vectorToInitialPos = static_cast< glm::vec2 >(m_initialPosition - GameObject::m_currentState.m_centeredLocalPosition);
    auto lengthToInitialPos = glm::length(vectorToInitialPos);
    auto distanceToNode =
       glm::length(static_cast< glm::vec2 >(m_currentState.m_targetMovePosition - GameObject::m_currentState.m_centeredLocalPosition));
@@ -314,3 +314,5 @@ Enemy::Render(Shaders& program)
 {
    GameObject::Render(program);
 }
+
+} // namespace dgame

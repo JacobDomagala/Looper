@@ -4,6 +4,8 @@
 #include <string>
 #include <utility>
 
+namespace dgame {
+
 class Weapon
 {
  protected:
@@ -83,3 +85,5 @@ class Glock : public Weapon
    {
    }
 };
+
+} // namespace dgame

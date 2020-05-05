@@ -4,6 +4,8 @@
 #include <ctime>
 #include <iomanip>
 
+namespace dgame {
+
 Logger::TYPE Logger::m_currentLogType = Logger::TYPE::DEBUG;
 
 void
@@ -27,3 +29,5 @@ Logger::SetLogType(Logger::TYPE type)
 {
    m_currentLogType = type;
 }
+
+} // namespace dgame

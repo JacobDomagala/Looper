@@ -2,6 +2,8 @@
 
 #include <chrono>
 
+namespace dgame {
+
 class Timer
 {
  public:
@@ -78,3 +80,5 @@ class Timer
 
    static inline bool m_timersPaused = false;
 };
+
+} // namespace dgame

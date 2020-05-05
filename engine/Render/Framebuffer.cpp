@@ -2,6 +2,8 @@
 #include "Common.hpp"
 #include "Texture.hpp"
 
+namespace dgame {
+
 void
 Framebuffer::SetUp()
 {
@@ -83,3 +85,5 @@ Framebuffer::DrawFrameBuffer()
 
    // m_currentFrame = m_currentFrame >= NUM_FRAMES_TO_SAVE ? 0 : m_currentFrame++;
 }
+
+} // namespace dgame

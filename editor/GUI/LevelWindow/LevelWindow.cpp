@@ -2,7 +2,9 @@
 #include "Editor.hpp"
 #include "GuiBuilder.hpp"
 
-LevelWindow::LevelWindow(Editor& editor) : nanogui::Window(&editor, "Current level"), m_parent(editor)
+namespace dgame {
+
+LevelWindow::LevelWindow(Editor& editor) : GuiWindow(&editor, "Current level"), m_parent(editor)
 {
 }
 
@@ -28,10 +30,10 @@ LevelWindow::LevelLoaded(std::shared_ptr< Level > loadedLevel)
    }
    else
    {
-      mLayout = new nanogui::GroupLayout();
-      setFixedSize(nanogui::Vector2i(300, 400));
+      mLayout = new GroupLayout();
+      setFixedSize({300, 400});
       const auto windowSize = m_parent.GetWindowSize();
-      mPos = nanogui::Vector2i(0, windowSize.y / 2);
+      mPos = {0, windowSize.y / 2};
 
       m_generalSection = new LevelGeneralSection(this, m_parent);
       m_generalSection->Create(m_loadedLevel);
@@ -42,3 +44,5 @@ LevelWindow::LevelLoaded(std::shared_ptr< Level > loadedLevel)
       m_created = true;
    }
 }
+
+} // namespace dgame

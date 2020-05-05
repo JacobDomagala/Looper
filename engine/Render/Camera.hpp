@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include <memory>
 
+namespace dgame {
+
 class GameObject;
 
 class Camera
@@ -18,7 +20,7 @@ class Camera
 
    void
    SetLevelSize(const glm::vec2& size);
-   
+
    void
    SetCameraAtPosition(const glm::vec3& globalPosition);
 
@@ -64,3 +66,5 @@ class Camera
    glm::vec3 m_lookAtDirection;
    glm::mat4 m_viewMatrx;
 };
+
+} // namespace dgame

@@ -3,6 +3,8 @@
 #include <Texture.hpp>
 #include <Window.hpp>
 
+namespace dgame {
+
 Texture::~Texture()
 {
    glDeleteTextures(1, &m_textureID);
@@ -89,3 +91,5 @@ Texture::Create()
 
    return m_textureID;
 }
+
+} // namespace dgame

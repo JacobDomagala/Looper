@@ -4,6 +4,8 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/transform.hpp>
 
+namespace dgame {
+
 void
 Camera::Create(const glm::vec3& position, const glm::vec3& lookAt, const glm::vec3& upVec, float cameraSpeed)
 {
@@ -87,3 +89,5 @@ Camera::UpdateViewMatrix()
 {
    m_viewMatrx = glm::lookAt(m_position, m_position + m_lookAtDirection, m_upVector);
 }
+
+} // namespace dgame

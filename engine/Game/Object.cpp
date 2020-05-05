@@ -1,5 +1,7 @@
 #include "Object.hpp"
 
+namespace dgame {
+
 Object::Object(TYPE type)
 {
    m_type = type;
@@ -55,3 +57,5 @@ Object::GetID() const
 {
    return m_id;
 }
+
+} // namespace dgame

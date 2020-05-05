@@ -10,6 +10,8 @@
 #include <string>
 #include <unordered_map>
 
+namespace dgame {
+
 struct Character
 {
    GLuint textureID;   // ID handle of the glyph texture
@@ -36,3 +38,5 @@ class Font
    Shaders m_program{};
    Logger m_logger;
 };
+
+} // namespace dgame

@@ -9,6 +9,8 @@
 
 struct GLFWwindow;
 
+namespace dgame {
+
 class Window
 {
  public:
@@ -124,3 +126,5 @@ class Window
 
    Logger m_logger;
 };
+
+} // namespace dgame

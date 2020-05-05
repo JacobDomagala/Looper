@@ -1,10 +1,13 @@
 #include "Game.hpp"
 #include "Enemy.hpp"
 #include "FileManager.hpp"
+#include "Window.hpp"
 
 #include <GL/glew.h>
 #include <fstream>
 #include <string>
+
+namespace dgame {
 
 // glm::vec2 destination;
 glm::vec2 cursor;
@@ -17,9 +20,9 @@ Game::MainLoop()
 {
    // m_window->Start();
    Logger::SetLogType(Logger::TYPE::INFO);
-   
+
    auto singleFrameTimer = 0.0f;
-   
+
    while (IsRunning())
    {
       PollEvents();
@@ -1007,3 +1010,5 @@ Game::Render()
    RenderFirstPass();
    RenderSecondPass();
 }
+
+} // namespace dgame

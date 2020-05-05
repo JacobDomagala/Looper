@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+namespace dgame {
+
 class GameObject;
 class Editor;
 
@@ -35,7 +37,9 @@ class GameObjectGeneralSection : public Section
    nanogui::TextBox* m_type = nullptr;
 
    std::shared_ptr< GameObject > m_currentlySelectedObject;
-   ::Object::VectorPtr m_objects;
+   dgame::Object::VectorPtr m_objects;
 
    std::function< void() > m_nameChangeCallback;
 };
+
+} // namespace dgame

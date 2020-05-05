@@ -1,6 +1,8 @@
 #include "Timer.hpp"
 #include <memory>
 
+namespace dgame {
+
 Timer::Timer()
 {
    m_deltaTime = milliseconds(0);
@@ -17,7 +19,10 @@ Timer::ToggleTimer()
    m_totalTime += m_deltaTime;
 }
 
-Timer::milliseconds Timer::ConvertToMs(seconds sec)
+Timer::milliseconds
+Timer::ConvertToMs(seconds sec)
 {
    return std::chrono::duration_cast< Timer::milliseconds >(sec);
 }
+
+} // namespace dgame

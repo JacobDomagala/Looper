@@ -4,9 +4,9 @@
 #include "GuiBuilder.hpp"
 #include "Utils.hpp"
 
-#include <nanogui/imageview.h>
+namespace dgame {
 
-GameObjectShaderSection::GameObjectShaderSection(nanogui::Widget* parent, Editor& editor, bool activeByDefault)
+GameObjectShaderSection::GameObjectShaderSection(Widget* parent, Editor& editor, bool activeByDefault)
    : Section(parent, editor, "SHADER")
 {
 }
@@ -37,7 +37,7 @@ GameObjectShaderSection::Create(std::shared_ptr< GameObject > object)
    AddWidget(m_textureButton);
 
    m_textureView =
-      GuiBuilder::CreateImageView(GuiBuilder::CreateLayout(parent(), GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal, 1),
+      GuiBuilder::CreateImageView(GuiBuilder::CreateLayout(parent(), GuiBuilder::LayoutType::GRID, Orientation::Horizontal, 1),
                                   m_currentlySelectedObject->GetSprite().GetTexture().Create(), {200, 200});
    AddWidget(m_textureView);
 
@@ -69,3 +69,5 @@ GameObjectShaderSection::GameObjectSelected(std::shared_ptr< GameObject > select
    m_currentlySelectedObject = selectedGameObject;
    Update();
 }
+
+} // namespace dgame

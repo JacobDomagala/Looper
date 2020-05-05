@@ -7,6 +7,8 @@
 #include <string>
 #include <optional>
 
+namespace dgame {
+
 class Shaders
 {
  public:
@@ -65,3 +67,5 @@ class Shaders
 
    Logger m_logger = Logger("Shaders");
 };
+
+} // namespace dgame

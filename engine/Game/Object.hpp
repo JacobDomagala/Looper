@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+namespace dgame {
+
 class Object
 {
  public:
@@ -40,3 +42,5 @@ class Object
 
    static inline int s_currentID = 0;
 };
+
+} // namespace dgame

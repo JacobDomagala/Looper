@@ -1,21 +1,24 @@
 #pragma once
 
-#include <nanogui/button.h>
-#include <vector>
+#include "GuiAPI.hpp"
+
 #include <string>
+#include <vector>
+
+namespace dgame {
 
 class Editor;
 
-class Section : public nanogui::Button
+class Section : public Button
 {
  public:
-   Section(nanogui::Widget* parent, Editor& editor, const std::string& name, bool activeByDefault = true);
+   Section(Widget* parent, Editor& editor, const std::string& name, bool activeByDefault = true);
 
    void
-   AddWidget(nanogui::Widget* widget);
+   AddWidget(Widget* widget);
 
    void
-   RemoveWidget(nanogui::Widget* widget);
+   RemoveWidget(Widget* widget);
 
    void
    setActive(bool active);
@@ -26,5 +29,7 @@ class Section : public nanogui::Button
  protected:
    Editor& m_editor;
    bool m_sectionActive = true;
-   std::vector< nanogui::Widget* > m_widgets;
+   std::vector< Widget* > m_widgets;
 };
+
+} // namespace dgame

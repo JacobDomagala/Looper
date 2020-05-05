@@ -5,7 +5,10 @@
 #include "GuiBuilder.hpp"
 #include "Utils.hpp"
 
-GameObjectTransformSection::GameObjectTransformSection(nanogui::Widget* parent, Editor& editor, bool activeByDefault) : Section(parent, editor, "TRANSFORM")
+namespace dgame {
+
+GameObjectTransformSection::GameObjectTransformSection(Widget* parent, Editor& editor, bool activeByDefault)
+   : Section(parent, editor, "TRANSFORM")
 {
 }
 
@@ -15,7 +18,7 @@ GameObjectTransformSection::Create(std::shared_ptr< GameObject > selectedGameObj
    m_currentlySelectedObject = selectedGameObject;
 
    // ROTATE
-   auto rotateLayout = GuiBuilder::CreateLayout(parent(), GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal, 3);
+   auto rotateLayout = GuiBuilder::CreateLayout(parent(), GuiBuilder::LayoutType::GRID, Orientation::Horizontal, 3);
 
    const auto rotationRange = std::make_pair(-360.0f, 360.0f);
    AddWidget(GuiBuilder::CreateLabel(rotateLayout, "Rotate"));
@@ -59,7 +62,7 @@ GameObjectTransformSection::Create(std::shared_ptr< GameObject > selectedGameObj
    AddWidget(m_scaleUniformSlider);
 
    auto scaleLayout2 =
-      GuiBuilder::CreateLayout(parent(), GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal, 3, nanogui::Alignment::Middle);
+      GuiBuilder::CreateLayout(parent(), GuiBuilder::LayoutType::GRID, Orientation::Horizontal, 3, Alignment::Middle);
 
    AddWidget(GuiBuilder::CreateLabel(scaleLayout2, "X"));
    m_scaleXValue = GuiBuilder::CreateFloatingPointBox(scaleLayout2, scaleValue.x, scaleRange, [&](const std::string& val) {
@@ -136,3 +139,5 @@ void
 GameObjectTransformSection::ObjectUpdated(int ID)
 {
 }
+
+} // namespace dgame

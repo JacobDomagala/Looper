@@ -12,6 +12,8 @@
 #include <functional>
 #include <nlohmann/json.hpp>
 
+namespace dgame {
+
 void
 Level::Create(Application* context, const glm::ivec2& size)
 {
@@ -78,11 +80,11 @@ Level::Load(Application* context, const std::string& pathToLevel)
 
             for (auto& point : animatePos)
             {
-               auto animationPoint = std::make_shared<AnimationPoint>();
+               auto animationPoint = std::make_shared< AnimationPoint >();
                animationPoint->m_start = beginPoint;
                animationPoint->m_end = glm::vec2(point[0], point[1]);
                animationPoint->m_timeDuration = Timer::seconds(1);
-               
+
                keypointsPositions.emplace_back(animationPoint);
 
                beginPoint = animationPoint->m_end;
@@ -166,12 +168,11 @@ Level::AddGameObject(GameObject::TYPE objectType)
    switch (objectType)
    {
       case GameObject::TYPE::ENEMY: {
-
          auto animationPoint = std::make_shared< AnimationPoint >();
          animationPoint->m_start = defaultPosition;
          animationPoint->m_end = defaultPosition;
          animationPoint->m_timeDuration = Timer::seconds(1);
-         
+
          newObject = std::make_shared< Enemy >(*m_contextPointer, defaultPosition, defaultSize, defaultTexture,
                                                AnimationPoint::vectorPtr{animationPoint});
          m_objects.push_back(newObject);
@@ -319,9 +320,9 @@ Level::Update(bool isReverse)
       {
          if (obj->GetType() == Object::TYPE::ENEMY)
          {
-            std::dynamic_pointer_cast<Enemy>(obj)->DealWithPlayer();
+            std::dynamic_pointer_cast< Enemy >(obj)->DealWithPlayer();
          }
-         
+
          obj->Update(isReverse);
       }
    }
@@ -428,3 +429,5 @@ Level::GetSprite()
 {
    return m_background;
 }
+
+} // namespace dgame

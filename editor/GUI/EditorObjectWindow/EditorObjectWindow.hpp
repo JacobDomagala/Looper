@@ -5,6 +5,8 @@
 #include <functional>
 #include <nanogui/window.h>
 
+namespace dgame {
+
 class Editor;
 class EditorObject;
 
@@ -34,6 +36,8 @@ class EditorObjectWindow : public nanogui::Window
    nanogui::TextBox* m_yPos = nullptr;
 
    bool m_created = false;
-   ::Object::VectorPtr m_objects;
+   dgame::Object::VectorPtr m_objects;
    std::shared_ptr< EditorObject > m_currentlySelectedObject;
 };
+
+} // namespace dgame

@@ -15,6 +15,8 @@
 #include <glm/gtx/transform.hpp>
 #include <vector>
 
+namespace dgame {
+
 class Game : public Application
 {
  public:
@@ -82,7 +84,7 @@ class Game : public Application
 
  private:
    // DEBUG
-   //std::vector< std::unique_ptr< DebugObject > > m_debugObjs;
+   // std::vector< std::unique_ptr< DebugObject > > m_debugObjs;
 
    void
    RenderLine(const glm::ivec2& collided, const glm::vec3& color);
@@ -152,7 +154,7 @@ class Game : public Application
    // framebuffer for first pass
    Framebuffer m_frameBuffer;
 
-  // set to true when game runs in reverse mode
+   // set to true when game runs in reverse mode
    bool m_reverse = false;
 
    // number of frames saved for reverse mode (max value NUM_FRAMES_TO_SAVE)
@@ -164,3 +166,5 @@ class Game : public Application
    // player position on map (centered)
    glm::vec2 m_playerPosition;
 };
+
+} // namespace dgame

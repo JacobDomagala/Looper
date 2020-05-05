@@ -7,6 +7,8 @@
 #include <nlohmann/json.hpp>
 #include <string>
 
+namespace dgame {
+
 const std::filesystem::path ROOT_DIR = std::filesystem::current_path().parent_path().parent_path();
 const std::filesystem::path ASSETS_DIR = ROOT_DIR / "Assets";
 const std::filesystem::path LEVELS_DIR = ASSETS_DIR / "Levels";
@@ -64,3 +66,5 @@ class FileManager
  private:
    static inline Logger m_logger = Logger("FileManager");
 };
+
+} // namespace dgame

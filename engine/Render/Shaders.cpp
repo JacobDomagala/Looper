@@ -5,6 +5,8 @@
 #include <fstream>
 #include <glm/gtc/type_ptr.hpp>
 
+namespace dgame {
+
 GLuint Shaders::m_activeProgramID = 0;
 GLuint Shaders::m_numberBound = 0;
 
@@ -29,7 +31,7 @@ void
 Shaders::UseProgram() const
 {
    glUseProgram(m_programID);
-       m_activeProgramID = m_programID;
+   m_activeProgramID = m_programID;
    ++m_numberBound;
 }
 
@@ -125,7 +127,7 @@ Shaders::GetUniformLocation(const std::string& uniformName)
    }
 
    return {location};
-   //std::optional< GLint >(location);
+   // std::optional< GLint >(location);
 }
 
 void
@@ -165,3 +167,5 @@ Shaders::SetUniformFloatMat4(const glm::mat4& value, const std::string& name)
    GLint location = glGetUniformLocation(m_programID, name.c_str());
    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 }
+
+} // namespace dgame

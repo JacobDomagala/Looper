@@ -1,8 +1,12 @@
 #pragma once
 
+#include "GuiBuilder.hpp"
+
 #include <memory>
 #include <unordered_map>
 #include <vector>
+
+namespace dgame {
 
 class Editor;
 class GameObject;
@@ -11,11 +15,6 @@ class GameObjectWindow;
 class EditorObjectWindow;
 class LevelWindow;
 class Level;
-
-namespace nanogui {
-class Window;
-class Widget;
-} // namespace nanogui
 
 class Gui
 {
@@ -41,7 +40,8 @@ class Gui
    void
    EditorObjectUnselected();
 
-   void LevelLoaded(std::shared_ptr < Level > loadedLevel);
+   void
+   LevelLoaded(std::shared_ptr< Level > loadedLevel);
 
    void
    ObjectUpdated(int ID);
@@ -61,8 +61,8 @@ class Gui
    void
    CreateLeftPanel();
 
-   nanogui::Widget*
-   CreatePlayButton(nanogui::Widget* parent);
+   Widget*
+   CreatePlayButton(Widget* parent);
 
  private:
    Editor& m_parent;
@@ -71,6 +71,8 @@ class Gui
    EditorObjectWindow* m_currentEditorObjectWindow = nullptr;
    LevelWindow* m_levelWindow = nullptr;
 
-   std::unordered_map< std::string, nanogui::Window* > m_windows;
-   std::vector< nanogui::Widget* > m_levelDependentWidgets;
+   std::unordered_map< std::string, GuiWindow* > m_windows;
+   std::vector< Widget* > m_levelDependentWidgets;
 };
+
+} // namespace dgame

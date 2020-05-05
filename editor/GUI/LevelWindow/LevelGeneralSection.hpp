@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+namespace dgame {
+
 class Level;
 class Editor;
 
@@ -45,5 +47,7 @@ class LevelGeneralSection : public Section
    std::vector< NodePoint > m_pathfinderNodes;
 
    std::shared_ptr< Level > m_loadedLevel;
-   ::Object::VectorPtr m_objects;
+   dgame::Object::VectorPtr m_objects;
 };
+
+} // namespace dgame

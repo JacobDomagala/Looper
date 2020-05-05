@@ -7,7 +7,10 @@
 
 #include <nanogui/entypo.h>
 
-GameObjectGeneralSection::GameObjectGeneralSection(nanogui::Widget* parent, Editor& editor, bool activeByDefault) : Section(parent, editor, "GENERAL")
+namespace dgame {
+
+GameObjectGeneralSection::GameObjectGeneralSection(Widget* parent, Editor& editor, bool activeByDefault)
+   : Section(parent, editor, "GENERAL")
 {
 }
 
@@ -22,7 +25,7 @@ GameObjectGeneralSection::Create(std::shared_ptr< GameObject > selectedGameObjec
    const auto objectSize = m_currentlySelectedObject->GetSize();
 
    auto nameLayout =
-      GuiBuilder::CreateLayout(parent(), GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal, 2, nanogui::Alignment::Fill, 2);
+      GuiBuilder::CreateLayout(parent(), GuiBuilder::LayoutType::GRID, Orientation::Horizontal, 2, Alignment::Fill, 2);
 
    AddWidget(GuiBuilder::CreateLabel(nameLayout, "Name"));
 
@@ -43,7 +46,7 @@ GameObjectGeneralSection::Create(std::shared_ptr< GameObject > selectedGameObjec
    AddWidget(m_type);
 
    auto layout =
-      GuiBuilder::CreateLayout(parent(), GuiBuilder::LayoutType::GRID, nanogui::Orientation::Horizontal, 3, nanogui::Alignment::Fill);
+      GuiBuilder::CreateLayout(parent(), GuiBuilder::LayoutType::GRID, Orientation::Horizontal, 3, Alignment::Fill);
 
    AddWidget(GuiBuilder::CreateLabel(layout, "Size"));
 
@@ -101,3 +104,5 @@ void
 GameObjectGeneralSection::ObjectUpdated(int ID)
 {
 }
+
+} // namespace dgame

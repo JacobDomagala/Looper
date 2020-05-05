@@ -1,14 +1,13 @@
 #pragma once
 
 #include "Object.hpp"
+#include "GuiBuilder.hpp"
 #include "Section.hpp"
 
 #include <string>
 #include <vector>
 
-namespace nanogui {
-template < typename T > class IntBox;
-}
+namespace dgame {
 
 class GameObject;
 class Editor;
@@ -16,7 +15,7 @@ class Editor;
 class GameObjectTransformSection : public Section
 {
  public:
-   GameObjectTransformSection(nanogui::Widget* parent, Editor& editor, bool activeByDefault = true);
+   GameObjectTransformSection(Widget* parent, Editor& editor, bool activeByDefault = true);
 
    void
    Update();
@@ -31,14 +30,16 @@ class GameObjectTransformSection : public Section
    GameObjectSelected(std::shared_ptr< GameObject > selectedGameObject);
 
  private:
-   nanogui::Slider* m_rotateSlider = nullptr;
-   nanogui::IntBox< int32_t >* m_rotateValue = nullptr;
-   nanogui::Slider* m_scaleUniformSlider = nullptr;
-   nanogui::TextBox* m_scaleXValue = nullptr;
-   nanogui::Slider* m_scaleXSlider = nullptr;
-   nanogui::TextBox* m_scaleYValue = nullptr;
-   nanogui::Slider* m_scaleYSlider = nullptr;
+   Slider* m_rotateSlider = nullptr;
+   IntBox< int32_t >* m_rotateValue = nullptr;
+   Slider* m_scaleUniformSlider = nullptr;
+   TextBox* m_scaleXValue = nullptr;
+   Slider* m_scaleXSlider = nullptr;
+   TextBox* m_scaleYValue = nullptr;
+   Slider* m_scaleYSlider = nullptr;
 
    std::shared_ptr< GameObject > m_currentlySelectedObject;
-   ::Object::VectorPtr m_objects;
+   dgame::Object::VectorPtr m_objects;
 };
+
+} // namespace dgame

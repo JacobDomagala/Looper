@@ -7,6 +7,8 @@
 #include <glm/glm.hpp>
 #include <unordered_map>
 
+namespace dgame {
+
 class Application;
 class GameObject;
 class Window;
@@ -128,7 +130,7 @@ class Level
       return m_player;
    }
 
-   std::vector<std::shared_ptr<GameObject>> &
+   std::vector< std::shared_ptr< GameObject > >&
    GetObjects();
 
    Shaders&
@@ -143,7 +145,7 @@ class Level
    void
    SetPlayersPosition(const glm::vec2& position);
 
-   std::shared_ptr < GameObject >
+   std::shared_ptr< GameObject >
    GetGameObjectOnLocation(const glm::vec2& screenPosition);
 
    void
@@ -179,3 +181,5 @@ class Level
    glm::ivec2 m_numTuilesOnScreen;
    glm::ivec2 m_tilesToDraw;
 };
+
+} // namespace dgame

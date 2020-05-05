@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+namespace dgame {
+
 class Level;
 class Editor;
 
@@ -31,7 +33,9 @@ class LevelShaderSection : public Section
    nanogui::Button* m_shaderButton = nullptr;
 
    std::shared_ptr< Level > m_loadedLevel;
-   ::Object::VectorPtr m_objects;
+   dgame::Object::VectorPtr m_objects;
 
    std::function< void() > m_textureChangeCallback;
 };
+
+} // namespace dgame

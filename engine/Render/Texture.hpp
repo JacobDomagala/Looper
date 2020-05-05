@@ -8,6 +8,8 @@
 #include <memory>
 #include <string>
 
+namespace dgame {
+
 class Texture
 {
  public:
@@ -98,3 +100,5 @@ class Texture
 
    Logger m_logger = Logger("Texture");
 };
+
+} // namespace dgame

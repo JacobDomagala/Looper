@@ -1,6 +1,8 @@
 #include <PathFinder.hpp>
 #include <algorithm>
 
+namespace dgame {
+
 PathFinder::PathFinder()
 {
    std::vector< std::shared_ptr< Node > > nodes = {std::make_shared< Node >(glm::ivec2(370, 1000), 0, std::vector< uint8_t >{1, 7}),
@@ -100,3 +102,5 @@ PathFinder::GetAllNodes() const
 {
    return m_nodes;
 }
+
+} // namespace dgame

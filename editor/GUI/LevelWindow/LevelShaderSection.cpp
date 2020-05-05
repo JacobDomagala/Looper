@@ -4,9 +4,9 @@
 #include "GuiBuilder.hpp"
 #include "Utils.hpp"
 
-#include <nanogui/imageview.h>
+namespace dgame {
 
-LevelShaderSection::LevelShaderSection(nanogui::Widget* parent, Editor& editor, bool activeByDefault) : Section(parent, editor, "SHADER")
+LevelShaderSection::LevelShaderSection(Widget* parent, Editor& editor, bool activeByDefault) : Section(parent, editor, "SHADER")
 {
 }
 
@@ -52,3 +52,5 @@ void
 LevelShaderSection::ObjectUpdated(int ID)
 {
 }
+
+} // namespace dgame

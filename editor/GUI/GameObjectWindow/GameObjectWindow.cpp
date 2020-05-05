@@ -4,9 +4,9 @@
 #include "GameObject.hpp"
 #include "Utils.hpp"
 
-#include <nanogui/layout.h>
+namespace dgame {
 
-GameObjectWindow::GameObjectWindow(Editor& editor) : nanogui::Window(&editor, "Game Object"), m_parent(editor)
+GameObjectWindow::GameObjectWindow(Editor& editor) : GuiWindow(&editor, "Game Object"), m_parent(editor)
 {
 }
 
@@ -32,9 +32,9 @@ GameObjectWindow::GameObjectSelected(std::shared_ptr< GameObject > selectedGameO
 {
    m_currentlySelectedObject = selectedGameObject;
 
-   if (m_objects.end() == std::find(m_objects.begin(), m_objects.end(), std::dynamic_pointer_cast<::Object >(selectedGameObject)))
+   if (m_objects.end() == std::find(m_objects.begin(), m_objects.end(), std::dynamic_pointer_cast< dgame::Object >(selectedGameObject)))
    {
-      m_objects.push_back(std::dynamic_pointer_cast<::Object >(selectedGameObject));
+      m_objects.push_back(std::dynamic_pointer_cast< dgame::Object >(selectedGameObject));
    }
 
    const auto windowSize = m_parent.GetWindowSize();
@@ -51,8 +51,8 @@ GameObjectWindow::GameObjectSelected(std::shared_ptr< GameObject > selectedGameO
    }
    else
    {
-      mLayout = new nanogui::GroupLayout();
-      setFixedSize(nanogui::Vector2i(300, frameBuffersize.y));
+      mLayout = new GroupLayout();
+      setFixedSize({300, frameBuffersize.y});
 
       m_generalSection = new GameObjectGeneralSection(this, m_parent);
       m_generalSection->Create(m_currentlySelectedObject);
@@ -69,7 +69,7 @@ GameObjectWindow::GameObjectSelected(std::shared_ptr< GameObject > selectedGameO
       m_created = true;
    }
 
-   mPos = nanogui::Vector2i(frameBuffersize.x - 300, 0);
+   mPos = {frameBuffersize.x - 300, 0};
    mVisible = true;
 }
 
@@ -79,3 +79,5 @@ GameObjectWindow::GameObjectUnselected()
    m_currentlySelectedObject.reset();
    mVisible = false;
 }
+
+} // namespace dgame

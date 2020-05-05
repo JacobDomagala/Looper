@@ -8,6 +8,8 @@
 #include <deque>
 #include <glm/glm.hpp>
 
+namespace dgame {
+
 class Window;
 class Application;
 
@@ -148,3 +150,5 @@ class Sprite
    const std::pair< float, float > m_rotationRange = {glm::radians(-360.0f), glm::radians(360.0f)};
    const std::pair< float, float > m_scaleRange = {1.0f, 5.0f};
 };
+
+} // namespace dgame

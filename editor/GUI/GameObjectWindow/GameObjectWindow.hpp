@@ -1,19 +1,20 @@
 #pragma once
 
+#include "Object.hpp"
 #include "GameObjectAnimationSection.hpp"
 #include "GameObjectGeneralSection.hpp"
-#include "Object.hpp"
 #include "GameObjectShaderSection.hpp"
 #include "GameObjectTransformSection.hpp"
 
 #include <functional>
-#include <nanogui/window.h>
+
+namespace dgame {
 
 class Editor;
 class GameObject;
 class Section;
 
-class GameObjectWindow : public nanogui::Window
+class GameObjectWindow : public GuiWindow
 {
  public:
    GameObjectWindow(Editor& parent);
@@ -41,6 +42,8 @@ class GameObjectWindow : public nanogui::Window
 
    bool m_created = false;
 
-   ::Object::VectorPtr m_objects;
+   dgame::Object::VectorPtr m_objects;
    std::shared_ptr< GameObject > m_currentlySelectedObject;
 };
+
+} // namespace dgame

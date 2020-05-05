@@ -12,8 +12,10 @@
 #include <nanovg.h>
 #include <string>
 
+namespace dgame {
+
 Editor::Editor(const glm::vec2& screenSize)
-   : nanogui::Screen(Eigen::Vector2i(screenSize.x, screenSize.y), "DGame Editor", true, false, 8, 8, 24, 8, 0, 4, 5), m_gui(*this)
+   : nanogui::Screen({screenSize.x, screenSize.y}, "DGame Editor", true, false, 8, 8, 24, 8, 0, 4, 5), m_gui(*this)
 {
    m_logger.Init("Editor");
    InitGLFW();
@@ -531,11 +533,11 @@ Editor::LoadLevel(const std::string& levelPath)
    const auto pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
    std::for_each(pathfinderNodes.begin(), pathfinderNodes.end(), [this](const auto& node) {
       auto object = std::make_shared< EditorObject >(*this, node->m_position, glm::ivec2(40, 40), "NodeSprite.png",
-                                                     std::dynamic_pointer_cast<::Object >(node));
+                                                     std::dynamic_pointer_cast< dgame::Object >(node));
 
       object->SetVisible(true);
       m_editorObjects.push_back(object);
-      m_objects.push_back(std::dynamic_pointer_cast<::Object >(node));
+      m_objects.push_back(std::dynamic_pointer_cast< Object >(node));
    });
 
    const auto gameObjects = m_currentLevel->GetObjects();
@@ -550,11 +552,11 @@ Editor::LoadLevel(const std::string& levelPath)
          for (auto& point : animationPoints)
          {
             auto editorObject = std::make_shared< EditorObject >(*this, point->m_end, glm::ivec2(20, 20), "Default128.png",
-                                                                 std::dynamic_pointer_cast<::Object >(point));
+                                                                 std::dynamic_pointer_cast< dgame::Object >(point));
             editorObject->SetName("Animationpoint" + object->GetName());
 
             m_editorObjects.push_back(editorObject);
-            m_objects.push_back(std::dynamic_pointer_cast<::Object >(point));
+            m_objects.push_back(std::dynamic_pointer_cast< Object >(point));
          }
       }
    }
@@ -766,3 +768,5 @@ Editor::MainLoop()
       drawAll();
    }
 }
+
+} // namespace dgame

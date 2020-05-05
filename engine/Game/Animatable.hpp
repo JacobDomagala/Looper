@@ -10,6 +10,8 @@
 #include <optional>
 #include <vector>
 
+namespace dgame {
+
 struct AnimationPoint : public Object
 {
    using vectorPtr = std::vector< std::shared_ptr< AnimationPoint > >;
@@ -172,3 +174,5 @@ class Animatable
  private:
    Logger m_logger = Logger("Animatable");
 };
+
+} // namespace dgame

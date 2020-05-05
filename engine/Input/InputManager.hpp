@@ -12,6 +12,8 @@
 
 struct GLFWwindow;
 
+namespace dgame {
+
 class InputManager
 {
  public:
@@ -63,3 +65,5 @@ class InputManager
    static inline std::unordered_map< int, bool > m_keyMap = {};
    static inline Logger m_logger = Logger("InputManager");
 };
+
+} // namespace dgame

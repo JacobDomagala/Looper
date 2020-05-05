@@ -8,6 +8,8 @@
 #include <deque>
 #include <glm/glm.hpp>
 
+namespace dgame {
+
 class Editor;
 class Object;
 
@@ -123,7 +125,6 @@ class EditorObject
    SetObjectUnselected();
 
  private:
-
    // global position (in OpenGL coords)
    glm::vec2 m_globalPosition;
 
@@ -146,7 +147,7 @@ class EditorObject
    glm::mat4 m_scaleMatrix;
 
    std::string m_name;
-   
+
    int m_objectID = -1;
    std::shared_ptr< Object > m_linkedObject = nullptr;
    Editor& m_editor;
@@ -156,3 +157,5 @@ class EditorObject
    // object's sprite
    Sprite m_sprite;
 };
+
+} // namespace dgame

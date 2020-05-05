@@ -3,6 +3,8 @@
 #include <Player.hpp>
 #include <Window.hpp>
 
+namespace dgame {
+
 Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& size, const std::string& sprite, const std::string& name)
    : GameObject(game, position, size, sprite, TYPE::PLAYER)
 {
@@ -171,3 +173,5 @@ Player::GetWeapons() const
 
    return weapons;
 }
+
+} // namespace dgame

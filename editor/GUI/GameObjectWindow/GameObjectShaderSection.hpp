@@ -6,13 +6,15 @@
 #include <string>
 #include <vector>
 
+namespace dgame {
+
 class GameObject;
 class Editor;
 
 class GameObjectShaderSection : public Section
 {
  public:
-   GameObjectShaderSection(nanogui::Widget* parent, Editor& editor, bool activeByDefault = true);
+   GameObjectShaderSection(Widget* parent, Editor& editor, bool activeByDefault = true);
 
    void
    Update();
@@ -27,12 +29,14 @@ class GameObjectShaderSection : public Section
    GameObjectSelected(std::shared_ptr< GameObject > selectedGameObject);
 
  private:
-   nanogui::Button* m_textureButton = nullptr;
-   nanogui::ImageView* m_textureView = nullptr;
-   nanogui::Button* m_shaderButton = nullptr;
+   Button* m_textureButton = nullptr;
+   ImageView* m_textureView = nullptr;
+   Button* m_shaderButton = nullptr;
 
    std::shared_ptr< GameObject > m_currentlySelectedObject;
-   ::Object::VectorPtr m_objects;
+   dgame::Object::VectorPtr m_objects;
 
    std::function< void() > m_textureChangeCallback;
 };
+
+} // namespace dgame

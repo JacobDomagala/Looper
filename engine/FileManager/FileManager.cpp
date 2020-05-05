@@ -6,6 +6,8 @@
 #include <fstream>
 #include <stb_image.h>
 
+namespace dgame {
+
 std::string
 FileManager::ReadFile(const std::string& fileName, FileType type)
 {
@@ -107,3 +109,5 @@ FileManager::SaveJsonFile(const std::string& pathToFile, nlohmann::json json)
 
    jsonFile << json;
 }
+
+} // namespace dgame

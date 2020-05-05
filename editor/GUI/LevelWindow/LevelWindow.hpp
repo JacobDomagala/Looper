@@ -6,6 +6,8 @@
 #include <functional>
 #include <nanogui/window.h>
 
+namespace dgame {
+
 class Editor;
 class Level;
 class Section;
@@ -32,3 +34,5 @@ class LevelWindow : public nanogui::Window
 
    std::shared_ptr< Level > m_loadedLevel = nullptr;
 };
+
+} // namespace dgame

@@ -5,7 +5,7 @@
 #include "GuiBuilder.hpp"
 #include "Utils.hpp"
 
-#include <nanogui/entypo.h>
+namespace dgame {
 
 GameObjectAnimationSection::GameObjectAnimationSection(nanogui::Widget* parent, Editor& editor, bool activeByDefault)
    : Section(parent, editor, "ANIMATION")
@@ -158,12 +158,12 @@ GameObjectAnimationSection::ObjectUpdated(int ID)
    {
       switch ((*object)->GetType())
       {
-         case ::Object::TYPE::ANIMATION_POINT: {
+         case dgame::Object::TYPE::ANIMATION_POINT: {
             auto point = std::find_if(m_animationSteps.begin(), m_animationSteps.end(), [ID](auto& point) { return point.id == ID; });
 
             if (point != m_animationSteps.end())
             {
-               auto animatioinPoint = std::dynamic_pointer_cast<::AnimationPoint >(*object);
+               auto animatioinPoint = std::dynamic_pointer_cast< dgame::AnimationPoint >(*object);
 
                point->m_xPos->setValue(CustomFloatToStr(animatioinPoint->m_end.x));
                point->m_yPos->setValue(CustomFloatToStr(animatioinPoint->m_end.y));
@@ -173,7 +173,7 @@ GameObjectAnimationSection::ObjectUpdated(int ID)
          }
          break;
 
-         case ::Object::TYPE::ENEMY: {
+         case dgame::Object::TYPE::ENEMY: {
             m_showAnimationSteps->setChecked(std::dynamic_pointer_cast< Enemy >(*object)->GetRenderAnimationSteps());
          }
          break;
@@ -264,3 +264,5 @@ GameObjectAnimationSection::CreateAnimationSteps(const std::shared_ptr< Animatab
       m_animationTimeSlider->setRange({0.0f, Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count()});
    }
 }
+
+} // namespace dgame

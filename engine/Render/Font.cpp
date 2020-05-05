@@ -9,6 +9,8 @@
 #include <glm/glm.hpp>
 #include FT_FREETYPE_H
 
+namespace dgame {
+
 void
 Font::SetFont(const std::string& fontName)
 {
@@ -128,3 +130,5 @@ Font::RenderText(const glm::mat4& projectionMatrix, std::string text, glm::vec2 
    glBindVertexArray(0);
    glBindTexture(GL_TEXTURE_2D, 0);
 }
+
+} // namespace dgame

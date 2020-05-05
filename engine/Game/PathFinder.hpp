@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+namespace dgame {
+
 struct Node : public Object
 {
    Node() = default;
@@ -44,3 +46,5 @@ class PathFinder
    std::vector< std::shared_ptr< Node > >
    GetAllNodes() const;
 };
+
+} // namespace dgame

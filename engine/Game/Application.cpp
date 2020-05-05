@@ -3,6 +3,8 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtx/rotate_vector.hpp>
 
+namespace dgame {
+
 std::shared_ptr< Player >
 Application::GetPlayer()
 {
@@ -100,3 +102,5 @@ Application::PollEvents()
 {
    glfwPollEvents();
 }
+
+} // namespace dgame

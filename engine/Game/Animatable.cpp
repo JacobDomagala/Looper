@@ -4,6 +4,8 @@
 
 #include <algorithm>
 
+namespace dgame {
+
 Animatable::Animatable(ANIMATION_TYPE type)
 {
    m_type = type;
@@ -348,3 +350,5 @@ Animatable::GetAnimationStartLocation() const
 {
    return m_animationStartPosition;
 }
+
+} // namespace dgame

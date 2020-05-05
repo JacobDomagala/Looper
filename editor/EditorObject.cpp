@@ -2,6 +2,8 @@
 #include "Animatable.hpp"
 #include "Editor.hpp"
 
+namespace dgame {
+
 EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite,
                            std::shared_ptr< Object > linkedObject)
    : m_editor(editor)
@@ -250,3 +252,5 @@ EditorObject::GetVisible()
 {
    return m_visible;
 }
+
+} // namespace dgame

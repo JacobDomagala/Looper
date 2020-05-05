@@ -10,6 +10,8 @@
 #include <glm/gtx/transform.hpp>
 #include <memory>
 
+namespace dgame {
+
 class Player;
 class Application;
 
@@ -100,7 +102,7 @@ class Application
    float m_cameraSpeed = 0.0f;
    bool m_isGame = false;
    std::shared_ptr< Player > m_player = nullptr;
-   std::shared_ptr<Level> m_currentLevel;
+   std::shared_ptr< Level > m_currentLevel;
    Font m_font;
 
    InputManager m_inputManager;
@@ -117,6 +119,7 @@ class Line : public DebugObject
    glm::vec3 m_color;
 
    glm::mat4 m_viewMatrix;
+
  public:
    Line(glm::vec2 from, glm::vec2 to, glm::vec3 color) : m_from(from), m_to(to), m_color(color)
    {
@@ -164,3 +167,5 @@ class Line : public DebugObject
    }
 };
 #pragma endregion
+
+} // namespace dgame

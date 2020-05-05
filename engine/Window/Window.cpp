@@ -8,6 +8,7 @@
 #include <functional>
 #include <glm/gtc/matrix_transform.hpp>
 
+namespace dgame {
 
 void
 Window::ErrorCallback(int error, const char* description)
@@ -180,3 +181,5 @@ Window::GetCursor()
 
    return cursorPos;
 }
+
+} // namespace dgame
