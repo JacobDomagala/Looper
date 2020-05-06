@@ -74,7 +74,7 @@ class GuiBuilder
    CreateCheckBox(Widget* parent, const std::function< void(bool) >& callback, const std::string& text = "", float fontSize = 16,
                   bool checked = false);
 
-   static std::pair< PopupButton*, Popup* >
+   static std::pair< PopupBtn*, Popup* >
    CreatePopupButton(Widget* parent, const std::string& text, Popup::Side side = Popup::Side::Right, Layout* = new GridLayout, int icon = 0,
                      bool enabled = true);
 };

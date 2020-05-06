@@ -31,12 +31,15 @@ LevelWindow::LevelLoaded(std::shared_ptr< Level > loadedLevel)
    else
    {
       mLayout = new GroupLayout();
-      setFixedSize({300, 400});
+      setFixedSize({300, 800});
       const auto windowSize = m_parent.GetWindowSize();
-      mPos = {0, windowSize.y / 2};
+      mPos = {0, windowSize.y / 4};
 
       m_generalSection = new LevelGeneralSection(this, m_parent);
       m_generalSection->Create(m_loadedLevel);
+
+      m_pathfinderSection = new LevelPathfinderSection(this, m_parent);
+      m_pathfinderSection->Create(m_loadedLevel);
 
       m_shaderSection = new LevelShaderSection(this, m_parent);
       m_shaderSection->Create(m_loadedLevel);

@@ -3,7 +3,7 @@
 
 namespace dgame {
 
-using GuiWindow = nanogui::Window;
+using GuiWindow = ::nanogui::Window;
 using Widget = nanogui::Widget;
 using Orientation = nanogui::Orientation;
 using Alignment = nanogui::Alignment;
@@ -14,11 +14,13 @@ using GroupLayout  = nanogui::GroupLayout ;
 using ImageView = nanogui::ImageView;
 using Slider = nanogui::Slider;
 using Label = nanogui::Label;
-using Button = nanogui::Button;
 using TextBox = nanogui::TextBox;
 using CheckBox = nanogui::CheckBox;
-using PopupButton = nanogui::PopupButton;
+using PopupBtn = ::nanogui::PopupButton;
 using Popup = nanogui::Popup;
+using Button = nanogui::Button;
+using VscrollPanel = nanogui::VScrollPanel;
+
 template < typename T > using IntBox = nanogui::IntBox< T >;
 
 } // namespace dgame

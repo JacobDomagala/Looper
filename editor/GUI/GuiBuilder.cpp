@@ -169,7 +169,6 @@ GuiBuilder::CreateFloatingPointBox(Widget* parent, float value, std::pair< float
    return textBox;
 }
 
-
 CheckBox*
 GuiBuilder::CreateCheckBox(Widget* parent, const std::function< void(bool) >& callback, const std::string& text, float fontSize,
                            bool checked)
@@ -182,17 +181,17 @@ GuiBuilder::CreateCheckBox(Widget* parent, const std::function< void(bool) >& ca
    return checkBox;
 }
 
-std::pair< PopupButton*, Popup* >
+std::pair< PopupBtn*, Popup* >
 GuiBuilder::CreatePopupButton(Widget* parent, const std::string& text, Popup::Side side, Layout* layout, int icon, bool enabled)
 {
-   PopupButton* popupBtn = new PopupButton(parent, text, icon);
+   auto* popupBtn = new PopupBtn(parent, text, icon);
    popupBtn->setEnabled(enabled);
-   popupBtn->setSide(side);
+   popupBtn->setChevronIcon(side == Popup::Side::Right ? ENTYPO_ICON_CHEVRON_THIN_RIGHT : ENTYPO_ICON_CHEVRON_THIN_LEFT);
 
    Popup* popup = popupBtn->popup();
    popup->setLayout(layout);
    popup->setSide(side);
-
+   
    return {popupBtn, popup};
 }
 

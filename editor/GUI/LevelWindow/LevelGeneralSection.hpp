@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GuiAPI.hpp"
 #include "Object.hpp"
 #include "Section.hpp"
 
@@ -14,16 +15,7 @@ class Editor;
 class LevelGeneralSection : public Section
 {
  public:
-   struct NodePoint
-   {
-      int id;
-      nanogui::TextBox* m_xPos = nullptr;
-      nanogui::TextBox* m_yPos = nullptr;
-      nanogui::Button* m_removePoint = nullptr;
-   };
-
- public:
-   LevelGeneralSection(nanogui::Widget* parent, Editor& editor, bool activeByDefault = true);
+   LevelGeneralSection(Widget* parent, Editor& editor, bool activeByDefault = true);
 
    void
    Update();
@@ -38,14 +30,9 @@ class LevelGeneralSection : public Section
    LevelLoaded(std::shared_ptr< Level > loadedLevel);
 
  private:
-   nanogui::TextBox* m_width = nullptr;
-   nanogui::TextBox* m_height = nullptr;
-   nanogui::CheckBox* m_wireframe = nullptr;
-   nanogui::CheckBox* m_showWayPoints = nullptr;
-   nanogui::Widget* m_pathfinderNodesLayout = nullptr;
-   std::pair< nanogui::PopupButton*, nanogui::Popup* > m_showNodesButton;
-   std::vector< NodePoint > m_pathfinderNodes;
-
+   TextBox* m_width = nullptr;
+   TextBox* m_height = nullptr;
+   CheckBox* m_wireframe = nullptr;
    std::shared_ptr< Level > m_loadedLevel;
    dgame::Object::VectorPtr m_objects;
 };

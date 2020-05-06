@@ -1,6 +1,7 @@
 #pragma once
 
 #include "LevelGeneralSection.hpp"
+#include "LevelPathfinderSection.hpp"
 #include "LevelShaderSection.hpp"
 
 #include <functional>
@@ -26,6 +27,7 @@ class LevelWindow : public nanogui::Window
 
  private:
    LevelGeneralSection* m_generalSection = nullptr;
+   LevelPathfinderSection* m_pathfinderSection = nullptr;
    LevelShaderSection* m_shaderSection = nullptr;
 
    Editor& m_parent;
