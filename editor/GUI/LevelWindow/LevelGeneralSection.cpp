@@ -33,6 +33,10 @@ LevelGeneralSection::Create(std::shared_ptr< Level > level)
    AddWidget(GuiBuilder::CreateCheckBox(
       parent(), [&](bool checked) { m_editor.ShowWireframe(checked); }, "Render wireframe"));
 
+   m_showWayPoints = GuiBuilder::CreateCheckBox(
+      parent(), [&](bool checked) { m_editor.ShowWaypoints(checked); }, "Show pathfinder waypoints", 16, true);
+   AddWidget(m_showWayPoints);
+
    const auto fixtedWidth = parent()->fixedSize().x() / 5;
    const auto pathfinderNodes = m_loadedLevel->GetPathfinder().GetAllNodes();
    const auto levelSize = m_loadedLevel->GetSize();

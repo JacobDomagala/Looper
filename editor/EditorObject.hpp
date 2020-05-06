@@ -50,8 +50,6 @@ class EditorObject
    bool
    GetVisible();
 
-   // GETERS
-
    // Get size of object
    glm::ivec2
    GetSize() const;

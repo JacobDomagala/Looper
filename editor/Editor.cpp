@@ -634,6 +634,19 @@ Editor::ShowWireframe(bool wireframeEnabled)
 }
 
 void
+Editor::ShowWaypoints(bool showwaypoints)
+{
+   m_showWaypoints = showwaypoints;
+
+   std::for_each(m_editorObjects.begin(), m_editorObjects.end(), [showwaypoints](auto& object) {
+      if (object->GetLinkedObject()->GetType() == dgame::Object::TYPE::PATHFINDER_NODE)
+      {
+         object->SetVisible(showwaypoints);
+      }
+   });
+}
+
+void
 Editor::SetRenderAnimationPoints(bool render)
 {
    const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);

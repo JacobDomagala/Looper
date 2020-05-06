@@ -94,6 +94,9 @@ class Editor : public nanogui::Screen, public Application
    ShowWireframe(bool wireframeEnabled);
 
    void
+   ShowWaypoints(bool wireframeEnabled);
+
+   void
    SetRenderAnimationPoints(bool render);
 
    void
@@ -179,6 +182,7 @@ class Editor : public nanogui::Screen, public Application
    // Represents all objects located in game, such as Gameobjects, light sources, particle emiters etc.
    std::vector< std::shared_ptr<Object > > m_objects;
 
+   bool m_showWaypoints = true;
    std::map< uint8_t, bool > m_keyMap;
    Gui m_gui;
 };
