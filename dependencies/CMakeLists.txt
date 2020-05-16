@@ -38,4 +38,5 @@ add_subdirectory(STB_IMAGE)
 add_subdirectory(GLM)
 add_subdirectory(NANOGUI)
 add_subdirectory(JSON)
+add_subdirectory(FMT)
 

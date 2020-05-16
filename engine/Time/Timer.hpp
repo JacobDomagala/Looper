@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <string>
 
 namespace dgame {
 
@@ -14,22 +15,13 @@ class Timer
    ~Timer() = default;
 
    static void
-   PauseAllTimers()
-   {
-      m_timersPaused = true;
-   }
+   PauseAllTimers();
 
    static void
-   ResumeAllTimers()
-   {
-      m_timersPaused = false;
-   }
+   ResumeAllTimers();
 
    static bool
-   AreTimersRunning()
-   {
-      return !m_timersPaused;
-   }
+   AreTimersRunning();
 
    // It does 3 things:
    // - Set m_deltaTime duration (currentTime - m_timeStamp)
@@ -41,31 +33,23 @@ class Timer
    // Get time elapsed between calling ToggleTimer() functions
    // Returned value is in miliseconds (float value)
    float
-   GetFloatDeltaTime() const
-   {
-      return m_deltaTime.count();
-   }
+   GetFloatDeltaTime() const;
 
    milliseconds
-   GetMsDeltaTime() const
-   {
-      return m_deltaTime;
-   }
+   GetMsDeltaTime() const;
 
    // Returned value in seconds
    float
-   GetTotalTime() const
-   {
-      return std::chrono::duration_cast< milliseconds >(m_totalTime).count() / 1.0f;
-   }
+   GetTotalTime() const;
 
    void
-   ResetTotalTime()
-   {
-      m_totalTime = milliseconds(0);
-   }
+   ResetTotalTime();
 
-   static milliseconds ConvertToMs(seconds);
+   static std::string
+   GetCurrentTime();
+
+   static milliseconds 
+   ConvertToMs(seconds);
 
  private:
    // Time period between last Toggle() function call

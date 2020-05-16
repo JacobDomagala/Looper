@@ -1,12 +1,13 @@
 #include "Logger.hpp"
 
-#include <chrono>
-#include <ctime>
-#include <iomanip>
+#include <iostream>
 
 namespace dgame {
 
-Logger::TYPE Logger::m_currentLogType = Logger::TYPE::DEBUG;
+Logger::Logger(const std::string& name)
+{
+   m_moduleName = name;
+}
 
 void
 Logger::Init(const std::string& name)
@@ -14,14 +15,28 @@ Logger::Init(const std::string& name)
    m_moduleName = name;
 }
 
-void
-Logger::Log(Logger::TYPE type, const std::string& logBuffer) const
+std::string
+Logger::ToString(const Logger::TYPE& type) const
 {
-   if (type >= m_currentLogType)
+   std::string returnValue;
+   if (type == Logger::TYPE::DEBUG)
    {
-      auto time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-      std::cout << std::put_time(std::localtime(&time), "%T") << " <" << m_moduleName << '>' << type << ' ' << logBuffer << "\n";
+      returnValue = "  [DEBUG]  ";
    }
+   else if (type == Logger::TYPE::INFO)
+   {
+      returnValue = "  [INFO]   ";
+   }
+   else if (type == Logger::TYPE::WARNING)
+   {
+      returnValue = " [WARNING] ";
+   }
+   else if (type == Logger::TYPE::FATAL)
+   {
+      returnValue = "  [FATAL]  ";
+   }
+
+   return returnValue;
 }
 
 void

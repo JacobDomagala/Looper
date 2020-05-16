@@ -1,8 +1,9 @@
 #pragma once
 
-#include <iostream>
+#include "Timer.hpp"
+
+#include <fmt/format.h>
 #include <string>
-#include <vector>
 
 namespace dgame {
 
@@ -18,47 +19,33 @@ class Logger
       FATAL
    };
 
-   Logger(const std::string& name)
-   {
-      m_moduleName = name;
-   }
+   Logger(const std::string& name);
    Logger() = default;
    ~Logger() = default;
 
    void
    Init(const std::string& name);
 
+   template < typename... Args >
    void
-   Log(TYPE, const std::string& logBuffer) const;
+   Log(TYPE type, const std::string& buffer, const Args&... args) const
+   {
+      if (type >= m_currentLogType)
+      {
+         fmt::vprint("{}{}<{}> ", fmt::make_format_args(Timer::GetCurrentTime(), ToString(type), m_moduleName));
+         fmt::vprint(buffer, fmt::make_format_args(args...));
+         fmt::print("\n");
+      }
+   }
 
    static void SetLogType(TYPE);
 
-   friend std::ostream&
-   operator<<(std::ostream& os, const Logger::TYPE& type)
-   {
-      if (type == Logger::TYPE::DEBUG)
-      {
-         os << " [DEBUG] ";
-      }
-      else if (type == Logger::TYPE::INFO)
-      {
-         os << " [INFO] ";
-      }
-      else if (type == Logger::TYPE::WARNING)
-      {
-         os << " [WARNING] ";
-      }
-      else if (type == Logger::TYPE::FATAL)
-      {
-         os << " [FATAL] ";
-      }
-
-      return os;
-   }
+   std::string
+   ToString(const Logger::TYPE& type) const;
 
  private:
    std::string m_moduleName;
-   static TYPE m_currentLogType;
+   static inline TYPE m_currentLogType = Logger::TYPE::DEBUG;
 };
 
 } // namespace dgame
