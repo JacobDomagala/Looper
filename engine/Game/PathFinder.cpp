@@ -36,6 +36,12 @@ PathFinder::AddNode(std::shared_ptr< Node > newNode)
    m_nodes.push_back(newNode);
 }
 
+void
+PathFinder::DeleteNode(std::shared_ptr< Node > deletedNode)
+{
+   m_nodes.erase(std::find(m_nodes.begin(), m_nodes.end(), deletedNode));
+}
+
 uint8_t
 PathFinder::FindNodeIdx(const glm::ivec2& position) const
 {

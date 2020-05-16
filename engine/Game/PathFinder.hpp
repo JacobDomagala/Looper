@@ -34,6 +34,9 @@ class PathFinder
    void
    AddNode(std::shared_ptr< Node > newNode);
 
+   void
+   DeleteNode(std::shared_ptr< Node > deletedNode);
+
    uint8_t
    FindNodeIdx(const glm::ivec2& position) const;
 

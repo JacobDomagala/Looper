@@ -261,6 +261,19 @@ Level::AddGameObject(Game& game, const glm::vec2& pos, const glm::ivec2& size, c
 }
 
 void
+Level::DeleteObject(std::shared_ptr< Object > deletedObject)
+{
+   if (deletedObject->GetType() == Object::TYPE::PLAYER)
+   {
+      m_player.reset();
+   }
+   else
+   {
+      m_objects.erase(std::find(m_objects.begin(), m_objects.end(), deletedObject));
+   }
+}
+
+void
 Level::Move(const glm::vec2& moveBy)
 {
    for (auto& obj : m_objects)

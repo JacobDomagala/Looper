@@ -59,6 +59,9 @@ class Level
    AddGameObject(Game& game, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite);
 
    void
+   DeleteObject(std::shared_ptr< Object > deletedObject);
+
+   void
    Move(const glm::vec2& moveBy);
 
    void
@@ -118,8 +121,8 @@ class Level
       return m_levelSize;
    }
 
-   const PathFinder&
-   GetPathfinder() const
+   PathFinder&
+   GetPathfinder()
    {
       return m_pathinder;
    }

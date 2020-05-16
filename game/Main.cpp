@@ -3,7 +3,7 @@
 int
 main(int /* argc */, char** /* argv */)
 {
-   Game game;
+   dgame::Game game;
    game.Init("GameInit.txt");
    game.MainLoop();
 

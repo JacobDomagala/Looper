@@ -44,6 +44,11 @@ Object::GetTypeString() const
       }
       break;
 
+      case TYPE::PATHFINDER_NODE: {
+         type = "Pathfinder Node";
+      }
+      break;
+
       default: {
          type = "No Type";
       }
