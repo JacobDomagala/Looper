@@ -49,6 +49,15 @@ Level::Load(Application* context, const std::string& pathToLevel)
 
          m_contextPointer = context;
       }
+      else if (key == "PATHFINDER")
+      {
+         for (auto& nodeJson : json[key]["nodes"])
+         {
+            m_pathinder.AddNode(
+               std::make_shared< Node >(glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]), nodeJson["id"],
+                                        std::vector< Node::NodeID >(nodeJson["connected to"].begin(), nodeJson["connected to"].end())));
+         }
+      }
       else if (key == "SHADER")
       {
          const auto shaderName = json[key]["name"];
@@ -63,6 +72,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
          const auto name = json[key]["name"];
 
          m_player = std::make_shared< Player >(*context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture, name);
+         m_player->GetSprite().Scale(glm::vec2(json[key]["scale"][0], json[key]["scale"][1]));
+         m_player->GetSprite().Rotate(json[key]["rotation"]);
       }
       else if (key == "ENEMIES")
       {
@@ -72,18 +83,17 @@ Level::Load(Application* context, const std::string& pathToLevel)
             const auto size = enemy["size"];
             const auto texture = enemy["texture"];
             const auto weapons = enemy["weapons"];
-            const auto animatePos = enemy["animate positions"];
             const auto name = enemy["name"];
 
             AnimationPoint::vectorPtr keypointsPositions = {};
             glm::vec2 beginPoint = glm::vec2(position[0], position[1]);
 
-            for (auto& point : animatePos)
+            for (auto& point : enemy["animate positions"])
             {
                auto animationPoint = std::make_shared< AnimationPoint >();
                animationPoint->m_start = beginPoint;
-               animationPoint->m_end = glm::vec2(point[0], point[1]);
-               animationPoint->m_timeDuration = Timer::seconds(1);
+               animationPoint->m_end = glm::vec2(point["end position"][0], point["end position"][1]);
+               animationPoint->m_timeDuration = Timer::seconds(point["time duration"]);
 
                keypointsPositions.emplace_back(animationPoint);
 
@@ -93,6 +103,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
             auto object = std::make_shared< Enemy >(*context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture,
                                                     keypointsPositions);
             object->SetName(name);
+            object->GetSprite().Scale(glm::vec2(enemy["scale"][0], enemy["scale"][1]));
+            object->GetSprite().Rotate(enemy["rotation"]);
 
             m_objects.emplace_back(object);
          }
@@ -116,10 +128,10 @@ Level::Save(const std::string& pathToLevel)
       nodeJson["id"] = node->m_ID;
       nodeJson["position"] = {node->m_position.x, node->m_position.y};
       nodeJson["connected to"] = node->m_connectedNodes;
-      
+
       json["PATHFINDER"]["nodes"].emplace_back(nodeJson);
    }
-   
+
    // Serialize shader
    json["SHADER"]["name"] = m_shaders.GetName();
 
@@ -129,6 +141,7 @@ Level::Save(const std::string& pathToLevel)
    json["BACKGROUND"]["collision"] = m_collision.GetName();
 
    // Serialize player
+   json["PLAYER"]["name"] = m_player->GetName();
    json["PLAYER"]["position"] = {m_player->GetLocalPosition().x, m_player->GetLocalPosition().y};
    json["PLAYER"]["scale"] = {m_player->GetSprite().GetScale().x, m_player->GetSprite().GetScale().y};
    json["PLAYER"]["rotation"] = m_player->GetSprite().GetRotation();
@@ -141,6 +154,7 @@ Level::Save(const std::string& pathToLevel)
    {
       nlohmann::json enemyJson;
 
+      enemyJson["name"] = object->GetName();
       enemyJson["position"] = {object->GetLocalPosition().x, object->GetLocalPosition().y};
       enemyJson["size"] = {object->GetSprite().GetOriginalSize().x, object->GetSprite().GetOriginalSize().y};
       enemyJson["scale"] = {object->GetSprite().GetScale().x, object->GetSprite().GetScale().y};
@@ -150,7 +164,6 @@ Level::Save(const std::string& pathToLevel)
       auto enemyPtr = dynamic_cast< Enemy* >(object.get());
 
       enemyJson["weapons"] = enemyPtr->GetWeapon();
-
       enemyJson["animation type"] = enemyPtr->GetAnimationType() == Animatable::ANIMATION_TYPE::LOOP ? "Loop" : "Reversable";
 
       const auto keypoints = enemyPtr->GetAnimationKeypoints();
