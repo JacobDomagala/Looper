@@ -60,6 +60,8 @@ class Sprite
 
    glm::ivec2
    GetSize() const;
+   
+   glm::vec2 GetOriginalSize() const;
 
    std::string
    GetTextureName() const;

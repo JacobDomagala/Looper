@@ -109,6 +109,17 @@ Level::Save(const std::string& pathToLevel)
 {
    nlohmann::json json;
 
+   const auto nodes = m_pathinder.GetAllNodes();
+   for (const auto& node : nodes)
+   {
+      nlohmann::json nodeJson;
+      nodeJson["id"] = node->m_ID;
+      nodeJson["position"] = {node->m_position.x, node->m_position.y};
+      nodeJson["connected to"] = node->m_connectedNodes;
+      
+      json["PATHFINDER"]["nodes"].emplace_back(nodeJson);
+   }
+   
    // Serialize shader
    json["SHADER"]["name"] = m_shaders.GetName();
 
@@ -119,7 +130,9 @@ Level::Save(const std::string& pathToLevel)
 
    // Serialize player
    json["PLAYER"]["position"] = {m_player->GetLocalPosition().x, m_player->GetLocalPosition().y};
-   json["PLAYER"]["size"] = {m_player->GetSize().x, m_player->GetSize().y};
+   json["PLAYER"]["scale"] = {m_player->GetSprite().GetScale().x, m_player->GetSprite().GetScale().y};
+   json["PLAYER"]["rotation"] = m_player->GetSprite().GetRotation();
+   json["PLAYER"]["size"] = {m_player->GetSprite().GetOriginalSize().x, m_player->GetSprite().GetOriginalSize().y};
    json["PLAYER"]["texture"] = m_player->GetSprite().GetTextureName();
    json["PLAYER"]["weapons"] = m_player->GetWeapons();
 
@@ -129,18 +142,25 @@ Level::Save(const std::string& pathToLevel)
       nlohmann::json enemyJson;
 
       enemyJson["position"] = {object->GetLocalPosition().x, object->GetLocalPosition().y};
-      enemyJson["size"] = {object->GetSize().x, object->GetSize().y};
+      enemyJson["size"] = {object->GetSprite().GetOriginalSize().x, object->GetSprite().GetOriginalSize().y};
+      enemyJson["scale"] = {object->GetSprite().GetScale().x, object->GetSprite().GetScale().y};
+      enemyJson["rotation"] = object->GetSprite().GetRotation();
       enemyJson["texture"] = object->GetSprite().GetTextureName();
 
       auto enemyPtr = dynamic_cast< Enemy* >(object.get());
 
       enemyJson["weapons"] = enemyPtr->GetWeapon();
 
-      const auto keypoints = enemyPtr->GetAnimationKeypoints();
+      enemyJson["animation type"] = enemyPtr->GetAnimationType() == Animatable::ANIMATION_TYPE::LOOP ? "Loop" : "Reversable";
 
+      const auto keypoints = enemyPtr->GetAnimationKeypoints();
       for (const auto& point : keypoints)
       {
-         enemyJson["animate positions"].emplace_back(point->m_end.x, point->m_end.y);
+         nlohmann::json animationPoint;
+         animationPoint["end position"] = {point->m_end.x, point->m_end.y};
+         animationPoint["time duration"] = point->m_timeDuration.count();
+
+         enemyJson["animate positions"].emplace_back(animationPoint);
       }
 
       json["ENEMIES"].emplace_back(enemyJson);

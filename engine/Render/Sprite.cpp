@@ -147,6 +147,12 @@ Sprite::GetSize() const
    return static_cast< glm::vec2 >(m_size) * (m_currentState.m_scaleVal + m_currentState.m_uniformScaleValue);
 }
 
+glm::vec2
+Sprite::GetOriginalSize() const
+{
+   return m_size;
+}
+
 std::string
 Sprite::GetTextureName() const
 {
