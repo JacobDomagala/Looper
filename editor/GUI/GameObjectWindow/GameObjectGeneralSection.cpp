@@ -101,7 +101,12 @@ GameObjectGeneralSection::GameObjectSelected(std::shared_ptr< GameObject > selec
 }
 
 void
-GameObjectGeneralSection::ObjectUpdated(int ID)
+GameObjectGeneralSection::ObjectUpdated(dgame::Object::ID ID)
+{
+}
+
+void
+GameObjectGeneralSection::ObjectDeleted(dgame::Object::ID ID)
 {
 }
 

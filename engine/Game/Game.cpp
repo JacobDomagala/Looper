@@ -661,7 +661,7 @@ Game::CheckCollision(const glm::ivec2& currentPosition, const glm::ivec2& moveBy
    }
 
    // worst case scenario player won't move
-   return glm::ivec2() + positionBias;
+   return positionBias;
 }
 
 bool
@@ -670,19 +670,14 @@ Game::CheckMove(glm::ivec2& moveBy)
    moveBy = CheckCollision(moveBy);
    m_player->Move(moveBy);
 
-   if (glm::length(glm::vec2(moveBy)))
-   {
-      return true;
-   }
-
-   return false;
+   return glm::length(glm::vec2(moveBy)) > 0;
 }
 
 void
 Game::KeyEvents()
 {
    int32_t cameraMovement = static_cast< int32_t >(0.8f * m_deltaTime.count());
-   int32_t playerMovement = static_cast< int32_t >(1.5f * m_deltaTime.count());
+   int32_t playerMovement = static_cast< int32_t >(0.5f * m_deltaTime.count());
 
    glm::ivec2 playerMoveBy = glm::ivec2();
    glm::ivec2 cameraMoveBy = glm::ivec2();

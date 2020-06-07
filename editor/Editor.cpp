@@ -297,6 +297,16 @@ Editor::HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameOb
 }
 
 void
+Editor::UnselectGameObject()
+{
+   m_gameObjectSelected = false;
+   m_movementOnGameObject = false;
+   m_gui.GameObjectUnselected();
+   m_currentSelectedGameObject->SetObjectUnselected();
+   m_currentSelectedGameObject.reset();
+}
+
+void
 Editor::HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedEditorObject)
 {
    if (m_editorObjectSelected && (newSelectedEditorObject != m_currentEditorObjectSelected))
@@ -315,9 +325,11 @@ Editor::HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedEd
 void
 Editor::UnselectEditorObject()
 {
+   m_gui.EditorObjectUnselected();
    m_editorObjectSelected = false;
    m_movementOnEditorObject = false;
    m_currentEditorObjectSelected->SetObjectUnselected();
+   m_currentEditorObjectSelected.reset();
 }
 
 void
@@ -345,7 +357,7 @@ Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
 bool
 Editor::mouseButtonEvent(const nanogui::Vector2i& position, int button, bool down, int modifiers)
 {
-   if (!Screen::mouseButtonEvent(position, button, down, modifiers))
+   if (!Screen::mouseButtonEvent(position, button, down, modifiers) && m_levelLoaded)
    {
       m_mousePressedLastUpdate = down;
 
@@ -381,6 +393,52 @@ Editor::mouseButtonEvent(const nanogui::Vector2i& position, int button, bool dow
    return true;
 }
 
+void
+Editor::ActionOnObject(Editor::ACTION action)
+{
+   switch (action)
+   {
+      case ACTION::UNSELECT:
+
+         if (m_editorObjectSelected && m_currentEditorObjectSelected)
+         {
+            UnselectEditorObject();
+         }
+         else if (m_gameObjectSelected && m_currentSelectedGameObject)
+         {
+            UnselectGameObject();
+         }
+         break;
+
+      case ACTION::DELETE:
+
+         if (m_editorObjectSelected && m_currentEditorObjectSelected)
+         {
+            m_gui.ObjectDeleted(m_currentEditorObjectSelected->GetLinkedObject()->GetID());
+            m_objects.erase(std::find(m_objects.begin(), m_objects.end(), m_currentEditorObjectSelected->GetLinkedObject()));
+            m_editorObjects.erase(std::find(m_editorObjects.begin(), m_editorObjects.end(), m_currentEditorObjectSelected));
+            m_currentEditorObjectSelected->DeleteLinkedObject();
+            UnselectEditorObject();
+         }
+         else if (m_gameObjectSelected && m_currentSelectedGameObject)
+         {
+            if (m_currentSelectedGameObject->GetType() == dgame::Object::TYPE::PLAYER)
+            {
+               m_player.reset();
+            }
+            else
+            {
+               m_objects.erase(std::find(m_objects.begin(), m_objects.end(), m_currentSelectedGameObject));
+            }
+
+            m_gui.ObjectDeleted(m_currentSelectedGameObject->GetID());
+            
+            UnselectGameObject();
+         }
+         break;
+   }
+}
+
 bool
 Editor::keyboardEvent(int key, int scancode, int action, int modifiers)
 {
@@ -388,29 +446,16 @@ Editor::keyboardEvent(int key, int scancode, int action, int modifiers)
    {
       m_keyMap[key] = action;
 
-      if ((key == GLFW_KEY_ESCAPE) && (action == GLFW_PRESS))
+      if (action == GLFW_PRESS)
       {
-         if (m_editorObjectSelected)
+         if (key == GLFW_KEY_ESCAPE)
          {
-            if (m_currentEditorObjectSelected)
-            {
-               m_currentEditorObjectSelected->SetObjectUnselected();
-               m_currentEditorObjectSelected.reset();
-            }
-
-            m_editorObjectSelected = false;
-            m_gui.EditorObjectUnselected();
+            ActionOnObject(ACTION::UNSELECT);
          }
-         else if (m_gameObjectSelected)
-         {
-            if (m_currentSelectedGameObject)
-            {
-               m_currentSelectedGameObject->SetObjectUnselected();
-               m_currentSelectedGameObject.reset();
-            }
 
-            m_gameObjectSelected = false;
-            m_gui.GameObjectUnselected();
+         if (key == GLFW_KEY_DELETE)
+         {
+            ActionOnObject(ACTION::DELETE);
          }
       }
    }
@@ -537,7 +582,7 @@ Editor::LoadLevel(const std::string& levelPath)
 
       object->SetVisible(true);
       m_editorObjects.push_back(object);
-      m_objects.push_back(std::dynamic_pointer_cast< Object >(node));
+      m_objects.push_back(std::dynamic_pointer_cast< dgame::Object >(node));
    });
 
    const auto gameObjects = m_currentLevel->GetObjects();
@@ -556,7 +601,7 @@ Editor::LoadLevel(const std::string& levelPath)
             editorObject->SetName("Animationpoint" + object->GetName());
 
             m_editorObjects.push_back(editorObject);
-            m_objects.push_back(std::dynamic_pointer_cast< Object >(point));
+            m_objects.push_back(std::dynamic_pointer_cast< dgame::Object >(point));
          }
       }
    }

@@ -150,7 +150,7 @@ GameObjectAnimationSection::GameObjectSelected(std::shared_ptr< GameObject > sel
 }
 
 void
-GameObjectAnimationSection::ObjectUpdated(int ID)
+GameObjectAnimationSection::ObjectUpdated(dgame::Object::ID ID)
 {
    auto object = std::find_if(m_objects.begin(), m_objects.end(), [ID](auto& object) { return object->GetID() == ID; });
 
@@ -175,6 +175,46 @@ GameObjectAnimationSection::ObjectUpdated(int ID)
 
          case dgame::Object::TYPE::ENEMY: {
             m_showAnimationSteps->setChecked(std::dynamic_pointer_cast< Enemy >(*object)->GetRenderAnimationSteps());
+         }
+         break;
+      }
+   }
+}
+
+void
+GameObjectAnimationSection::ObjectDeleted(dgame::Object::ID ID)
+{
+   auto object = std::find_if(m_objects.begin(), m_objects.end(), [ID](auto& object) { return object->GetID() == ID; });
+
+   if (object != m_objects.end())
+   {
+      switch ((*object)->GetType())
+      {
+         case dgame::Object::TYPE::ANIMATION_POINT: {
+            auto animationPoint =
+               std::find_if(m_animationSteps.begin(), m_animationSteps.end(), [ID](auto& point) { return point.id == ID; });
+
+            if (animationPoint != m_animationSteps.end())
+            {
+               m_animationStepsLayout->removeChild(animationPoint->m_xPos);
+               m_animationStepsLayout->removeChild(animationPoint->m_yPos);
+               m_animationStepsLayout->removeChild(animationPoint->m_rotation);
+               m_animationStepsLayout->removeChild(animationPoint->m_time);
+               m_animationStepsLayout->removeChild(animationPoint->m_removePoint);
+
+               RemoveWidget(animationPoint->m_xPos);
+               RemoveWidget(animationPoint->m_yPos);
+               RemoveWidget(animationPoint->m_rotation);
+               RemoveWidget(animationPoint->m_time);
+               RemoveWidget(animationPoint->m_removePoint);
+
+               m_objects.erase(object);
+            }
+         }
+         break;
+
+         case dgame::Object::TYPE::ENEMY: {
+            
          }
          break;
       }

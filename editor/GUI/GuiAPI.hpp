@@ -3,6 +3,7 @@
 
 namespace dgame {
 
+using GuiObject = ::nanogui::Object;
 using GuiWindow = ::nanogui::Window;
 using Widget = nanogui::Widget;
 using Orientation = nanogui::Orientation;

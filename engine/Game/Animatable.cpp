@@ -148,7 +148,6 @@ Animatable::Animate(Timer::milliseconds updateTime)
 
    m_currentAnimationState.m_animationFinished = false;
 
-
    auto currentAnimationStepSize = AnimateInCurrentSection(updateTime);
    if (m_currentAnimationState.m_currentTimeElapsed < (*m_currentAnimationState.m_currentAnimationPoint)->m_timeDuration)
    {

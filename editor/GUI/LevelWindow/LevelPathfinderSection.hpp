@@ -33,7 +33,10 @@ class LevelPathfinderSection : public Section
    Create(std::shared_ptr< Level > selectedGameObject);
 
    void
-   ObjectUpdated(int ID);
+   ObjectUpdated(dgame::Object::ID ID);
+
+   void
+   ObjectDeleted(dgame::Object::ID ID);
 
    void
    LevelLoaded(std::shared_ptr< Level > loadedLevel);

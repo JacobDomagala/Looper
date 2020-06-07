@@ -12,7 +12,12 @@ EditorObjectWindow::EditorObjectWindow(Editor& editor) : GuiWindow(&editor, "Edi
 }
 
 void
-EditorObjectWindow::ObjectUpdated(int ID)
+EditorObjectWindow::ObjectUpdated(dgame::Object::ID ID)
+{
+}
+
+void
+EditorObjectWindow::ObjectDeleted(dgame::Object::ID ID)
 {
 }
 

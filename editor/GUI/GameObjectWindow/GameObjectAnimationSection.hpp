@@ -35,7 +35,10 @@ class GameObjectAnimationSection : public Section
    Create(std::shared_ptr< GameObject > selectedGameObject);
 
    void
-   ObjectUpdated(int ID);
+   ObjectUpdated(dgame::Object::ID ID);
+
+   void
+   ObjectDeleted(dgame::Object::ID ID);
 
    void
    GameObjectSelected(std::shared_ptr< GameObject > selectedGameObject);

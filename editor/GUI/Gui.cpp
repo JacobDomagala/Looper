@@ -136,7 +136,10 @@ Gui::GameObjectSelected(std::shared_ptr< GameObject > selectedGameObject)
 void
 Gui::GameObjectUnselected()
 {
-   m_currentGameObjectWindow->GameObjectUnselected();
+   if (m_currentGameObjectWindow)
+   {
+      m_currentGameObjectWindow->GameObjectUnselected();
+   }
 }
 
 void
@@ -154,6 +157,8 @@ void
 Gui::EditorObjectUnselected()
 {
    m_currentEditorObjectWindow->EditorObjectUnselected();
+   m_parent.removeChild(m_currentEditorObjectWindow);
+   m_currentEditorObjectWindow = nullptr;
 }
 
 void
@@ -181,7 +186,7 @@ Gui::LevelLoaded(std::shared_ptr< Level > levelLoaded)
 }
 
 void
-Gui::ObjectUpdated(int ID)
+Gui::ObjectUpdated(dgame::Object::ID ID)
 {
    if (m_currentGameObjectWindow)
    {
@@ -195,6 +200,21 @@ Gui::ObjectUpdated(int ID)
 
    if (m_levelWindow)
    {
+      m_levelWindow->ObjectUpdated(ID);
+   }
+}
+
+void
+Gui::ObjectDeleted(dgame::Object::ID ID)
+{
+   if (m_currentGameObjectWindow)
+   {
+      m_currentGameObjectWindow->ObjectDeleted(ID);
+   }
+
+   if (m_levelWindow)
+   {
+      m_levelWindow->ObjectDeleted(ID);
    }
 }
 

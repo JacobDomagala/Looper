@@ -109,6 +109,16 @@ class Editor : public nanogui::Screen, public Application
    UpdateAnimationData();
 
  private:
+   enum class ACTION
+   {
+      UNSELECT,
+      DELETE
+   };
+
+ private:
+   void
+   ActionOnObject(ACTION action);
+
    void
    DrawEditorObjects();
 
@@ -138,6 +148,9 @@ class Editor : public nanogui::Screen, public Application
 
    void
    UnselectEditorObject();
+
+   void
+   UnselectGameObject();
 
    void
    ShowCursor(bool choice);
@@ -180,7 +193,7 @@ class Editor : public nanogui::Screen, public Application
    std::shared_ptr< EditorObject > m_currentEditorObjectSelected;
 
    // Represents all objects located in game, such as Gameobjects, light sources, particle emiters etc.
-   std::vector< std::shared_ptr<Object > > m_objects;
+   std::vector< std::shared_ptr< dgame::Object > > m_objects;
 
    bool m_showWaypoints = true;
    std::map< uint8_t, bool > m_keyMap;

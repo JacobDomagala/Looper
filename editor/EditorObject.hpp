@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common.hpp"
+#include "Object.hpp"
 #include "Shaders.hpp"
 #include "Sprite.hpp"
 
@@ -11,7 +12,6 @@
 namespace dgame {
 
 class Editor;
-class Object;
 
 class EditorObject
 {
@@ -89,6 +89,9 @@ class EditorObject
    std::shared_ptr< Object >
    GetLinkedObject();
 
+   void
+   DeleteLinkedObject();
+
    // Create sprite with default texture
    void
    CreateSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(10, 10));
@@ -146,7 +149,7 @@ class EditorObject
 
    std::string m_name;
 
-   int m_objectID = -1;
+   Object::ID m_objectID = -1;
    std::shared_ptr< Object > m_linkedObject = nullptr;
    Editor& m_editor;
 

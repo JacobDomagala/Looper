@@ -179,12 +179,35 @@ EditorObject::GetLinkedObject()
 }
 
 void
+EditorObject::DeleteLinkedObject()
+{
+   if (m_linkedObject)
+   {
+      switch (m_linkedObject->GetType())
+      {
+         case Object::TYPE::ANIMATION_POINT: {
+            
+            
+         }
+         break;
+         
+         case Object::TYPE::PATHFINDER_NODE: {
+            m_editor.GetLevel().GetPathfinder().DeleteNode(std::dynamic_pointer_cast< Node >(m_linkedObject));
+         }
+         break;
+
+         default: {
+         }
+      }
+   }
+}
+
+void
 EditorObject::Move(const glm::vec2& moveBy, bool isCameraMovement)
 {
    m_sprite.Translate(moveBy);
    m_globalPosition += moveBy;
    m_centeredGlobalPosition += moveBy;
-
 
    m_localPosition += moveBy;
    m_centeredLocalPosition += moveBy;
@@ -196,6 +219,9 @@ EditorObject::Move(const glm::vec2& moveBy, bool isCameraMovement)
          case Object::TYPE::ANIMATION_POINT: {
             std::dynamic_pointer_cast< AnimationPoint >(m_linkedObject)->m_end += moveBy;
             m_editor.UpdateAnimationData();
+         }
+         case Object::TYPE::PATHFINDER_NODE: {
+            std::dynamic_pointer_cast< Node >(m_linkedObject)->m_position += moveBy;
          }
          default: {
          }

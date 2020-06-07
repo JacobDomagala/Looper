@@ -9,9 +9,11 @@ namespace dgame {
 
 struct Node : public Object
 {
+   using NodeID = uint8_t;
+
    Node() = default;
 
-   Node(glm::ivec2 pos, uint8_t ID, std::vector< uint8_t > connectedTo) : Object(Object::TYPE::PATHFINDER_NODE)
+   Node(glm::ivec2 pos, NodeID ID, std::vector< NodeID > connectedTo) : Object(Object::TYPE::PATHFINDER_NODE)
    {
       m_position = pos;
       m_ID = ID;
@@ -19,8 +21,8 @@ struct Node : public Object
    }
 
    glm::ivec2 m_position;
-   uint8_t m_ID;
-   std::vector< uint8_t > m_connectedNodes;
+   NodeID m_ID;
+   std::vector< NodeID > m_connectedNodes;
 };
 
 class PathFinder

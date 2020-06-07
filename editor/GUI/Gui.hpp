@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Object.hpp"
 #include "GuiBuilder.hpp"
 
 #include <memory>
@@ -44,13 +44,16 @@ class Gui
    LevelLoaded(std::shared_ptr< Level > loadedLevel);
 
    void
-   ObjectUpdated(int ID);
+   ObjectUpdated(dgame::Object::ID ID);
 
    void
    AnimationPaused();
 
    void
    AnimationFinished();
+
+   void
+   ObjectDeleted(dgame::Object::ID ID);
 
  private:
    /*

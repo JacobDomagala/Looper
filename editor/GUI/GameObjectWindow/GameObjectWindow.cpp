@@ -11,12 +11,29 @@ GameObjectWindow::GameObjectWindow(Editor& editor) : GuiWindow(&editor, "Game Ob
 }
 
 void
-GameObjectWindow::ObjectUpdated(int ID)
+GameObjectWindow::ObjectUpdated(dgame::Object::ID ID)
 {
    m_generalSection->ObjectUpdated(ID);
    m_transformSection->ObjectUpdated(ID);
    m_shaderSection->ObjectUpdated(ID);
    m_animationSection->ObjectUpdated(ID);
+}
+
+void
+GameObjectWindow::ObjectDeleted(dgame::Object::ID ID)
+{
+   auto object = std::find_if(m_objects.begin(), m_objects.end(), [ID](const auto& object) { return object->GetID() == ID; });
+   if (object != m_objects.end())
+   {
+      m_objects.erase(object);
+      parent()->removeChild(this);
+   }
+   else
+   {
+      m_generalSection->ObjectDeleted(ID);
+      m_shaderSection->ObjectDeleted(ID);
+      m_animationSection->ObjectDeleted(ID);
+   }
 }
 
 void

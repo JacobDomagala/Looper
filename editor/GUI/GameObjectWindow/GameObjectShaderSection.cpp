@@ -58,10 +58,14 @@ GameObjectShaderSection::Update()
 }
 
 void
-GameObjectShaderSection::ObjectUpdated(int ID)
+GameObjectShaderSection::ObjectUpdated(dgame::Object::ID ID)
 {
 }
 
+void
+GameObjectShaderSection::ObjectDeleted(dgame::Object::ID ID)
+{
+}
 
 void
 GameObjectShaderSection::GameObjectSelected(std::shared_ptr< GameObject > selectedGameObject)

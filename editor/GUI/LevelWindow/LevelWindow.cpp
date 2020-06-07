@@ -48,4 +48,18 @@ LevelWindow::LevelLoaded(std::shared_ptr< Level > loadedLevel)
    }
 }
 
+void
+LevelWindow::ObjectUpdated(dgame::Object::ID ID)
+{
+}
+
+void
+LevelWindow::ObjectDeleted(dgame::Object::ID ID)
+{
+   if (m_pathfinderSection)
+   {
+      m_pathfinderSection->ObjectDeleted(ID);
+   }
+}
+
 } // namespace dgame

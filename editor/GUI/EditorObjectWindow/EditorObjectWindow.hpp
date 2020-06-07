@@ -26,7 +26,10 @@ class EditorObjectWindow : public nanogui::Window
    EditorObjectUnselected();
 
    void
-   ObjectUpdated(int ID);
+   ObjectUpdated(dgame::Object::ID ID);
+
+   void
+   ObjectDeleted(dgame::Object::ID ID);
 
  private:
    Editor& m_parent;

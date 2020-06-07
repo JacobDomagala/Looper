@@ -3,6 +3,7 @@
 #include "LevelGeneralSection.hpp"
 #include "LevelPathfinderSection.hpp"
 #include "LevelShaderSection.hpp"
+#include "Object.hpp"
 
 #include <functional>
 #include <nanogui/window.h>
@@ -25,6 +26,12 @@ class LevelWindow : public nanogui::Window
    void
    LevelLoaded(std::shared_ptr< Level > loadedLevel);
 
+   void
+   ObjectUpdated(dgame::Object::ID ID);
+
+   void
+   ObjectDeleted(dgame::Object::ID ID);
+
  private:
    LevelGeneralSection* m_generalSection = nullptr;
    LevelPathfinderSection* m_pathfinderSection = nullptr;
@@ -35,6 +42,7 @@ class LevelWindow : public nanogui::Window
    bool m_created = false;
 
    std::shared_ptr< Level > m_loadedLevel = nullptr;
+   dgame::Object::VectorPtr m_objects;
 };
 
 } // namespace dgame

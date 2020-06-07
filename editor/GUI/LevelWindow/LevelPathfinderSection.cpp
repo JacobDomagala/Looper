@@ -82,8 +82,43 @@ LevelPathfinderSection::LevelLoaded(std::shared_ptr< Level > level)
 }
 
 void
-LevelPathfinderSection::ObjectUpdated(int ID)
+LevelPathfinderSection::ObjectUpdated(dgame::Object::ID ID)
 {
+}
+
+void
+LevelPathfinderSection::ObjectDeleted(dgame::Object::ID ID)
+{
+   auto object = std::find_if(m_objects.begin(), m_objects.end(), [ID](auto& object) { return object->GetID() == ID; });
+
+   if (object != m_objects.end())
+   {
+      switch ((*object)->GetType())
+      {
+         case dgame::Object::TYPE::PATHFINDER_NODE: {
+            auto node = std::find_if(m_pathfinderNodes.begin(), m_pathfinderNodes.end(), [ID](auto& point) { return point.id == ID; });
+
+            if (node != m_pathfinderNodes.end())
+            {
+               m_pathfinderNodesLayout->removeChild(node->m_xPos);
+               m_pathfinderNodesLayout->removeChild(node->m_yPos);
+               m_pathfinderNodesLayout->removeChild(node->m_removePoint);
+
+               RemoveWidget(node->m_xPos);
+               RemoveWidget(node->m_yPos);
+               RemoveWidget(node->m_removePoint);
+
+               m_objects.erase(object);
+               m_pathfinderNodes.erase(node);
+            }
+         }
+         break;
+
+         case dgame::Object::TYPE::ENEMY: {
+         }
+         break;
+      }
+   }
 }
 
 } // namespace dgame
