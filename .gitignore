@@ -310,8 +310,8 @@ build
 .vscode
 dependencies/Freetype/Freetype*
 dependencies/GLM/GLM*
-dependencies/NANOGUI/NANOGUI*
-dependencies/OpenGL/glew*
 dependencies/STB_IMAGE/STB_IMAGE*
 dependencies/JSON/JSON*
 dependencies/FMT/FMT*
+dependencies/Imgui/IMGUI*
+dependencies/glfw/GLFW*
