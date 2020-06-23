@@ -5,7 +5,7 @@
 #include "Shaders.hpp"
 #include "Sprite.hpp"
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <deque>
 #include <glm/glm.hpp>
 
@@ -41,10 +41,13 @@ class GameObject : public Object
    SetGlobalPosition(const glm::vec2& position);
 
    virtual void
-   SetShaders(const Shaders& program);
+   SetShaders(const Shader& program);
 
    virtual void
    SetName(const std::string& name);
+
+   virtual void
+   SetSize(const glm::vec2& newSize);
 
    // GETERS
 
@@ -105,17 +108,17 @@ class GameObject : public Object
 
    // Render object
    virtual void
-   Render(Shaders& program);
+   Render();
 
    virtual void
    Update(bool isReverse);
 
-   virtual void
-   SetObjectSelected();
+   void
+   SetHasCollision(bool hasCollision);
 
    // Only used by editor when unselected by user
-   virtual void
-   SetObjectUnselected();
+   bool
+   GetHasCollision() const;
 
  protected:
    // should be overriden by derrived class
@@ -157,13 +160,13 @@ class GameObject : public Object
 
    TYPE m_type;
 
-   bool m_selected = false;
+   bool m_hasCollision = true;
 
    // object's sprite
    Sprite m_sprite;
 
    // object's shaders
-   Shaders m_program;
+   Shader m_program;
 
    // byte array of sprite used for collision
    byte_vec4* m_collision;

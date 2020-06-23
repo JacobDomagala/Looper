@@ -32,7 +32,7 @@ class Player : public GameObject
 
    // load shaders with given shader program
    void
-   LoadShaders(const Shaders& program);
+   LoadShaders(const Shader& program);
 
    // set position on map
    void

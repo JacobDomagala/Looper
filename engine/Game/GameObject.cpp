@@ -65,6 +65,12 @@ GameObject::Visible() const
 }
 
 void
+GameObject::SetSize(const glm::vec2& newSize)
+{
+   m_sprite.SetSize(newSize);
+}
+
+void
 GameObject::SetColor(const glm::vec3& color)
 {
    m_sprite.SetColor(color);
@@ -131,7 +137,7 @@ GameObject::GetSprite()
 }
 
 void
-GameObject::SetShaders(const Shaders& program)
+GameObject::SetShaders(const Shader& program)
 {
    m_program = program;
 }
@@ -151,17 +157,15 @@ GameObject::CreateSpriteTextured(const glm::vec2& position, const glm::ivec2& si
 }
 
 void
-GameObject::SetObjectSelected()
+GameObject::SetHasCollision(bool hasCollision)
 {
-   SetColor({1.0f, 0.0f, 0.0f});
-   m_selected = true;
+   m_hasCollision = hasCollision;
 }
 
-void
-GameObject::SetObjectUnselected()
+bool
+GameObject::GetHasCollision() const
 {
-   m_selected = false;
-   SetColor({1.0f, 1.0f, 1.0f});
+   return m_hasCollision;
 }
 
 void
@@ -224,10 +228,9 @@ GameObject::Update(bool isReverse)
 }
 
 void
-GameObject::Render(Shaders& program)
+GameObject::Render()
 {
-   program.SetUniformBool(int(m_selected), "objectSelected");
-   m_sprite.Render(m_appHandle, program);
+   m_sprite.Render();
 }
 
 Game*

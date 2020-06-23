@@ -28,9 +28,6 @@ class Enemy : public GameObject, public Animatable
    Hit(int32_t dmg) override;
 
    void
-   Render(Shaders& program) override;
-
-   void
    DealWithPlayer();
 
    std::string

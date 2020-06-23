@@ -39,7 +39,7 @@ Player::LoadShaders(const std::string& shaderFile)
 }
 
 void
-Player::LoadShaders(const Shaders& program)
+Player::LoadShaders(const Shader& program)
 {
    m_program = program;
 }

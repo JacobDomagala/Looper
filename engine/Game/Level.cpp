@@ -238,13 +238,13 @@ Level::GetLocalVec(const glm::vec2& global) const
 glm::vec2
 Level::GetGlobalVec(const glm::vec2& local) const
 {
-   glm::vec2 returnVal = local;
+   //glm::vec2 returnVal = local;
 
-   returnVal *= -1;
-   returnVal.y += m_levelSize.y;
-   returnVal = m_background.GetPosition() - returnVal;
+   //returnVal *= -1;
+   //returnVal.y += m_levelSize.y;
+   //returnVal = m_background.GetPosition() - returnVal;
 
-   return returnVal;
+   return local;
 }
 
 bool
@@ -272,12 +272,10 @@ void
 Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
 {
    m_locked = false;
-   m_cameraPosition = glm::vec2(0.0f, 0.0f);
-   m_cameraTilePos = glm::ivec2(0, 0);
    m_levelSize = size;
 
-   m_background.SetSpriteTextured(glm::vec2(0, 0), size, fileName);
-   m_shaders.LoadDefault();
+   m_background.SetSpriteTextured(glm::vec2(m_levelSize.x / 2.0f, m_levelSize.y / 2.0f), size, fileName);
+   // m_shaders.LoadDefault();
 }
 
 void
@@ -315,7 +313,7 @@ Level::Move(const glm::vec2& moveBy)
    }
 
    m_background.Translate(moveBy);
-   MoveCamera(moveBy);
+   //MoveCamera(moveBy);
 }
 
 void
@@ -377,22 +375,19 @@ Level::Update(bool isReverse)
 void
 Level::Render()
 {
-   // draw background
-   m_shaders.UseProgram();
-   m_shaders.SetUniformBool(false, "objectSelected");
-   m_background.Render(*m_contextPointer, m_shaders);
+   m_background.Render();
 
    for (auto& obj : m_objects)
    {
       if (obj->Visible())
       {
-         obj->Render(m_shaders);
+         obj->Render();
       }
    }
 
    if (m_player)
    {
-      m_player->Render(m_shaders);
+      m_player->Render();
    }
 }
 
@@ -440,22 +435,6 @@ Level::GetGameObjectOnLocation(const glm::vec2& screenPosition)
    foundObject = objectOnLocation != m_objects.end() ? *objectOnLocation : nullptr;
 
    return foundObject;
-}
-
-void
-Level::MoveCamera(const glm::vec2& moveBy)
-{
-   m_cameraPosition -= moveBy;
-   // cameraTilePos = GetTilePosition(cameraPosition);
-}
-
-glm::ivec2
-Level::CheckMoveCamera(const glm::vec2& moveBy) const
-{
-   glm::vec2 tmp = m_cameraPosition;
-   tmp -= moveBy;
-
-   return GetTilePosition(tmp);
 }
 
 glm::ivec2

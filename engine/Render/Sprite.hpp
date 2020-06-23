@@ -4,8 +4,8 @@
 #include "Shaders.hpp"
 #include "Texture.hpp"
 
-#include <GL/glew.h>
 #include <deque>
+#include <glad/glad.h>
 #include <glm/glm.hpp>
 
 namespace dgame {
@@ -60,8 +60,11 @@ class Sprite
 
    glm::ivec2
    GetSize() const;
-   
-   glm::vec2 GetOriginalSize() const;
+
+   void SetSize(glm::vec2);
+
+   glm::vec2
+   GetOriginalSize() const;
 
    std::string
    GetTextureName() const;
@@ -72,8 +75,11 @@ class Sprite
    float
    GetRotation(RotationType type = RotationType::RADIANS) const;
 
-   glm::vec2
-   GetScale() const;
+   glm::vec2&
+   GetScale();
+
+   float&
+   GetUniformScaleValue();
 
    Texture&
    GetTexture();
@@ -95,9 +101,6 @@ class Sprite
    void
    ScaleUniformly(const float scaleValue);
 
-   float
-   GetUniformScaleValue() const;
-
    std::array< glm::vec2, 4 >
    GetTransformedRectangle() const;
 
@@ -107,9 +110,12 @@ class Sprite
    void
    Update(bool isReverse);
 
-   // Render sprite using 'program'
    void
-   Render(Application& context, Shaders& program);
+   Render();
+
+ public:
+   static inline const std::pair< float, float > s_ROTATIONRANGE = {glm::radians(-360.0f), glm::radians(360.0f)};
+   static inline const std::pair< float, float > s_SCALERANGE = {1.0f, 5.0f};
 
  private:
    struct State
@@ -121,7 +127,7 @@ class Sprite
       glm::vec2 m_currentPosition;
 
       // transofmation values
-      glm::vec3 m_translateVal;
+      glm::vec2 m_translateVal;
       glm::vec3 m_velocity;
       glm::vec2 m_scaleVal;
 
@@ -135,22 +141,15 @@ class Sprite
    State m_currentState;
 
    // sprite's texture
-   Texture m_texture;
+   std::shared_ptr< Texture > m_texture;
 
    // sprite's center
    glm::vec2 m_centeredPosition;
-
-   // OpenGL buffers
-   GLuint m_vertexArrayBuffer;
-   GLuint m_vertexBuffer;
 
    glm::vec2 m_initialPosition;
 
    // width and height
    glm::ivec2 m_size;
-
-   const std::pair< float, float > m_rotationRange = {glm::radians(-360.0f), glm::radians(360.0f)};
-   const std::pair< float, float > m_scaleRange = {1.0f, 5.0f};
 };
 
 } // namespace dgame

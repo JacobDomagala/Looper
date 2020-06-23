@@ -18,7 +18,7 @@ Enemy::Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size,
    m_animationPoints = keypoints;
 
    m_timer.ToggleTimer();
-   m_initialPosition = GameObject::m_currentState.m_centeredLocalPosition;
+   m_initialPosition = GameObject::m_currentState.m_localPosition;
    
    m_animationStartPosition = m_initialPosition;
    ResetAnimation();
@@ -297,12 +297,6 @@ Enemy::UpdateInternal(bool isReverse)
    }
 
    Animatable::Update(isReverse);
-}
-
-void
-Enemy::Render(Shaders& program)
-{
-   GameObject::Render(program);
 }
 
 } // namespace dgame

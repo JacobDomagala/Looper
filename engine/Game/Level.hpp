@@ -136,7 +136,7 @@ class Level
    std::vector< std::shared_ptr< GameObject > >&
    GetObjects();
 
-   Shaders&
+   Shader&
    GetShader()
    {
       return m_shaders;
@@ -151,14 +151,14 @@ class Level
    std::shared_ptr< GameObject >
    GetGameObjectOnLocation(const glm::vec2& screenPosition);
 
-   void
-   MoveCamera(const glm::vec2& moveBy);
-
-   glm::ivec2
-   CheckMoveCamera(const glm::vec2& moveBy) const;
-
    glm::ivec2
    GetTilePosition(const glm::vec2& position) const;
+
+   const Texture&
+   GetCollision() const
+   {
+       return m_collision;
+   }
 
  private:
    Logger m_logger = Logger("Level");
@@ -167,7 +167,7 @@ class Level
    Sprite m_background;
    Texture m_collision;
 
-   Shaders m_shaders{};
+   Shader m_shaders{};
    glm::vec2 m_cameraPosition;
    std::shared_ptr< Player > m_player = nullptr;
 
