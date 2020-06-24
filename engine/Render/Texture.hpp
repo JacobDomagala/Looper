@@ -4,7 +4,7 @@
 #include "FileManager.hpp"
 #include "Logger.hpp"
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <memory>
 #include <string>
 
@@ -13,7 +13,8 @@ namespace dgame {
 class Texture
 {
  public:
-   Texture() = default;
+   Texture();
+   Texture(const std::string& textureName);
    Texture(Texture&&) = default;
    ~Texture();
 
@@ -27,10 +28,10 @@ class Texture
 
    // Load texture from 'fileName' file and return byte values (used for collision)
    byte_vec4*
-   LoadTextureFromFile(const std::string& fileName = "Default.png", GLenum wrapMode = GL_REPEAT, GLenum filter = GL_LINEAR);
+   LoadTextureFromFile(const std::string& fileName = "Default128.png", GLenum wrapMode = GL_REPEAT, GLenum filter = GL_LINEAR);
 
    uint8_t*
-   GetData()
+   GetData() const
    {
       return m_data.get();
    }
@@ -59,18 +60,24 @@ class Texture
       return m_textureID;
    }
 
-   // Make this texture active for given 'programID'
+   // Make this texture active for given texture slot
    void
-   Use(GLuint programID);
+   Use(GLuint slot);
 
    GLuint
    Create();
 
+   bool
+   operator==(const Texture& other) const
+   {
+      return m_textureID == other.GetTextureHandle();
+   }
+
  private:
    // Load texture from 'data' memory
    void
-   LoadTextureFromMemory(const glm::ivec2& size, uint8_t* data, const std::string& name, GLenum wrapMode = GL_REPEAT,
-                         GLenum filter = GL_LINEAR);
+   LoadTextureFromMemory(const glm::ivec2& size, uint8_t* data, const std::string& name, GLenum wrapModeS = GL_CLAMP_TO_EDGE,
+                         GLenum wrapModeT = GL_CLAMP_TO_EDGE, GLenum magFilter = GL_NEAREST, GLenum minFilter = GL_LINEAR);
 
  private:
    FileManager::ImageHandleType m_data;

@@ -5,6 +5,16 @@
 
 namespace dgame {
 
+Texture::Texture()
+{
+   CreateColorTexture({1, 1}, {1, 1, 1});
+}
+
+Texture::Texture(const std::string& textureName)
+{
+   LoadTextureFromFile(textureName);
+}
+
 Texture::~Texture()
 {
    glDeleteTextures(1, &m_textureID);
@@ -27,7 +37,7 @@ Texture::CreateColorTexture(const glm::ivec2& size, const glm::vec3& color)
 byte_vec4*
 Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenum filter)
 {
-   auto picture = FileManager::LoadImage(fileName);
+   auto picture = FileManager::LoadImageData(fileName);
 
    m_data = std::move(picture.m_bytes);
    m_width = picture.m_size.x;
@@ -39,40 +49,30 @@ Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenu
 }
 
 void
-Texture::LoadTextureFromMemory(const glm::ivec2& size, uint8_t* data, const std::string& name, GLenum wrapMode, GLenum filter)
+Texture::LoadTextureFromMemory(const glm::ivec2& size, uint8_t* data, const std::string& name, GLenum wrapModeS, GLenum wrapModeT,
+                               GLenum magFilter, GLenum minFilter)
 {
    m_name = name;
 
    glGenTextures(1, &m_textureID);
    glBindTexture(GL_TEXTURE_2D, m_textureID);
    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_data.get());
+
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapModeS);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapModeT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
    glGenerateMipmap(GL_TEXTURE_2D);
 
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &m_maxBoundCound);
-   // 32 textures can be bound at the same time
-   m_unit = m_unitCounter >= m_maxBoundCound ? 0 : m_unitCounter++;
-
-   m_logger.Log(Logger::TYPE::DEBUG, std::string("Created texture " + m_name + " with sampler_ID ") + std::to_string(m_samplerID)
-                                        + " using it with unit_id " + std::to_string(m_unit));
+   
+   m_logger.Log(Logger::TYPE::DEBUG, "Created new texture {} and bound it to ID {}", m_name, m_textureID);
 }
 
 void
-Texture::Use(GLuint program)
+Texture::Use(GLuint slot)
 {
-   GLuint samplerLocation = glGetUniformLocation(program, "texture");
-
-   glActiveTexture(GL_TEXTURE0 + m_unit);
-   glBindTexture(GL_TEXTURE_2D, m_textureID);
-   glUniform1i(samplerLocation, m_unit);
-
-   m_nowBound = m_unit;
-
-   ++m_boundCount;
+   glBindTextureUnit(slot, m_textureID);
 }
 
 GLuint
