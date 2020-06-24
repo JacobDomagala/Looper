@@ -10,7 +10,6 @@
 #include "Timer.hpp"
 #include "Window.hpp"
 
-//#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <vector>
@@ -58,7 +57,7 @@ class Game : public Application
    SwapBuffers();
 
    void
-   RegisterForKeyInput(IInputListener* listener);
+   RegisterForKeyInput(InputListener* listener);
 
    void
    LoadLevel(const std::string& levelName);
@@ -67,10 +66,10 @@ class Game : public Application
    void
    SetCollisionMap(byte_vec4* collision);
 
-   const glm::vec2&
+   glm::vec2
    GetWindowSize() const override;
 
-   const glm::ivec2&
+   glm::ivec2
    GetFrameBufferwSize() const override;
 
    const glm::mat4&
@@ -83,17 +82,15 @@ class Game : public Application
    GetZoomLevel() override;
 
  private:
-   // DEBUG
-   // std::vector< std::unique_ptr< DebugObject > > m_debugObjs;
-
-   void
-   RenderLine(const glm::ivec2& collided, const glm::vec3& color);
-
+   
    enum class GameState : uint8_t
    {
       MENU = 0,
       GAME
    };
+
+   void
+   RenderLine(const glm::ivec2& collided, const glm::vec3& color);
 
    // bullet collision for player
    glm::ivec2
@@ -138,8 +135,6 @@ class Game : public Application
 
  private:
    bool m_initialized = false;
-
-   std::unique_ptr< Window > m_window = nullptr;
 
    int32_t m_frames = 0;
    float m_frameTimer = 0.0f;

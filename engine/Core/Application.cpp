@@ -1,6 +1,5 @@
 #include "Application.hpp"
 
-#include <GLFW/glfw3.h>
 #include <glm/gtx/rotate_vector.hpp>
 
 namespace dgame {
@@ -9,6 +8,12 @@ std::shared_ptr< Player >
 Application::GetPlayer()
 {
    return m_currentLevel->GetPlayer();
+}
+
+Window&
+Application::GetWindow()
+{
+   return *m_window;
 }
 
 Level&
@@ -44,7 +49,7 @@ Application::Log(Logger::TYPE t, const std::string& log)
 void
 Application::RenderText(std::string text, const glm::vec2& position, float scale, const glm::vec3& color)
 {
-   m_font.RenderText(GetProjection(), text, position, scale, color);
+   // m_font.RenderText(GetProjection(), text, position, scale, color);
 }
 
 void
@@ -89,18 +94,6 @@ Application::ScreenToGlobal(const glm::vec2& screenPos)
    const auto globalPos = m_camera.GetPosition() + rotatedDistanceToObject;
 
    return globalPos;
-}
-
-void
-Application::DrawLine(glm::vec2 from, glm::vec2 to, glm::vec3 color)
-{
-   m_debugObjs.emplace_back(std::make_unique< Line >(from, to, color));
-}
-
-void
-Application::PollEvents()
-{
-   glfwPollEvents();
 }
 
 } // namespace dgame

@@ -1,11 +1,12 @@
 #include "Game.hpp"
 #include "Enemy.hpp"
 #include "FileManager.hpp"
+#include "RenderCommand.hpp"
+#include "Renderer.hpp"
 #include "Window.hpp"
 
-#include <GLFW/glfw3.h>
-#include <GL/glew.h>
 #include <fstream>
+#include <glfw/glfw3.h>
 #include <string>
 
 namespace dgame {
@@ -20,20 +21,20 @@ void
 Game::MainLoop()
 {
    // m_window->Start();
-   Logger::SetLogType(Logger::TYPE::INFO);
+   Logger::SetLogType(Logger::TYPE::DEBUG);
 
    auto singleFrameTimer = 0.0f;
 
    while (IsRunning())
    {
-      PollEvents();
+      InputManager::PollEvents();
 
       m_timer.ToggleTimer();
 
       if (singleFrameTimer >= TARGET_TIME)
       {
-         SwapBuffers();
-
+         RenderCommand::Clear();
+         Renderer::BeginScene(m_camera);
          const auto dt = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000 * Timer::AreTimersRunning()));
          ProcessInput(dt);
 
@@ -50,6 +51,8 @@ Game::MainLoop()
          ++m_frames;
          m_frameTimer += singleFrameTimer;
          singleFrameTimer = 0.0f;
+         Renderer::EndScene();
+         SwapBuffers();
       }
       else
       {
@@ -74,10 +77,13 @@ Game::Init(const std::string configFile)
    {
       m_logger.Log(Logger::TYPE::FATAL, "Can't open" + (ASSETS_DIR / configFile).u8string());
    }
-
-   m_cameraSpeed = 1.0f;
    m_window = std::make_unique< Window >(WIDTH, HEIGHT, "WindowTitle");
-   m_frameBuffer.SetUp();
+
+   RenderCommand::Init();
+   RenderCommand::SetClearColor({1.0f, 0.2f, 0.3f, 1.0f});
+   Renderer::Init();
+
+   // m_frameBuffer.SetUp();
 
    while (!initFile.eof())
    {
@@ -94,13 +100,13 @@ Game::Init(const std::string configFile)
       else if (tmp == "Font:")
       {
          initFile >> tmp;
-         m_font.SetFont(tmp);
+         // m_font.SetFont(tmp);
       }
    }
 
    initFile.close();
 
-   m_inputManager.Init(m_window->GetWindowHandle());
+   InputManager::Init(m_window->GetWindowHandle());
 
    // LoadLevel(m_levels[0]);
    m_state = GameState::GAME;
@@ -168,32 +174,32 @@ Game::CorrectPosition()
 void
 Game::RenderLine(const glm::ivec2& collided, const glm::vec3& color)
 {
-   glm::vec2 lineCollided = m_currentLevel->GetGlobalVec(collided);
+   // glm::vec2 lineCollided = m_currentLevel->GetGlobalVec(collided);
 
-   Shaders lineShader;
-   lineShader.LoadShaders("lineShader");
+   // Shader lineShader;
+   // lineShader.LoadShaders("lineShader");
 
-   glm::vec2 vertices[2] = {glm::vec2(m_player->GetCenteredGlobalPosition()), glm::vec2(lineCollided)};
-   glm::mat4 modelMatrix = glm::scale(glm::mat4(), glm::vec3(1.0f, 1.0f, 1.0f));
-   GLuint lineVertexArray;
-   GLuint lineVertexBuffer;
-   glGenVertexArrays(1, &lineVertexArray);
-   glGenBuffers(1, &lineVertexBuffer);
-   glBindVertexArray(lineVertexArray);
-   glBindBuffer(GL_ARRAY_BUFFER, lineVertexBuffer);
-   glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 2, vertices, GL_DYNAMIC_DRAW);
-   glEnableVertexAttribArray(0);
-   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+   // glm::vec2 vertices[2] = {glm::vec2(m_player->GetCenteredGlobalPosition()), glm::vec2(lineCollided)};
+   // glm::mat4 modelMatrix = glm::scale(glm::mat4(), glm::vec3(1.0f, 1.0f, 1.0f));
+   // GLuint lineVertexArray;
+   // GLuint lineVertexBuffer;
+   // glGenVertexArrays(1, &lineVertexArray);
+   // glGenBuffers(1, &lineVertexBuffer);
+   // glBindVertexArray(lineVertexArray);
+   // glBindBuffer(GL_ARRAY_BUFFER, lineVertexBuffer);
+   // glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 2, vertices, GL_DYNAMIC_DRAW);
+   // glEnableVertexAttribArray(0);
+   // glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
 
-   lineShader.UseProgram();
-   lineShader.SetUniformFloatMat4(modelMatrix, "modelMatrix");
-   lineShader.SetUniformFloatMat4(m_window->GetProjection(), "projectionMatrix");
-   lineShader.SetUniformFloatVec4(glm::vec4(color, 1.0f), "color");
+   // lineShader.UseProgram();
+   // lineShader.SetUniformFloatMat4(modelMatrix, "modelMatrix");
+   // lineShader.SetUniformFloatMat4(m_camera.GetProjectionMatrix(), "projectionMatrix");
+   // lineShader.SetUniformFloatVec4(glm::vec4(color, 1.0f), "color");
 
-   glDrawArrays(GL_LINES, 0, 2);
-   glBindVertexArray(0);
-   glDeleteBuffers(1, &lineVertexBuffer);
-   glDeleteVertexArrays(1, &lineVertexArray);
+   // glDrawArrays(GL_LINES, 0, 2);
+   // glBindVertexArray(0);
+   // glDeleteBuffers(1, &lineVertexBuffer);
+   // glDeleteVertexArrays(1, &lineVertexArray);
 }
 
 std::pair< glm::ivec2, bool >
@@ -682,69 +688,69 @@ Game::KeyEvents()
    glm::ivec2 playerMoveBy = glm::ivec2();
    glm::ivec2 cameraMoveBy = glm::ivec2();
 
-   m_reverse = m_inputManager.CheckKeyPressed(GLFW_KEY_LEFT_CONTROL);
+   m_reverse = InputManager::CheckKeyPressed(GLFW_KEY_LEFT_CONTROL);
 
    if (!m_reverse)
    {
-      if (m_inputManager.CheckKeyPressed(GLFW_KEY_LEFT))
+      if (InputManager::CheckKeyPressed(GLFW_KEY_LEFT))
       {
          m_currentLevel->MoveObjs(glm::vec2(2.0f, 0.0f));
       }
-      if (m_inputManager.CheckKeyPressed(GLFW_KEY_RIGHT))
+      if (InputManager::CheckKeyPressed(GLFW_KEY_RIGHT))
       {
          m_currentLevel->MoveObjs(glm::vec2(-2.0f, 0.0f));
       }
-      if (m_inputManager.CheckKeyPressed(GLFW_KEY_ESCAPE))
+      if (InputManager::CheckKeyPressed(GLFW_KEY_ESCAPE))
       {
          m_currentLevel->Quit();
          m_window->ShutDown();
       }
-      if (m_inputManager.CheckKeyPressed(GLFW_KEY_O))
+      if (InputManager::CheckKeyPressed(GLFW_KEY_O))
       {
          glEnable(GL_BLEND);
          glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       }
-      if (m_inputManager.CheckKeyPressed(GLFW_KEY_1))
+      if (InputManager::CheckKeyPressed(GLFW_KEY_1))
       {
          m_window->ShowCursor(true);
       }
-      if (m_inputManager.CheckKeyPressed(GLFW_KEY_2))
+      if (InputManager::CheckKeyPressed(GLFW_KEY_2))
       {
          m_window->ShowCursor(false);
       }
-      if (m_inputManager.CheckKeyPressed(GLFW_KEY_P))
+      if (InputManager::CheckKeyPressed(GLFW_KEY_P))
       {
          glDisable(GL_BLEND);
       }
-      if (m_inputManager.CheckKeyPressed(GLFW_KEY_W))
+      if (InputManager::CheckKeyPressed(GLFW_KEY_W))
       {
          playerMoveBy += glm::ivec2(0, -playerMovement);
          cameraMoveBy += glm::ivec2(0, cameraMovement);
       }
-      if (m_inputManager.CheckKeyPressed(GLFW_KEY_S))
+      if (InputManager::CheckKeyPressed(GLFW_KEY_S))
       {
          playerMoveBy += glm::ivec2(0, playerMovement);
          cameraMoveBy += glm::ivec2(0, -cameraMovement);
       }
-      if (m_inputManager.CheckKeyPressed(GLFW_KEY_A))
+      if (InputManager::CheckKeyPressed(GLFW_KEY_A))
       {
          playerMoveBy += glm::ivec2(-playerMovement, 0);
          cameraMoveBy += glm::ivec2(cameraMovement, 0);
       }
-      if (m_inputManager.CheckKeyPressed(GLFW_KEY_D))
+      if (InputManager::CheckKeyPressed(GLFW_KEY_D))
       {
          playerMoveBy += glm::ivec2(playerMovement, 0);
          cameraMoveBy += glm::ivec2(-cameraMovement, 0);
       }
-      if (m_inputManager.CheckKeyPressed(GLFW_KEY_R))
+      if (InputManager::CheckKeyPressed(GLFW_KEY_R))
       {
          Timer::PauseAllTimers();
       }
-      if (m_inputManager.CheckKeyPressed(GLFW_KEY_T))
+      if (InputManager::CheckKeyPressed(GLFW_KEY_T))
       {
          Timer::ResumeAllTimers();
       }
-      if (m_inputManager.CheckKeyPressed(GLFW_KEY_SPACE))
+      if (InputManager::CheckKeyPressed(GLFW_KEY_SPACE))
       {
          m_camera.SetCameraAtObject(m_player);
       }
@@ -752,8 +758,11 @@ Game::KeyEvents()
       if (glm::length(glm::vec2(playerMoveBy)))
       {
          m_currentLevel->Move(cameraMoveBy);
+
          if (CheckMove(playerMoveBy) == false)
+         {
             m_currentLevel->Move(-cameraMoveBy);
+         }
       }
    }
 }
@@ -763,8 +772,8 @@ Game::MouseEvents()
 {
    glm::vec2 tmp = CheckBulletCollision(m_player->GetWeaponRange());
 
-   DrawLine(m_currentLevel->GetGlobalVec(m_player->GetCenteredLocalPosition()), m_currentLevel->GetGlobalVec(tmp),
-            glm::vec3(0.0f, 1.0f, 0.0f));
+   /*DrawLine(m_currentLevel->GetGlobalVec(m_player->GetCenteredLocalPosition()), m_currentLevel->GetGlobalVec(tmp),
+            glm::vec3(0.0f, 1.0f, 0.0f));*/
 
    ////PRIMARY FIRE
    // if (Win_Window::GetKeyState(VK_LBUTTON))
@@ -801,7 +810,7 @@ Game::MouseEvents()
       // cursor's position from center of the screen to trigger camera movement
       float borderValue = 0.2f;
 
-      float cameraMovement = floor(m_cameraSpeed * m_deltaTime.count());
+      float cameraMovement = floor(m_deltaTime.count());
       auto cameraMoveBy = glm::ivec2();
       cursor = m_window->GetCursorNormalized();
 
@@ -842,37 +851,32 @@ Game::UpdateGameState()
 void
 Game::RenderFirstPass()
 {
-   m_frameBuffer.BeginDrawingToTexture();
+   // m_frameBuffer.BeginDrawingToTexture();
 
    // Temporary fix for getting player unstuck from walls
    // Should only be active when not going in reverse mode
-   if (!m_reverse)
-   {
-      // player's position on the map
-      m_playerPosition = m_currentLevel->GetLocalVec(m_player->GetCenteredGlobalPosition());
+   // if (!m_reverse)
+   //{
+   //   // player's position on the map
+   //   m_playerPosition = m_currentLevel->GetLocalVec(m_player->GetCenteredGlobalPosition());
 
-      glm::ivec2 correction = CorrectPosition();
+   //   glm::ivec2 correction = CorrectPosition();
 
-      m_player->Move(correction);
-      m_playerPosition += correction;
-      m_player->SetCenteredLocalPosition(m_playerPosition);
-   }
+   //   m_player->Move(correction);
+   //   m_playerPosition += correction;
+   //   m_player->SetCenteredLocalPosition(m_playerPosition);
+   //}
 
    m_currentLevel->Render();
 
-   m_frameBuffer.EndDrawingToTexture();
+
+   // m_frameBuffer.EndDrawingToTexture();
 }
 
 void
 Game::RenderSecondPass()
 {
-   m_frameBuffer.DrawFrameBuffer();
-
-   for (auto& obj : m_debugObjs)
-   {
-      obj->Draw(*this);
-   }
-   m_debugObjs.clear();
+   // m_frameBuffer.DrawFrameBuffer();
 
    RenderText(std::to_string(m_deltaTime.count()) + " ms",
               glm::vec2(static_cast< float >(-WIDTH / 2), static_cast< float >(-HEIGHT / 2) + 20), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));
@@ -885,17 +889,17 @@ Game::LoadLevel(const std::string& pathToLevel)
    m_currentLevel->Load(this, pathToLevel);
    m_player = m_currentLevel->GetPlayer();
 
-   m_camera.Create(glm::vec3(m_player->GetCenteredGlobalPosition(), 0.0f), {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, 1.0f);
+   m_camera.Create(glm::vec3(m_player->GetCenteredGlobalPosition(), 0.0f), m_window->GetSize());
    m_camera.SetLevelSize(m_currentLevel->GetSize());
 }
 
-const glm::vec2&
+glm::vec2
 Game::GetWindowSize() const
 {
    return m_window->GetSize();
 }
 
-const glm::ivec2&
+glm::ivec2
 Game::GetFrameBufferwSize() const
 {
    return {};
@@ -904,7 +908,7 @@ Game::GetFrameBufferwSize() const
 const glm::mat4&
 Game::GetProjection() const
 {
-   return m_window->GetProjection();
+   return m_camera.GetProjectionMatrix();
 }
 
 const glm::mat4&
@@ -916,7 +920,7 @@ Game::GetViewMatrix() const
 float
 Game::GetZoomLevel()
 {
-   return 2.0f;
+   return m_camera.GetZoomLevel();
 }
 
 glm::vec2
@@ -928,7 +932,7 @@ Game::GetCursor()
 glm::vec2
 Game::GetCursorScreenPosition()
 {
-   return m_window->GetCursorScreenPosition();
+   return m_window->GetCursorScreenPosition(m_camera.GetProjectionMatrix());
 }
 
 void
@@ -944,9 +948,9 @@ Game::IsRunning()
 }
 
 void
-Game::RegisterForKeyInput(IInputListener* listener)
+Game::RegisterForKeyInput(InputListener* listener)
 {
-   m_inputManager.RegisterForKeyInput(listener);
+   InputManager::RegisterForKeyInput(listener);
 }
 
 void

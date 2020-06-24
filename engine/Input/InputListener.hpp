@@ -4,7 +4,7 @@
 
 namespace dgame {
 
-class IInputListener
+class InputListener
 {
  public:
    virtual void

@@ -6,13 +6,26 @@ namespace dgame {
 
 struct Event
 {
+   enum class EventType
+   {
+      KEY,
+      MOUSE_BUTTON,
+      MOUSE_CURSOR,
+      MOUSE_SCROLL
+   };
+
+   Event(EventType t) : m_type(t)
+   {
+   }
+
+   EventType m_type;
    bool m_handled = false;
 };
 
 struct KeyEvent : public Event
 {
    KeyEvent(int32_t key, int32_t scanCode, int32_t action, int32_t mods)
-      : Event(), m_key(key), m_scanCode(scanCode), m_action(action), m_mods(mods)
+      : Event(EventType::KEY), m_key(key), m_scanCode(scanCode), m_action(action), m_mods(mods)
    {
    }
 
@@ -24,7 +37,8 @@ struct KeyEvent : public Event
 
 struct MouseButtonEvent : public Event
 {
-   MouseButtonEvent(int32_t button, int32_t action, int32_t mods) : Event(), m_buttton(button), m_action(action), m_mods(mods)
+   MouseButtonEvent(int32_t button, int32_t action, int32_t mods)
+      : Event(EventType::MOUSE_BUTTON), m_buttton(button), m_action(action), m_mods(mods)
    {
    }
 
@@ -35,7 +49,7 @@ struct MouseButtonEvent : public Event
 
 struct CursorPositionEvent : public Event
 {
-   CursorPositionEvent(double x, double y) : Event(), m_xPos(x), m_yPos(y)
+   CursorPositionEvent(double x, double y) : Event(EventType::MOUSE_CURSOR), m_xPos(x), m_yPos(y)
    {
    }
 
@@ -45,8 +59,7 @@ struct CursorPositionEvent : public Event
 
 struct MouseScrollEvent : public Event
 {
-   MouseScrollEvent(double xOffset, double yOffset)
-      : Event(), m_xOffset(xOffset), m_yOffset(yOffset)
+   MouseScrollEvent(double xOffset, double yOffset) : Event(EventType::MOUSE_SCROLL), m_xOffset(xOffset), m_yOffset(yOffset)
    {
    }
 

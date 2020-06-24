@@ -1,8 +1,8 @@
 #include "Renderer.hpp"
 #include "Camera.hpp"
 #include "RenderCommand.hpp"
-#include "Shaders.hpp"
-#include "Texture.hpp"
+#include "ShaderLibrary.hpp"
+#include "TextureLibrary.hpp"
 #include "VertexArray.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -104,8 +104,7 @@ Renderer::Init()
    for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
       samplers[i] = i;
 
-   s_Data.TextureShader = std::make_shared< Shader >();
-   s_Data.TextureShader->LoadShaders("DefaultShader");
+   s_Data.TextureShader = ShaderLibrary::GetShader("DefaultShader");
    s_Data.TextureShader->UseProgram();
    s_Data.TextureShader->SetUniformIntArray(samplers, s_Data.MaxTextureSlots, "u_Textures");
 
@@ -121,8 +120,7 @@ Renderer::Init()
 
    s_LineData.LineVertexBufferBase = new LineVertex[s_LineData.MaxVertices];
 
-   s_LineData.LineShader = std::make_shared< Shader >();
-   s_LineData.LineShader->LoadShaders("LineShader");
+   s_LineData.LineShader = ShaderLibrary::GetShader("LineShader");
 }
 
 void

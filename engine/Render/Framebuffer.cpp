@@ -28,7 +28,7 @@ Framebuffer::SetUp()
    glBindFramebuffer(GL_FRAMEBUFFER, 0);
    glBindTexture(GL_TEXTURE_2D, 0);
 
-   m_shaders.LoadShaders("AfterEffects");
+   //m_shaders.LoadShaders("AfterEffects");
 
    glGenVertexArrays(1, &m_vertexArrayBuffer);
    glGenBuffers(1, &m_vertexBuffer);
@@ -48,7 +48,7 @@ Framebuffer::SetUp()
 void
 Framebuffer::LoadShaders(const std::string& shaderName)
 {
-   m_shaders.LoadShaders(shaderName);
+  // m_shaders.LoadShaders(shaderName);
 }
 
 void
@@ -72,7 +72,7 @@ Framebuffer::DrawFrameBuffer()
    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT);
 
-   m_shaders.UseProgram();
+   //m_shaders.UseProgram();
    glBindVertexArray(m_vertexArrayBuffer);
 
    glActiveTexture(GL_TEXTURE0);

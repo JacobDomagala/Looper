@@ -85,7 +85,8 @@ GameObject::GetSize() const
 glm::ivec2
 GameObject::GetCenteredLocalPosition() const
 {
-   return m_currentState.m_centeredLocalPosition;
+   return m_currentState.m_localPosition;
+   //return m_currentState.m_centeredLocalPosition;
 }
 
 void
@@ -97,6 +98,7 @@ GameObject::SetCenteredLocalPosition(const glm::ivec2& pos)
 void
 GameObject::SetLocalPosition(const glm::ivec2& position)
 {
+   assert(position.x >= 0 && position.y >= 0);
    m_currentState.m_localPosition = position;
 }
 
@@ -121,7 +123,8 @@ GameObject::GetLocalPosition() const
 glm::vec2
 GameObject::GetCenteredGlobalPosition() const
 {
-   return m_currentState.m_centeredGlobalPosition;
+   return m_currentState.m_globalPosition;
+  // return m_currentState.m_centeredGlobalPosition;
 }
 
 const Sprite&
@@ -137,9 +140,9 @@ GameObject::GetSprite()
 }
 
 void
-GameObject::SetShaders(const Shader& program)
+GameObject::SetShaders(const std::string& shader)
 {
-   m_program = program;
+   m_shaderName = shader;
 }
 
 void

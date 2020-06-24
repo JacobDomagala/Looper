@@ -3,36 +3,14 @@
 #include "Game.hpp"
 #include "Logger.hpp"
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 #include <functional>
+#include <glfw/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace dgame {
 
-void
-Window::ErrorCallback(int error, const char* description)
-{
-   fprintf(stderr, "Error: %s\n", description);
-}
-
-void GLAPIENTRY
-MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* logger)
-{
-   std::string buffer(1024, 0x0);
-   const auto newSize = sprintf(&buffer[0], "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s",
-                                (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
-
-   buffer.resize(newSize);
-   reinterpret_cast< const Logger* >(logger)->Log(Logger::TYPE::DEBUG, buffer);
-}
-
 Window::Window(int32_t width, int32_t height, const std::string& title)
-   : m_width(width),
-     m_height(height),
-     m_title(title),
-     m_isRunning(true),
-     m_projectionMatrix(glm::ortho(-width / 2.0f, width / 2.0f, height / 2.0f, -height / 2.0f, -1.0f, 1.0f))
+   : m_width(width), m_height(height), m_title(title), m_isRunning(true)
 {
    m_logger.Init("Window");
 
@@ -54,41 +32,7 @@ Window::Window(int32_t width, int32_t height, const std::string& title)
 
    glfwMakeContextCurrent(m_pWindow);
 
-   int major, minor;
-   glGetIntegerv(GL_MAJOR_VERSION, &major);
-   glGetIntegerv(GL_MINOR_VERSION, &minor);
-   m_logger.Log(Logger::TYPE::DEBUG, "OpenGL Version - " + std::to_string(major) + "." + std::to_string(minor));
-
-   glewExperimental = GL_TRUE;
-
-   if (glewInit() != GLEW_OK)
-   {
-      m_logger.Log(Logger::TYPE::FATAL, "glewInit() != GLEW_OK");
-   }
-
-   int viewportWidth, viewportHeight;
-   glfwGetFramebufferSize(m_pWindow, &viewportWidth, &viewportHeight);
-
-   glViewport(0, 0, viewportWidth, viewportHeight);
-
-   glEnable(GL_DEBUG_OUTPUT);
-   glDebugMessageCallback(
-      [](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* logger) {
-         std::string buffer(1024, 0x0);
-         const auto newSize = sprintf(&buffer[0], "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s",
-                                      (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
-
-         buffer.resize(newSize);
-         reinterpret_cast< const Logger* >(logger)->Log(Logger::TYPE::DEBUG, buffer);
-      },
-      &m_logger);
-
    glfwSwapInterval(1);
-
-   glEnable(GL_BLEND);
-   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-   glEnable(GL_LINE_SMOOTH);
-   glEnable(GL_MULTISAMPLE);
 }
 
 Window::~Window()
@@ -106,12 +50,10 @@ Window::ShutDown()
 void
 Window::SetIcon(const std::string& file)
 {
-   Texture texture;
-
    GLFWimage image;
    image.width = 16;
    image.height = 16;
-   image.pixels = reinterpret_cast< uint8_t* >(texture.LoadTextureFromFile(file));
+   image.pixels = TextureLibrary::GetTexture(file)->GetData();
 
    auto cursor = glfwCreateCursor(&image, 0, 0);
    glfwSetCursor(m_pWindow, cursor);
@@ -138,8 +80,11 @@ Window::Clear(float r, float g, float b, float a)
 void
 Window::SwapBuffers()
 {
-   glfwMakeContextCurrent(m_pWindow);
-   glfwSwapBuffers(m_pWindow);
+   if (m_isRunning)
+   {
+      glfwMakeContextCurrent(m_pWindow);
+      glfwSwapBuffers(m_pWindow);
+   }
 }
 
 void
@@ -150,14 +95,14 @@ Window::ShowCursor(bool choice)
 }
 
 glm::vec2
-Window::GetCursorScreenPosition()
+Window::GetCursorScreenPosition(const glm::mat4& projectionMatrix)
 {
    auto cursorPos = GetCursor();
 
    cursorPos -= glm::vec2((m_width / 2.0f), (m_height / 2.0f));
-   glm::vec2 tmpCursor = m_projectionMatrix * glm::vec4(cursorPos, 0.0f, 1.0f);
+   glm::vec2 tmpCursor = projectionMatrix * glm::vec4(cursorPos, 0.0f, 1.0f);
 
-   return tmpCursor;
+   return cursorPos;
 }
 
 glm::vec2

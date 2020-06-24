@@ -128,7 +128,7 @@ EditorObject::GetSprite()
 }
 
 void
-EditorObject::SetShaders(const Shaders& program)
+EditorObject::SetShaders(const Shader& program)
 {
    // m_program = program;
 }
@@ -261,10 +261,9 @@ EditorObject::Update(bool isReverse)
 }
 
 void
-EditorObject::Render(Shaders& program)
+EditorObject::Render()
 {
-   program.SetUniformBool(int(m_selected), "objectSelected");
-   m_sprite.Render(m_editor, program);
+   m_sprite.Render();
 }
 
 void

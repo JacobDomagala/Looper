@@ -1,13 +1,11 @@
 
 #include "Editor.hpp"
 
-#include <GLFW/glfw3.h>
+#include <glfw/glfw3.h>
 
 int
 main(int /* argc */, char** /* argv */)
-{
-   nanogui::init();
-   
+{  
    //const auto mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
    dgame::Editor editor({1920, 1080});

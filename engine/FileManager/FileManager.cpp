@@ -31,7 +31,7 @@ FileManager::ReadFile(const std::string& fileName, FileType type)
 }
 
 FileManager::ImageSmart
-FileManager::LoadImage(const std::string& imageName)
+FileManager::LoadImageData(const std::string& imageName)
 {
    const auto pathToImage = std::filesystem::path(IMAGES_DIR / imageName).u8string();
    int force_channels = 0;

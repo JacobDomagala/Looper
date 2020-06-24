@@ -1,39 +1,35 @@
 #include "Editor.hpp"
 #include "Enemy.hpp"
 #include "Game.hpp"
+#include "InputManager.hpp"
+#include "RenderCommand.hpp"
+#include "Renderer.hpp"
+#include "Window.hpp"
 
+#include <GLFW/glfw3.h>
 #include <fstream>
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
-#include <nanogui/button.h>
-#include <nanogui/label.h>
-#include <nanogui/layout.h>
-#include <nanogui/window.h>
-#include <nanovg.h>
 #include <string>
 
 namespace dgame {
 
-Editor::Editor(const glm::vec2& screenSize)
-   : nanogui::Screen({screenSize.x, screenSize.y}, "DGame Editor", true, false, 8, 8, 24, 8, 0, 4, 5), m_gui(*this)
+Editor::Editor(const glm::vec2& screenSize) : m_gui(*this)
 {
+   Logger::SetLogType(Logger::TYPE::DEBUG);
    m_logger.Init("Editor");
-   InitGLFW();
-   // m_inputManager.Init(mGLFWWindow);
+   m_window = std::make_unique< Window >(screenSize.x, screenSize.y, "Editor");
 
-   m_windowSize = screenSize;
+   InputManager::Init(m_window->GetWindowHandle());
+   InputManager::RegisterForKeyInput(this);
+   InputManager::RegisterForMouseScrollInput(this);
+   InputManager::RegisterForMouseButtonInput(this);
+   InputManager::RegisterForMouseMovementInput(this);
 
-   const auto left = -m_windowSize.x / 2.0f;
-   const auto right = m_windowSize.x / 2.0f;
-   const auto top = m_windowSize.y / 2.0f;
-   const auto bottom = -m_windowSize.y / 2.0f;
-   const auto near = -1.0f;
-   const auto far = 10.0f;
-
-   m_projectionMatrix = glm::ortho(left, right, top, bottom, near, far);
+   RenderCommand::Init();
+   Renderer::Init();
 
    m_gui.Init();
-   m_font.SetFont("segoeui");
 
    m_deltaTime = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000));
 }
@@ -43,55 +39,9 @@ Editor::~Editor()
 }
 
 void
-Editor::InitGLFW()
-{
-   if (GLFW_TRUE != glfwInit())
-   {
-      m_logger.Log(Logger::TYPE::FATAL, "GLFW_TRUE != glfwInit()");
-   }
-
-   int major, minor;
-   glGetIntegerv(GL_MAJOR_VERSION, &major);
-   glGetIntegerv(GL_MINOR_VERSION, &minor);
-   m_logger.Log(Logger::TYPE::DEBUG, "OpenGL Version - " + std::to_string(major) + "." + std::to_string(minor));
-
-   glewExperimental = GL_TRUE;
-
-   if (glewInit() != GLEW_OK)
-   {
-      m_logger.Log(Logger::TYPE::FATAL, "glewInit() != GLEW_OK");
-   }
-
-   glEnable(GL_DEBUG_OUTPUT);
-   glDebugMessageCallback(
-      [](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* logger) {
-         std::string buffer(1024, 0x0);
-         const auto newSize = sprintf(&buffer[0], "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s",
-                                      (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
-
-         buffer.resize(newSize);
-         reinterpret_cast< const Logger* >(logger)->Log(Logger::TYPE::DEBUG, buffer);
-      },
-      &m_logger);
-
-   glEnable(GL_BLEND);
-   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-   glEnable(GL_LINE_SMOOTH);
-   glEnable(GL_MULTISAMPLE);
-}
-
-void
 Editor::ShowCursor(bool choice)
 {
-   int mode = choice ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED;
-   glfwSetInputMode(mGLFWWindow, GLFW_CURSOR, mode);
-}
-
-void
-Editor::draw(NVGcontext* ctx)
-{
-   /* Draw the user interface */
-   Screen::draw(ctx);
+   m_window->ShowCursor(choice);
 }
 
 void
@@ -102,68 +52,120 @@ Editor::HandleCamera()
 
    auto cameraMoveBy = glm::vec2();
 
-   if (IsKeyDown(GLFW_KEY_W))
+   if (m_levelLoaded)
    {
-      cameraMoveBy += glm::vec2(0.0f, -1.0f);
-   }
-   if (IsKeyDown(GLFW_KEY_S))
-   {
-      cameraMoveBy += glm::vec2(0.0f, 1.0f);
-   }
-   if (IsKeyDown(GLFW_KEY_A))
-   {
-      cameraMoveBy += glm::vec2(-1.0f, 0.0f);
-   }
-   if (IsKeyDown(GLFW_KEY_D))
-   {
-      cameraMoveBy += glm::vec2(1.0f, 0);
-   }
-   if (IsKeyDown(GLFW_KEY_SPACE))
-   {
-      if (m_levelLoaded)
+      if (InputManager::CheckKeyPressed(GLFW_KEY_W))
+      {
+         cameraMoveBy += glm::vec2(0.0f, -1.0f);
+      }
+      if (InputManager::CheckKeyPressed(GLFW_KEY_S))
+      {
+         cameraMoveBy += glm::vec2(0.0f, 1.0f);
+      }
+      if (InputManager::CheckKeyPressed(GLFW_KEY_A))
+      {
+         cameraMoveBy += glm::vec2(-1.0f, 0.0f);
+      }
+      if (InputManager::CheckKeyPressed(GLFW_KEY_D))
+      {
+         cameraMoveBy += glm::vec2(1.0f, 0);
+      }
+      if (InputManager::CheckKeyPressed(GLFW_KEY_SPACE))
       {
          m_camera.SetCameraAtPosition({0.0f, 0.0f, 0.0f});
       }
-   }
 
-   if (m_levelLoaded)
-   {
       m_camera.Move(glm::vec3(cameraMoveBy, 0.0f));
-
-      glm::dvec2 cursorPos;
-      glfwGetCursorPos(mGLFWWindow, &cursorPos.x, &cursorPos.y);
-
-      m_currentLevel->GetGameObjectOnLocation(cursorPos);
    }
 }
 
-bool
-Editor::scrollEvent(const nanogui::Vector2i& p, const nanogui::Vector2f& rel)
+void
+Editor::KeyCallback(const KeyEvent& event)
 {
-   if (!Screen::scrollEvent(p, rel))
+   if (event.m_action == GLFW_PRESS)
    {
-      m_zoomScale += rel.y() * 0.25f;
+      if (event.m_key == GLFW_KEY_ESCAPE)
+      {
+         ActionOnObject(ACTION::UNSELECT);
+      }
 
-      m_zoomScale = std::clamp(m_zoomScale, m_maxZoomOut, m_maxZoomIn);
-
-      const auto left = -m_windowSize.x / (2.0f + m_zoomScale);
-      const auto right = m_windowSize.x / (2.0f + m_zoomScale);
-      const auto top = m_windowSize.y / (2.0f + m_zoomScale);
-      const auto bottom = -m_windowSize.y / (2.0f + m_zoomScale);
-      const auto near = -1.0f;
-      const auto far = 1.0f;
-
-      m_projectionMatrix = glm::ortho(left, right, top, bottom, near, far);
+      if (event.m_key == GLFW_KEY_DELETE)
+      {
+         ActionOnObject(ACTION::REMOVE);
+      }
    }
+}
 
-   return true;
+void
+Editor::MouseScrollCallback(const MouseScrollEvent& event)
+{
+   if (!m_gui.OnEvent(event) && m_levelLoaded)
+   {
+      m_camera.Zoom(event.m_xOffset + event.m_yOffset);
+   }
+}
+
+void
+Editor::MouseButtonCallback(const MouseButtonEvent& event)
+{
+   if (!m_gui.OnEvent(event) && m_levelLoaded)
+   {
+      m_mousePressedLastUpdate = event.m_action == GLFW_PRESS;
+
+      if (m_mousePressedLastUpdate)
+      {
+         CheckIfObjectGotSelected(InputManager::GetMousePos());
+      }
+      else
+      {
+         // Object movement finished
+         ShowCursor(true);
+
+         if (m_mouseDrag && (m_movementOnEditorObject || m_movementOnGameObject))
+         {
+            if (m_movementOnEditorObject)
+            {
+               InputManager::SetMousePos(m_currentEditorObjectSelected->GetScreenPositionPixels());
+            }
+            else if (m_movementOnGameObject)
+            {
+               InputManager::SetMousePos(m_currentSelectedGameObject->GetScreenPositionPixels());
+            }
+         }
+
+         m_movementOnEditorObject = false;
+         m_movementOnGameObject = false;
+         m_mouseDrag = false;
+      }
+   }
+}
+
+void
+Editor::CursorPositionCallback(const CursorPositionEvent& event)
+{
+   if (!m_gui.OnEvent(event) && m_levelLoaded)
+   {
+      const auto currentCursorPosition = glm::vec2(event.m_xPos, event.m_yPos);
+
+      if (m_mousePressedLastUpdate && m_levelLoaded)
+      {
+         ShowCursor(false);
+         HandleMouseDrag(currentCursorPosition, m_lastCursorPosition - currentCursorPosition);
+      }
+      else
+      {
+         ShowCursor(true);
+      }
+
+      m_lastCursorPosition = currentCursorPosition;
+   }
 }
 
 void
 Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis)
 {
    // Rotate camera (or currently selected Object)
-   if (IsKeyDown(GLFW_KEY_LEFT_CONTROL))
+   if (InputManager::CheckKeyPressed(GLFW_KEY_LEFT_CONTROL))
    {
       // Calculate the value of cursor movement
       // For example:
@@ -204,7 +206,7 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
 
       mouseMovementLength = glm::clamp(mouseMovementLength, minCameraMovement, maxCameraMovement);
 
-      const auto moveBy = glm::vec3(-axis.x, -axis.y, 0.0f);
+      const auto moveBy = glm::vec3(axis.x, axis.y, 0.0f);
 
       if (m_movementOnEditorObject || m_movementOnGameObject)
       {
@@ -223,7 +225,7 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
             auto animatable = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
             if (animatable)
             {
-               animatable->SetAnimationStartLocation(m_currentSelectedGameObject->GetCenteredLocalPosition());
+               animatable->SetAnimationStartLocation(m_currentSelectedGameObject->GetLocalPosition());
                UpdateAnimationData();
             }
          }
@@ -237,29 +239,6 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
    m_mouseDrag = true;
 }
 
-bool
-Editor::mouseMotionEvent(const nanogui::Vector2i& p, const nanogui::Vector2i& rel, int button, int modifiers)
-{
-   if (!Screen::mouseMotionEvent(p, rel, button, modifiers))
-   {
-      const auto currentCursorPosition = glm::vec2(p.x(), p.y());
-
-      if (m_mousePressedLastUpdate && m_levelLoaded)
-      {
-         ShowCursor(false);
-         HandleMouseDrag(currentCursorPosition, {rel.x(), rel.y()});
-      }
-      else
-      {
-         ShowCursor(true);
-      }
-
-      m_lastCursorPosition = currentCursorPosition;
-   }
-
-   return true;
-}
-
 void
 Editor::HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameObject)
 {
@@ -270,13 +249,13 @@ Editor::HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameOb
          SetRenderAnimationPoints(false);
 
          // unselect previously selected object
-         m_currentSelectedGameObject->SetObjectUnselected();
+         UnselectGameObject();
       }
 
       m_currentSelectedGameObject = newSelectedGameObject;
 
       // mark new object as selected
-      m_currentSelectedGameObject->SetObjectSelected();
+      SelectGameObject();
       m_gameObjectSelected = true;
 
       if (m_editorObjectSelected)
@@ -297,12 +276,18 @@ Editor::HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameOb
 }
 
 void
+Editor::SelectGameObject()
+{
+   m_currentSelectedGameObject->SetColor({1.0f, 0.0f, 0.0f});
+}
+
+void
 Editor::UnselectGameObject()
 {
    m_gameObjectSelected = false;
    m_movementOnGameObject = false;
    m_gui.GameObjectUnselected();
-   m_currentSelectedGameObject->SetObjectUnselected();
+   m_currentSelectedGameObject->SetColor({1.0f, 1.0f, 1.0f});
    m_currentSelectedGameObject.reset();
 }
 
@@ -354,45 +339,6 @@ Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
    }
 }
 
-bool
-Editor::mouseButtonEvent(const nanogui::Vector2i& position, int button, bool down, int modifiers)
-{
-   if (!Screen::mouseButtonEvent(position, button, down, modifiers) && m_levelLoaded)
-   {
-      m_mousePressedLastUpdate = down;
-
-      if (down)
-      {
-         CheckIfObjectGotSelected({position.x(), position.y()});
-      }
-      else
-      {
-         // Object movement finished
-         ShowCursor(true);
-
-         if (m_mouseDrag && (m_movementOnEditorObject || m_movementOnGameObject))
-         {
-            if (m_movementOnEditorObject)
-            {
-               const auto cursporPos = m_currentEditorObjectSelected->GetScreenPositionPixels();
-               glfwSetCursorPos(mGLFWWindow, cursporPos.x, cursporPos.y);
-            }
-            else if (m_movementOnGameObject)
-            {
-               const auto cursporPos = m_currentSelectedGameObject->GetScreenPositionPixels();
-               glfwSetCursorPos(mGLFWWindow, cursporPos.x, cursporPos.y);
-            }
-         }
-
-         m_movementOnEditorObject = false;
-         m_movementOnGameObject = false;
-         m_mouseDrag = false;
-      }
-   }
-
-   return true;
-}
-
 void
 Editor::ActionOnObject(Editor::ACTION action)
 {
@@ -410,7 +356,7 @@ Editor::ActionOnObject(Editor::ACTION action)
          }
          break;
 
-      case ACTION::DELETE:
+      case ACTION::REMOVE:
 
          if (m_editorObjectSelected && m_currentEditorObjectSelected)
          {
@@ -432,59 +378,27 @@ Editor::ActionOnObject(Editor::ACTION action)
             }
 
             m_gui.ObjectDeleted(m_currentSelectedGameObject->GetID());
-            
+
             UnselectGameObject();
          }
          break;
    }
 }
 
-bool
-Editor::keyboardEvent(int key, int scancode, int action, int modifiers)
-{
-   if (!Screen::keyboardEvent(key, scancode, action, modifiers))
-   {
-      m_keyMap[key] = action;
-
-      if (action == GLFW_PRESS)
-      {
-         if (key == GLFW_KEY_ESCAPE)
-         {
-            ActionOnObject(ACTION::UNSELECT);
-         }
-
-         if (key == GLFW_KEY_DELETE)
-         {
-            ActionOnObject(ACTION::DELETE);
-         }
-      }
-   }
-
-   return true;
-}
-
-void
-Editor::drawAll()
-{
-   Screen::drawAll();
-}
-
 void
 Editor::drawContents()
 {
-   // TODO: Cleanup this function in future
-
    if (m_levelLoaded)
    {
-      // Renderer::BeginScene()
+      Renderer::BeginScene(m_camera);
 
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       m_currentLevel->Render();
       DrawEditorObjects();
       DrawAnimationPoints();
+      DrawBoundingBoxes();
+      DrawGrid();
 
-      // Renderer::EndScene()
+      Renderer::EndScene();
    }
 }
 
@@ -495,7 +409,7 @@ Editor::DrawEditorObjects()
    {
       if (object->GetVisible())
       {
-         object->Render(m_currentLevel->GetShader());
+         object->Render();
       }
    }
 }
@@ -514,7 +428,7 @@ Editor::DrawAnimationPoints()
          std::transform(animationPoints.begin(), animationPoints.end(), std::back_inserter(animaltionPointIDs),
                         [](const auto& animationKeyPoint) { return animationKeyPoint->GetID(); });
 
-         auto lineStart = m_currentLevel->GetGlobalVec(animatePtr->GetAnimationStartLocation());
+         auto lineStart = animatePtr->GetAnimationStartLocation();
          for (auto& object : m_editorObjects)
          {
             if (object->GetVisible())
@@ -524,21 +438,74 @@ Editor::DrawAnimationPoints()
                   auto it = std::find(animaltionPointIDs.begin(), animaltionPointIDs.end(), object->GetLinkedObject()->GetID());
                   if (it != animaltionPointIDs.end())
                   {
-                     DrawLine(lineStart, object->GetCenteredGlobalPosition());
+                     Renderer::DrawLine(lineStart, object->GetLocalPosition(), {1.0f, 0.0f, 1.0f, 1.0f});
                      lineStart = object->GetCenteredGlobalPosition();
                   }
                }
-               object->Render(m_currentLevel->GetShader());
+               object->Render();
             }
          }
-
-         for (auto& obj : m_debugObjs)
-         {
-            obj->Draw(*this);
-         }
-         m_debugObjs.clear();
       }
    }
+}
+
+void
+Editor::DrawBoundingBoxes()
+{
+   auto drawBoundingBox = [](const Sprite& sprite) {
+      const auto rect = sprite.GetTransformedRectangle();
+      Renderer::DrawLine(rect[0], rect[1], {1.0f, 0.2f, 0.1f, 1.0f});
+      Renderer::DrawLine(rect[1], rect[2], {1.0f, 0.2f, 0.1f, 1.0f});
+      Renderer::DrawLine(rect[2], rect[3], {1.0f, 0.2f, 0.1f, 1.0f});
+      Renderer::DrawLine(rect[3], rect[0], {1.0f, 0.2f, 0.1f, 1.0f});
+   };
+
+   if (m_currentSelectedGameObject)
+   {
+      drawBoundingBox(m_currentSelectedGameObject->GetSprite());
+   }
+
+   if (m_currentEditorObjectSelected)
+   {
+      drawBoundingBox(m_currentEditorObjectSelected->GetSprite());
+   }
+}
+
+void
+Editor::DrawGrid()
+{
+   if (m_drawGrid)
+   {
+      const auto levelSize = m_currentLevel->GetSize();
+      const auto grad = m_gridCellSize;
+
+      const auto w = levelSize.x / grad;
+      const auto h = levelSize.y / grad;
+      const auto offset = glm::ivec2(0, grad);
+
+      for (int i = 0; i <= h; ++i)
+      {
+         Renderer::DrawLine(glm::vec2(0, i * grad), glm::vec2(levelSize.x, i * grad), {1.0f, 0.0f, 1.0f, 1.0f});
+      }
+
+      for (int i = 0; i <= w; ++i)
+      {
+         Renderer::DrawLine(glm::vec2(i * grad, 0), glm::vec2(i * grad, levelSize.y), {1.0f, 0.0f, 1.0f, 1.0f});
+      }
+   }
+}
+
+void
+Editor::SetGridData(bool render, int32_t cellSize)
+{
+   m_drawGrid = render;
+   m_gridCellSize = cellSize;
+}
+
+std::pair< bool, int32_t >
+Editor::GetGridData() const
+{
+   return {m_drawGrid, m_gridCellSize};
 }
 
 void
@@ -553,7 +520,7 @@ Editor::CreateLevel(const glm::ivec2& size)
    m_currentLevel->Create(this, size);
    m_currentLevel->LoadShaders("Editor");
 
-   m_camera.Create(glm::vec3(m_currentLevel->GetLevelPosition(), 0.0f), {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
+   m_camera.Create(glm::vec3(m_currentLevel->GetLevelPosition(), 0.0f), m_window->GetSize());
    m_camera.SetLevelSize(m_currentLevel->GetSize());
 
    m_levelLoaded = true;
@@ -571,7 +538,6 @@ Editor::LoadLevel(const std::string& levelPath)
    m_levelFileName = levelPath;
    m_currentLevel = std::make_shared< Level >();
    m_currentLevel->Load(this, levelPath);
-   m_currentLevel->LoadShaders("Editor");
 
    // Populate editor objects
 
@@ -606,7 +572,7 @@ Editor::LoadLevel(const std::string& levelPath)
       }
    }
 
-   m_camera.Create(glm::vec3(m_currentLevel->GetPlayer()->GetCenteredGlobalPosition(), 0.0f), {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f});
+   m_camera.Create(glm::vec3(m_currentLevel->GetPlayer()->GetGlobalPosition(), 0.0f), m_window->GetSize());
    m_camera.SetLevelSize(m_currentLevel->GetSize());
 
    m_levelLoaded = true;
@@ -661,21 +627,21 @@ Editor::PlayLevel()
 void
 Editor::ShowWireframe(bool wireframeEnabled)
 {
-   for (auto& object : m_currentLevel->GetObjects())
-   {
-      wireframeEnabled ? object->SetObjectSelected() : object->SetObjectUnselected();
-   }
+   // for (auto& object : m_currentLevel->GetObjects())
+   //{
+   //   wireframeEnabled ? object->SetObjectSelected() : object->SetObjectUnselected();
+   //}
 
-   if (m_player)
-   {
-      wireframeEnabled ? m_currentLevel->GetPlayer()->SetObjectSelected() : m_currentLevel->GetPlayer()->SetObjectUnselected();
-   }
+   // if (m_player)
+   //{
+   //   wireframeEnabled ? m_currentLevel->GetPlayer()->SetObjectSelected() : m_currentLevel->GetPlayer()->SetObjectUnselected();
+   //}
 
-   // Make sure currenlty selected object stays selected
-   if (m_currentSelectedGameObject)
-   {
-      m_currentSelectedGameObject->SetObjectSelected();
-   }
+   //// Make sure currenlty selected object stays selected
+   // if (m_currentSelectedGameObject)
+   //{
+   //   m_currentSelectedGameObject->SetObjectSelected();
+   //}
 }
 
 void
@@ -701,14 +667,17 @@ Editor::SetRenderAnimationPoints(bool render)
       animatablePtr->RenderAnimationSteps(render);
       auto animationPoints = animatablePtr->GetAnimationKeypoints();
 
-      const auto currenltySelectedName = m_currentSelectedGameObject->GetName();
+      for (auto& animationPoint : animationPoints)
+      {
+         auto it = std::find_if(m_editorObjects.begin(), m_editorObjects.end(), [render, &animationPoint](auto& editorObject) {
+            return editorObject->GetLinkedObject()->GetID() == animationPoint->GetID();
+         });
 
-      std::for_each(m_editorObjects.begin(), m_editorObjects.end(), [render, currenltySelectedName](auto& object) {
-         if (object->GetName() == "Animationpoint" + currenltySelectedName)
+         if (it != m_editorObjects.end())
          {
-            object->SetVisible(render);
+            (*it)->SetVisible(render);
          }
-      });
+      }
    }
 }
 
@@ -762,17 +731,17 @@ Editor::UpdateAnimationData()
    }
 }
 
-const glm::vec2&
+glm::vec2
 Editor::GetWindowSize() const
 {
-   return m_windowSize;
+   return m_window->GetSize();
 }
 
-const glm::ivec2&
+glm::ivec2
 Editor::GetFrameBufferwSize() const
 {
    int viewportWidth, viewportHeight;
-   glfwGetFramebufferSize(mGLFWWindow, &viewportWidth, &viewportHeight);
+   // glfwGetFramebufferSize(mGLFWWindow, &viewportWidth, &viewportHeight);
 
    return {viewportWidth, viewportHeight};
 }
@@ -780,7 +749,7 @@ Editor::GetFrameBufferwSize() const
 const glm::mat4&
 Editor::GetProjection() const
 {
-   return m_projectionMatrix;
+   return m_camera.GetProjectionMatrix();
 }
 
 const glm::mat4&
@@ -792,7 +761,7 @@ Editor::GetViewMatrix() const
 float
 Editor::GetZoomLevel()
 {
-   return m_zoomScale;
+   return m_camera.GetZoomLevel();
 }
 
 bool
@@ -801,29 +770,66 @@ Editor::IsRunning()
    return m_isRunning;
 }
 
-bool
-Editor::IsKeyDown(uint8_t keycode)
+void
+Editor::GeneratePathfinder(int density)
 {
-   return m_keyMap[keycode];
+   const auto levelSize = m_currentLevel->GetSize();
+   const auto grad = density;
+
+   const auto w = levelSize.x / grad;
+   const auto h = levelSize.y / grad;
+   const auto offset = glm::ivec2(0, grad);
+   const auto collistion = reinterpret_cast< byte_vec4* >(m_currentLevel->GetCollision().GetData());
+
+   for (int i = 0; i < h; ++i)
+   {
+      for (int j = 0; j < w; ++j)
+      {
+         bool obstacle = false;
+         for (int k = i * grad; k < i * grad + grad; ++k)
+         {
+            for (int l = j * grad; l < j * grad + grad; ++l)
+            {
+               if (collistion[l + k * levelSize.x].w != 0)
+               {
+                  obstacle = true;
+                  break;
+               }
+            }
+         }
+
+         if (!obstacle)
+         {
+            auto node = std::make_shared< Node >(glm::ivec2(j * grad, i * grad), i + j, std::vector< Node::NodeID >{});
+            auto object = std::make_shared< EditorObject >(*this, node->m_position + offset, glm::ivec2(grad, grad), "NodeSprite.png",
+                                                           std::dynamic_pointer_cast< dgame::Object >(node));
+            object->SetVisible(true);
+            m_editorObjects.push_back(object);
+         }
+         // m_debugObjs.push_back(std::make_unique< Line >(glm::vec2(0, 0), glm::vec2(0, 0)));
+      }
+   }
 }
 
 void
 Editor::MainLoop()
 {
-   Logger::SetLogType(Logger::TYPE::INFO);
+   RenderCommand::SetClearColor({0.2f, 0.1f, 0.5f, 1.0f});
 
    while (IsRunning())
    {
-      PollEvents();
+      RenderCommand::Clear();
 
-      // override keyboard input
+      InputManager::PollEvents();
+
       HandleCamera();
 
-      // Update UI
-      m_gui.Update();
       Update();
 
-      drawAll();
+      drawContents();
+      m_gui.Render();
+
+      m_window->SwapBuffers();
    }
 }
 

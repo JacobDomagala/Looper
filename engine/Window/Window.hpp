@@ -20,24 +20,10 @@ class Window
    void
    ShutDown();
 
-   // set projection matrix for OpenGL
-   void
-   SetProjection(const glm::mat4& projection)
-   {
-      m_projectionMatrix = projection;
-   }
-
-   // get projection matrix
-   const glm::mat4&
-   GetProjection() const
-   {
-      return m_projectionMatrix;
-   }
-
-   const glm::vec2&
+   glm::ivec2
    GetSize() const
    {
-      return {m_width, m_height};
+      return glm::ivec2(m_width, m_height);
    }
 
    void
@@ -73,7 +59,7 @@ class Window
    // update and get cursor position <-1, 1>
    // with positive 'y' is up
    glm::vec2
-   GetCursorScreenPosition();
+   GetCursorScreenPosition(const glm::mat4& projectionMatrix);
 
    // update and get cursor position <-1, 1>
    // with positive 'y' is down
@@ -106,20 +92,14 @@ class Window
       return os;
    }
 
-   static void
-   ErrorCallback(int error, const char* description);
-
  private:
-   uint32_t m_width;
-   uint32_t m_height;
+   int32_t m_width;
+   int32_t m_height;
    GLFWwindow* m_pWindow = nullptr;
    std::string m_title;
 
    // cursor position
    glm::vec2 m_cursorPos;
-
-   // projection matrix for OpenGL
-   glm::mat4 m_projectionMatrix;
 
    // is windows active
    bool m_isRunning;

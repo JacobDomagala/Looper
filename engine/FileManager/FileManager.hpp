@@ -49,7 +49,7 @@ class FileManager
    LoadImageRawBytes(const std::string& fileName);
 
    static ImageSmart
-   LoadImage(const std::string& fileName);
+   LoadImageData(const std::string& fileName);
 
    // NOTE!
    // image data is not freed

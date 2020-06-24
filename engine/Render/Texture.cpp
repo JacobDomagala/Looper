@@ -1,7 +1,7 @@
+#include "Texture.hpp"
 #include "FileManager.hpp"
-#include <Shaders.hpp>
-#include <Texture.hpp>
-#include <Window.hpp>
+#include "Shader.hpp"
+#include "Window.hpp"
 
 namespace dgame {
 
@@ -34,7 +34,7 @@ Texture::CreateColorTexture(const glm::ivec2& size, const glm::vec3& color)
    LoadTextureFromMemory(size, m_data.get(), "NewTexture.png");
 }
 
-byte_vec4*
+void
 Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenum filter)
 {
    auto picture = FileManager::LoadImageData(fileName);
@@ -44,8 +44,6 @@ Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenu
    m_height = picture.m_size.y;
 
    LoadTextureFromMemory({m_width, m_height}, m_data.get(), fileName);
-
-   return reinterpret_cast< byte_vec4* >(GetData());
 }
 
 void
@@ -64,8 +62,6 @@ Texture::LoadTextureFromMemory(const glm::ivec2& size, uint8_t* data, const std:
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
    glGenerateMipmap(GL_TEXTURE_2D);
 
-   glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &m_maxBoundCound);
-   
    m_logger.Log(Logger::TYPE::DEBUG, "Created new texture {} and bound it to ID {}", m_name, m_textureID);
 }
 
@@ -90,6 +86,48 @@ Texture::Create()
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
    return m_textureID;
+}
+
+byte_vec4*
+Texture::GetVec4Data() const
+{
+   return reinterpret_cast< byte_vec4* >(GetData());
+}
+
+uint8_t*
+Texture::GetData() const
+{
+   return m_data.get();
+}
+
+std::string
+Texture::GetName() const
+{
+   return m_name;
+}
+
+int32_t
+Texture::GetWidth() const
+{
+   return m_width;
+}
+
+int32_t
+Texture::GetHeight() const
+{
+   return m_height;
+}
+
+GLuint
+Texture::GetTextureHandle() const
+{
+   return m_textureID;
+}
+
+bool
+Texture::operator==(const Texture& other) const
+{
+   return m_textureID == other.GetTextureHandle();
 }
 
 } // namespace dgame

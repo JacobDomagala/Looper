@@ -24,8 +24,8 @@ class TextureLibrary
    LoadTexture(const std::string& textureName);
 
  private:
-   static inline std::unordered_map< std::string, std::shared_ptr< Texture > > m_loadedTextures = {};
-   static inline Logger m_logger = Logger("TextureLibrary");
+   static inline std::unordered_map< std::string, std::shared_ptr< Texture > > s_loadedTextures = {};
+   static inline Logger s_logger = Logger("TextureLibrary");
 };
 
 } // namespace dgame

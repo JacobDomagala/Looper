@@ -3,7 +3,7 @@
 #include "FileManager.hpp"
 #include "Game.hpp"
 #include "Player.hpp"
-#include "Shaders.hpp"
+#include "Shader.hpp"
 #include "Timer.hpp"
 #include "Window.hpp"
 
@@ -19,7 +19,6 @@ Level::Create(Application* context, const glm::ivec2& size)
 {
    m_levelSize = size;
    m_background.SetSprite(glm::vec2(0.0f, 0.0f), m_levelSize);
-   m_shaders.LoadDefault();
    m_contextPointer = context;
 }
 
@@ -133,7 +132,7 @@ Level::Save(const std::string& pathToLevel)
    }
 
    // Serialize shader
-   json["SHADER"]["name"] = m_shaders.GetName();
+   //json["SHADER"]["name"] = m_shaders.GetName();
 
    // Serialize background
    json["BACKGROUND"]["texture"] = m_background.GetTextureName();
@@ -226,13 +225,13 @@ glm::vec2
 Level::GetLocalVec(const glm::vec2& global) const
 {
    // get the vector relative to map's position
-   glm::vec2 returnVal{m_background.GetPosition() - global};
+   //glm::vec2 returnVal{m_background.GetPosition() - global};
 
-   // change 'y' to originate in top left
-   returnVal.y -= m_levelSize.y;
-   returnVal *= -1;
+   //// change 'y' to originate in top left
+   //returnVal.y -= m_levelSize.y;
+   //returnVal *= -1;
 
-   return returnVal;
+   return global;
 }
 
 glm::vec2
@@ -281,7 +280,7 @@ Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
 void
 Level::LoadShaders(const std::string& shaderName)
 {
-   m_shaders.LoadShaders(shaderName);
+   //m_shaders.LoadShaders(shaderName);
 }
 
 void
@@ -400,7 +399,7 @@ Level::MoveObjs(const glm::vec2& moveBy, bool isCameraMovement)
    }
 }
 
-std::vector< std::shared_ptr< GameObject > >&
+const std::vector< std::shared_ptr< GameObject > >&
 Level::GetObjects()
 {
    return m_objects;

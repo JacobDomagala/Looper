@@ -4,7 +4,7 @@
 #include "Texture.hpp"
 #include "Window.hpp"
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <ft2build.h>
 #include <glm/glm.hpp>
 #include FT_FREETYPE_H
@@ -15,8 +15,6 @@ void
 Font::SetFont(const std::string& fontName)
 {
    m_logger.Init("Font");
-
-   m_program.LoadShaders("Font");
 
    FT_Library ft;
 
@@ -43,7 +41,7 @@ Font::SetFont(const std::string& fontName)
       if (FT_Load_Char(face, c, FT_LOAD_RENDER))
          m_logger.Log(Logger::TYPE::FATAL, "Error loading font face for character " + c + filePath);
 
-      FT_Load_Char(face, c, FT_LOAD_RENDER);
+      //FT_Load_Char(face, c, FT_LOAD_RENDER);
       // Generate texture
       GLuint texture;
       glGenTextures(1, &texture);
@@ -87,9 +85,9 @@ void
 Font::RenderText(const glm::mat4& projectionMatrix, std::string text, glm::vec2 position, GLfloat scale, const glm::vec3& color)
 {
    // Activate corresponding render state
-   m_program.UseProgram();
+   /*m_program.UseProgram();
    m_program.SetUniformFloatVec4(glm::vec4(color, 1.0f), "color");
-   m_program.SetUniformFloatMat4(projectionMatrix, "projectionMatrix");
+   m_program.SetUniformFloatMat4(projectionMatrix, "projectionMatrix");*/
    glActiveTexture(GL_TEXTURE0);
    glBindVertexArray(m_VAO);
 

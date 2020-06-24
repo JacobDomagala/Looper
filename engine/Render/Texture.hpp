@@ -15,50 +15,32 @@ class Texture
  public:
    Texture();
    Texture(const std::string& textureName);
-   Texture(Texture&&) = default;
    ~Texture();
-
-
-   // DEBUG: number of glBindTexture calls
-   static inline int32_t m_boundCount = 0;
 
    // Create new texture which is filled with 'color'
    void
    CreateColorTexture(const glm::ivec2& size, const glm::vec3& color);
 
-   // Load texture from 'fileName' file and return byte values (used for collision)
-   byte_vec4*
+   void
    LoadTextureFromFile(const std::string& fileName = "Default128.png", GLenum wrapMode = GL_REPEAT, GLenum filter = GL_LINEAR);
 
+   byte_vec4*
+   GetVec4Data() const;
+
    uint8_t*
-   GetData() const
-   {
-      return m_data.get();
-   }
+   GetData() const;
 
    std::string
-   GetName() const
-   {
-      return m_name;
-   }
+   GetName() const;
 
    int32_t
-   GetWidth() const
-   {
-      return m_width;
-   }
+   GetWidth() const;
 
    int32_t
-   GetHeight() const
-   {
-      return m_height;
-   }
+   GetHeight() const;
 
    GLuint
-   GetTextureHandle() const
-   {
-      return m_textureID;
-   }
+   GetTextureHandle() const;
 
    // Make this texture active for given texture slot
    void
@@ -68,10 +50,7 @@ class Texture
    Create();
 
    bool
-   operator==(const Texture& other) const
-   {
-      return m_textureID == other.GetTextureHandle();
-   }
+   operator==(const Texture& other) const;
 
  private:
    // Load texture from 'data' memory
@@ -88,22 +67,7 @@ class Texture
 
    std::string m_name = "EmptyName.png";
 
-   // texture ID used in
    GLuint m_textureID = 0;
-
-   // sampler ID
-   GLuint m_samplerID = 0;
-
-   // each time new texture is loaded this counter is increased
-   static inline int32_t m_unitCounter = 0;
-
-   // ID of currently bound texture
-   static inline int32_t m_nowBound = 0;
-
-   GLint m_maxBoundCound = 31;
-
-   // texture unit
-   int32_t m_unit = 0;
 
    Logger m_logger = Logger("Texture");
 };

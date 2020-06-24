@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Common.hpp"
-#include "Shaders.hpp"
-#include "Texture.hpp"
+#include "Shader.hpp"
+#include "TextureLibrary.hpp"
 
 #include <deque>
 #include <glad/glad.h>

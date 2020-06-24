@@ -9,21 +9,28 @@ PathFinder::PathFinder()
 
 PathFinder::PathFinder(std::vector< std::shared_ptr< Node > >&& nodes) : m_nodes(nodes)
 {
+   m_initialized = true;
 }
 
 void
 PathFinder::AddNode(std::shared_ptr< Node > newNode)
 {
    m_nodes.push_back(newNode);
+   m_initialized = true;
 }
 
 void
 PathFinder::DeleteNode(std::shared_ptr< Node > deletedNode)
 {
    m_nodes.erase(std::find(m_nodes.begin(), m_nodes.end(), deletedNode));
+
+   if (m_nodes.empty())
+   {
+      m_initialized = false;
+   }
 }
 
-uint8_t
+Node::NodeID
 PathFinder::FindNodeIdx(const glm::ivec2& position) const
 {
    auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(), [position](const auto& node) { return node->m_position == position; });
@@ -32,7 +39,7 @@ PathFinder::FindNodeIdx(const glm::ivec2& position) const
 }
 
 glm::ivec2
-PathFinder::GetNearestPosition(/*const glm::ivec2& objectPos*/ uint8_t currIdx, const glm::ivec2& targetPos) const
+PathFinder::GetNearestPosition(/*const glm::ivec2& objectPos*/ Node::NodeID currIdx, const glm::ivec2& targetPos) const
 {
    glm::ivec2 returnPos{};
 
@@ -64,20 +71,20 @@ PathFinder::GetNearestPosition(/*const glm::ivec2& objectPos*/ uint8_t currIdx, 
    return returnPos;
 }
 
-uint8_t
+Node::NodeID
 PathFinder::GetNearestNode(const glm::ivec2& position) const
 {
-   uint8_t nearestNode(0);
-   auto tmpLength(FLT_MAX);
+   Node::NodeID nearestNode(-1);
+   auto currentMinLen(FLT_MAX);
 
    for (const auto& node : m_nodes)
    {
       auto currentLength = glm::length(static_cast< glm::vec2 >(position - node->m_position));
 
-      if (currentLength < tmpLength)
+      if (currentLength < currentMinLen)
       {
          nearestNode = node->m_ID;
-         tmpLength = currentLength;
+         currentMinLen = currentLength;
       }
    }
 
@@ -88,6 +95,12 @@ std::vector< std::shared_ptr< Node > >
 PathFinder::GetAllNodes() const
 {
    return m_nodes;
+}
+
+bool
+PathFinder::IsInitialized() const
+{
+   return m_initialized;
 }
 
 } // namespace dgame

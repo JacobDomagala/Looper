@@ -13,22 +13,24 @@ struct Node : public Object
 
    Node() = default;
 
-   Node(glm::ivec2 pos, NodeID ID, std::vector< NodeID > connectedTo) : Object(Object::TYPE::PATHFINDER_NODE)
+   Node(glm::ivec2 posOnMap, NodeID ID, std::vector< NodeID > connectedTo) : Object(Object::TYPE::PATHFINDER_NODE)
    {
-      m_position = pos;
+      m_position = posOnMap;
       m_ID = ID;
       m_connectedNodes = connectedTo;
    }
 
+   // Map position
    glm::ivec2 m_position;
    NodeID m_ID;
    std::vector< NodeID > m_connectedNodes;
+
+   bool m_visited = false;
+   int32_t m_localCost = 0;
 };
 
 class PathFinder
 {
-   std::vector< std::shared_ptr< Node > > m_nodes;
-
  public:
    PathFinder();
    PathFinder(std::vector< std::shared_ptr< Node > >&& nodes);
@@ -39,17 +41,24 @@ class PathFinder
    void
    DeleteNode(std::shared_ptr< Node > deletedNode);
 
-   uint8_t
+   Node::NodeID
    FindNodeIdx(const glm::ivec2& position) const;
 
    glm::ivec2
-   GetNearestPosition(uint8_t currIdx, const glm::ivec2& targetPos) const;
+   GetNearestPosition(Node::NodeID currIdx, const glm::ivec2& targetPos) const;
 
-   uint8_t
+   Node::NodeID
    GetNearestNode(const glm::ivec2& position) const;
 
    std::vector< std::shared_ptr< Node > >
    GetAllNodes() const;
+
+   bool
+   IsInitialized() const;
+
+ private:
+   bool m_initialized = false;
+   std::vector< std::shared_ptr< Node > > m_nodes;
 };
 
 } // namespace dgame

@@ -3,7 +3,7 @@
 #include "Application.hpp"
 #include "EditorObject.hpp"
 #include "Game.hpp"
-#include "Gui.hpp"
+#include "EditorGUI.hpp"
 #include "Level.hpp"
 #include "Logger.hpp"
 #include "Object.hpp"
@@ -11,7 +11,6 @@
 #include "Timer.hpp"
 
 #include <glm/matrix.hpp>
-#include <nanogui/screen.h>
 #include <utility>
 
 namespace dgame {
@@ -19,20 +18,20 @@ namespace dgame {
 class Player;
 class Window;
 
-class Editor : public nanogui::Screen, public Application
+class Editor : public Application
 {
  public:
    Editor(const glm::vec2& screenSize);
    ~Editor();
 
-   // CONTEXT OVERRIDES
+   // APPLICATION OVERRIDES
    void
    MainLoop() override;
 
-   const glm::vec2&
+   glm::vec2
    GetWindowSize() const override;
 
-   const glm::ivec2&
+   glm::ivec2
    GetFrameBufferwSize() const override;
 
    const glm::mat4&
@@ -44,31 +43,22 @@ class Editor : public nanogui::Screen, public Application
    float
    GetZoomLevel() override;
 
-
-   // NANOGUI::SCREEN OVERRIDES
    void
-   draw(NVGcontext* ctx) override;
+   KeyCallback(const KeyEvent& event) override;
 
    void
-   drawAll() override;
+   MouseButtonCallback(const MouseButtonEvent& event) override;
 
    void
-   drawContents() override;
+   CursorPositionCallback(const CursorPositionEvent& event) override;
 
-   bool
-   scrollEvent(const nanogui::Vector2i& p, const nanogui::Vector2f& rel) override;
-
-   bool
-   mouseMotionEvent(const nanogui::Vector2i& p, const nanogui::Vector2i& rel, int button, int modifiers) override;
-
-   bool
-   mouseButtonEvent(const nanogui::Vector2i& p, int button, bool down, int modifiers) override;
-
-   bool
-   keyboardEvent(int key, int scancode, int action, int modifiers) override;
-
+   void
+   MouseScrollCallback(const MouseScrollEvent& event) override;
 
    // EDITOR SPECIFIC FUNCTIONS
+   void
+   drawContents();
+
    void
    CreateLevel(const glm::ivec2& size);
 
@@ -108,11 +98,25 @@ class Editor : public nanogui::Screen, public Application
    void
    UpdateAnimationData();
 
+   void
+   GeneratePathfinder(int density);
+
+   void
+   DrawGrid();
+
+   void
+   SetGridData(bool render, int32_t cellSize);
+
+   std::pair< bool, int32_t > GetGridData() const;
+
+   void
+   HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameObject);
+
  private:
    enum class ACTION
    {
       UNSELECT,
-      DELETE
+      REMOVE
    };
 
  private:
@@ -125,11 +129,11 @@ class Editor : public nanogui::Screen, public Application
    void
    DrawAnimationPoints();
 
+   void
+   DrawBoundingBoxes();
+
    bool
    IsRunning() override;
-
-   void
-   InitGLFW();
 
    void
    HandleCamera();
@@ -141,22 +145,19 @@ class Editor : public nanogui::Screen, public Application
    CheckIfObjectGotSelected(const glm::vec2& cursorPosition);
 
    void
-   HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameObject);
-
-   void
    HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedObject);
 
    void
    UnselectEditorObject();
 
    void
+   SelectGameObject();
+
+   void
    UnselectGameObject();
 
    void
    ShowCursor(bool choice);
-
-   bool
-   IsKeyDown(uint8_t keycode);
 
    std::unique_ptr< Game > m_game;
    std::shared_ptr< Level > m_level;
@@ -171,14 +172,6 @@ class Editor : public nanogui::Screen, public Application
    glm::vec2 m_lastCursorPosition;
 
    std::unique_ptr< byte_vec4 > m_collision = nullptr;
-
-   // projection matrix for OpenGL
-   glm::mat4 m_projectionMatrix;
-   glm::vec2 m_windowSize;
-
-   float m_zoomScale = 0.0f;
-   float m_maxZoomIn = 1.5f;
-   float m_maxZoomOut = -1.5f;
 
    // Handling game objects (which are visible in game)
    bool m_animateGameObject = false;
@@ -196,8 +189,11 @@ class Editor : public nanogui::Screen, public Application
    std::vector< std::shared_ptr< dgame::Object > > m_objects;
 
    bool m_showWaypoints = true;
-   std::map< uint8_t, bool > m_keyMap;
-   Gui m_gui;
+   
+   bool m_drawGrid = false;
+   int32_t m_gridCellSize = 20;
+
+   EditorGUI m_gui;
 };
 
 } // namespace dgame

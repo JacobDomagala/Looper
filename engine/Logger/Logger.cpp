@@ -19,7 +19,12 @@ std::string
 Logger::ToString(const Logger::TYPE& type) const
 {
    std::string returnValue;
-   if (type == Logger::TYPE::DEBUG)
+
+   if (type == Logger::TYPE::TRACE)
+   {
+      returnValue = "  [TRACE]  ";
+   }
+   else if (type == Logger::TYPE::DEBUG)
    {
       returnValue = "  [DEBUG]  ";
    }
@@ -34,6 +39,10 @@ Logger::ToString(const Logger::TYPE& type) const
    else if (type == Logger::TYPE::FATAL)
    {
       returnValue = "  [FATAL]  ";
+   }
+   else
+   {
+      returnValue = " [UNKNOWN] ";
    }
 
    return returnValue;

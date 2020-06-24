@@ -2,7 +2,7 @@
 
 #include "Object.hpp"
 #include "Common.hpp"
-#include "Shaders.hpp"
+#include "Shader.hpp"
 #include "Sprite.hpp"
 
 #include <glad/glad.h>
@@ -41,7 +41,7 @@ class GameObject : public Object
    SetGlobalPosition(const glm::vec2& position);
 
    virtual void
-   SetShaders(const Shader& program);
+   SetShaders(const std::string& shader);
 
    virtual void
    SetName(const std::string& name);
@@ -164,9 +164,7 @@ class GameObject : public Object
 
    // object's sprite
    Sprite m_sprite;
-
-   // object's shaders
-   Shader m_program;
+   std::string m_shaderName;
 
    // byte array of sprite used for collision
    byte_vec4* m_collision;

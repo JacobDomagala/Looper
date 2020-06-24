@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IInputListener.hpp"
+#include "InputListener.hpp"
 #include "Logger.hpp"
 
 #include <glm/glm.hpp>
@@ -16,27 +16,18 @@ struct Event;
 class InputManager
 {
  public:
-   enum class EventType
-   {
-      KEY,
-      MOUSE_BUTTON,
-      MOUSE_CURSOR,
-      MOUSE_SCROLL
-   };
-
- public:
-   // Functions used by IInputListener to register for input callbacks
+   // Functions used by InputListener to register for input callbacks
    static void
-   RegisterForKeyInput(IInputListener* listener);
+   RegisterForKeyInput(InputListener* listener);
 
    static void
-   RegisterForMouseButtonInput(IInputListener* listener);
+   RegisterForMouseButtonInput(InputListener* listener);
 
    static void
-   RegisterForMouseMovementInput(IInputListener* listener);
+   RegisterForMouseMovementInput(InputListener* listener);
 
    static void
-   RegisterForMouseScrollInput(IInputListener* listener);
+   RegisterForMouseScrollInput(InputListener* listener);
 
    // @brief Polling function to check if key is currenty pressed
    // @param action Key in which user is interested
@@ -48,6 +39,9 @@ class InputManager
    // @return Mouse position relative to window
    static glm::vec2
    GetMousePos();
+
+   static void
+   SetMousePos(const glm::vec2& position);
 
    // @brief Called each frame to update the input
    static void
@@ -70,13 +64,13 @@ class InputManager
 
  private:
    static void
-   BroadcastEvent(EventType type, Event& event);
+   BroadcastEvent(Event& event);
 
  private:
-   static inline std::vector< IInputListener* > s_keyListeners = {};
-   static inline std::vector< IInputListener* > s_mouseButtonListeners = {};
-   static inline std::vector< IInputListener* > s_mouseMovementListeners = {};
-   static inline std::vector< IInputListener* > s_mouseScrollListeners = {};
+   static inline std::vector< InputListener* > s_keyListeners = {};
+   static inline std::vector< InputListener* > s_mouseButtonListeners = {};
+   static inline std::vector< InputListener* > s_mouseMovementListeners = {};
+   static inline std::vector< InputListener* > s_mouseScrollListeners = {};
 
    // in future handle input from multiple windows?
    static inline GLFWwindow* s_windowHandle = nullptr;

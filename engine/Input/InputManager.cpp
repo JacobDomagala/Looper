@@ -13,7 +13,7 @@ InputManager::InternalKeyCallback(GLFWwindow* window, int32_t key, int32_t scanc
 
    s_keyMap[key] = action;
 
-   BroadcastEvent(EventType::KEY, KeyEvent{key, scancode, action, mods});
+   BroadcastEvent(KeyEvent{key, scancode, action, mods});
 }
 
 void
@@ -21,7 +21,7 @@ InputManager::InternalMouseButtonCallback(GLFWwindow* window, int32_t button, in
 {
    s_logger.Log(Logger::TYPE::TRACE, "GLFW mouse button {} {} {}", button, action, mods);
 
-   BroadcastEvent(EventType::MOUSE_BUTTON, MouseButtonEvent{button, action, mods});
+   BroadcastEvent(MouseButtonEvent{button, action, mods});
 }
 
 void
@@ -31,7 +31,7 @@ InputManager::InternalCursorPositionCallback(GLFWwindow* window, double x, doubl
 
    s_mousePosition = glm::vec2(x, y);
 
-   BroadcastEvent(EventType::MOUSE_CURSOR, CursorPositionEvent{x, y});
+   BroadcastEvent(CursorPositionEvent{x, y});
 }
 
 void
@@ -39,15 +39,16 @@ InputManager::InternalMouseScrollCallback(GLFWwindow* window, double xoffset, do
 {
    s_logger.Log(Logger::TYPE::TRACE, "GLFW scroll {} {}", xoffset, yoffset);
 
-   BroadcastEvent(EventType::MOUSE_SCROLL, MouseScrollEvent{xoffset, yoffset});
+   BroadcastEvent(MouseScrollEvent{xoffset, yoffset});
 }
 
 void
-InputManager::BroadcastEvent(EventType type, Event& event)
+InputManager::BroadcastEvent(Event& event)
 {
-   switch (type)
+   switch (event.m_type)
    {
-      case EventType::KEY: {
+      case Event::EventType::KEY:
+         {
          for (auto listener : s_keyListeners)
          {
             listener->KeyCallback(static_cast< KeyEvent& >(event));
@@ -55,7 +56,7 @@ InputManager::BroadcastEvent(EventType type, Event& event)
       }
       break;
 
-      case EventType::MOUSE_BUTTON: {
+      case Event::EventType::MOUSE_BUTTON: {
          for (auto listener : s_mouseButtonListeners)
          {
             listener->MouseButtonCallback(static_cast< MouseButtonEvent& >(event));
@@ -63,7 +64,7 @@ InputManager::BroadcastEvent(EventType type, Event& event)
       }
       break;
 
-      case EventType::MOUSE_CURSOR: {
+      case Event::EventType::MOUSE_CURSOR: {
          for (auto listener : s_mouseMovementListeners)
          {
             listener->CursorPositionCallback(static_cast< CursorPositionEvent& >(event));
@@ -71,7 +72,7 @@ InputManager::BroadcastEvent(EventType type, Event& event)
       }
       break;
 
-      case EventType::MOUSE_SCROLL: {
+      case Event::EventType::MOUSE_SCROLL: {
          for (auto listener : s_mouseScrollListeners)
          {
             listener->MouseScrollCallback(static_cast< MouseScrollEvent& >(event));
@@ -99,25 +100,25 @@ InputManager::Init(GLFWwindow* mainWindow)
 }
 
 void
-InputManager::RegisterForKeyInput(IInputListener* listener)
+InputManager::RegisterForKeyInput(InputListener* listener)
 {
    s_keyListeners.push_back(listener);
 }
 
 void
-InputManager::RegisterForMouseButtonInput(IInputListener* listener)
+InputManager::RegisterForMouseButtonInput(InputListener* listener)
 {
    s_mouseButtonListeners.push_back(listener);
 }
 
 void
-InputManager::RegisterForMouseMovementInput(IInputListener* listener)
+InputManager::RegisterForMouseMovementInput(InputListener* listener)
 {
    s_mouseMovementListeners.push_back(listener);
 }
 
 void
-InputManager::RegisterForMouseScrollInput(IInputListener* listener)
+InputManager::RegisterForMouseScrollInput(InputListener* listener)
 {
    s_mouseScrollListeners.push_back(listener);
 }
@@ -138,6 +139,12 @@ glm::vec2
 InputManager::GetMousePos()
 {
    return s_mousePosition;
+}
+
+void
+InputManager::SetMousePos(const glm::vec2& position)
+{
+   glfwSetCursorPos(s_windowHandle, position.x, position.y);
 }
 
 } // namespace dgame

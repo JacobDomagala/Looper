@@ -2,10 +2,9 @@
 
 #include "FileManager.hpp"
 #include "Logger.hpp"
-#include "Shaders.hpp"
+#include "Shader.hpp"
 #include "Texture.hpp"
 
-#include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <string>
 #include <unordered_map>
@@ -35,7 +34,7 @@ class Font
  private:
    GLuint m_VAO{}, m_VBO{};
    std::unordered_map< GLchar, Character > m_characters;
-   Shaders m_program{};
+   std::string m_shaderName{};
    Logger m_logger;
 };
 

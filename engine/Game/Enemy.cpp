@@ -149,7 +149,7 @@ Enemy::Shoot()
          // if we hit anything draw a line
          if (collided.first != glm::ivec2(0, 0))
          {
-            gameHandle->DrawLine(GameObject::m_currentState.m_centeredGlobalPosition, m_appHandle.GetLevel().GetGlobalVec(collided.first));
+           // gameHandle->DrawLine(GameObject::m_currentState.m_centeredGlobalPosition, m_appHandle.GetLevel().GetGlobalVec(collided.first));
          }
 
          m_currentState.m_timeSinceLastShot = 0.0f;

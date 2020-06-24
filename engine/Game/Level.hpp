@@ -2,7 +2,7 @@
 
 #include "PathFinder.hpp"
 #include "Player.hpp"
-#include "Shaders.hpp"
+#include "Shader.hpp"
 
 #include <glm/glm.hpp>
 #include <unordered_map>
@@ -133,13 +133,13 @@ class Level
       return m_player;
    }
 
-   std::vector< std::shared_ptr< GameObject > >&
+   const std::vector< std::shared_ptr< GameObject > >&
    GetObjects();
 
-   Shader&
+   std::string
    GetShader()
    {
-      return m_shaders;
+      return m_shaderName;
    }
 
    Sprite&
@@ -167,7 +167,7 @@ class Level
    Sprite m_background;
    Texture m_collision;
 
-   Shader m_shaders{};
+   std::string m_shaderName{};
    glm::vec2 m_cameraPosition;
    std::shared_ptr< Player > m_player = nullptr;
 

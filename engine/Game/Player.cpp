@@ -1,3 +1,4 @@
+#include "Renderer.hpp"
 #include <Enemy.hpp>
 #include <Game.hpp>
 #include <Player.hpp>
@@ -28,20 +29,18 @@ Player::CreateSprite(const glm::vec2& position, const glm::ivec2& size, const st
    m_collision = m_sprite.SetSpriteTextured(position, size, fileName);
    GameObject::m_currentState.m_centeredGlobalPosition = m_sprite.GetCenteredPosition();
    GameObject::m_currentState.m_localPosition = glm::ivec2(position.x, -position.y);
-
-   m_program.LoadDefault();
 }
 
 void
 Player::LoadShaders(const std::string& shaderFile)
 {
-   m_program.LoadShaders(shaderFile);
+   
 }
 
 void
 Player::LoadShaders(const Shader& program)
 {
-   m_program = program;
+  
 }
 
 bool
@@ -79,14 +78,13 @@ Player::UpdateInternal(bool isReverse)
    {
       if (m_appHandle.IsGame())
       {
-         auto gameHandle = ConvertToGameHandle();
-         if (!gameHandle->IsReverse())
+         if (!isReverse)
          {
-            const auto cursorPos = gameHandle->GetCursorScreenPosition();
-            const auto screenPosition = gameHandle->GetProjection() * gameHandle->GetViewMatrix()
-                                        * glm::vec4(GameObject::m_currentState.m_centeredGlobalPosition, 0.0f, 1.0f);
+            const auto gameHandle = ConvertToGameHandle();
+            const auto cursorPos = gameHandle->ScreenToGlobal(gameHandle->GetCursor());
+            const auto spritePosition = GameObject::m_currentState.m_globalPosition;
 
-            m_currentState.m_viewAngle = -glm::atan(screenPosition.y - cursorPos.y, screenPosition.x - cursorPos.x);
+            m_currentState.m_viewAngle = glm::atan(spritePosition.y - cursorPos.y, spritePosition.x - cursorPos.x);
          }
       }
 

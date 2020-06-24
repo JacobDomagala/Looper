@@ -2,10 +2,10 @@
 
 #include "Common.hpp"
 #include "Object.hpp"
-#include "Shaders.hpp"
+#include "Shader.hpp"
 #include "Sprite.hpp"
 
-#include <GL/glew.h>
+//#include <GL/glew.h>
 #include <deque>
 #include <glm/glm.hpp>
 
@@ -39,7 +39,7 @@ class EditorObject
    SetGlobalPosition(const glm::vec2& position);
 
    void
-   SetShaders(const Shaders& program);
+   SetShaders(const Shader& program);
 
    void
    SetName(const std::string& name);
@@ -113,7 +113,7 @@ class EditorObject
 
    // Render object
    void
-   Render(Shaders& program);
+   Render();
 
    void
    Update(bool isReverse);

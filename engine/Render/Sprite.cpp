@@ -28,8 +28,8 @@ Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
 byte_vec4*
 Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName)
 {
-   m_texture = std::make_shared< Texture >();
-   auto returnPtr = m_texture->LoadTextureFromFile(fileName);
+   m_texture = TextureLibrary::GetTexture(fileName);
+   auto returnPtr = reinterpret_cast< byte_vec4* >(m_texture->GetData()); // m_texture->LoadTextureFromFile(fileName);
 
    /*glGenVertexArrays(1, &m_vertexArrayBuffer);
    glGenBuffers(1, &m_vertexBuffer);
@@ -155,12 +155,7 @@ Sprite::SetColor(const glm::vec3& color)
 void
 Sprite::SetTextureFromFile(const std::string& filePath)
 {
-   if (!m_texture)
-   {
-      m_texture = std::make_shared< Texture >();
-   }
-
-   m_texture->LoadTextureFromFile(filePath);
+   m_texture = TextureLibrary::GetTexture(filePath);
 }
 
 void

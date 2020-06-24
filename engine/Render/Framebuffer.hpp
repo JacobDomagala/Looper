@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Common.hpp"
-#include "Shaders.hpp"
+#include "Shader.hpp"
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <array>
 #include <memory>
 
@@ -34,8 +34,6 @@ class Framebuffer
    uint32_t m_currentFrame = 0;
    GLuint m_framebufferID;
    GLuint m_textureID;
-   Shaders m_shaders;
-
 
    // OpenGL buffers
    GLuint m_vertexArrayBuffer{};
