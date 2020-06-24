@@ -133,8 +133,8 @@ class Level
       return m_player;
    }
 
-   const std::vector< std::shared_ptr< GameObject > >&
-   GetObjects();
+   std::vector< std::shared_ptr< GameObject > >
+   GetObjects(bool includePlayer = false);
 
    std::string
    GetShader()

@@ -110,9 +110,10 @@ Editor::MouseButtonCallback(const MouseButtonEvent& event)
 {
    if (!m_gui.OnEvent(event) && m_levelLoaded)
    {
-      m_mousePressedLastUpdate = event.m_action == GLFW_PRESS;
+      const auto mousePressed = event.m_action == GLFW_PRESS;
+      m_mousePressedLastUpdate = mousePressed;
 
-      if (m_mousePressedLastUpdate)
+      if (mousePressed)
       {
          CheckIfObjectGotSelected(InputManager::GetMousePos());
       }
@@ -240,7 +241,7 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
 }
 
 void
-Editor::HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameObject)
+Editor::HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameObject, bool fromGUI)
 {
    if (m_currentSelectedGameObject != newSelectedGameObject)
    {
@@ -272,7 +273,19 @@ Editor::HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameOb
       m_gui.GameObjectSelected(m_currentSelectedGameObject);
    }
 
-   m_movementOnGameObject = true;
+   m_movementOnGameObject = !fromGUI;
+}
+
+void
+Editor::HandleObjectSelected(Object::ID objectID, bool fromGUI)
+{
+   auto it = std::find_if(m_editorObjects.begin(), m_editorObjects.end(),
+                [objectID](const auto& editorObject) { return editorObject->GetLinkedObject()->GetID() == objectID; });
+
+   if (it != m_editorObjects.end())
+   {
+      HandleEditorObjectSelected(*it, fromGUI);
+   }
 }
 
 void
@@ -292,7 +305,7 @@ Editor::UnselectGameObject()
 }
 
 void
-Editor::HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedEditorObject)
+Editor::HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedEditorObject, bool fromGUI)
 {
    if (m_editorObjectSelected && (newSelectedEditorObject != m_currentEditorObjectSelected))
    {
@@ -301,7 +314,7 @@ Editor::HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedEd
 
    m_currentEditorObjectSelected = newSelectedEditorObject;
    m_editorObjectSelected = true;
-   m_movementOnEditorObject = true;
+   m_movementOnEditorObject = !fromGUI;
 
    m_currentEditorObjectSelected->SetObjectSelected();
    m_gui.EditorObjectSelected(newSelectedEditorObject);

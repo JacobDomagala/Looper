@@ -110,7 +110,13 @@ class Editor : public Application
    std::pair< bool, int32_t > GetGridData() const;
 
    void
-   HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameObject);
+   HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameObject, bool fromGUI = false);
+
+   void
+   HandleObjectSelected(Object::ID objectID, bool fromGUI);
+
+   void
+   HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedObject, bool fromGUI = false);
 
  private:
    enum class ACTION
@@ -143,9 +149,6 @@ class Editor : public Application
 
    void
    CheckIfObjectGotSelected(const glm::vec2& cursorPosition);
-
-   void
-   HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedObject);
 
    void
    UnselectEditorObject();

@@ -220,6 +220,7 @@ EditorObject::Move(const glm::vec2& moveBy, bool isCameraMovement)
             std::dynamic_pointer_cast< AnimationPoint >(m_linkedObject)->m_end += moveBy;
             m_editor.UpdateAnimationData();
          }
+         break;
          case Object::TYPE::PATHFINDER_NODE: {
             std::dynamic_pointer_cast< Node >(m_linkedObject)->m_position += moveBy;
          }

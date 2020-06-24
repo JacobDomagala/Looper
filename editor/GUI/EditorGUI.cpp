@@ -134,7 +134,8 @@ EditorGUI::Render()
       if (ImGui::CollapsingHeader("Objects"))
       {
          static int selected = 0;
-         const auto gameObjects = m_currentLevel->GetObjects();
+         auto gameObjects = m_currentLevel->GetObjects();
+         
          ImGui::BeginChild("Loaded Objects", {0, 100}, true);
          for (auto& object : gameObjects)
          {
@@ -144,7 +145,7 @@ EditorGUI::Render()
             if (ImGui::Selectable(label))
             {
                m_parent.GetCamera().SetCameraAtPosition(object->GetLocalPosition());
-               m_parent.HandleGameObjectSelected(object);
+               m_parent.HandleGameObjectSelected(object, true);
             }
          }
          ImGui::EndChild();
@@ -237,7 +238,7 @@ EditorGUI::Render()
                animatablePtr->SetAnimationType(Animatable::ANIMATION_TYPE::REVERSABLE);
             }
 
-            static bool animationVisible = false;
+            static bool animationVisible = animatablePtr->GetRenderAnimationSteps();
             if (ImGui::Checkbox("Animation points visible", &animationVisible))
             {
                m_parent.SetRenderAnimationPoints(animationVisible);
@@ -267,13 +268,15 @@ EditorGUI::Render()
             static int selected = 0;
             const auto animationPoints = animatablePtr->GetAnimationKeypoints();
             ImGui::BeginChild("Animation Points", {0, 100}, true);
-            for (auto& node : animationPoints)
+            for (int i = 0; i < animationPoints.size(); ++i)
             {
                char label[128];
-               sprintf(label, "[%d] Pos(%.1f,%.1f) Time=%.f", node->GetID(), node->m_end.x, node->m_end.y, node->m_timeDuration.count());
+               const auto& node = animationPoints[i];
+               sprintf(label, "[%d] Pos(%.1f,%.1f) Time=%ds", i, node->m_end.x, node->m_end.y, node->m_timeDuration.count());
                if (ImGui::Selectable(label))
                {
                   m_parent.GetCamera().SetCameraAtPosition(node->m_end);
+                  m_parent.HandleObjectSelected(node->GetID(), true);
                }
             }
             ImGui::EndChild();

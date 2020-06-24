@@ -73,6 +73,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
          m_player = std::make_shared< Player >(*context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture, name);
          m_player->GetSprite().Scale(glm::vec2(json[key]["scale"][0], json[key]["scale"][1]));
          m_player->GetSprite().Rotate(json[key]["rotation"]);
+         m_objects.emplace_back(m_player);
       }
       else if (key == "ENEMIES")
       {
@@ -132,7 +133,7 @@ Level::Save(const std::string& pathToLevel)
    }
 
    // Serialize shader
-   //json["SHADER"]["name"] = m_shaders.GetName();
+   // json["SHADER"]["name"] = m_shaders.GetName();
 
    // Serialize background
    json["BACKGROUND"]["texture"] = m_background.GetTextureName();
@@ -214,6 +215,7 @@ Level::AddGameObject(GameObject::TYPE objectType)
       case GameObject::TYPE::PLAYER: {
          newObject = std::make_shared< Player >(*m_contextPointer, defaultPosition, defaultSize, defaultTexture);
          m_player = std::dynamic_pointer_cast< Player >(newObject);
+         m_objects.push_back(newObject);
       }
       break;
    }
@@ -225,11 +227,11 @@ glm::vec2
 Level::GetLocalVec(const glm::vec2& global) const
 {
    // get the vector relative to map's position
-   //glm::vec2 returnVal{m_background.GetPosition() - global};
+   // glm::vec2 returnVal{m_background.GetPosition() - global};
 
    //// change 'y' to originate in top left
-   //returnVal.y -= m_levelSize.y;
-   //returnVal *= -1;
+   // returnVal.y -= m_levelSize.y;
+   // returnVal *= -1;
 
    return global;
 }
@@ -237,11 +239,11 @@ Level::GetLocalVec(const glm::vec2& global) const
 glm::vec2
 Level::GetGlobalVec(const glm::vec2& local) const
 {
-   //glm::vec2 returnVal = local;
+   // glm::vec2 returnVal = local;
 
-   //returnVal *= -1;
-   //returnVal.y += m_levelSize.y;
-   //returnVal = m_background.GetPosition() - returnVal;
+   // returnVal *= -1;
+   // returnVal.y += m_levelSize.y;
+   // returnVal = m_background.GetPosition() - returnVal;
 
    return local;
 }
@@ -280,7 +282,7 @@ Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
 void
 Level::LoadShaders(const std::string& shaderName)
 {
-   //m_shaders.LoadShaders(shaderName);
+   // m_shaders.LoadShaders(shaderName);
 }
 
 void
@@ -293,14 +295,7 @@ Level::AddGameObject(Game& game, const glm::vec2& pos, const glm::ivec2& size, c
 void
 Level::DeleteObject(std::shared_ptr< Object > deletedObject)
 {
-   if (deletedObject->GetType() == Object::TYPE::PLAYER)
-   {
-      m_player.reset();
-   }
-   else
-   {
-      m_objects.erase(std::find(m_objects.begin(), m_objects.end(), deletedObject));
-   }
+   m_objects.erase(std::find(m_objects.begin(), m_objects.end(), deletedObject));
 }
 
 void
@@ -312,7 +307,7 @@ Level::Move(const glm::vec2& moveBy)
    }
 
    m_background.Translate(moveBy);
-   //MoveCamera(moveBy);
+   // MoveCamera(moveBy);
 }
 
 void
@@ -324,10 +319,6 @@ Level::Scale(const glm::vec2& scaleVal)
    }
 
    m_background.Scale(scaleVal);
-   if (m_player)
-   {
-      m_player->Scale(scaleVal);
-   }
 }
 
 void
@@ -345,11 +336,6 @@ Level::Rotate(float angle, bool cumulative)
    }
 
    cumulative ? m_background.RotateCumulative(angle) : m_background.Rotate(angle);
-
-   if (m_player)
-   {
-      m_player->Rotate(angle, cumulative);
-   }
 }
 
 void
@@ -383,11 +369,6 @@ Level::Render()
          obj->Render();
       }
    }
-
-   if (m_player)
-   {
-      m_player->Render();
-   }
 }
 
 void
@@ -399,8 +380,8 @@ Level::MoveObjs(const glm::vec2& moveBy, bool isCameraMovement)
    }
 }
 
-const std::vector< std::shared_ptr< GameObject > >&
-Level::GetObjects()
+std::vector< std::shared_ptr< GameObject > >
+Level::GetObjects(bool includePlayer)
 {
    return m_objects;
 }
@@ -415,25 +396,23 @@ Level::SetPlayersPosition(const glm::vec2& position)
 std::shared_ptr< GameObject >
 Level::GetGameObjectOnLocation(const glm::vec2& screenPosition)
 {
-   std::shared_ptr< GameObject > foundObject = nullptr;
+   // std::shared_ptr< GameObject > foundObject = nullptr;
 
-   if (m_player)
-   {
-      foundObject = m_player->CheckIfCollidedScreenPosion(screenPosition) ? m_player : nullptr;
+   // if (m_player)
+   //{
+   //   foundObject = m_player->CheckIfCollidedScreenPosion(screenPosition) ? m_player : nullptr;
 
-      if (foundObject)
-      {
-         return foundObject;
-      }
-   }
+   //   if (foundObject)
+   //   {
+   //      return foundObject;
+   //   }
+   //}
 
    auto objectOnLocation = std::find_if(m_objects.begin(), m_objects.end(), [screenPosition](const auto& object) {
       return object->CheckIfCollidedScreenPosion(screenPosition);
    });
 
-   foundObject = objectOnLocation != m_objects.end() ? *objectOnLocation : nullptr;
-
-   return foundObject;
+   return objectOnLocation != m_objects.end() ? *objectOnLocation : nullptr;
 }
 
 glm::ivec2
