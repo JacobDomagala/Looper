@@ -2,6 +2,7 @@
 
 #include "Common.hpp"
 #include "Object.hpp"
+#include "GameObject.hpp"
 #include "Shader.hpp"
 #include "Sprite.hpp"
 
@@ -16,9 +17,11 @@ class Editor;
 class EditorObject
 {
  public:
+     using LinkedObject = std::pair< std::shared_ptr< Object >, std::shared_ptr< GameObject > >;
+ public:
    // Constructors and destructors
    EditorObject(Editor& editor, const glm::vec2& localPosition, const glm::ivec2& size, const std::string& sprite,
-                std::shared_ptr< Object > linkedObject);
+                LinkedObject linkedObject);
    ~EditorObject() = default;
    EditorObject(EditorObject&&) = default;
 
@@ -150,7 +153,7 @@ class EditorObject
    std::string m_name;
 
    Object::ID m_objectID = -1;
-   std::shared_ptr< Object > m_linkedObject = nullptr;
+   LinkedObject m_linkedObject = {nullptr, nullptr};
    Editor& m_editor;
 
    bool m_selected = false;

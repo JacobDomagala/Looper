@@ -238,7 +238,7 @@ EditorGUI::Render()
                animatablePtr->SetAnimationType(Animatable::ANIMATION_TYPE::REVERSABLE);
             }
 
-            static bool animationVisible = animatablePtr->GetRenderAnimationSteps();
+            bool animationVisible = animatablePtr->GetRenderAnimationSteps();
             if (ImGui::Checkbox("Animation points visible", &animationVisible))
             {
                m_parent.SetRenderAnimationPoints(animationVisible);
@@ -266,7 +266,7 @@ EditorGUI::Render()
             }
 
             static int selected = 0;
-            const auto animationPoints = animatablePtr->GetAnimationKeypoints();
+            auto animationPoints = animatablePtr->GetAnimationKeypoints();
             ImGui::BeginChild("Animation Points", {0, 100}, true);
             for (int i = 0; i < animationPoints.size(); ++i)
             {
@@ -277,8 +277,10 @@ EditorGUI::Render()
                {
                   m_parent.GetCamera().SetCameraAtPosition(node->m_end);
                   m_parent.HandleObjectSelected(node->GetID(), true);
+                  m_parent.SetRenderAnimationPoints(true);
                }
             }
+            ImGui::Button("New");
             ImGui::EndChild();
          }
       }

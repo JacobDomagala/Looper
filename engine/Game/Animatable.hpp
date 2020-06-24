@@ -66,7 +66,10 @@ class Animatable
    AddAnimationNode(std::shared_ptr< AnimationPoint > pathNodeMapPosition);
 
    void
-   UpdateAnimationNode(std::shared_ptr< AnimationPoint > pathNodeMapPosition);
+   UpdateAnimationNode(const std::shared_ptr< AnimationPoint >& pathNodeMapPosition);
+
+   void
+   DeleteAnimationNode(const std::shared_ptr< AnimationPoint >& pathNodeMapPosition);
 
    void
    SetAnimationKeypoints(AnimationPoint::vectorPtr&& keypoints);

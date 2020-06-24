@@ -280,7 +280,7 @@ void
 Editor::HandleObjectSelected(Object::ID objectID, bool fromGUI)
 {
    auto it = std::find_if(m_editorObjects.begin(), m_editorObjects.end(),
-                [objectID](const auto& editorObject) { return editorObject->GetLinkedObject()->GetID() == objectID; });
+                          [objectID](const auto& editorObject) { return editorObject->GetLinkedObject()->GetID() == objectID; });
 
    if (it != m_editorObjects.end())
    {
@@ -557,7 +557,7 @@ Editor::LoadLevel(const std::string& levelPath)
    const auto pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
    std::for_each(pathfinderNodes.begin(), pathfinderNodes.end(), [this](const auto& node) {
       auto object = std::make_shared< EditorObject >(*this, node->m_position, glm::ivec2(40, 40), "NodeSprite.png",
-                                                     std::dynamic_pointer_cast< dgame::Object >(node));
+                                                     std::make_pair(std::dynamic_pointer_cast< dgame::Object >(node), nullptr));
 
       object->SetVisible(true);
       m_editorObjects.push_back(object);
@@ -576,7 +576,7 @@ Editor::LoadLevel(const std::string& levelPath)
          for (auto& point : animationPoints)
          {
             auto editorObject = std::make_shared< EditorObject >(*this, point->m_end, glm::ivec2(20, 20), "Default128.png",
-                                                                 std::dynamic_pointer_cast< dgame::Object >(point));
+                                                                 std::make_pair(std::dynamic_pointer_cast< dgame::Object >(point), object));
             editorObject->SetName("Animationpoint" + object->GetName());
 
             m_editorObjects.push_back(editorObject);
@@ -815,7 +815,7 @@ Editor::GeneratePathfinder(int density)
          {
             auto node = std::make_shared< Node >(glm::ivec2(j * grad, i * grad), i + j, std::vector< Node::NodeID >{});
             auto object = std::make_shared< EditorObject >(*this, node->m_position + offset, glm::ivec2(grad, grad), "NodeSprite.png",
-                                                           std::dynamic_pointer_cast< dgame::Object >(node));
+                                                           std::make_pair(std::dynamic_pointer_cast< dgame::Object >(node), nullptr));
             object->SetVisible(true);
             m_editorObjects.push_back(object);
          }

@@ -193,7 +193,7 @@ Animatable::AddAnimationNode(std::shared_ptr< AnimationPoint > newAnimationPoint
 }
 
 void
-Animatable::UpdateAnimationNode(std::shared_ptr< AnimationPoint > updatedAnimationPoint)
+Animatable::UpdateAnimationNode(const std::shared_ptr< AnimationPoint >& updatedAnimationPoint)
 {
    auto updatedPointIt =
       std::find_if(m_animationPoints.begin(), m_animationPoints.end(), [updatedAnimationPoint](const auto animationPoint) {
@@ -207,6 +207,21 @@ Animatable::UpdateAnimationNode(std::shared_ptr< AnimationPoint > updatedAnimati
    }
 
    UpdateNodes();
+}
+
+void
+Animatable::DeleteAnimationNode(const std::shared_ptr< AnimationPoint >& pathNodeMapPosition)
+{
+   auto it = std::find(m_animationPoints.begin(), m_animationPoints.end(), pathNodeMapPosition);
+
+   if (it != m_animationPoints.end())
+   {
+      m_animationPoints.erase(it);
+   }
+   else
+   {
+      m_logger.Log(Logger::TYPE::WARNING, "Attempting to remove non existing node with ID={}", pathNodeMapPosition->GetID());
+   }
 }
 
 void
