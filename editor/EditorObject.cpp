@@ -186,8 +186,11 @@ EditorObject::DeleteLinkedObject()
       switch (m_linkedObject.first->GetType())
       {
          case Object::TYPE::ANIMATION_POINT: {
-            std::dynamic_pointer_cast< Animatable >(m_linkedObject.second)
-               ->DeleteAnimationNode(std::dynamic_pointer_cast< AnimationPoint >(m_linkedObject.first));
+            auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_linkedObject.second);
+            animatablePtr->DeleteAnimationNode(std::dynamic_pointer_cast< AnimationPoint >(m_linkedObject.first));
+            animatablePtr->ResetAnimation();
+
+            m_linkedObject.second->Move(animatablePtr->GetAnimationStartLocation() - m_linkedObject.second->GetGlobalPosition());
          }
          break;
 

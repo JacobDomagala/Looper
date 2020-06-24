@@ -605,6 +605,35 @@ Editor::AddGameObject(GameObject::TYPE objectType)
 }
 
 void
+Editor::AddObject(Object::TYPE objectType)
+{
+   std::shared_ptr< EditorObject > newObject;
+   switch (objectType)
+   {
+      case Object::TYPE::ANIMATION_POINT: {
+         if (!m_currentSelectedGameObject)
+         {
+            m_logger.Log(Logger::TYPE::WARNING, "Added new Animation point without currently selected object!");
+         }
+         auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
+         auto newNode = animatablePtr->CreateAnimationNode();
+         newObject = std::make_shared< EditorObject >(
+            *this, newNode->m_end, glm::ivec2(20, 20), "Default128.png",
+            std::make_pair(std::dynamic_pointer_cast< dgame::Object >(newNode), m_currentSelectedGameObject));
+
+         m_editorObjects.push_back(newObject);
+         animatablePtr->ResetAnimation();
+      }
+      break;
+
+      default:
+         break;
+   }
+
+   HandleEditorObjectSelected(newObject);
+}
+
+void
 Editor::ToggleAnimateObject()
 {
    if (m_animateGameObject)

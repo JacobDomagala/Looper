@@ -91,7 +91,6 @@ Level::Load(Application* context, const std::string& pathToLevel)
             for (auto& point : enemy["animate positions"])
             {
                auto animationPoint = std::make_shared< AnimationPoint >();
-               animationPoint->m_start = beginPoint;
                animationPoint->m_end = glm::vec2(point["end position"][0], point["end position"][1]);
                animationPoint->m_timeDuration = Timer::seconds(point["time duration"]);
 
@@ -202,7 +201,6 @@ Level::AddGameObject(GameObject::TYPE objectType)
    {
       case GameObject::TYPE::ENEMY: {
          auto animationPoint = std::make_shared< AnimationPoint >();
-         animationPoint->m_start = defaultPosition;
          animationPoint->m_end = defaultPosition;
          animationPoint->m_timeDuration = Timer::seconds(1);
 

@@ -186,6 +186,16 @@ Animatable::SingleAnimate(Timer::milliseconds updateTime)
    }
 }
 
+std::shared_ptr< AnimationPoint >
+Animatable::CreateAnimationNode()
+{
+   const auto position = m_animationPoints.empty() ? glm::vec2(0.0f, 0.0f) : m_animationPoints.back()->m_end + glm::vec2(10.0f, 10.0f);
+   auto newNode = std::make_shared< AnimationPoint >(position, Timer::seconds(2));
+   AddAnimationNode(newNode);
+   
+   return newNode;
+}
+
 void
 Animatable::AddAnimationNode(std::shared_ptr< AnimationPoint > newAnimationPoint)
 {
@@ -225,7 +235,7 @@ Animatable::DeleteAnimationNode(const std::shared_ptr< AnimationPoint >& pathNod
 }
 
 void
-Animatable::SetAnimationKeypoints(AnimationPoint::vectorPtr&& keypoints)
+Animatable::SetAnimationKeypoints(const AnimationPoint::vectorPtr& keypoints)
 {
    m_animationPoints = keypoints;
 }

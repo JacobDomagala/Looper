@@ -135,7 +135,7 @@ EditorGUI::Render()
       {
          static int selected = 0;
          auto gameObjects = m_currentLevel->GetObjects();
-         
+
          ImGui::BeginChild("Loaded Objects", {0, 100}, true);
          for (auto& object : gameObjects)
          {
@@ -267,6 +267,7 @@ EditorGUI::Render()
 
             static int selected = 0;
             auto animationPoints = animatablePtr->GetAnimationKeypoints();
+            auto newNodePosition = m_currentlySelectedGameObject->GetLocalPosition();
             ImGui::BeginChild("Animation Points", {0, 100}, true);
             for (int i = 0; i < animationPoints.size(); ++i)
             {
@@ -279,8 +280,16 @@ EditorGUI::Render()
                   m_parent.HandleObjectSelected(node->GetID(), true);
                   m_parent.SetRenderAnimationPoints(true);
                }
+
+               newNodePosition = node->m_end;
             }
-            ImGui::Button("New");
+
+            if (ImGui::Button("New"))
+            {
+               m_parent.GetCamera().SetCameraAtPosition(newNodePosition);
+               m_parent.AddObject(Object::TYPE::ANIMATION_POINT);
+               m_parent.SetRenderAnimationPoints(true);
+            }
             ImGui::EndChild();
          }
       }

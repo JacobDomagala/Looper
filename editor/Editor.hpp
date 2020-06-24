@@ -72,6 +72,9 @@ class Editor : public Application
    AddGameObject(GameObject::TYPE objectType);
 
    void
+   AddObject(Object::TYPE objectType);
+
+   void
    ToggleAnimateObject();
 
    bool

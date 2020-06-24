@@ -20,14 +20,18 @@ struct AnimationPoint : public Object
    {
    }
 
+   AnimationPoint(const glm::vec2& endPosition, Timer::seconds timeDuration)
+      : Object(Object::TYPE::ANIMATION_POINT), m_end(endPosition), m_timeDuration(timeDuration)
+   {
+   }
+
    // duration of adnimation throughout entire animation section
    Timer::seconds m_timeDuration = Timer::seconds(0);
 
    // duration of pause which object will make after reaching endpoint of this animation section
    Timer::seconds m_pauseDuration = Timer::seconds(0);
 
-   glm::vec2 m_start;
-   glm::vec2 m_end;
+   glm::vec2 m_end = glm::vec2(0.0f, 0.0f);
 
    float m_rotation = 0.0f;
 };
@@ -62,6 +66,9 @@ class Animatable
    std::optional< glm::vec2 >
    SingleAnimate(Timer::milliseconds updateTime);
 
+   std::shared_ptr< AnimationPoint >  
+   CreateAnimationNode();
+
    void
    AddAnimationNode(std::shared_ptr< AnimationPoint > pathNodeMapPosition);
 
@@ -72,7 +79,7 @@ class Animatable
    DeleteAnimationNode(const std::shared_ptr< AnimationPoint >& pathNodeMapPosition);
 
    void
-   SetAnimationKeypoints(AnimationPoint::vectorPtr&& keypoints);
+   SetAnimationKeypoints(const AnimationPoint::vectorPtr& keypoints);
 
    AnimationPoint::vectorPtr
    GetAnimationKeypoints();
