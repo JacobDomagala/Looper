@@ -115,7 +115,10 @@ EditorGUI::Render()
       {
          static bool renderPathfinderNodes = false;
          static int gridDensity = 20;
-         ImGui::Checkbox("Render nodes", &renderPathfinderNodes);
+         if(ImGui::Checkbox("Render nodes", &renderPathfinderNodes))
+         {
+            m_parent.ShowWaypoints(renderPathfinderNodes);
+         }
          ImGui::SameLine();
          if (ImGui::Button("Generate Nodes"))
          {

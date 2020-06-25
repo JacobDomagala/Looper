@@ -334,7 +334,7 @@ void
 Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
 {
    auto newSelectedEditorObject = std::find_if(m_editorObjects.begin(), m_editorObjects.end(), [cursorPosition](auto& object) {
-      return object->CheckIfCollidedScreenPosion(cursorPosition);
+      return object->IsVisible() && object->CheckIfCollidedScreenPosion(cursorPosition);
    });
 
    if (newSelectedEditorObject != m_editorObjects.end())
@@ -420,7 +420,7 @@ Editor::DrawEditorObjects()
 {
    for (auto& object : m_editorObjects)
    {
-      if (object->GetVisible())
+      if (object->IsVisible())
       {
          object->Render();
       }
@@ -444,7 +444,7 @@ Editor::DrawAnimationPoints()
          auto lineStart = animatePtr->GetAnimationStartLocation();
          for (auto& object : m_editorObjects)
          {
-            if (object->GetVisible())
+            if (object->IsVisible())
             {
                if (object->GetLinkedObject())
                {
@@ -553,13 +553,12 @@ Editor::LoadLevel(const std::string& levelPath)
    m_currentLevel->Load(this, levelPath);
 
    // Populate editor objects
-
    const auto pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
    std::for_each(pathfinderNodes.begin(), pathfinderNodes.end(), [this](const auto& node) {
       auto object = std::make_shared< EditorObject >(*this, node->m_position, glm::ivec2(40, 40), "NodeSprite.png",
                                                      std::make_pair(std::dynamic_pointer_cast< dgame::Object >(node), nullptr));
 
-      object->SetVisible(true);
+      object->SetVisible(false);
       m_editorObjects.push_back(object);
       m_objects.push_back(std::dynamic_pointer_cast< dgame::Object >(node));
    });

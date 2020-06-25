@@ -277,7 +277,7 @@ EditorObject::SetVisible(bool visible)
 }
 
 bool
-EditorObject::GetVisible()
+EditorObject::IsVisible()
 {
    return m_visible;
 }

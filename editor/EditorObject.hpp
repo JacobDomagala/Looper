@@ -1,13 +1,11 @@
 #pragma once
 
 #include "Common.hpp"
-#include "Object.hpp"
 #include "GameObject.hpp"
+#include "Object.hpp"
 #include "Shader.hpp"
 #include "Sprite.hpp"
 
-//#include <GL/glew.h>
-#include <deque>
 #include <glm/glm.hpp>
 
 namespace dgame {
@@ -17,7 +15,10 @@ class Editor;
 class EditorObject
 {
  public:
-     using LinkedObject = std::pair< std::shared_ptr< Object >, std::shared_ptr< GameObject > >;
+   // Pair of Linked object and its parent
+   // Useful for handling AnimationPoints
+   using LinkedObject = std::pair< std::shared_ptr< Object >, std::shared_ptr< GameObject > >;
+
  public:
    // Constructors and destructors
    EditorObject(Editor& editor, const glm::vec2& localPosition, const glm::ivec2& size, const std::string& sprite,
@@ -51,7 +52,7 @@ class EditorObject
    SetVisible(bool visible);
 
    bool
-   GetVisible();
+   IsVisible();
 
    // Get size of object
    glm::ivec2
