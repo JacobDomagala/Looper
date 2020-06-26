@@ -151,6 +151,11 @@ Level::Save(const std::string& pathToLevel)
    // Serialize game objects
    for (const auto& object : m_objects)
    {
+      if (object->GetType() == Object::TYPE::PLAYER)
+      {
+         continue;
+      }
+
       nlohmann::json enemyJson;
 
       enemyJson["name"] = object->GetName();
