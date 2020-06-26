@@ -15,6 +15,12 @@ ShaderLibrary::GetShader(const std::string& shaderName)
 }
 
 void
+ShaderLibrary::Clear()
+{
+   s_loadedShaders.clear();
+}
+
+void
 ShaderLibrary::LoadShader(const std::string& shaderName)
 {
    s_loadedShaders[shaderName] = std::make_shared< Shader >(shaderName);

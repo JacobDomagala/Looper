@@ -656,13 +656,30 @@ Editor::IsObjectAnimated()
 void
 Editor::PlayLevel()
 {
-   if (m_levelLoaded)
-   {
-      m_game = std::make_unique< Game >();
-      m_game->Init("GameInit.txt");
-      m_game->LoadLevel(m_levelFileName);
-      m_game->MainLoop();
-   }
+   m_playGame = true;
+}
+
+void
+Editor::LaunchGameLoop()
+{
+   // Clear rednerer data
+   Renderer::Shutdown();
+   m_gui.Shutdown();
+
+   m_game = std::make_unique< Game >();
+   m_game->Init("GameInit.txt");
+   m_game->LoadLevel(m_levelFileName);
+   m_game->MainLoop();
+   m_game.reset();
+
+   m_playGame = false;
+
+   // Reinitialize renderer
+   glfwMakeContextCurrent(m_window->GetWindowHandle());
+   RenderCommand::Init();
+   Renderer::Init();
+
+   m_gui.Init();
 }
 
 void
@@ -859,7 +876,7 @@ Editor::MainLoop()
 
    while (IsRunning())
    {
-      RenderCommand::Clear();
+      m_window->Clear();
 
       InputManager::PollEvents();
 
@@ -871,6 +888,11 @@ Editor::MainLoop()
       m_gui.Render();
 
       m_window->SwapBuffers();
+
+      if (m_playGame)
+      {
+         LaunchGameLoop();
+      }
    }
 }
 

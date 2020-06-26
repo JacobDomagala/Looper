@@ -19,6 +19,9 @@ class TextureLibrary
    static std::shared_ptr< Texture >
    GetTexture(const std::string& textureName);
 
+   static void
+   Clear();
+
  private:
    static void
    LoadTexture(const std::string& textureName);

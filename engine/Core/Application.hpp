@@ -20,7 +20,7 @@ class Application : public InputListener
 {
  public:
    Application() = default;
-   ~Application() = default;
+   virtual ~Application();
 
    std::shared_ptr< Player >
    GetPlayer();

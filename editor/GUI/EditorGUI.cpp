@@ -30,6 +30,14 @@ EditorGUI::Init()
    ImGui_ImplOpenGL3_Init("#version 410");
 }
 
+void
+EditorGUI::Shutdown()
+{
+   ImGui_ImplOpenGL3_Shutdown();
+   ImGui_ImplGlfw_Shutdown();
+   ImGui::DestroyContext();
+}
+
 bool
 EditorGUI::OnEvent(const Event& e)
 {
@@ -62,6 +70,7 @@ EditorGUI::Render()
    {
       m_parent.PlayLevel();
    }
+
    ImGui::PopStyleColor(1);
    ImGui::SameLine();
    if (ImGui::Button("Save"))
@@ -115,7 +124,7 @@ EditorGUI::Render()
       {
          static bool renderPathfinderNodes = false;
          static int gridDensity = 20;
-         if(ImGui::Checkbox("Render nodes", &renderPathfinderNodes))
+         if (ImGui::Checkbox("Render nodes", &renderPathfinderNodes))
          {
             m_parent.ShowWaypoints(renderPathfinderNodes);
          }

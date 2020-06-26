@@ -20,7 +20,7 @@ class Game : public Application
 {
  public:
    Game() = default;
-   ~Game() = default;
+   ~Game() override = default;
 
    void
    MainLoop() override;

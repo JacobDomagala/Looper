@@ -26,6 +26,9 @@ class EditorGUI
    Init();
 
    void
+   Shutdown();
+
+   void
    Render();
 
    void

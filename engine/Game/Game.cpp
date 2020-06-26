@@ -33,7 +33,7 @@ Game::MainLoop()
 
       if (singleFrameTimer >= TARGET_TIME)
       {
-         RenderCommand::Clear();
+         m_window->Clear();
          Renderer::BeginScene(m_camera);
          const auto dt = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000 * Timer::AreTimersRunning()));
          ProcessInput(dt);
@@ -77,11 +77,13 @@ Game::Init(const std::string configFile)
    {
       m_logger.Log(Logger::TYPE::FATAL, "Can't open" + (ASSETS_DIR / configFile).u8string());
    }
+
    m_window = std::make_unique< Window >(WIDTH, HEIGHT, "WindowTitle");
 
    RenderCommand::Init();
    RenderCommand::SetClearColor({1.0f, 0.2f, 0.3f, 1.0f});
    Renderer::Init();
+   //RenderCommand::SetViewport(0, 0, WIDTH, HEIGHT);
 
    // m_frameBuffer.SetUp();
 
@@ -488,7 +490,7 @@ glm::ivec2
 Game::CheckCollision(glm::ivec2& moveBy)
 {
    glm::ivec2 levelSize = m_currentLevel->GetSize();
-   glm::ivec2 playerPosition = m_playerPosition;
+   glm::ivec2 playerPosition = m_player->GetLocalPosition(); // m_playerPosition;
 
    glm::ivec2 destination = playerPosition + moveBy;
    glm::ivec2 returnVal = glm::ivec2();
@@ -845,7 +847,6 @@ void
 Game::UpdateGameState()
 {
    m_currentLevel->Update(m_reverse);
-   m_player->Update(m_reverse);
 }
 
 void

@@ -15,6 +15,12 @@ TextureLibrary::GetTexture(const std::string& textureName)
 }
 
 void
+TextureLibrary::Clear()
+{
+   s_loadedTextures.clear();
+}
+
+void
 TextureLibrary::LoadTexture(const std::string& textureName)
 {
    s_loadedTextures[textureName] = std::make_shared< Texture >(textureName);

@@ -82,8 +82,8 @@ Enemy::DealWithPlayer()
       }
    }
 
-   SetCenteredLocalPosition(gameHandle->GetLevel().GetLocalVec(GameObject::m_currentState.m_centeredGlobalPosition));
-   SetLocalPosition(gameHandle->GetLevel().GetLocalVec(GameObject::m_currentState.m_globalPosition));
+   SetCenteredLocalPosition(gameHandle->GetLevel().GetLocalVec(GameObject::m_currentState.m_centeredLocalPosition));
+   SetLocalPosition(gameHandle->GetLevel().GetLocalVec(GameObject::m_currentState.m_localPosition));
 }
 
 void Enemy::Hit(int32_t /*dmg*/)

@@ -22,7 +22,7 @@ class Editor : public Application
 {
  public:
    Editor(const glm::vec2& screenSize);
-   ~Editor();
+   ~Editor() override;
 
    // APPLICATION OVERRIDES
    void
@@ -82,6 +82,9 @@ class Editor : public Application
 
    void
    PlayLevel();
+
+   void
+   LaunchGameLoop();
 
    void
    ShowWireframe(bool wireframeEnabled);
@@ -200,6 +203,8 @@ class Editor : public Application
    int32_t m_gridCellSize = 20;
 
    EditorGUI m_gui;
+
+   bool m_playGame = false;
 };
 
 } // namespace dgame

@@ -2,6 +2,7 @@
 #include "Common.hpp"
 #include "Game.hpp"
 #include "Logger.hpp"
+#include "RenderCommand.hpp"
 
 #include <functional>
 #include <glfw/glfw3.h>
@@ -69,12 +70,11 @@ Window::Resize(int32_t newWidth, int32_t newHeight)
 }
 
 void
-Window::Clear(float r, float g, float b, float a)
+Window::Clear()
 {
    glfwMakeContextCurrent(m_pWindow);
 
-   glClearColor(r, g, b, a);
-   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   RenderCommand::Clear();
 }
 
 void

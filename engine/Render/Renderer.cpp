@@ -127,6 +127,24 @@ void
 Renderer::Shutdown()
 {
    delete[] s_Data.QuadVertexBufferBase;
+   delete[] s_LineData.LineVertexBufferBase;
+   
+   s_Data.QuadVertexArray.reset();
+   s_Data.QuadVertexBuffer.reset();
+   s_LineData.LineVertexArray.reset();
+   s_LineData.LineVertexBuffer.reset();
+   s_Data.WhiteTexture.reset();
+
+   for (auto& texture : s_Data.TextureSlots)
+   {
+      texture.reset();
+   }
+   
+   TextureLibrary::Clear();
+   ShaderLibrary::Clear();
+
+   s_Data.TextureShader.reset();
+   s_LineData.LineShader.reset();
 }
 
 void

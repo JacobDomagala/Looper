@@ -20,7 +20,7 @@ class GameObject : public Object
  public:
    // Constructors and destructors
    GameObject(Application& game, const glm::vec2& localPosition, const glm::ivec2& size, const std::string& sprite, Object::TYPE type);
-   virtual ~GameObject() = default;
+   ~GameObject() override = default;
 
    virtual void Hit(int32_t) = 0;
 

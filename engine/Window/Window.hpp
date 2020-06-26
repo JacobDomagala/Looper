@@ -46,7 +46,7 @@ class Window
    SetIcon(const std::string& file);
 
    void
-   Clear(float r, float g, float b, float a);
+   Clear();
 
    void
    SwapBuffers();
@@ -105,6 +105,8 @@ class Window
    bool m_isRunning;
 
    Logger m_logger;
+
+   static inline bool s_glfwInitalized = false;
 };
 
 } // namespace dgame

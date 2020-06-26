@@ -1,8 +1,15 @@
 #include "Application.hpp"
+#include "Renderer.hpp"
+#include "Window.hpp"
 
 #include <glm/gtx/rotate_vector.hpp>
 
 namespace dgame {
+
+Application::~Application()
+{
+   Renderer::Shutdown();
+}
 
 std::shared_ptr< Player >
 Application::GetPlayer()
