@@ -160,6 +160,20 @@ EditorGUI::Render()
                m_parent.HandleGameObjectSelected(object, true);
             }
          }
+
+         std::string items[] = {"ENEMY", "PLAYER"};
+
+         if (ImGui::BeginCombo("##combo", "Add")) // The second parameter is the label previewed before opening the combo.
+         {
+            for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+            {
+               if (ImGui::Selectable(items[n].c_str()))
+               {
+                  m_parent.AddGameObject(Object::GetTypeFromString(items[n]));
+               }
+            }
+            ImGui::EndCombo();
+         }
          ImGui::EndChild();
       }
 

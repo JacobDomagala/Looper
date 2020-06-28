@@ -2,6 +2,18 @@
 
 namespace dgame {
 
+std::unordered_map< std::string, Object::TYPE > Object::s_map = {{"ENEMY", Object::TYPE::ENEMY},
+                                                                 {"PLAYER", Object::TYPE::PLAYER},
+                                                                 {"ANIMATION_POINT", Object::TYPE::ANIMATION_POINT},
+                                                                 {"PATHFINDER_NODE", Object::TYPE::PATHFINDER_NODE}};
+
+
+Object::TYPE
+Object::GetTypeFromString(const std::string& stringType)
+{
+   return s_map[stringType];
+}
+
 Object::Object(TYPE type)
 {
    m_type = type;

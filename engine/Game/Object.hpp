@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 namespace dgame {
 
@@ -21,6 +22,8 @@ class Object
       ANIMATION_POINT,
       PATHFINDER_NODE
    };
+
+   static TYPE GetTypeFromString(const std::string& stringType);
 
    Object(TYPE type);
    virtual ~Object() = default;
@@ -41,6 +44,7 @@ class Object
 
    ID m_id;
 
+   static std::unordered_map< std::string, TYPE > s_map;
    static inline ID s_currentID = 0;
 };
 

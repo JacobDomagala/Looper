@@ -205,12 +205,8 @@ Level::AddGameObject(GameObject::TYPE objectType)
    switch (objectType)
    {
       case GameObject::TYPE::ENEMY: {
-         auto animationPoint = std::make_shared< AnimationPoint >();
-         animationPoint->m_end = defaultPosition;
-         animationPoint->m_timeDuration = Timer::seconds(1);
-
          newObject = std::make_shared< Enemy >(*m_contextPointer, defaultPosition, defaultSize, defaultTexture,
-                                               AnimationPoint::vectorPtr{animationPoint});
+                                               AnimationPoint::vectorPtr{});
          m_objects.push_back(newObject);
       }
       break;
