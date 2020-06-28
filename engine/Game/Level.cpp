@@ -43,7 +43,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
          {
             const auto collision = json[key]["collision"];
             m_collision.LoadTextureFromFile(collision);
-            gameHandle->SetCollisionMap(reinterpret_cast< byte_vec4* >(m_collision.GetData()));
+            gameHandle->SetCollisionMap(m_collision.GetVec4Data());
          }
 
          m_contextPointer = context;

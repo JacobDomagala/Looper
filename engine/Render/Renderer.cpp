@@ -128,7 +128,7 @@ Renderer::Shutdown()
 {
    delete[] s_Data.QuadVertexBufferBase;
    delete[] s_LineData.LineVertexBufferBase;
-   
+
    s_Data.QuadVertexArray.reset();
    s_Data.QuadVertexBuffer.reset();
    s_LineData.LineVertexArray.reset();
@@ -139,7 +139,7 @@ Renderer::Shutdown()
    {
       texture.reset();
    }
-   
+
    TextureLibrary::Clear();
    ShaderLibrary::Clear();
 
@@ -270,8 +270,8 @@ Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, float radia
       s_Data.TextureSlotIndex++;
    }
 
-   glm::vec4 positions[] = {glm::vec4(0.5f, 0.5f, 0.0f, 1.0f), glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f), glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f),
-                            glm::vec4(0.5f, -0.5f, 0.0f, 1.0f)};
+   constexpr glm::vec4 positions[] = {glm::vec4(0.5f, 0.5f, 0.0f, 1.0f), glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f),
+                                      glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f), glm::vec4(0.5f, -0.5f, 0.0f, 1.0f)};
 
    glm::mat4 transformMat = glm::translate(glm::mat4(1.0f), glm::vec3(position, 0.0f))
                             * glm::rotate(glm::mat4(1.0f), radiansRotation, {0.0f, 0.0f, 1.0f})

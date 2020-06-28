@@ -11,16 +11,9 @@
 
 namespace dgame {
 
-// glm::vec2 destination;
-glm::vec2 cursor;
-glm::vec2 debug1;
-
-static float delta = 0.0f;
-
 void
 Game::MainLoop()
 {
-   // m_window->Start();
    Logger::SetLogType(Logger::TYPE::DEBUG);
 
    auto singleFrameTimer = 0.0f;
@@ -171,37 +164,6 @@ Game::CorrectPosition()
    }
 
    return glm::ivec2(0, 0);
-}
-
-void
-Game::RenderLine(const glm::ivec2& collided, const glm::vec3& color)
-{
-   // glm::vec2 lineCollided = m_currentLevel->GetGlobalVec(collided);
-
-   // Shader lineShader;
-   // lineShader.LoadShaders("lineShader");
-
-   // glm::vec2 vertices[2] = {glm::vec2(m_player->GetCenteredGlobalPosition()), glm::vec2(lineCollided)};
-   // glm::mat4 modelMatrix = glm::scale(glm::mat4(), glm::vec3(1.0f, 1.0f, 1.0f));
-   // GLuint lineVertexArray;
-   // GLuint lineVertexBuffer;
-   // glGenVertexArrays(1, &lineVertexArray);
-   // glGenBuffers(1, &lineVertexBuffer);
-   // glBindVertexArray(lineVertexArray);
-   // glBindBuffer(GL_ARRAY_BUFFER, lineVertexBuffer);
-   // glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 2, vertices, GL_DYNAMIC_DRAW);
-   // glEnableVertexAttribArray(0);
-   // glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
-
-   // lineShader.UseProgram();
-   // lineShader.SetUniformFloatMat4(modelMatrix, "modelMatrix");
-   // lineShader.SetUniformFloatMat4(m_camera.GetProjectionMatrix(), "projectionMatrix");
-   // lineShader.SetUniformFloatVec4(glm::vec4(color, 1.0f), "color");
-
-   // glDrawArrays(GL_LINES, 0, 2);
-   // glBindVertexArray(0);
-   // glDeleteBuffers(1, &lineVertexBuffer);
-   // glDeleteVertexArrays(1, &lineVertexArray);
 }
 
 std::pair< glm::ivec2, bool >
@@ -676,7 +638,7 @@ bool
 Game::CheckMove(glm::ivec2& moveBy)
 {
    moveBy = CheckCollision(moveBy);
-   m_player->Move(moveBy);
+   m_player->Move(moveBy, false);
 
    return glm::length(glm::vec2(moveBy)) > 0;
 }
@@ -776,7 +738,7 @@ Game::MouseEvents()
 
    /*DrawLine(m_currentLevel->GetGlobalVec(m_player->GetCenteredLocalPosition()), m_currentLevel->GetGlobalVec(tmp),
             glm::vec3(0.0f, 1.0f, 0.0f));*/
-
+   Renderer::DrawLine(m_player->GetLocalPosition(), tmp, {0.8f, 0.0f, 0.3f, 1.0f});
    ////PRIMARY FIRE
    // if (Win_Window::GetKeyState(VK_LBUTTON))
    //{
@@ -810,11 +772,11 @@ Game::MouseEvents()
       int32_t multiplier = 3;
 
       // cursor's position from center of the screen to trigger camera movement
-      float borderValue = 0.2f;
+      float borderValue = 0.5f;
 
       float cameraMovement = floor(m_deltaTime.count());
       auto cameraMoveBy = glm::ivec2();
-      cursor = m_window->GetCursorNormalized();
+      const auto cursor = m_window->GetCursorNormalized();
 
       if (cursor.x > borderValue)
       {
@@ -879,8 +841,8 @@ Game::RenderSecondPass()
 {
    // m_frameBuffer.DrawFrameBuffer();
 
-   RenderText(std::to_string(m_deltaTime.count()) + " ms",
-              glm::vec2(static_cast< float >(-WIDTH / 2), static_cast< float >(-HEIGHT / 2) + 20), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));
+  /* RenderText(std::to_string(m_deltaTime.count()) + " ms",
+              glm::vec2(static_cast< float >(-WIDTH / 2), static_cast< float >(-HEIGHT / 2) + 20), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));*/
 }
 
 void
