@@ -32,8 +32,8 @@ class Framebuffer
 
  private:
    uint32_t m_currentFrame = 0;
-   GLuint m_framebufferID;
-   GLuint m_textureID;
+   GLuint m_framebufferID = 0;
+   GLuint m_textureID = 0;
 
    // OpenGL buffers
    GLuint m_vertexArrayBuffer{};

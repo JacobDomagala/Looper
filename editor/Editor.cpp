@@ -399,7 +399,7 @@ Editor::ActionOnObject(Editor::ACTION action)
 }
 
 void
-Editor::drawContents()
+Editor::Render()
 {
    if (m_levelLoaded)
    {
@@ -795,15 +795,6 @@ Editor::GetWindowSize() const
    return m_window->GetSize();
 }
 
-glm::ivec2
-Editor::GetFrameBufferwSize() const
-{
-   int viewportWidth, viewportHeight;
-   // glfwGetFramebufferSize(mGLFWWindow, &viewportWidth, &viewportHeight);
-
-   return {viewportWidth, viewportHeight};
-}
-
 const glm::mat4&
 Editor::GetProjection() const
 {
@@ -884,7 +875,7 @@ Editor::MainLoop()
 
       Update();
 
-      drawContents();
+      Render();
       m_gui.Render();
 
       m_window->SwapBuffers();

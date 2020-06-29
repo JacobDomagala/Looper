@@ -13,7 +13,7 @@ GameObject::GameObject(Application& contextHandle, const glm::vec2& positionOnMa
    m_currentState.m_localPosition = positionOnMap;
    m_currentState.m_visible = true;
    m_collision = m_sprite.SetSpriteTextured(m_currentState.m_globalPosition, size, sprite);
-   m_currentState.m_centeredGlobalPosition = m_sprite.GetCenteredPosition();
+   m_currentState.m_centeredGlobalPosition = m_sprite.GetPosition();
    m_currentState.m_centeredLocalPosition = m_appHandle.GetLevel().GetLocalVec(m_currentState.m_centeredGlobalPosition);
    m_type = type;
 
@@ -149,14 +149,14 @@ void
 GameObject::CreateSprite(const glm::vec2& position, const glm::ivec2& size)
 {
    m_sprite.SetSprite(position, size);
-   m_currentState.m_globalPosition = m_sprite.GetCenteredPosition();
+   m_currentState.m_globalPosition = m_sprite.GetPosition();
 }
 
 void
 GameObject::CreateSpriteTextured(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName)
 {
    m_collision = m_sprite.SetSpriteTextured(position, size, fileName);
-   m_currentState.m_globalPosition = m_sprite.GetCenteredPosition();
+   m_currentState.m_globalPosition = m_sprite.GetPosition();
 }
 
 void

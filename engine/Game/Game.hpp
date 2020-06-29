@@ -69,9 +69,6 @@ class Game : public Application
    glm::vec2
    GetWindowSize() const override;
 
-   glm::ivec2
-   GetFrameBufferwSize() const override;
-
    const glm::mat4&
    GetProjection() const override;
 
@@ -82,7 +79,6 @@ class Game : public Application
    GetZoomLevel() override;
 
  private:
-   
    enum class GameState : uint8_t
    {
       MENU = 0,

@@ -11,7 +11,7 @@ EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const
    m_globalPosition = m_editor.GetLevel().GetGlobalVec(positionOnMap);
    m_localPosition = positionOnMap;
    m_sprite.SetSpriteTextured(m_globalPosition, size, sprite);
-   m_centeredGlobalPosition = m_sprite.GetCenteredPosition();
+   m_centeredGlobalPosition = m_sprite.GetPosition();
 
    m_centeredLocalPosition = m_editor.GetLevel().GetLocalVec(m_centeredGlobalPosition);
    m_linkedObject = linkedObject;
@@ -137,13 +137,13 @@ void
 EditorObject::CreateSprite(const glm::vec2& globalPosition, const glm::ivec2& size)
 {
    m_sprite.SetSprite(globalPosition, size);
-   m_globalPosition = m_sprite.GetCenteredPosition();
+   m_globalPosition = m_sprite.GetPosition();
 }
 
 void
 EditorObject::CreateSpriteTextured(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName)
 {
-   m_globalPosition = m_sprite.GetCenteredPosition();
+   m_globalPosition = m_sprite.GetPosition();
 }
 
 void

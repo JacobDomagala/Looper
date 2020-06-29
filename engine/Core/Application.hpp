@@ -63,9 +63,6 @@ class Application : public InputListener
    virtual glm::vec2
    GetWindowSize() const = 0;
 
-   virtual glm::ivec2
-   GetFrameBufferwSize() const = 0;
-
    virtual const glm::mat4&
    GetProjection() const = 0;
 

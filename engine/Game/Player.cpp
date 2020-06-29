@@ -27,7 +27,7 @@ void
 Player::CreateSprite(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName)
 {
    m_collision = m_sprite.SetSpriteTextured(position, size, fileName);
-   GameObject::m_currentState.m_centeredGlobalPosition = m_sprite.GetCenteredPosition();
+   GameObject::m_currentState.m_centeredGlobalPosition = m_sprite.GetPosition();
    GameObject::m_currentState.m_localPosition = glm::ivec2(position.x, -position.y);
 }
 

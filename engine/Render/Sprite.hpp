@@ -53,9 +53,6 @@ class Sprite
    SetInitialPosition(const glm::vec2& globalPosition);
 
    glm::vec2
-   GetCenteredPosition() const;
-
-   glm::vec2
    GetPosition() const;
 
    glm::ivec2
@@ -124,12 +121,11 @@ class Sprite
       glm::vec4 m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
       // sprite's position
-      glm::vec2 m_currentPosition;
+      glm::vec2 m_currentPosition = {0.0f, 0.0f};
 
       // transofmation values
-      glm::vec2 m_translateVal;
-      glm::vec3 m_velocity;
-      glm::vec2 m_scaleVal;
+      glm::vec2 m_translateVal = {0.0f, 0.0f};
+      glm::vec2 m_scaleVal = {1.0f, 1.0f};
 
       // angle in radians
       float m_angle = 0.0f;
@@ -142,9 +138,6 @@ class Sprite
 
    // sprite's texture
    std::shared_ptr< Texture > m_texture;
-
-   // sprite's center
-   glm::vec2 m_centeredPosition;
 
    glm::vec2 m_initialPosition;
 

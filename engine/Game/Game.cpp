@@ -774,7 +774,7 @@ Game::MouseEvents()
       // cursor's position from center of the screen to trigger camera movement
       float borderValue = 0.5f;
 
-      float cameraMovement = floor(m_deltaTime.count());
+      float cameraMovement = floorf(static_cast<float>(m_deltaTime.count()));
       auto cameraMoveBy = glm::ivec2();
       const auto cursor = m_window->GetCursorNormalized();
 
@@ -860,12 +860,6 @@ glm::vec2
 Game::GetWindowSize() const
 {
    return m_window->GetSize();
-}
-
-glm::ivec2
-Game::GetFrameBufferwSize() const
-{
-   return {};
 }
 
 const glm::mat4&

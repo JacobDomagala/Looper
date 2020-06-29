@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Application.hpp"
+#include "EditorGUI.hpp"
 #include "EditorObject.hpp"
 #include "Game.hpp"
-#include "EditorGUI.hpp"
 #include "Level.hpp"
 #include "Logger.hpp"
 #include "Object.hpp"
@@ -31,9 +31,6 @@ class Editor : public Application
    glm::vec2
    GetWindowSize() const override;
 
-   glm::ivec2
-   GetFrameBufferwSize() const override;
-
    const glm::mat4&
    GetProjection() const override;
 
@@ -57,7 +54,7 @@ class Editor : public Application
 
    // EDITOR SPECIFIC FUNCTIONS
    void
-   drawContents();
+   Render();
 
    void
    CreateLevel(const glm::ivec2& size);
@@ -113,7 +110,8 @@ class Editor : public Application
    void
    SetGridData(bool render, int32_t cellSize);
 
-   std::pair< bool, int32_t > GetGridData() const;
+   std::pair< bool, int32_t >
+   GetGridData() const;
 
    void
    HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameObject, bool fromGUI = false);
@@ -198,7 +196,7 @@ class Editor : public Application
    std::vector< std::shared_ptr< dgame::Object > > m_objects;
 
    bool m_showWaypoints = true;
-   
+
    bool m_drawGrid = false;
    int32_t m_gridCellSize = 20;
 

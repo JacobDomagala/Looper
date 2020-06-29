@@ -98,18 +98,6 @@ class Level
    }
 
    glm::vec2
-   GetCameraPosition()
-   {
-      return m_cameraPosition;
-   }
-
-   glm::ivec2
-   GetCameraTiledPosition()
-   {
-      return m_cameraTilePos;
-   }
-
-   glm::vec2
    GetLevelPosition() const
    {
       return m_background.GetPosition();
@@ -151,13 +139,10 @@ class Level
    std::shared_ptr< GameObject >
    GetGameObjectOnLocation(const glm::vec2& screenPosition);
 
-   glm::ivec2
-   GetTilePosition(const glm::vec2& position) const;
-
    const Texture&
    GetCollision() const
    {
-       return m_collision;
+      return m_collision;
    }
 
  private:
@@ -167,22 +152,17 @@ class Level
    Sprite m_background;
    Texture m_collision;
 
-   std::string m_shaderName{};
-   glm::vec2 m_cameraPosition;
+   std::string m_shaderName = "DefaultShader";
    std::shared_ptr< Player > m_player = nullptr;
 
    bool m_locked = false;
 
-   glm::ivec2 m_levelSize;
+   glm::ivec2 m_levelSize = {0, 0};
    std::vector< std::shared_ptr< GameObject > > m_objects;
-   PathFinder m_pathinder{};
+   PathFinder m_pathinder;
 
    // Tile handling stuff (deprecated)
    std::unordered_map< std::string, Texture > m_textures;
-   glm::ivec2 m_cameraTilePos;
-   glm::ivec2 m_tileSize;
-   glm::ivec2 m_numTuilesOnScreen;
-   glm::ivec2 m_tilesToDraw;
 };
 
 } // namespace dgame

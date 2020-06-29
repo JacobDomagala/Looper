@@ -62,7 +62,7 @@ class EditorGUI
    std::shared_ptr< GameObject > m_currentlySelectedGameObject;
    std::shared_ptr< Level > m_currentLevel;
 
-   float m_windowWidth;
+   float m_windowWidth = 0.0f;
 };
 
 } // namespace dgame

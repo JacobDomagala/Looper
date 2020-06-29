@@ -12,9 +12,6 @@ Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
    m_texture = std::make_shared< Texture >();
    m_texture->CreateColorTexture(size, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
-
-   m_centeredPosition.x = position.x + (size.x / 2.0f);
-   m_centeredPosition.y = position.y - (size.y / 2.0f);
    m_currentState.m_currentPosition = position;
    m_initialPosition = position;
    m_size = size;
@@ -44,7 +41,6 @@ Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size, con
 
    /*m_centeredPosition.x = position.x + (size.x / 2.0f);
    m_centeredPosition.y = position.y - (size.y / 2.0f);*/
-   m_centeredPosition = position;
    m_initialPosition = position;
    m_currentState.m_currentPosition = position;
    m_size = size;
@@ -85,12 +81,6 @@ Sprite::Render()
 {
    Renderer::DrawQuad(m_currentState.m_translateVal, m_size, m_currentState.m_angle, TextureLibrary::GetTexture(m_texture->GetName()), 1.0f,
                       m_currentState.m_color);
-}
-
-glm::vec2
-Sprite::GetCenteredPosition() const
-{
-   return m_centeredPosition;
 }
 
 glm::vec2

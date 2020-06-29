@@ -205,8 +205,8 @@ Level::AddGameObject(GameObject::TYPE objectType)
    switch (objectType)
    {
       case GameObject::TYPE::ENEMY: {
-         newObject = std::make_shared< Enemy >(*m_contextPointer, defaultPosition, defaultSize, defaultTexture,
-                                               AnimationPoint::vectorPtr{});
+         newObject =
+            std::make_shared< Enemy >(*m_contextPointer, defaultPosition, defaultSize, defaultTexture, AnimationPoint::vectorPtr{});
          m_objects.push_back(newObject);
       }
       break;
@@ -412,18 +412,6 @@ Level::GetGameObjectOnLocation(const glm::vec2& screenPosition)
    });
 
    return objectOnLocation != m_objects.end() ? *objectOnLocation : nullptr;
-}
-
-glm::ivec2
-Level::GetTilePosition(const glm::vec2& position) const
-{
-   float tmpX = position.x;
-   float tmpY = position.y;
-
-   int32_t tileX = static_cast< int32_t >(ceilf(tmpX / static_cast< float >(m_tileSize.x)));
-   int32_t tileY = static_cast< int32_t >(ceilf(tmpY / static_cast< float >(m_tileSize.y)));
-
-   return glm::ivec2(tileX, tileY);
 }
 
 Sprite&
