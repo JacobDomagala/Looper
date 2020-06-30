@@ -1,11 +1,9 @@
 #pragma once
 
 #include "Common.hpp"
-#include "Shader.hpp"
 
 #include <glad/glad.h>
-#include <array>
-#include <memory>
+#include <glm/glm.hpp>
 
 namespace dgame {
 
@@ -16,10 +14,7 @@ class Framebuffer
    ~Framebuffer() = default;
 
    void
-   SetUp();
-
-   void
-   LoadShaders(const std::string& shaderName);
+   SetUp(const glm::ivec2& windowSize);
 
    void
    BeginDrawingToTexture();
@@ -27,17 +22,12 @@ class Framebuffer
    void
    EndDrawingToTexture();
 
-   void
-   DrawFrameBuffer();
+   GLuint
+   GetTExtureID() const;
 
  private:
-   uint32_t m_currentFrame = 0;
    GLuint m_framebufferID = 0;
    GLuint m_textureID = 0;
-
-   // OpenGL buffers
-   GLuint m_vertexArrayBuffer{};
-   GLuint m_vertexBuffer{};
 };
 
 } // namespace dgame
