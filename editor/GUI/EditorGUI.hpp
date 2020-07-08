@@ -1,5 +1,5 @@
 #pragma once
-#include "Event.hpp"
+
 #include "Object.hpp"
 
 #include <memory>
@@ -53,7 +53,7 @@ class EditorGUI
    ObjectDeleted(Object::ID ID);
 
    bool
-   OnEvent(const Event& e);
+   IsBlockingEvents();
 
  private:
    Editor& m_parent;

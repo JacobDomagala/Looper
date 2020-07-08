@@ -52,7 +52,7 @@ Editor::HandleCamera()
 
    auto cameraMoveBy = glm::vec2();
 
-   if (m_levelLoaded)
+   if (!m_gui.IsBlockingEvents() && m_levelLoaded)
    {
       if (InputManager::CheckKeyPressed(GLFW_KEY_W))
       {
@@ -99,7 +99,7 @@ Editor::KeyCallback(const KeyEvent& event)
 void
 Editor::MouseScrollCallback(const MouseScrollEvent& event)
 {
-   if (!m_gui.OnEvent(event) && m_levelLoaded)
+   if (!m_gui.IsBlockingEvents() && m_levelLoaded)
    {
       m_camera.Zoom(event.m_xOffset + event.m_yOffset);
    }
@@ -108,7 +108,7 @@ Editor::MouseScrollCallback(const MouseScrollEvent& event)
 void
 Editor::MouseButtonCallback(const MouseButtonEvent& event)
 {
-   if (!m_gui.OnEvent(event) && m_levelLoaded)
+   if (!m_gui.IsBlockingEvents() && m_levelLoaded)
    {
       const auto mousePressed = event.m_action == GLFW_PRESS;
       m_mousePressedLastUpdate = mousePressed;
@@ -121,18 +121,7 @@ Editor::MouseButtonCallback(const MouseButtonEvent& event)
       {
          // Object movement finished
          ShowCursor(true);
-
-         if (m_mouseDrag && (m_movementOnEditorObject || m_movementOnGameObject))
-         {
-            if (m_movementOnEditorObject)
-            {
-               InputManager::SetMousePos(m_currentEditorObjectSelected->GetScreenPositionPixels());
-            }
-            else if (m_movementOnGameObject)
-            {
-               InputManager::SetMousePos(m_currentSelectedGameObject->GetScreenPositionPixels());
-            }
-         }
+         SetMouseOnObject();
 
          m_movementOnEditorObject = false;
          m_movementOnGameObject = false;
@@ -144,14 +133,14 @@ Editor::MouseButtonCallback(const MouseButtonEvent& event)
 void
 Editor::CursorPositionCallback(const CursorPositionEvent& event)
 {
-   if (!m_gui.OnEvent(event) && m_levelLoaded)
+   if (!m_gui.IsBlockingEvents() && m_levelLoaded)
    {
       const auto currentCursorPosition = glm::vec2(event.m_xPos, event.m_yPos);
 
       if (m_mousePressedLastUpdate && m_levelLoaded)
       {
          ShowCursor(false);
-         HandleMouseDrag(currentCursorPosition, m_lastCursorPosition - currentCursorPosition);
+         HandleMouseDrag(currentCursorPosition, currentCursorPosition - m_lastCursorPosition);
       }
       else
       {
@@ -200,7 +189,7 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
    // Move camera (or currently selected Object)
    else
    {
-      auto mouseMovementLength = glm::length(currentCursorPos - m_lastCursorPosition);
+      auto mouseMovementLength = glm::length(axis);
 
       const auto minCameraMovement = 1.0f;
       const auto maxCameraMovement = 2.0f;
@@ -215,12 +204,12 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
          // for example when animation point is selected and its placed on top of game object)
          if (m_movementOnEditorObject)
          {
-            m_currentEditorObjectSelected->Move(m_camera.ConvertToCameraVector(-moveBy), false);
+            m_currentEditorObjectSelected->Move(m_camera.ConvertToCameraVector(moveBy), false);
             m_gui.ObjectUpdated(m_currentEditorObjectSelected->GetLinkedObject()->GetID());
          }
          else
          {
-            m_currentSelectedGameObject->Move(m_camera.ConvertToCameraVector(-moveBy), false);
+            m_currentSelectedGameObject->Move(m_camera.ConvertToCameraVector(moveBy), false);
             m_currentSelectedGameObject->GetSprite().SetInitialPosition(m_currentSelectedGameObject->GetGlobalPosition());
             m_gui.ObjectUpdated(m_currentSelectedGameObject->GetID());
             auto animatable = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
@@ -233,11 +222,27 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
       }
       else
       {
-         m_camera.Move(moveBy);
+         m_camera.Move(-moveBy);
       }
    }
 
    m_mouseDrag = true;
+}
+
+void
+Editor::SetMouseOnObject()
+{
+   if (m_mouseDrag && (m_movementOnEditorObject || m_movementOnGameObject))
+   {
+      if (m_movementOnEditorObject)
+      {
+         InputManager::SetMousePos(m_currentEditorObjectSelected->GetScreenPositionPixels());
+      }
+      else if (m_movementOnGameObject)
+      {
+         InputManager::SetMousePos(m_currentSelectedGameObject->GetScreenPositionPixels());
+      }
+   }
 }
 
 void
@@ -705,14 +710,17 @@ Editor::ShowWireframe(bool wireframeEnabled)
 void
 Editor::ShowWaypoints(bool showwaypoints)
 {
-   m_showWaypoints = showwaypoints;
+   if (m_showWaypoints != showwaypoints)
+   {
+      m_showWaypoints = showwaypoints;
 
-   std::for_each(m_editorObjects.begin(), m_editorObjects.end(), [showwaypoints](auto& object) {
-      if (object->GetLinkedObject()->GetType() == dgame::Object::TYPE::PATHFINDER_NODE)
-      {
-         object->SetVisible(showwaypoints);
-      }
-   });
+      std::for_each(m_editorObjects.begin(), m_editorObjects.end(), [showwaypoints](auto& object) {
+         if (object->GetLinkedObject()->GetType() == dgame::Object::TYPE::PATHFINDER_NODE)
+         {
+            object->SetVisible(showwaypoints);
+         }
+      });
+   }
 }
 
 void
@@ -827,19 +835,22 @@ Editor::GeneratePathfinder(int density)
 
    const auto w = levelSize.x / grad;
    const auto h = levelSize.y / grad;
-   const auto offset = glm::ivec2(0, grad);
-   const auto collistion = reinterpret_cast< byte_vec4* >(m_currentLevel->GetCollision().GetData());
+   const auto offset = glm::ivec2(grad / 2, grad / 2);
+   const auto collision = m_currentLevel->GetCollision().GetVec4Data();
 
+   // height
    for (int i = 0; i < h; ++i)
    {
+      // width
       for (int j = 0; j < w; ++j)
       {
          bool obstacle = false;
+         // check if there's an obstacle in current rectangle
          for (int k = i * grad; k < i * grad + grad; ++k)
          {
             for (int l = j * grad; l < j * grad + grad; ++l)
             {
-               if (collistion[l + k * levelSize.x].w != 0)
+               if (collision[l + k * levelSize.x].w != 0)
                {
                   obstacle = true;
                   break;
@@ -849,7 +860,7 @@ Editor::GeneratePathfinder(int density)
 
          if (!obstacle)
          {
-            auto node = std::make_shared< Node >(glm::ivec2(j * grad, i * grad), i + j, std::vector< Node::NodeID >{});
+            auto node = std::make_shared< Node >(glm::ivec2(j * grad, i * grad) + offset, i + j, std::vector< Node::NodeID >{});
             auto object = std::make_shared< EditorObject >(*this, node->m_position + offset, glm::ivec2(grad, grad), "NodeSprite.png",
                                                            std::make_pair(std::dynamic_pointer_cast< dgame::Object >(node), nullptr));
             object->SetVisible(true);

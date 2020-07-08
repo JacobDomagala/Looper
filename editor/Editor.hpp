@@ -166,6 +166,9 @@ class Editor : public Application
    void
    ShowCursor(bool choice);
 
+   void
+   SetMouseOnObject();
+
    std::unique_ptr< Game > m_game;
    std::shared_ptr< Level > m_level;
 

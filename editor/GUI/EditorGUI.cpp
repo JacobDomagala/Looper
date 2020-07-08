@@ -39,11 +39,10 @@ EditorGUI::Shutdown()
 }
 
 bool
-EditorGUI::OnEvent(const Event& e)
+EditorGUI::IsBlockingEvents()
 {
-   const auto mousePos = InputManager::GetMousePos();
-   const auto windowSize = m_parent.GetWindowSize();
-   return (mousePos.x < m_windowWidth) || (mousePos.x > (windowSize.x - m_windowWidth));
+   ImGuiIO& io = ImGui::GetIO();
+   return io.WantCaptureMouse || io.WantTextInput;
 }
 
 void
@@ -106,10 +105,10 @@ EditorGUI::Render()
       ImGui::SetNextTreeNodeOpen(true);
       if (ImGui::CollapsingHeader("General"))
       {
-         auto size = m_currentLevel->GetSize();
+         auto size = m_currentLevel->GetSprite().GetSize();
          if (ImGui::InputInt2("Size", &size.x))
          {
-            m_currentLevel->GetSprite().SetSize(size);
+            m_currentLevel->SetSize(size);
          }
 
          auto [drawGrid, gridSize] = m_parent.GetGridData();
