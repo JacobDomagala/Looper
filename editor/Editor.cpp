@@ -99,7 +99,7 @@ Editor::KeyCallback(const KeyEvent& event)
 void
 Editor::MouseScrollCallback(const MouseScrollEvent& event)
 {
-   if (!m_gui.IsBlockingEvents() && m_levelLoaded)
+   if (!m_playGame && !m_gui.IsBlockingEvents() && m_levelLoaded)
    {
       m_camera.Zoom(event.m_xOffset + event.m_yOffset);
    }
@@ -108,7 +108,7 @@ Editor::MouseScrollCallback(const MouseScrollEvent& event)
 void
 Editor::MouseButtonCallback(const MouseButtonEvent& event)
 {
-   if (!m_gui.IsBlockingEvents() && m_levelLoaded)
+   if (!m_playGame && !m_gui.IsBlockingEvents() && m_levelLoaded)
    {
       const auto mousePressed = event.m_action == GLFW_PRESS;
       m_mousePressedLastUpdate = mousePressed;
@@ -133,7 +133,7 @@ Editor::MouseButtonCallback(const MouseButtonEvent& event)
 void
 Editor::CursorPositionCallback(const CursorPositionEvent& event)
 {
-   if (!m_gui.IsBlockingEvents() && m_levelLoaded)
+   if (!m_playGame && !m_gui.IsBlockingEvents() && m_levelLoaded)
    {
       const auto currentCursorPosition = glm::vec2(event.m_xPos, event.m_yPos);
 
