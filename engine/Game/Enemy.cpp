@@ -19,7 +19,7 @@ Enemy::Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size,
 
    m_timer.ToggleTimer();
    m_initialPosition = GameObject::m_currentState.m_localPosition;
-   
+
    m_animationStartPosition = m_initialPosition;
    ResetAnimation();
 }
@@ -82,8 +82,8 @@ Enemy::DealWithPlayer()
       }
    }
 
-   SetCenteredLocalPosition(gameHandle->GetLevel().GetLocalVec(GameObject::m_currentState.m_centeredLocalPosition));
-   SetLocalPosition(gameHandle->GetLevel().GetLocalVec(GameObject::m_currentState.m_localPosition));
+   //SetCenteredLocalPosition(gameHandle->GetLevel().GetLocalVec(GameObject::m_currentState.m_centeredLocalPosition));
+   //SetLocalPosition(gameHandle->GetLevel().GetLocalVec(GameObject::m_currentState.m_localPosition));
 }
 
 void Enemy::Hit(int32_t /*dmg*/)
@@ -119,7 +119,7 @@ Enemy::Visible() const
 void
 Enemy::SetTargetShootPosition(const glm::vec2& playerPos)
 {
-   auto& playerSize = m_appHandle.GetPlayer()->GetSize();
+   auto playerSize = m_appHandle.GetPlayer()->GetSize();
 
    // compute small offset value which simulates the 'aim wiggle'
    auto xOffset = fmod(rand(), playerSize.x) + (-playerSize.x / 2);
