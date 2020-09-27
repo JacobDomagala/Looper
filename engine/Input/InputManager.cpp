@@ -1,7 +1,7 @@
 #include "InputManager.hpp"
 #include "Event.hpp"
 
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 #include <iostream>
 
 namespace dgame {
