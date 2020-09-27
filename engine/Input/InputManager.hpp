@@ -64,7 +64,7 @@ class InputManager
 
  private:
    static void
-   BroadcastEvent(Event& event);
+   BroadcastEvent(const Event& event);
 
  private:
    static inline std::vector< InputListener* > s_keyListeners = {};

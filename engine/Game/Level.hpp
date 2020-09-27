@@ -109,6 +109,9 @@ class Level
       return m_levelSize;
    }
 
+   void
+   SetSize(const glm::ivec2& newSize);
+
    PathFinder&
    GetPathfinder()
    {

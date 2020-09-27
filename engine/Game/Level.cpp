@@ -420,4 +420,11 @@ Level::GetSprite()
    return m_background;
 }
 
+void
+Level::SetSize(const glm::ivec2& newSize)
+{
+   m_levelSize = newSize;
+   m_background.SetSize(newSize);
+}
+
 } // namespace dgame
