@@ -66,7 +66,7 @@ class Animatable
    std::optional< glm::vec2 >
    SingleAnimate(Timer::milliseconds updateTime);
 
-   std::shared_ptr< AnimationPoint >  
+   std::shared_ptr< AnimationPoint >
    CreateAnimationNode();
 
    void

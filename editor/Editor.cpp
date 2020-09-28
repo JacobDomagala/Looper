@@ -14,7 +14,7 @@
 
 namespace dgame {
 
-Editor::Editor(const glm::vec2& screenSize) : m_gui(*this)
+Editor::Editor(const glm::ivec2& screenSize) : m_gui(*this)
 {
    Logger::SetLogType(Logger::TYPE::DEBUG);
    m_logger.Init("Editor");
@@ -101,7 +101,7 @@ Editor::MouseScrollCallback(const MouseScrollEvent& event)
 {
    if (!m_playGame && !m_gui.IsBlockingEvents() && m_levelLoaded)
    {
-      m_camera.Zoom(event.m_xOffset + event.m_yOffset);
+      m_camera.Zoom(static_cast< float >(event.m_xOffset + event.m_yOffset));
    }
 }
 

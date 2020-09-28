@@ -1,6 +1,6 @@
+#include "GameObject.hpp"
 #include "Application.hpp"
 #include "Game.hpp"
-#include "GameObject.hpp"
 #include "Window.hpp"
 
 namespace dgame {
@@ -86,7 +86,7 @@ glm::ivec2
 GameObject::GetCenteredLocalPosition() const
 {
    return m_currentState.m_localPosition;
-   //return m_currentState.m_centeredLocalPosition;
+   // return m_currentState.m_centeredLocalPosition;
 }
 
 void
@@ -124,7 +124,7 @@ glm::vec2
 GameObject::GetCenteredGlobalPosition() const
 {
    return m_currentState.m_globalPosition;
-  // return m_currentState.m_centeredGlobalPosition;
+   // return m_currentState.m_centeredGlobalPosition;
 }
 
 const Sprite&

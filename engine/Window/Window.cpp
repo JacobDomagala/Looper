@@ -4,8 +4,8 @@
 #include "Logger.hpp"
 #include "RenderCommand.hpp"
 
-#include <functional>
 #include <GLFW/glfw3.h>
+#include <functional>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace dgame {

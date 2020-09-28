@@ -16,6 +16,8 @@ class RendererAPI
    };
 
  public:
+   virtual ~RendererAPI() = default;
+
    virtual void
    Init() = 0;
    virtual void
@@ -41,7 +43,7 @@ class RendererAPI
  protected:
    static inline bool s_initalized = false;
 
-private:
+ private:
    static inline API s_API = RendererAPI::API::OpenGL;
 };
 

@@ -5,8 +5,8 @@
 #include "Renderer.hpp"
 #include "Window.hpp"
 
-#include <fstream>
 #include <GLFW/glfw3.h>
+#include <fstream>
 #include <string>
 
 namespace dgame {
@@ -76,7 +76,7 @@ Game::Init(const std::string configFile)
    RenderCommand::Init();
    RenderCommand::SetClearColor({1.0f, 0.2f, 0.3f, 1.0f});
    Renderer::Init();
-   //RenderCommand::SetViewport(0, 0, WIDTH, HEIGHT);
+   // RenderCommand::SetViewport(0, 0, WIDTH, HEIGHT);
 
    // m_frameBuffer.SetUp();
 
@@ -774,7 +774,7 @@ Game::MouseEvents()
       // cursor's position from center of the screen to trigger camera movement
       float borderValue = 0.5f;
 
-      float cameraMovement = floorf(static_cast<float>(m_deltaTime.count()));
+      float cameraMovement = floorf(static_cast< float >(m_deltaTime.count()));
       auto cameraMoveBy = glm::ivec2();
       const auto cursor = m_window->GetCursorNormalized();
 
@@ -841,8 +841,8 @@ Game::RenderSecondPass()
 {
    // m_frameBuffer.DrawFrameBuffer();
 
-  /* RenderText(std::to_string(m_deltaTime.count()) + " ms",
-              glm::vec2(static_cast< float >(-WIDTH / 2), static_cast< float >(-HEIGHT / 2) + 20), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));*/
+   /* RenderText(std::to_string(m_deltaTime.count()) + " ms",
+               glm::vec2(static_cast< float >(-WIDTH / 2), static_cast< float >(-HEIGHT / 2) + 20), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));*/
 }
 
 void

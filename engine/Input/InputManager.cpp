@@ -47,8 +47,7 @@ InputManager::BroadcastEvent(const Event& event)
 {
    switch (event.m_type)
    {
-      case Event::EventType::KEY:
-         {
+      case Event::EventType::KEY: {
          for (auto listener : s_keyListeners)
          {
             listener->KeyCallback(static_cast< const KeyEvent& >(event));

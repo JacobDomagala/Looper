@@ -36,15 +36,15 @@ class Player : public GameObject
 
    // set position on map
    void
-   SetLocalPosition(const glm::ivec2& pos);
+   SetLocalPosition(const glm::ivec2& pos) override;
 
    // set centered (center of player's sprite) position on map
    void
-   SetCenteredLocalPosition(const glm::ivec2& pos);
+   SetCenteredLocalPosition(const glm::ivec2& pos) override;
 
    // set position in OpenGL
    void
-   SetGlobalPosition(const glm::vec2& position);
+   SetGlobalPosition(const glm::vec2& position) override;
 
    // get centered (center of player's sprite) position on screen
    // using projection matrix from OpenGL

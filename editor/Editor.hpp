@@ -21,7 +21,7 @@ class Window;
 class Editor : public Application
 {
  public:
-   Editor(const glm::vec2& screenSize);
+   Editor(const glm::ivec2& screenSize);
    ~Editor() override;
 
    // APPLICATION OVERRIDES
