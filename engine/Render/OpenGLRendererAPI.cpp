@@ -19,18 +19,15 @@ OpenGLRendererAPI::Init()
    int major, minor;
    glGetIntegerv(GL_MAJOR_VERSION, &major);
    glGetIntegerv(GL_MINOR_VERSION, &minor);
-   m_logger.Log(Logger::TYPE::DEBUG, "OpenGL Version - " + std::to_string(major) + "." + std::to_string(minor));
+   m_logger.Log(Logger::TYPE::DEBUG, "OpenGL Version - {}.{}", major, minor);
 
    glEnable(GL_DEBUG_OUTPUT);
    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
    glDebugMessageCallback(
       [](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* logger) {
-         std::string buffer(1024, 0x0);
-         const auto newSize = sprintf(&buffer[0], "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s",
-                                      (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
+         const auto buffer = fmt::format("OpenGL: type = {}, severity = {}, message = {}", type, severity, message);
 
-         buffer.resize(newSize);
          auto logg = reinterpret_cast< const Logger* >(logger);
 
          switch (severity)
@@ -88,7 +85,7 @@ OpenGLRendererAPI::DrawIndexed(const std::shared_ptr< VertexArray >& vertexArray
 void
 OpenGLRendererAPI::DrawLines(uint32_t numLines)
 {
-   glDrawArrays(GL_LINES, 0, numLines*2);
+   glDrawArrays(GL_LINES, 0, numLines * 2);
 }
 
 } // namespace dgame

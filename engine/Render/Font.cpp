@@ -4,8 +4,8 @@
 #include "Texture.hpp"
 #include "Window.hpp"
 
-#include <glad/glad.h>
 #include <ft2build.h>
+#include <glad/glad.h>
 #include <glm/glm.hpp>
 #include FT_FREETYPE_H
 
@@ -39,9 +39,9 @@ Font::SetFont(const std::string& fontName)
    {
       // Load character glyph
       if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-         m_logger.Log(Logger::TYPE::FATAL, "Error loading font face for character " + c + filePath);
+         m_logger.Log(Logger::TYPE::FATAL, "Error loading font face for character {} for font {}", c, filePath);
 
-      //FT_Load_Char(face, c, FT_LOAD_RENDER);
+      // FT_Load_Char(face, c, FT_LOAD_RENDER);
       // Generate texture
       GLuint texture;
       glGenTextures(1, &texture);

@@ -82,8 +82,8 @@ Enemy::DealWithPlayer()
       }
    }
 
-   //SetCenteredLocalPosition(gameHandle->GetLevel().GetLocalVec(GameObject::m_currentState.m_centeredLocalPosition));
-   //SetLocalPosition(gameHandle->GetLevel().GetLocalVec(GameObject::m_currentState.m_localPosition));
+   // SetCenteredLocalPosition(gameHandle->GetLevel().GetLocalVec(GameObject::m_currentState.m_centeredLocalPosition));
+   // SetLocalPosition(gameHandle->GetLevel().GetLocalVec(GameObject::m_currentState.m_localPosition));
 }
 
 void Enemy::Hit(int32_t /*dmg*/)
@@ -149,7 +149,8 @@ Enemy::Shoot()
          // if we hit anything draw a line
          if (collided.first != glm::ivec2(0, 0))
          {
-           // gameHandle->DrawLine(GameObject::m_currentState.m_centeredGlobalPosition, m_appHandle.GetLevel().GetGlobalVec(collided.first));
+            // gameHandle->DrawLine(GameObject::m_currentState.m_centeredGlobalPosition,
+            // m_appHandle.GetLevel().GetGlobalVec(collided.first));
          }
 
          m_currentState.m_timeSinceLastShot = 0.0f;
@@ -201,7 +202,7 @@ Enemy::ChasePlayer()
       }
 
       m_currentState.m_targetMovePosition = playerPos;
-         //gameHandle->GetLevel().GetPathfinder().GetNearestPosition(m_currentState.m_currentNodeIdx, playerPos);
+      // gameHandle->GetLevel().GetPathfinder().GetNearestPosition(m_currentState.m_currentNodeIdx, playerPos);
 
       if (m_currentState.m_targetMovePosition != glm::ivec2(0, 0))
       {

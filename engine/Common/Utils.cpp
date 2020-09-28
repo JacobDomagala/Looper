@@ -1,10 +1,8 @@
-#pragma once
-
 #include "Utils.hpp"
 
+#include <algorithm>
 #include <iomanip>
 #include <sstream>
-#include <algorithm>
 
 #if defined(_WIN32)
 #include <Windows.h>
@@ -210,7 +208,6 @@ file_dialog(const std::vector< std::pair< std::string, std::string > >& filetype
    auto result = file_dialog_internal(filetypes, save, false);
    return result.empty() ? "" : result.front();
 }
-
 
 
 } // namespace dgame

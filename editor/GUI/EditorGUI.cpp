@@ -150,10 +150,10 @@ EditorGUI::Render()
          ImGui::BeginChild("Loaded Objects", {0, 100}, true);
          for (auto& object : gameObjects)
          {
-            char label[128];
-            sprintf(label, "[%s] Name=%s Pos(%d,%d)", object->GetTypeString().c_str(), object->GetName().c_str(),
-                    object->GetLocalPosition().x, object->GetLocalPosition().y);
-            if (ImGui::Selectable(label))
+            auto label = fmt::format("[{}] {} ({}, {})", object->GetTypeString().c_str(), object->GetName().c_str(),
+                                     object->GetLocalPosition().x, object->GetLocalPosition().y);
+
+            if (ImGui::Selectable(label.c_str()))
             {
                m_parent.GetCamera().SetCameraAtPosition(object->GetLocalPosition());
                m_parent.HandleGameObjectSelected(object, true);
@@ -238,7 +238,7 @@ EditorGUI::Render()
       {
          if (m_currentLevel)
          {
-            ImGui::Image((ImTextureID)m_currentlySelectedGameObject->GetSprite().GetTexture().GetTextureHandle(), {150, 150});
+            ImGui::Image((void*)(intptr_t)m_currentlySelectedGameObject->GetSprite().GetTexture().GetTextureHandle(), {150, 150});
          }
       }
 
@@ -296,10 +296,10 @@ EditorGUI::Render()
             ImGui::BeginChild("Animation Points", {0, 100}, true);
             for (int i = 0; i < animationPoints.size(); ++i)
             {
-               char label[128];
                const auto& node = animationPoints[i];
-               sprintf(label, "[%d] Pos(%.1f,%.1f) Time=%ds", i, node->m_end.x, node->m_end.y, node->m_timeDuration.count());
-               if (ImGui::Selectable(label))
+               auto label =
+                  fmt::format("[{}] Pos({:.{}f},{:.{}f}) Time={}s", i, node->m_end.x, 1, node->m_end.y, 1, node->m_timeDuration.count());
+               if (ImGui::Selectable(label.c_str()))
                {
                   m_parent.GetCamera().SetCameraAtPosition(node->m_end);
                   m_parent.HandleObjectSelected(node->GetID(), true);

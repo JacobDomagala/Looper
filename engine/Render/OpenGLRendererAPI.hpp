@@ -8,6 +8,8 @@ namespace dgame {
 class OpenGLRendererAPI : public RendererAPI
 {
  public:
+   ~OpenGLRendererAPI() override = default;
+
    virtual void
    Init() override;
    virtual void

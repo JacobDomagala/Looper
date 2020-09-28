@@ -34,13 +34,11 @@ Player::CreateSprite(const glm::vec2& position, const glm::ivec2& size, const st
 void
 Player::LoadShaders(const std::string& shaderFile)
 {
-   
 }
 
 void
 Player::LoadShaders(const Shader& program)
 {
-  
 }
 
 bool

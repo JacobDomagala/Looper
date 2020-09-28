@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Object.hpp"
 #include "Common.hpp"
+#include "Object.hpp"
 #include "Shader.hpp"
 #include "Sprite.hpp"
 
-#include <glad/glad.h>
 #include <deque>
+#include <glad/glad.h>
 #include <glm/glm.hpp>
 
 namespace dgame {

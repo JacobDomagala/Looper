@@ -2,8 +2,8 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 namespace dgame {
 
@@ -23,7 +23,8 @@ class Object
       PATHFINDER_NODE
    };
 
-   static TYPE GetTypeFromString(const std::string& stringType);
+   static TYPE
+   GetTypeFromString(const std::string& stringType);
 
    Object(TYPE type);
    virtual ~Object() = default;

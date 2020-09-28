@@ -92,7 +92,7 @@ FileManager::LoadJsonFile(const std::string& pathToFile)
    }
 
    nlohmann::json json;
-   json << jsonFile;
+   jsonFile >> json;
 
    if (json.is_null())
    {

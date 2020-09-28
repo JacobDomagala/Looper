@@ -1,9 +1,8 @@
 #include "Timer.hpp"
 
-#include <ctime>
+#include <fmt/chrono.h>
 #include <iomanip>
 #include <memory>
-#include <sstream>
 
 namespace dgame {
 
@@ -35,7 +34,7 @@ Timer::AreTimersRunning()
 float
 Timer::GetFloatDeltaTime() const
 {
-   return m_deltaTime.count();
+   return static_cast< float >(m_deltaTime.count());
 }
 
 Timer::milliseconds
@@ -75,10 +74,7 @@ std::string
 Timer::GetCurrentTime()
 {
    auto time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-   std::stringstream ss;
-   ss << std::put_time(std::localtime(&time), "%T");
-
-   return ss.str();
+   return fmt::format("{:%H:%M:%S}", fmt::localtime(time));
 }
 
 } // namespace dgame

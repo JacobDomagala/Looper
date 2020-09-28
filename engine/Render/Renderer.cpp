@@ -67,7 +67,7 @@ Renderer::Init()
 {
    s_Data.QuadVertexArray = std::make_shared< VertexArray >();
 
-   s_Data.QuadVertexBuffer = std::make_shared< VertexBuffer >(s_Data.MaxVertices * sizeof(QuadVertex));
+   s_Data.QuadVertexBuffer = std::make_shared< VertexBuffer >(static_cast< uint32_t >(s_Data.MaxVertices * sizeof(QuadVertex)));
    s_Data.QuadVertexBuffer->SetLayout({{ShaderDataType::Float3, "a_Position"},
                                        {ShaderDataType::Float4, "a_Color"},
                                        {ShaderDataType::Float2, "a_TexCoord"},
@@ -114,7 +114,7 @@ Renderer::Init()
 
    s_LineData.LineVertexArray = std::make_shared< VertexArray >();
 
-   s_LineData.LineVertexBuffer = std::make_shared< VertexBuffer >(s_LineData.MaxVertices * sizeof(LineVertex));
+   s_LineData.LineVertexBuffer = std::make_shared< VertexBuffer >(static_cast< uint32_t >(s_LineData.MaxVertices * sizeof(LineVertex)));
    s_LineData.LineVertexBuffer->SetLayout({{ShaderDataType::Float3, "a_Position"}, {ShaderDataType::Float4, "a_Color"}});
    s_LineData.LineVertexArray->AddVertexBuffer(s_LineData.LineVertexBuffer);
 
@@ -266,7 +266,7 @@ Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, float radia
       }
 
       textureIndex = (float)s_Data.TextureSlotIndex;
-      s_Data.TextureSlots[s_Data.TextureSlotIndex] = texture;
+      s_Data.TextureSlots.at(s_Data.TextureSlotIndex) = texture;
       s_Data.TextureSlotIndex++;
    }
 
