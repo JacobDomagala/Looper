@@ -1,0 +1,30 @@
+name: Code quality check
+
+on: [pull_request]
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup env
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xorg-dev
+        sudo apt-get install -y cppcheck
+        sudo apt-get install -y llvm-dev
+        sudo apt-get install -y clang-tidy
+        cmake -E make_directory ${{runner.workspace}}/build
+    - name: Create compile_commands.json
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .
+
+    - name: cppcheck
+      working-directory: ${{runner.workspace}}/build
+      run: |
+        cppcheck src --enable=all --project=compile_commands.json -i$GITHUB_WORKSPACE/lib
+    - name: clang-tidy
+      working-directory: ${{runner.workspace}}/build
+      run: |
+        run-clang-tidy $GITHUB_WORKSPACE/src
