@@ -6,6 +6,7 @@ env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
   CXX: clang++-9
+  COMPILE_RESULT: empty
 
 jobs:
   build:
@@ -44,11 +45,13 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       shell: bash
       # Execute the build.  You can specify a specific target with "--target <NAME>"
-      run: cmake --build . --config $BUILD_TYPE
+      run: |
+        cmake --build . --config $BUILD_TYPE  2> >(tee "output.txt")
+        echo 'COMPILE_RESULT<<EOF' >> $GITHUB_ENV
+        cat output.txt >> $GITHUB_ENV
+        echo 'EOF' >> $GITHUB_ENV
 
-    - name: Test
-      working-directory: ${{runner.workspace}}/build
-      shell: bash
-      # Execute tests defined by the CMake configuration.
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest -C $BUILD_TYPE
+    - name: Post PR comment for warnings/errors
+      uses: JacobDomagala/CompileResultAction@master
+      with:
+        compile_result: ${{env.COMPILE_RESULT}}
