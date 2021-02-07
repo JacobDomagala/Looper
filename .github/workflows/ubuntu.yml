@@ -52,6 +52,7 @@ jobs:
         echo 'EOF' >> $GITHUB_ENV
 
     - name: Post PR comment for warnings/errors
+      if: ${{ always() }}
       uses: JacobDomagala/CompileResultAction@master
       with:
         compile_result: ${{env.COMPILE_RESULT}}
