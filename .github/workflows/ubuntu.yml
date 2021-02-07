@@ -47,6 +47,13 @@ jobs:
       # Execute the build.  You can specify a specific target with "--target <NAME>"
       run: |
         cmake --build . --config $BUILD_TYPE  2> >(tee "output.txt")
+
+    - name: Prepare warnings/errors for processing
+      if: ${{ always() }}
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      # Execute the build.  You can specify a specific target with "--target <NAME>"
+      run: |
         echo 'COMPILE_RESULT<<EOF' >> $GITHUB_ENV
         cat output.txt >> $GITHUB_ENV
         echo 'EOF' >> $GITHUB_ENV
