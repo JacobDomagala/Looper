@@ -9,6 +9,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_PATH})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTPUT_PATH})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTPUT_PATH})
 
+# Link this 'library' to use the warnings specified in CompilerWarnings.cmake
+add_library(project_warnings INTERFACE)
+
+include(cmake/compile_warnings.cmake)
+set_project_warnings(project_warnings)
+
 add_subdirectory(dependencies)
 add_subdirectory(engine)
 add_subdirectory(game)
