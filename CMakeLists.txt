@@ -15,6 +15,9 @@ add_library(project_warnings INTERFACE)
 include(cmake/compile_warnings.cmake)
 set_project_warnings(project_warnings)
 
+# allow for static analysis options
+include(cmake/static_analysis.cmake)
+
 add_subdirectory(dependencies)
 add_subdirectory(engine)
 add_subdirectory(game)

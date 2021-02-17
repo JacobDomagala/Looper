@@ -37,7 +37,7 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       run: |
         echo 'OUTPUT<<EOF' >> $GITHUB_ENV
-        echo '<details> <summary> ## CPPCHECK </summary>' >> $GITHUB_ENV
+        echo '<details> <summary> <h1> CPPCHECK </h1></summary>' >> $GITHUB_ENV
         cat cppcheck.txt >> $GITHUB_ENV
         echo '</details>' >> $GITHUB_ENV
         echo '<details> <summary> ## CLANG_TIDY </summary>' >> $GITHUB_ENV
