@@ -1,11 +1,10 @@
-name: Ubuntu
+name: Ubuntu (with static analysis)
 
 on: [pull_request]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
-  CXX: clang++-9
   COMPILE_RESULT: empty
 
 jobs:
@@ -23,14 +22,14 @@ jobs:
       run: |
         sudo apt-get update
 
-        sudo apt-get install -y xorg-dev libc++-9-dev cppcheck llvm-dev clang-tidy
+        sudo apt-get install -y xorg-dev libc++-10-dev cppcheck llvm-dev clang-tidy
         cmake -E make_directory ${{runner.workspace}}/build
 
     - name: Run CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_CPPCHECK=1\
-           -DENABLE_CLANG_TIDY=1 -DENABLE_INCLUDE_WHAT_YOU_USE=0
+           -DENABLE_CLANG_TIDY=1 -DENABLE_INCLUDE_WHAT_YOU_USE=0 -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
