@@ -18,6 +18,9 @@ set_project_warnings(project_warnings)
 # allow for static analysis options
 include(cmake/static_analysis.cmake)
 
+# Generate compile_commands.json to make it easier to work with clang based tools
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 add_subdirectory(dependencies)
 add_subdirectory(engine)
 add_subdirectory(game)
