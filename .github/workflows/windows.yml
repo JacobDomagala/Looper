@@ -19,7 +19,7 @@ jobs:
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DASSIMP_BUILD_TESTS=0\
-           -DENABLE_CPPCHECK=1 -DENABLE_CLANG_TIDY=1 -DENABLE_INCLUDE_WHAT_YOU_USE=1\
+           -DENABLE_CPPCHECK=1 -DENABLE_CLANG_TIDY=1 -DENABLE_INCLUDE_WHAT_YOU_USE=0\
            -DASSIMP_BUILD_ASSIMP_TOOLS=0 -DBUILD_SHARED_LIBS=0
 
     - name: Build
