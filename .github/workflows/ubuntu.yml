@@ -6,6 +6,7 @@ env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
   COMPILE_RESULT: empty
+  CXX: clang++
 
 jobs:
   build:
@@ -29,7 +30,7 @@ jobs:
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_CPPCHECK=0\
-           -DENABLE_CLANG_TIDY=0 -DENABLE_INCLUDE_WHAT_YOU_USE=0 -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
+           -DENABLE_CLANG_TIDY=0 -DENABLE_INCLUDE_WHAT_YOU_USE=0
 
     - name: Build
       working-directory: ${{runner.workspace}}/build

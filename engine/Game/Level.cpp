@@ -380,7 +380,7 @@ Level::MoveObjs(const glm::vec2& moveBy, bool isCameraMovement)
 }
 
 std::vector< std::shared_ptr< GameObject > >
-Level::GetObjects(bool includePlayer)
+Level::GetObjects(bool)
 {
    return m_objects;
 }
