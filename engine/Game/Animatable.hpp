@@ -21,7 +21,7 @@ struct AnimationPoint : public Object
    }
 
    AnimationPoint(const glm::vec2& endPosition, Timer::seconds timeDuration)
-      : Object(Object::TYPE::ANIMATION_POINT), m_end(endPosition), m_timeDuration(timeDuration)
+      : Object(Object::TYPE::ANIMATION_POINT), m_timeDuration(timeDuration), m_end(endPosition)
    {
    }
 

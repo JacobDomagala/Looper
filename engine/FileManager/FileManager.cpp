@@ -9,7 +9,7 @@
 namespace dgame {
 
 std::string
-FileManager::ReadFile(const std::string& fileName, FileType type)
+FileManager::ReadFile(const std::string& fileName, FileType)
 {
    std::ifstream fileHandle;
    fileHandle.open(fileName, std::ifstream::in);
