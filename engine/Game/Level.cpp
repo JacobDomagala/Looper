@@ -279,7 +279,7 @@ Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
 }
 
 void
-Level::LoadShaders(const std::string& shaderName)
+Level::LoadShaders(const std::string&)
 {
    // m_shaders.LoadShaders(shaderName);
 }
@@ -386,7 +386,7 @@ Level::GetObjects(bool includePlayer)
 }
 
 void
-Level::SetPlayersPosition(const glm::vec2& position)
+Level::SetPlayersPosition(const glm::vec2&)
 {
    // m_playerPos = position;
    // m_playerPos /= m_tileSize;

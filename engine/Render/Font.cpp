@@ -82,7 +82,7 @@ Font::SetFont(const std::string& fontName)
 }
 
 void
-Font::RenderText(const glm::mat4& projectionMatrix, std::string text, glm::vec2 position, GLfloat scale, const glm::vec3& color)
+Font::RenderText(const glm::mat4& projectionMatrix, std::string text, glm::vec2 position, GLfloat scale, const glm::vec3&)
 {
    // Activate corresponding render state
    /*m_program.UseProgram();

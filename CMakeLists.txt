@@ -13,7 +13,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTPUT_PATH})
 add_library(project_warnings INTERFACE)
 
 include(cmake/compile_warnings.cmake)
-set_project_warnings(project_warnings)
+set_target_warnings(project_warnings)
 
 # allow for static analysis options
 include(cmake/static_analysis.cmake)

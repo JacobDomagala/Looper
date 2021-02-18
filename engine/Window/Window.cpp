@@ -15,7 +15,7 @@ Window::Window(int32_t width, int32_t height, const std::string& title)
 {
    m_logger.Init("Window");
 
-   glfwSetErrorCallback([](int error, const char* description) { fprintf(stderr, "Error: %s\n", description); });
+   glfwSetErrorCallback([](int, const char* description) { fprintf(stderr, "Error: %s\n", description); });
 
    if (GLFW_TRUE != glfwInit())
    {
