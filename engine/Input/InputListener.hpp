@@ -7,6 +7,8 @@ namespace dgame {
 class InputListener
 {
  public:
+   virtual ~InputListener() = default;
+
    virtual void
    KeyCallback(const KeyEvent& )
    {
