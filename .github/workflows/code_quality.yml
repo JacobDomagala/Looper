@@ -4,6 +4,7 @@ on: [pull_request]
 
 env:
   OUTPUT: Empty
+
 jobs:
   code-quality:
     runs-on: ubuntu-latest
@@ -26,7 +27,8 @@ jobs:
     - name: cppcheck
       working-directory: ${{runner.workspace}}/build
       run: |
-        cppcheck src --enable=all --output-file=cppcheck.txt --project=compile_commands.json -i$GITHUB_WORKSPACE/dependencies
+        cppcheck src --enable=all --suppress=missingInclude --inline-suppr --inconclusive --output-file=cppcheck.txt --project=compile_commands.json -i$GITHUB_WORKSPACE/dependencies
+
 
     - name: clang-tidy
       working-directory: ${{runner.workspace}}/build

@@ -4,15 +4,16 @@ option(ENABLE_INCLUDE_WHAT_YOU_USE "Enable static analysis with include-what-you
 
 message(STATUS "PRINTING DEPENDENCIES_PATH ${DEPENDENCIES_PATH}")
 if(ENABLE_CPPCHECK)
-  find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
-  if(CMAKE_CXX_CPPCHECK)
-    list(APPEND CMAKE_CXX_CPPCHECK
-        "-i${CMAKE_CURRENT_SOURCE_DIR}"
-        "--suppress=missingInclude"
-        "--enable=all"
-        "--inline-suppr"
-        "--inconclusive"
-        )
+  find_program(CPPCHECK cppcheck)
+  if(CPPCHECK)
+    set(CMAKE_CXX_CPPCHECK
+        ${CPPCHECK}
+        --suppress=missingInclude
+        --enable=all
+        --inline-suppr
+        --inconclusive
+        -i
+        ${DEPENDENCIES_PATH})
   else()
     message(SEND_ERROR "cppcheck requested but executable not found")
   endif()
