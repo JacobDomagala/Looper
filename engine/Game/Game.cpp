@@ -171,10 +171,10 @@ Game::CheckBulletCollision(Enemy* from, glm::vec2 globalTo, int32_t range)
 {
    glm::ivec2 targetPixels = GlobalToScreen(globalTo);
 
-   float x1 = from->GetScreenPositionPixels().x;
-   float y1 = from->GetScreenPositionPixels().y;
-   float x2 = static_cast< float >(targetPixels.x);
-   float y2 = static_cast< float >(targetPixels.y);
+   auto x1 = from->GetScreenPositionPixels().x;
+   auto y1 = from->GetScreenPositionPixels().y;
+   auto x2 = static_cast< float >(targetPixels.x);
+   auto y2 = static_cast< float >(targetPixels.y);
 
    bool wasGreater = false;
    const bool steep = (fabs(y2 - y1) > fabs(x2 - x1));
