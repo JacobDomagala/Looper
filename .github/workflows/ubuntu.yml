@@ -5,7 +5,6 @@ on: [pull_request]
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
-  COMPILE_RESULT: empty
   CXX: clang++
 
 jobs:
@@ -29,7 +28,7 @@ jobs:
     - name: Run CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE\
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DWARNINGS_AS_ERRORS=ON\
            -DENABLE_SANITIZER_ADDRESS=ON -DENABLE_SANITIZER_UNDEFINED_BEHAVIOR=ON -DENABLE_SANITIZER_LEAK=ON
 
     - name: Build
@@ -38,18 +37,9 @@ jobs:
       run: |
         cmake --build . --config $BUILD_TYPE  2> >(tee "output.txt")
 
-    - name: Prepare warnings/errors for processing
-      if: ${{ always() }}
-      working-directory: ${{runner.workspace}}/build
-      shell: bash
-      run: |
-        echo 'COMPILE_RESULT<<EOF' >> $GITHUB_ENV
-        cat output.txt >> $GITHUB_ENV
-        echo 'EOF' >> $GITHUB_ENV
-
     - name: Post PR comment for warnings/errors
       if: ${{ always() }}
       uses: JacobDomagala/CompileResultAction@master
       with:
-        compile_result: ${{env.COMPILE_RESULT}}
         comment_title: UBUNTU COMPILE RESULT
+        compile_result_file: ${{runner.workspace}}/build/output.txt
