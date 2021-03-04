@@ -143,7 +143,7 @@ InputManager::GetMousePos()
 void
 InputManager::SetMousePos(const glm::vec2& position)
 {
-   glfwSetCursorPos(s_windowHandle, position.x, position.y);
+   glfwSetCursorPos(s_windowHandle, static_cast< double >(position.x), static_cast< double >(position.y));
 }
 
 } // namespace dgame

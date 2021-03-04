@@ -21,12 +21,12 @@ Texture::~Texture()
 }
 
 void
-Texture::CreateColorTexture(const glm::ivec2& size, const glm::vec3& color)
+Texture::CreateColorTexture(const glm::ivec2& size, const glm::vec3& /*color*/)
 {
    m_width = size.x;
    m_height = size.y;
 
-   const auto sizeArray = m_width * m_height * sizeof(byte_vec4);
+   const auto sizeArray = static_cast<size_t>(m_width * m_height) * sizeof(byte_vec4);
 
    m_data = std::make_unique< uint8_t[] >(sizeArray);
    std::memset(m_data.get(), 0xFF, sizeArray);
@@ -35,7 +35,7 @@ Texture::CreateColorTexture(const glm::ivec2& size, const glm::vec3& color)
 }
 
 void
-Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenum filter)
+Texture::LoadTextureFromFile(const std::string& fileName, GLenum /*wrapMode*/, GLenum /*filter*/)
 {
    auto picture = FileManager::LoadImageData(fileName);
 
@@ -47,7 +47,7 @@ Texture::LoadTextureFromFile(const std::string& fileName, GLenum wrapMode, GLenu
 }
 
 void
-Texture::LoadTextureFromMemory(const glm::ivec2& size, uint8_t* data, const std::string& name, GLenum wrapModeS, GLenum wrapModeT,
+Texture::LoadTextureFromMemory(const glm::ivec2& size, uint8_t* /*data*/, const std::string& name, GLenum wrapModeS, GLenum wrapModeT,
                                GLenum magFilter, GLenum minFilter)
 {
    m_name = name;

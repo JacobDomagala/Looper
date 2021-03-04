@@ -9,7 +9,7 @@ namespace dgame {
 void
 OpenGLRendererAPI::Init()
 {
-   int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+   int status = gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
 
    if (status != 1)
    {
@@ -25,7 +25,7 @@ OpenGLRendererAPI::Init()
    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
    glDebugMessageCallback(
-      [](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* logger) {
+      [](GLenum /*source*/, GLenum type, GLuint /*id*/, GLenum severity, GLsizei /*length*/, const GLchar* message, const void* logger) {
          const auto buffer = fmt::format("OpenGL: type = {}, severity = {}, message = {}", type, severity, message);
 
          auto logg = reinterpret_cast< const Logger* >(logger);

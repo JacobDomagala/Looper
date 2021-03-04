@@ -217,6 +217,10 @@ Level::AddGameObject(GameObject::TYPE objectType)
          m_objects.push_back(newObject);
       }
       break;
+
+      default: {
+
+      }
    }
 
    return newObject;
@@ -252,9 +256,8 @@ Level::CheckCollision(const glm::ivec2& localPos, const Player& player)
 {
    for (auto& obj : m_objects)
    {
-      float length = glm::length(glm::vec2(localPos - obj->GetCenteredLocalPosition()));
-      glm::vec2 objPos = obj->GetLocalPosition();
-      glm::vec2 objSize = obj->GetSize();
+      auto length = glm::length(glm::vec2(localPos - obj->GetCenteredLocalPosition()));
+      auto objSize = obj->GetSize();
 
       if (length < objSize.x / 2.5f)
       {

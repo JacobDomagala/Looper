@@ -99,7 +99,7 @@ class Window
    std::string m_title;
 
    // cursor position
-   glm::vec2 m_cursorPos;
+   // glm::vec2 m_cursorPos;
 
    // is windows active
    bool m_isRunning;
