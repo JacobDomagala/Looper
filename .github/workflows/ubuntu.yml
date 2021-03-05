@@ -22,7 +22,7 @@ jobs:
       run: |
         sudo apt-get update
 
-        sudo apt-get install -y xorg-dev libc++-10-dev llvm-dev
+        sudo apt-get install -y xorg-dev libc++-10-dev llvm-dev libubsan0
         cmake -E make_directory ${{runner.workspace}}/build
 
     - name: Run CMake
