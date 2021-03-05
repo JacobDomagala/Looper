@@ -10,6 +10,8 @@ set(SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/IMGUI/imgui.cpp" "${CMAKE_CURRENT_SOURC
             "${CMAKE_CURRENT_SOURCE_DIR}/IMGUI/imgui_tables.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/IMGUI/backends/imgui_impl_opengl3.cpp"
             "${CMAKE_CURRENT_SOURCE_DIR}/IMGUI/backends/imgui_impl_glfw.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/IMGUI/imgui_widgets.cpp")
 
-add_library(IMGUI INTERFACE IMPORTED GLOBAL)
-target_sources(IMGUI INTERFACE ${HEADERS} ${SOURCES})
-target_include_directories(IMGUI INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/IMGUI/" "${CMAKE_CURRENT_SOURCE_DIR}/IMGUI/backends")
+add_library(IMGUI STATIC ${HEADERS} ${SOURCES})
+target_include_directories(IMGUI SYSTEM PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/IMGUI/" "${CMAKE_CURRENT_SOURCE_DIR}/IMGUI/backends")
+
+# Needed for backend code
+target_link_libraries(IMGUI PRIVATE glfw GLAD)
