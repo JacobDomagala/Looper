@@ -43,3 +43,4 @@ jobs:
       with:
         comment_title: UBUNTU COMPILE RESULT
         compile_result_file: ${{runner.workspace}}/build/output.txt
+        exclude_dir: ${{github.workspace}}/dependencies
