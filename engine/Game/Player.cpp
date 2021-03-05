@@ -23,21 +23,21 @@ Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& s
    m_currentWeapon = m_weapons.at(0).get();
 }
 
+//void
+//Player::CreateSprite(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName)
+//{
+//   m_collision = m_sprite.SetSpriteTextured(position, size, fileName);
+//   GameObject::m_currentState.m_centeredGlobalPosition = m_sprite.GetPosition();
+//   GameObject::m_currentState.m_localPosition = glm::ivec2(position.x, -position.y);
+//}
+
 void
-Player::CreateSprite(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName)
+Player::LoadShaders(const std::string& )
 {
-   m_collision = m_sprite.SetSpriteTextured(position, size, fileName);
-   GameObject::m_currentState.m_centeredGlobalPosition = m_sprite.GetPosition();
-   GameObject::m_currentState.m_localPosition = glm::ivec2(position.x, -position.y);
 }
 
 void
-Player::LoadShaders(const std::string& shaderFile)
-{
-}
-
-void
-Player::LoadShaders(const Shader& program)
+Player::LoadShaders(const Shader& )
 {
 }
 
@@ -139,7 +139,7 @@ Player::GetReloadTime() const
 void
 Player::ChangeWepon(int32_t idx)
 {
-   m_currentWeapon = m_weapons.at(idx).get();
+   m_currentWeapon = m_weapons.at(static_cast<size_t>(idx)).get();
 }
 
 int32_t

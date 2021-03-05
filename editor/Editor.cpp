@@ -164,7 +164,7 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
       const auto movementVector = currentCursorPos - m_lastCursorPosition;
 
       const auto maxRotationAngle = 0.025f;
-      const auto angle = glm::clamp(axis.x ? movementVector.x : -movementVector.y, -maxRotationAngle, maxRotationAngle);
+      const auto angle = glm::clamp(axis.x > 0 ? movementVector.x : -movementVector.y, -maxRotationAngle, maxRotationAngle);
 
       if (m_movementOnEditorObject || m_movementOnGameObject)
       {
@@ -499,7 +499,7 @@ Editor::DrawGrid()
 
       const auto w = levelSize.x / grad;
       const auto h = levelSize.y / grad;
-      const auto offset = glm::ivec2(0, grad);
+      //const auto offset = glm::ivec2(0, grad);
 
       for (int i = 0; i <= h; ++i)
       {
@@ -688,7 +688,7 @@ Editor::LaunchGameLoop()
 }
 
 void
-Editor::ShowWireframe(bool wireframeEnabled)
+Editor::ShowWireframe(bool /*wireframeEnabled*/)
 {
    // for (auto& object : m_currentLevel->GetObjects())
    //{
@@ -735,7 +735,7 @@ Editor::SetRenderAnimationPoints(bool render)
 
       for (auto& animationPoint : animationPoints)
       {
-         auto it = std::find_if(m_editorObjects.begin(), m_editorObjects.end(), [render, &animationPoint](auto& editorObject) {
+         auto it = std::find_if(m_editorObjects.begin(), m_editorObjects.end(), [&animationPoint](auto& editorObject) {
             return editorObject->GetLinkedObject()->GetID() == animationPoint->GetID();
          });
 

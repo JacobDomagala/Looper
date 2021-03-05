@@ -13,5 +13,6 @@ target_include_directories(${MODULE_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "
                                           "${CMAKE_CURRENT_SOURCE_DIR}/Logger" "${CMAKE_CURRENT_SOURCE_DIR}/Render"
                                           "${CMAKE_CURRENT_SOURCE_DIR}/Time" "${CMAKE_CURRENT_SOURCE_DIR}/Window")
 
-target_link_libraries (${MODULE_NAME} glm glfw GLAD STB_IMAGE freetype nlohmann_json::nlohmann_json fmt IMGUI)
+target_link_libraries_system (${MODULE_NAME} PUBLIC glm glfw GLAD STB_IMAGE freetype nlohmann_json::nlohmann_json fmt IMGUI)
+target_link_libraries(${MODULE_NAME} PUBLIC project_warnings)
 target_compile_features(${MODULE_NAME} PRIVATE cxx_std_17)

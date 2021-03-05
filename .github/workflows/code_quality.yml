@@ -1,0 +1,21 @@
+name: Code quality check
+
+on: [pull_request]
+
+env:
+  OUTPUT: Empty
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Run static analysis
+      uses: JacobDomagala/StaticAnalyzeAction@master
+      with:
+        exclude_dir: dependencies
+
+
+

@@ -7,23 +7,25 @@ namespace dgame {
 class InputListener
 {
  public:
+   virtual ~InputListener() = default;
+
    virtual void
-   KeyCallback(const KeyEvent& event)
+   KeyCallback(const KeyEvent& )
    {
    }
 
    virtual void
-   MouseButtonCallback(const MouseButtonEvent& event)
+   MouseButtonCallback(const MouseButtonEvent& )
    {
    }
 
    virtual void
-   CursorPositionCallback(const CursorPositionEvent& event)
+   CursorPositionCallback(const CursorPositionEvent&)
    {
    }
 
    virtual void
-   MouseScrollCallback(const MouseScrollEvent& event)
+   MouseScrollCallback(const MouseScrollEvent& )
    {
    }
 };

@@ -15,7 +15,7 @@ Window::Window(int32_t width, int32_t height, const std::string& title)
 {
    m_logger.Init("Window");
 
-   glfwSetErrorCallback([](int error, const char* description) { fprintf(stderr, "Error: %s\n", description); });
+   glfwSetErrorCallback([](int, const char* description) { fprintf(stderr, "Error: %s\n", description); });
 
    if (GLFW_TRUE != glfwInit())
    {
@@ -95,12 +95,12 @@ Window::ShowCursor(bool choice)
 }
 
 glm::vec2
-Window::GetCursorScreenPosition(const glm::mat4& projectionMatrix)
+Window::GetCursorScreenPosition(const glm::mat4& /*projectionMatrix*/)
 {
    auto cursorPos = GetCursor();
 
    cursorPos -= glm::vec2((m_width / 2.0f), (m_height / 2.0f));
-   glm::vec2 tmpCursor = projectionMatrix * glm::vec4(cursorPos, 0.0f, 1.0f);
+   //glm::vec2 tmpCursor = projectionMatrix * glm::vec4(cursorPos, 0.0f, 1.0f);
 
    return cursorPos;
 }

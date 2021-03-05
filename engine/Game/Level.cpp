@@ -217,6 +217,10 @@ Level::AddGameObject(GameObject::TYPE objectType)
          m_objects.push_back(newObject);
       }
       break;
+
+      default: {
+
+      }
    }
 
    return newObject;
@@ -252,9 +256,8 @@ Level::CheckCollision(const glm::ivec2& localPos, const Player& player)
 {
    for (auto& obj : m_objects)
    {
-      float length = glm::length(glm::vec2(localPos - obj->GetCenteredLocalPosition()));
-      glm::vec2 objPos = obj->GetLocalPosition();
-      glm::vec2 objSize = obj->GetSize();
+      auto length = glm::length(glm::vec2(localPos - obj->GetCenteredLocalPosition()));
+      auto objSize = obj->GetSize();
 
       if (length < objSize.x / 2.5f)
       {
@@ -279,7 +282,7 @@ Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
 }
 
 void
-Level::LoadShaders(const std::string& shaderName)
+Level::LoadShaders(const std::string&)
 {
    // m_shaders.LoadShaders(shaderName);
 }
@@ -380,13 +383,13 @@ Level::MoveObjs(const glm::vec2& moveBy, bool isCameraMovement)
 }
 
 std::vector< std::shared_ptr< GameObject > >
-Level::GetObjects(bool includePlayer)
+Level::GetObjects(bool)
 {
    return m_objects;
 }
 
 void
-Level::SetPlayersPosition(const glm::vec2& position)
+Level::SetPlayersPosition(const glm::vec2&)
 {
    // m_playerPos = position;
    // m_playerPos /= m_tileSize;

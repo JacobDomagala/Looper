@@ -74,8 +74,8 @@ class Player : public GameObject
    void
    Shoot();
 
-   void
-   CreateSprite(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName);
+   /*void
+   CreateSprite(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName);*/
 
    void Hit(int32_t) override
    {

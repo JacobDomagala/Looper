@@ -102,7 +102,7 @@ Renderer::Init()
 
    int32_t samplers[s_Data.MaxTextureSlots];
    for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
-      samplers[i] = i;
+      samplers[i] = static_cast<int32_t>(i);
 
    s_Data.TextureShader = ShaderLibrary::GetShader("DefaultShader");
    s_Data.TextureShader->UseProgram();
@@ -177,13 +177,15 @@ Renderer::SendData(PrimitiveType type)
 {
    if (type == PrimitiveType::QUAD)
    {
-      uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase);
+      auto dataSize = static_cast< uint32_t >(reinterpret_cast< uint8_t* >(s_Data.QuadVertexBufferPtr)
+                                              - reinterpret_cast< uint8_t* >(s_Data.QuadVertexBufferBase));
       s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, dataSize);
       Flush(PrimitiveType::QUAD);
    }
    else
    {
-      uint32_t dataSize = (uint32_t)((uint8_t*)s_LineData.LineVertexBufferPtr - (uint8_t*)s_LineData.LineVertexBufferBase);
+      auto dataSize = static_cast< uint32_t >(reinterpret_cast< uint8_t* >(s_LineData.LineVertexBufferPtr)
+                                              - reinterpret_cast< uint8_t* >(s_LineData.LineVertexBufferBase));
       s_LineData.LineVertexBuffer->SetData(s_LineData.LineVertexBufferBase, dataSize);
       Flush(PrimitiveType::LINE);
    }
@@ -253,7 +255,7 @@ Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, float radia
    {
       if (*s_Data.TextureSlots[i] == *texture)
       {
-         textureIndex = (float)i;
+         textureIndex = static_cast<float>(i);
          break;
       }
    }
@@ -265,7 +267,7 @@ Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, float radia
          FlushAndReset(PrimitiveType::QUAD);
       }
 
-      textureIndex = (float)s_Data.TextureSlotIndex;
+      textureIndex = static_cast<float>(s_Data.TextureSlotIndex);
       s_Data.TextureSlots.at(s_Data.TextureSlotIndex) = texture;
       s_Data.TextureSlotIndex++;
    }
