@@ -7,6 +7,7 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
+#include <fmt/format.h>
 
 namespace dgame {
 
@@ -105,10 +106,10 @@ EditorGUI::Render()
       ImGui::SetNextTreeNodeOpen(true);
       if (ImGui::CollapsingHeader("General"))
       {
-         auto size = m_currentLevel->GetSprite().GetSize();
-         if (ImGui::InputInt2("Size", &size.x))
+         auto sprite_size = m_currentLevel->GetSprite().GetSize();
+         if (ImGui::InputInt2("Size", &sprite_size.x))
          {
-            m_currentLevel->SetSize(size);
+            m_currentLevel->SetSize(sprite_size);
          }
 
          auto [drawGrid, gridSize] = m_parent.GetGridData();
@@ -144,7 +145,7 @@ EditorGUI::Render()
       ImGui::SetNextTreeNodeOpen(true);
       if (ImGui::CollapsingHeader("Objects"))
       {
-         static int selected = 0;
+         //static int selected = 0;
          auto gameObjects = m_currentLevel->GetObjects();
 
          ImGui::BeginChild("Loaded Objects", {0, 100}, true);
@@ -183,9 +184,9 @@ EditorGUI::Render()
       ImGui::SetNextWindowSize(ImVec2(debugWindowWidth, debugWindowHeight));
       ImGui::Begin("Debug");
       const auto cameraPos = m_parent.GetCamera().GetPosition();
-      ImGui::Text("Camera Position %f %f", cameraPos.x, cameraPos.y);
+      ImGui::Text("Camera Position %f, %f", static_cast<double>(cameraPos.x), static_cast<double>(cameraPos.y));
       const auto cursorOpengGLPos = m_parent.ScreenToGlobal(InputManager::GetMousePos());
-      ImGui::Text("Cursor Position %f %f", cursorOpengGLPos.x, cursorOpengGLPos.y);
+      ImGui::Text("Cursor Position %f, %f", static_cast<double>(cursorOpengGLPos.x), static_cast<double>(cursorOpengGLPos.y));
       ImGui::End();
    }
 
@@ -216,14 +217,14 @@ EditorGUI::Render()
       if (ImGui::CollapsingHeader("Transform"))
       {
          auto objectPosition = m_currentlySelectedGameObject->GetLocalPosition();
-         auto size = m_currentlySelectedGameObject->GetSprite().GetSize();
+         auto sprite_size = m_currentlySelectedGameObject->GetSprite().GetSize();
          auto rotation = m_currentlySelectedGameObject->GetSprite().GetRotation(Sprite::RotationType::DEGREES);
 
          ImGui::InputInt2("Position", &objectPosition.x);
 
-         if (ImGui::SliderInt2("Size", &size.x, 10, 500))
+         if (ImGui::SliderInt2("Size", &sprite_size.x, 10, 500))
          {
-            m_currentlySelectedGameObject->SetSize(size);
+            m_currentlySelectedGameObject->SetSize(sprite_size);
          }
 
          if (ImGui::SliderFloat("Rotate", &rotation, glm::degrees(Sprite::s_ROTATIONRANGE.first),
@@ -238,7 +239,9 @@ EditorGUI::Render()
       {
          if (m_currentLevel)
          {
-            ImGui::Image((void*)(intptr_t)m_currentlySelectedGameObject->GetSprite().GetTexture().GetTextureHandle(), {150, 150});
+            ImGui::Image(
+               reinterpret_cast< void* >(static_cast< size_t >(m_currentlySelectedGameObject->GetSprite().GetTexture().GetTextureHandle())),
+               {150, 150});
          }
       }
 
@@ -290,11 +293,11 @@ EditorGUI::Render()
                   animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(timer))));
             }
 
-            static int selected = 0;
+            //static int selected = 0;
             auto animationPoints = animatablePtr->GetAnimationKeypoints();
             auto newNodePosition = m_currentlySelectedGameObject->GetLocalPosition();
             ImGui::BeginChild("Animation Points", {0, 100}, true);
-            for (int i = 0; i < animationPoints.size(); ++i)
+            for (dgame::AnimationPoint::vectorPtr::size_type i = 0; i < animationPoints.size(); ++i)
             {
                const auto& node = animationPoints[i];
                auto label =
@@ -342,7 +345,7 @@ EditorGUI::GameObjectUnselected()
 }
 
 void
-EditorGUI::EditorObjectSelected(std::shared_ptr< EditorObject > object)
+EditorGUI::EditorObjectSelected(std::shared_ptr< EditorObject > /*object*/)
 {
    // m_currentlySelectedEditorObject = object;
 }
@@ -360,12 +363,12 @@ EditorGUI::LevelLoaded(std::shared_ptr< Level > levelLoaded)
 }
 
 void
-EditorGUI::ObjectUpdated(Object::ID ID)
+EditorGUI::ObjectUpdated(Object::ID /*ID*/)
 {
 }
 
 void
-EditorGUI::ObjectDeleted(Object::ID ID)
+EditorGUI::ObjectDeleted(Object::ID /*ID*/)
 {
 }
 

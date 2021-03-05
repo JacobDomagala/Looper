@@ -146,10 +146,10 @@ class EditorObject
    bool m_visible = false;
 
    // matrices for transforming object
-   glm::mat4 m_translateMatrix;
-   glm::vec2 m_translateVal;
-   glm::mat4 m_rotateMatrix;
-   glm::mat4 m_scaleMatrix;
+   // glm::mat4 m_translateMatrix;
+   // glm::vec2 m_translateVal;
+   // glm::mat4 m_rotateMatrix;
+   // glm::mat4 m_scaleMatrix;
 
    std::string m_name;
 

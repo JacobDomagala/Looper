@@ -30,7 +30,6 @@ EditorObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 
    const auto transformed0 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[0], 0.0f, 1.0f);
    const auto transformed1 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[1], 0.0f, 1.0f);
-   const auto transformed2 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[2], 0.0f, 1.0f);
    const auto transformed3 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[3], 0.0f, 1.0f);
 
    const auto minX = transformed1.x;
@@ -128,7 +127,7 @@ EditorObject::GetSprite()
 }
 
 void
-EditorObject::SetShaders(const Shader& program)
+EditorObject::SetShaders(const Shader& /*program*/)
 {
    // m_program = program;
 }
@@ -141,7 +140,7 @@ EditorObject::CreateSprite(const glm::vec2& globalPosition, const glm::ivec2& si
 }
 
 void
-EditorObject::CreateSpriteTextured(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName)
+EditorObject::CreateSpriteTextured(const glm::vec2& /*position*/, const glm::ivec2& /*size*/, const std::string& /*fileName*/)
 {
    m_globalPosition = m_sprite.GetPosition();
 }
@@ -206,7 +205,7 @@ EditorObject::DeleteLinkedObject()
 }
 
 void
-EditorObject::Move(const glm::vec2& moveBy, bool isCameraMovement)
+EditorObject::Move(const glm::vec2& moveBy, bool /*isCameraMovement*/)
 {
    m_sprite.Translate(moveBy);
    m_globalPosition += moveBy;
@@ -260,7 +259,7 @@ EditorObject::Rotate(float angle, bool cumulative)
 }
 
 void
-EditorObject::Update(bool isReverse)
+EditorObject::Update(bool /*isReverse*/)
 {
 }
 
