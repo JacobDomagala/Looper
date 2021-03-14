@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.13)
-
 # Function to download resource from git repo
 function(FIND_AND_DOWNLOAD_GIT_RESOURCE ResourceName ResourceURL)
    if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${ResourceName})
