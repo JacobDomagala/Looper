@@ -19,7 +19,8 @@ const std::filesystem::path IMAGES_DIR = ASSETS_DIR / "Images";
 class FileManager
 {
  public:
-   template < typename T > struct ImageData
+   template < typename T >
+   struct ImageData
    {
       T m_bytes;
       glm::ivec2 m_size;

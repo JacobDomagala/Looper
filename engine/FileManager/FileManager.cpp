@@ -41,7 +41,7 @@ FileManager::LoadImageData(const std::string& imageName)
 
    if (!textureData)
    {
-      m_logger.Log(Logger::TYPE::FATAL, "FileManager::LoadImage -> " + pathToImage + " can't be opened!");
+      m_logger.Log(Logger::TYPE::FATAL, fmt::format("FileManager::LoadImage -> {} can't be opened!", pathToImage));
    }
 
    return {std::move(textureData), {w, h}, n};

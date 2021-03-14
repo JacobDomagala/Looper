@@ -22,7 +22,7 @@ Font::SetFont(const std::string& fontName)
       m_logger.Log(Logger::TYPE::FATAL, "Error initializing FreeType!");
 
    FT_Face face;
-   std::string filePath = (FONTS_DIR / fontName).u8string() + ".ttf";
+   std::string filePath = fmt::format("{}.ttf", (FONTS_DIR / fontName).u8string());
 
    if (FT_New_Face(ft, filePath.c_str(), 0, &face))
       m_logger.Log(Logger::TYPE::FATAL, "Error loading font " + filePath);
@@ -78,7 +78,7 @@ Font::SetFont(const std::string& fontName)
    glBindVertexArray(0);
    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
-   m_logger.Log(Logger::TYPE::INFO, "Loaded font: " + fontName);
+   m_logger.Log(Logger::TYPE::INFO, fmt::format("Loaded font: {}", fontName));
 }
 
 void
