@@ -33,7 +33,7 @@ FileManager::ReadFile(const std::string& fileName, FileType)
 FileManager::ImageSmart
 FileManager::LoadImageData(const std::string& imageName)
 {
-   const auto pathToImage = std::filesystem::path(IMAGES_DIR / imageName).u8string();
+   const auto pathToImage = std::filesystem::path(IMAGES_DIR / imageName).string();
    int force_channels = 0;
    int w, h, n;
 
@@ -41,7 +41,7 @@ FileManager::LoadImageData(const std::string& imageName)
 
    if (!textureData)
    {
-      m_logger.Log(Logger::TYPE::FATAL, "FileManager::LoadImage -> " + pathToImage + " can't be opened!");
+      m_logger.Log(Logger::TYPE::FATAL, fmt::format("FileManager::LoadImage -> {} can't be opened!", pathToImage));
    }
 
    return {std::move(textureData), {w, h}, n};
@@ -50,7 +50,7 @@ FileManager::LoadImageData(const std::string& imageName)
 uint8_t*
 FileManager::LoadImageRawBytes(const std::string& fileName)
 {
-   const auto pathToImage = std::filesystem::path(IMAGES_DIR / fileName).u8string();
+   const auto pathToImage = std::filesystem::path(IMAGES_DIR / fileName).string();
    int force_channels = 0;
    int w, h, n;
 
@@ -67,7 +67,7 @@ FileManager::LoadImageRawBytes(const std::string& fileName)
 FileManager::ImageRaw
 FileManager::LoadImageRawData(const std::string& fileName)
 {
-   const auto pathToImage = std::filesystem::path(IMAGES_DIR / fileName).u8string();
+   const auto pathToImage = std::filesystem::path(IMAGES_DIR / fileName).string();
    int force_channels = 0;
    int w, h, n;
 

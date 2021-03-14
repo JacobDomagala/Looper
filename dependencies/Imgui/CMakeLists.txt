@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.13)
-
 FIND_AND_DOWNLOAD_GIT_RESOURCE(IMGUI https://github.com/ocornut/imgui.git)
 
 set(HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/IMGUI/imconfig.h" "${CMAKE_CURRENT_SOURCE_DIR}/IMGUI/imgui.h" "${CMAKE_CURRENT_SOURCE_DIR}/IMGUI/imgui_internal.h"

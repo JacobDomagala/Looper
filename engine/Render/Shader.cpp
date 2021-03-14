@@ -44,7 +44,7 @@ Shader::LoadDefault()
 std::string
 Shader::ReadShaderFile(std::string fileName)
 {
-   return FileManager::ReadFile((SHADERS_DIR / fileName).u8string());
+   return FileManager::ReadFile((SHADERS_DIR / fileName).string());
 }
 
 void

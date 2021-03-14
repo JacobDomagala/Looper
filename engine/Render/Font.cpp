@@ -22,7 +22,7 @@ Font::SetFont(const std::string& fontName)
       m_logger.Log(Logger::TYPE::FATAL, "Error initializing FreeType!");
 
    FT_Face face;
-   std::string filePath = (FONTS_DIR / fontName).u8string() + ".ttf";
+   std::string filePath = fmt::format("{}.ttf", (FONTS_DIR / fontName).string());
 
    if (FT_New_Face(ft, filePath.c_str(), 0, &face))
       m_logger.Log(Logger::TYPE::FATAL, "Error loading font " + filePath);
@@ -78,7 +78,7 @@ Font::SetFont(const std::string& fontName)
    glBindVertexArray(0);
    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
-   m_logger.Log(Logger::TYPE::INFO, "Loaded font: " + fontName);
+   m_logger.Log(Logger::TYPE::INFO, fmt::format("Loaded font: {}", fontName));
 }
 
 void
@@ -97,11 +97,11 @@ Font::RenderText(const glm::mat4& /*projectionMatrix*/, std::string text, glm::v
    {
       Character ch = m_characters[*c];
 
-      GLfloat w = ch.size.x * scale;
-      GLfloat h = ch.size.y * scale;
+      GLfloat w = static_cast<float>(ch.size.x) * scale;
+      GLfloat h = static_cast<float>(ch.size.y) * scale;
 
-      GLfloat xpos = position.x + ch.bearing.x * scale;
-      GLfloat ypos = position.y + (m_characters['H'].bearing.y - ch.bearing.y) * scale;
+      GLfloat xpos = position.x + static_cast<float>(ch.bearing.x) * scale;
+      GLfloat ypos = position.y + static_cast<float>(m_characters['H'].bearing.y - ch.bearing.y) * scale;
 
       // Seems like it stores tex coords in Direct3d style FeelsBadMan
       GLfloat vertices[6][4] = {{xpos, ypos + h, 0.0, 1.0}, {xpos + w, ypos, 1.0, 0.0},     {xpos, ypos, 0.0, 0.0},
@@ -122,7 +122,7 @@ Font::RenderText(const glm::mat4& /*projectionMatrix*/, std::string text, glm::v
 
       // Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
       position.x +=
-         (ch.advance >> 6)
+         static_cast<float>(ch.advance >> 6)
          * scale; // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
    }
    glBindVertexArray(0);

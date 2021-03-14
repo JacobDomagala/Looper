@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.13)
-
 FIND_AND_DOWNLOAD_GIT_RESOURCE(glfw https://github.com/glfw/glfw.git)
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)

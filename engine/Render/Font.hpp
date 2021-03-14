@@ -26,7 +26,7 @@ class Font
    ~Font() = default;
 
    void
-   SetFont(const std::string& fileName = (ASSETS_DIR / "segoeui.ttf").u8string());
+   SetFont(const std::string& fileName);
 
    void
    RenderText(const glm::mat4& projectionMatrix, std::string text, glm::vec2 position, GLfloat scale, const glm::vec3& color);

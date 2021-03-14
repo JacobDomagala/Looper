@@ -45,7 +45,7 @@ bool
 Player::CheckCollision(const glm::ivec2& bulletPosition, Enemy const* enemy, bool enemyShooting)
 {
    // if the bullet is inside collision zone then player got hit
-   if (glm::length(glm::vec2(bulletPosition - GameObject::m_currentState.m_centeredLocalPosition)) < (m_sprite.GetSize().x) / 2.5f)
+   if (glm::length(glm::vec2(bulletPosition - GameObject::m_currentState.m_centeredLocalPosition)) < (static_cast<float>(m_sprite.GetSize().x)) / 2.5f)
    {
       if (enemyShooting)
       {

@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.13)
-
 file(GLOB HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/include/glad/*.h" "${CMAKE_CURRENT_SOURCE_DIR}/include/KHR/*.h")
 file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c")
 

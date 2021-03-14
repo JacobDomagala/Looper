@@ -139,7 +139,7 @@ Enemy::Shoot()
    m_appHandle.RenderText("POW POW", glm::vec2(128.0f, 64.0f), 1.0f, glm::vec3(0.0f, 0.1f, 0.4f));
    if (glm::length(static_cast< glm::vec2 >(m_appHandle.GetPlayer()->GetCenteredLocalPosition()
                                             - GameObject::m_currentState.m_centeredLocalPosition))
-       <= m_weapon->GetRange())
+       <= static_cast<float>(m_weapon->GetRange()))
    {
       if (m_currentState.m_timeSinceLastShot >= m_weapon->GetReloadTime())
       {
@@ -168,7 +168,7 @@ Enemy::ChasePlayer()
    auto gameHandle = ConvertToGameHandle();
 
    auto playerPos = m_currentState.m_lastPlayersPos; // m_contextHandle.GetPlayer()->GetCenteredLocalPosition();
-   auto moveBy = m_currentState.m_movementSpeed * gameHandle->GetDeltaTime().count();
+   auto moveBy = m_currentState.m_movementSpeed * static_cast<float>(gameHandle->GetDeltaTime().count());
 
    auto distanceToNode = glm::length(static_cast< glm::vec2 >(playerPos - GameObject::m_currentState.m_centeredLocalPosition));
 
@@ -221,7 +221,7 @@ Enemy::ReturnToInitialPosition()
 {
    auto gameHandle = ConvertToGameHandle();
 
-   auto moveBy = m_currentState.m_movementSpeed * gameHandle->GetDeltaTime().count();
+   auto moveBy = m_currentState.m_movementSpeed * static_cast<float>(gameHandle->GetDeltaTime().count());
    auto vectorToInitialPos = static_cast< glm::vec2 >(m_initialPosition - GameObject::m_currentState.m_centeredLocalPosition);
    auto lengthToInitialPos = glm::length(vectorToInitialPos);
    auto distanceToNode =

@@ -111,7 +111,7 @@ Animatable::CalculateNextStep(Timer::milliseconds updateTime)
    const auto timeLeft = static_cast< float >((animationDurationMs - m_currentAnimationState.m_currentTimeElapsed).count());
 
    // Make sure we don't divide by 0
-   const auto sizeOfStep = (timeLeft > 0) ? (updateTime.count() / timeLeft) : 0.0f;
+   const auto sizeOfStep = (timeLeft > 0.0f) ? (static_cast< float >(updateTime.count()) / timeLeft) : 0.0f;
 
    const auto currentAnimationSectonLength = destination - startPosition;
    const auto currentAnimationStepSize = (currentAnimationSectonLength - m_currentAnimationState.m_currentAnimationDistance) * sizeOfStep;
