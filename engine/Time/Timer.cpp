@@ -46,7 +46,7 @@ Timer::GetMsDeltaTime() const
 float
 Timer::GetTotalTime() const
 {
-   return std::chrono::duration_cast< milliseconds >(m_totalTime).count() / 1.0f;
+   return static_cast<float>(std::chrono::duration_cast< milliseconds >(m_totalTime).count());
 }
 
 void

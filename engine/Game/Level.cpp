@@ -259,7 +259,7 @@ Level::CheckCollision(const glm::ivec2& localPos, const Player& player)
       auto length = glm::length(glm::vec2(localPos - obj->GetCenteredLocalPosition()));
       auto objSize = obj->GetSize();
 
-      if (length < objSize.x / 2.5f)
+      if (length < static_cast<float>(objSize.x) / 2.5f)
       {
          obj->Hit(player.GetWeaponDmg());
 
@@ -277,7 +277,8 @@ Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
    m_locked = false;
    m_levelSize = size;
 
-   m_background.SetSpriteTextured(glm::vec2(m_levelSize.x / 2.0f, m_levelSize.y / 2.0f), size, fileName);
+   m_background.SetSpriteTextured(glm::vec2(static_cast< float >(m_levelSize.x) / 2.0f, static_cast< float >(m_levelSize.y) / 2.0f), size,
+                                  fileName);
    // m_shaders.LoadDefault();
 }
 

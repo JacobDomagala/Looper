@@ -282,7 +282,7 @@ EditorGUI::Render()
             const auto animationDuration = static_cast< float >(Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count());
             if (m_parent.IsObjectAnimated())
             {
-               timer += m_parent.GetDeltaTime().count();
+               timer += static_cast<float>(m_parent.GetDeltaTime().count());
                timer = glm::min(animationDuration, timer);
             }
 

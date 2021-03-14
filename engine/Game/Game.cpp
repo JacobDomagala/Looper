@@ -64,11 +64,11 @@ Game::Init(const std::string configFile)
    m_logger.Init("Game");
    m_isGame = true;
 
-   std::ifstream initFile((ASSETS_DIR / configFile).u8string());
+   std::ifstream initFile((ASSETS_DIR / configFile).string());
 
    if (!initFile)
    {
-      m_logger.Log(Logger::TYPE::FATAL, "Can't open" + (ASSETS_DIR / configFile).u8string());
+      m_logger.Log(Logger::TYPE::FATAL, "Can't open" + (ASSETS_DIR / configFile).string());
    }
 
    m_window = std::make_unique< Window >(WIDTH, HEIGHT, "WindowTitle");
@@ -201,16 +201,21 @@ Game::CheckBulletCollision(Enemy* from, glm::vec2 globalTo, int32_t range)
 
    glm::ivec2 levelSize = m_currentLevel->GetSize();
 
-   for (int32_t x = static_cast< int32_t >(x1); x < x1 + range; x++)
+   // Temporal fix to prevent warnings
+   // Collision logic has to be rewritten anyway
+   auto const int_x1 = static_cast< int32_t >(x1);
+   auto const int_y1 = static_cast< int32_t >(y1);
+
+   for (int32_t x = int_x1; x < int_x1 + range; x++)
    {
       if (steep)
       {
          // y,x
          glm::ivec2 tmpPos = glm::ivec2();
          if (!wasGreater)
-            tmpPos = from->GetCenteredLocalPosition() + glm::ivec2(y - y1, x - x1);
+            tmpPos = from->GetCenteredLocalPosition() + glm::ivec2(y - int_y1, x - int_x1);
          else
-            tmpPos = from->GetCenteredLocalPosition() - glm::ivec2(y - y1, x - x1);
+            tmpPos = from->GetCenteredLocalPosition() - glm::ivec2(y - int_y1, x - int_x1);
 
          if (!m_player->CheckCollision(tmpPos, from))
          {
@@ -229,11 +234,11 @@ Game::CheckBulletCollision(Enemy* from, glm::vec2 globalTo, int32_t range)
          glm::ivec2 tmpPos = glm::ivec2();
          if (!wasGreater)
          {
-            tmpPos = from->GetCenteredLocalPosition() + glm::ivec2(x - x1, y - y1);
+            tmpPos = from->GetCenteredLocalPosition() + glm::ivec2(x - int_x1, y - int_y1);
          }
          else
          {
-            tmpPos = from->GetCenteredLocalPosition() - glm::ivec2(x - x1, y - y1);
+            tmpPos = from->GetCenteredLocalPosition() - glm::ivec2(x - int_x1, y - int_y1);
          }
 
          if (!m_player->CheckCollision(tmpPos, from))
@@ -292,16 +297,21 @@ Game::IsPlayerInVision(Enemy* from, int32_t range)
 
    glm::ivec2 levelSize = m_currentLevel->GetSize();
 
-   for (int32_t x = static_cast< int32_t >(x1); x < x1 + range; x++)
+   // Temporal fix to prevent warnings
+   // Collision logic has to be rewritten anyway
+   auto const int_x1 = static_cast< int32_t >(x1);
+   auto const int_y1 = static_cast< int32_t >(y1);
+
+   for (int32_t x = int_x1; x < int_x1 + range; x++)
    {
       if (steep)
       {
          // y,x
          glm::ivec2 tmpPos = glm::ivec2();
          if (!wasGreater)
-            tmpPos = from->GetCenteredLocalPosition() + glm::ivec2(y - y1, x - x1);
+            tmpPos = from->GetCenteredLocalPosition() + glm::ivec2(y - int_y1, x - int_x1);
          else
-            tmpPos = from->GetCenteredLocalPosition() - glm::ivec2(y - y1, x - x1);
+            tmpPos = from->GetCenteredLocalPosition() - glm::ivec2(y - int_y1, x - int_x1);
 
          if (!m_player->CheckCollision(tmpPos, from, false))
          {
@@ -320,11 +330,11 @@ Game::IsPlayerInVision(Enemy* from, int32_t range)
          glm::ivec2 tmpPos = glm::ivec2();
          if (!wasGreater)
          {
-            tmpPos = from->GetCenteredLocalPosition() + glm::ivec2(x - x1, y - y1);
+            tmpPos = from->GetCenteredLocalPosition() + glm::ivec2(x - int_x1, y - int_y1);
          }
          else
          {
-            tmpPos = from->GetCenteredLocalPosition() - glm::ivec2(x - x1, y - y1);
+            tmpPos = from->GetCenteredLocalPosition() - glm::ivec2(x - int_x1, y - int_y1);
          }
 
          if (!m_player->CheckCollision(tmpPos, from, false))
@@ -384,7 +394,12 @@ Game::CheckBulletCollision(int32_t range)
 
    glm::ivec2 levelSize = m_currentLevel->GetSize();
 
-   for (auto x = static_cast< int32_t >(x1); x < maxX + range; x++)
+   // Temporal fix to prevent warnings
+   // Collision logic has to be rewritten anyway
+   auto const int_x1 = static_cast< int32_t >(x1);
+   auto const int_y1 = static_cast< int32_t >(y1);
+
+   for (auto x = int_x1; x < maxX + range; x++)
    {
       if (steep)
       {
@@ -392,11 +407,11 @@ Game::CheckBulletCollision(int32_t range)
          glm::ivec2 tmpPos = glm::ivec2();
          if (!wasGreater)
          {
-            tmpPos = m_player->GetCenteredLocalPosition() + glm::ivec2(y - y1, x - x1);
+            tmpPos = m_player->GetCenteredLocalPosition() + glm::ivec2(y - int_y1, x - int_x1);
          }
          else
          {
-            tmpPos = m_player->GetCenteredLocalPosition() - glm::ivec2(y - y1, x - x1);
+            tmpPos = m_player->GetCenteredLocalPosition() - glm::ivec2(y - int_y1, x - int_x1);
          }
 
          if (!m_currentLevel->CheckCollision(tmpPos, *m_player))
@@ -416,11 +431,11 @@ Game::CheckBulletCollision(int32_t range)
          glm::ivec2 tmpPos = glm::ivec2();
          if (!wasGreater)
          {
-            tmpPos = m_player->GetCenteredLocalPosition() + glm::ivec2(x - x1, y - y1);
+            tmpPos = m_player->GetCenteredLocalPosition() + glm::ivec2(x - int_x1, y - int_y1);
          }
          else
          {
-            tmpPos = m_player->GetCenteredLocalPosition() - glm::ivec2(x - x1, y - y1);
+            tmpPos = m_player->GetCenteredLocalPosition() - glm::ivec2(x - int_x1, y - int_y1);
          }
 
          if (!m_currentLevel->CheckCollision(tmpPos, *m_player))
@@ -643,8 +658,8 @@ Game::CheckMove(glm::ivec2& moveBy)
 void
 Game::KeyEvents()
 {
-   int32_t cameraMovement = static_cast< int32_t >(0.8f * m_deltaTime.count());
-   int32_t playerMovement = static_cast< int32_t >(0.5f * m_deltaTime.count());
+   int32_t cameraMovement = static_cast< int32_t >(0.8f * static_cast<float>(m_deltaTime.count()));
+   int32_t playerMovement = static_cast< int32_t >(0.5f * static_cast<float>(m_deltaTime.count()));
 
    glm::ivec2 playerMoveBy = glm::ivec2();
    glm::ivec2 cameraMoveBy = glm::ivec2();
@@ -777,22 +792,22 @@ Game::MouseEvents()
 
       if (cursor.x > borderValue)
       {
-         float someX = (cursor.x - borderValue) * multiplier;
+         float someX = (cursor.x - borderValue) * static_cast<float>(multiplier);
          cameraMoveBy += glm::vec2(cameraMovement * someX, 0.0f);
       }
       else if (cursor.x < -borderValue)
       {
-         float someX = (cursor.x + borderValue) * multiplier;
+         float someX = (cursor.x + borderValue) * static_cast<float>(multiplier);
          cameraMoveBy += glm::vec2(cameraMovement * someX, 0.0f);
       }
       if (cursor.y > borderValue)
       {
-         float someY = (cursor.y - borderValue) * multiplier;
+         float someY = (cursor.y - borderValue) * static_cast<float>(multiplier);
          cameraMoveBy += glm::vec2(0.0f, cameraMovement * someY);
       }
       else if (cursor.y < -borderValue)
       {
-         float someY = (cursor.y + borderValue) * multiplier;
+         float someY = (cursor.y + borderValue) * static_cast<float>(multiplier);
          cameraMoveBy += glm::vec2(0.0f, cameraMovement * someY);
       }
       if (glm::length(glm::vec2(cameraMoveBy)) > 0.0f)

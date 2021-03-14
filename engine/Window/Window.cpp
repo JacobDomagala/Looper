@@ -99,7 +99,7 @@ Window::GetCursorScreenPosition(const glm::mat4& /*projectionMatrix*/)
 {
    auto cursorPos = GetCursor();
 
-   cursorPos -= glm::vec2((m_width / 2.0f), (m_height / 2.0f));
+   cursorPos -= glm::vec2((static_cast< float >(m_width) / 2.0f), (static_cast< float >(m_height) / 2.0f));
    //glm::vec2 tmpCursor = projectionMatrix * glm::vec4(cursorPos, 0.0f, 1.0f);
 
    return cursorPos;
@@ -110,7 +110,7 @@ Window::GetCursorNormalized()
 {
    auto cursorPos = GetCursor();
 
-   glm::dvec2 centerOfScreen(m_width / 2.0f, m_height / 2.0f);
+   glm::dvec2 centerOfScreen(static_cast< float >(m_width) / 2.0f, static_cast< float >(m_height) / 2.0f);
 
    cursorPos -= centerOfScreen;
    cursorPos /= centerOfScreen;
