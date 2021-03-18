@@ -26,13 +26,13 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       shell: bash
       run: |
-        cmake --build . --config $BUILD_TYPE >> output.txt 2>&1
+        cmake --build . --config $BUILD_TYPE
 
-    - name: Post PR comment for warnings/errors
-      if: ${{ always() }}
-      uses: JacobDomagala/CompileResultAction@master
-      with:
-        compile_result_file: ${{runner.workspace}}/build/output.txt
-        comment_title: WINDOWS COMPILE RESULT
-        compiler: MSVC
-        exclude_dir: ${{github.workspace}}/dependencies
+    # - name: Post PR comment for warnings/errors
+    #   if: ${{ always() }}
+    #   uses: JacobDomagala/CompileResultAction@master
+    #   with:
+    #     compile_result_file: ${{runner.workspace}}/build/output.txt
+    #     comment_title: WINDOWS COMPILE RESULT
+    #     compiler: MSVC
+    #     exclude_dir: ${{github.workspace}}/dependencies
