@@ -7,7 +7,6 @@
 #include <deque>
 #include <glm/glm.hpp>
 #include <memory>
-#include <optional>
 #include <vector>
 
 namespace dgame {
@@ -63,7 +62,7 @@ class Animatable
 
    // Perform single animation route
    // Returns animate distance or empty when animation is finished
-   std::optional< glm::vec2 >
+   glm::vec2
    SingleAnimate(Timer::milliseconds updateTime);
 
    std::shared_ptr< AnimationPoint >

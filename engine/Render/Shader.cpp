@@ -3,7 +3,6 @@
 
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
-
 namespace dgame {
 
 Shader::Shader(const std::string& shaderName)
@@ -116,17 +115,16 @@ Shader::CheckLinkStatus(GLuint programID)
    }
 }
 
-std::optional< GLint >
+GLint
 Shader::GetUniformLocation(const std::string& uniformName)
 {
    GLint location = glGetUniformLocation(m_programID, uniformName.c_str());
    if (!location)
    {
       m_logger.Log(Logger::TYPE::WARNING, "Uniform location not found. Uniform name: {}", uniformName);
-      return {};
    }
 
-   return {location};
+   return location;
 }
 
 void
@@ -147,9 +145,9 @@ void
 Shader::SetUniformFloatVec2(const glm::vec2& value, const std::string& name)
 {
    const auto location = GetUniformLocation(name);
-   if (location.has_value())
+   if (location)
    {
-      glUniform2fv(location.value(), 1, glm::value_ptr(value));
+      glUniform2fv(location, 1, glm::value_ptr(value));
    }
 }
 

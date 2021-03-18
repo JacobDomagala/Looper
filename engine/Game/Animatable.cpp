@@ -172,17 +172,17 @@ Animatable::Animate(Timer::milliseconds updateTime)
    return animateBy;
 }
 
-std::optional< glm::vec2 >
+glm::vec2
 Animatable::SingleAnimate(Timer::milliseconds updateTime)
 {
    if (m_currentAnimationState.m_animationFinished)
    {
       m_currentAnimationState.m_animationFinished = false;
-      return {};
+      return glm::vec2{};
    }
    else
    {
-      return {Animate(updateTime)};
+      return Animate(updateTime);
    }
 }
 

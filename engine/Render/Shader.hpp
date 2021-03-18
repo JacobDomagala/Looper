@@ -4,7 +4,6 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
-#include <optional>
 #include <string>
 
 namespace dgame {
@@ -59,7 +58,7 @@ class Shader
    void
    CheckLinkStatus(GLuint programID);
 
-   std::optional< GLint >
+   GLint
    GetUniformLocation(const std::string& uniformName);
 
    std::string m_name;
