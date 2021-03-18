@@ -775,9 +775,9 @@ Editor::Update()
    {
       auto moveBy = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject)->SingleAnimate(m_deltaTime);
 
-      if (moveBy.has_value())
+      if (glm::length(moveBy) > 0.0f)
       {
-         m_currentSelectedGameObject->Move(moveBy.value(), false);
+         m_currentSelectedGameObject->Move(moveBy, false);
       }
       else
       {
