@@ -24,18 +24,12 @@ add_library(project_options INTERFACE)
 
 # sanitizer options if supported by compiler
 include(cmake/sanitizer.cmake)
-
-# unity build and gold linker
-include(cmake/build_options.cmake)
-
 enable_sanitizers(project_options)
-add_build_options(project_options)
 
 # Generate compile_commands.json to make it easier to work with clang based tools
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(cmake/util_functions.cmake)
-
 
 add_subdirectory(dependencies)
 add_subdirectory(engine)
