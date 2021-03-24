@@ -19,7 +19,9 @@ set_target_warnings(project_warnings)
 # allow for static analysis options
 include(cmake/static_analysis.cmake)
 
+# Link this 'library' to use the static analysis tools and build options
 add_library(project_options INTERFACE)
+
 # sanitizer options if supported by compiler
 include(cmake/sanitizer.cmake)
 enable_sanitizers(project_options)

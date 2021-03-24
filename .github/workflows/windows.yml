@@ -27,6 +27,7 @@ jobs:
       shell: bash
       run: |
         cmake --build . --config $BUILD_TYPE > output.txt
+        cat output.txt
 
     - name: Post PR comment for warnings/errors
       if: ${{ always() }}
