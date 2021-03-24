@@ -27,10 +27,10 @@ struct LineVertex
 
 struct RendererData
 {
-   static const uint32_t MaxQuads = 20000;
-   static const uint32_t MaxVertices = MaxQuads * 4;
-   static const uint32_t MaxIndices = MaxQuads * 6;
-   static const uint32_t MaxTextureSlots = 32; // TODO: RenderCaps
+   static inline const uint32_t MaxQuads = 20000;
+   static inline const uint32_t MaxVertices = MaxQuads * 4;
+   static inline const uint32_t MaxIndices = MaxQuads * 6;
+   static inline const uint32_t MaxTextureSlots = 32; // TODO: RenderCaps
 
    std::shared_ptr< VertexArray > QuadVertexArray;
    std::shared_ptr< VertexBuffer > QuadVertexBuffer;
@@ -47,8 +47,8 @@ struct RendererData
 
 struct LineRendererData
 {
-   static const uint32_t MaxLines = 200000;
-   static const uint32_t MaxVertices = MaxLines * 2;
+   static inline const uint32_t MaxLines = 200000;
+   static inline const uint32_t MaxVertices = MaxLines * 2;
    uint32_t NumLines = 0;
 
    std::shared_ptr< VertexArray > LineVertexArray;
