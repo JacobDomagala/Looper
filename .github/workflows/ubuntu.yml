@@ -22,13 +22,13 @@ jobs:
       run: |
         sudo apt-get update
 
-        sudo apt-get install -y xorg-dev libc++-10-dev llvm-dev libubsan0
+        sudo apt-get install -y xorg-dev libc++-10-dev llvm-dev libubsan0 iwyu
         cmake -E make_directory ${{runner.workspace}}/build
 
     - name: Run CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DWARNINGS_AS_ERRORS=ON\
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DWARNINGS_AS_ERRORS=ON -DENABLE_INCLUDE_WHAT_YOU_USE=ON\
            -DENABLE_SANITIZER_ADDRESS=ON -DENABLE_SANITIZER_UNDEFINED_BEHAVIOR=ON -DENABLE_SANITIZER_LEAK=ON
 
     - name: Build
