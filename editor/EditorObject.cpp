@@ -228,10 +228,13 @@ EditorObject::Move(const glm::vec2& moveBy, bool /*isCameraMovement*/)
             m_editor.UpdateAnimationData();
          }
          break;
+
          case Object::TYPE::PATHFINDER_NODE: {
             auto& node = dynamic_cast< Node& >(m_editor.GetLevel().GetObjectRef(m_objectID));
             node.m_position += moveBy;
          }
+         break;
+
          default: {
          }
       }

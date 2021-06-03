@@ -14,11 +14,10 @@ class Object
    using ID = uint64_t;
    using VectorPtr = std::vector< std::shared_ptr< Object > >;
 
-   static constexpr ID INVALID_ID = ~0;
+   static constexpr ID INVALID_ID = static_cast< ID >(~0);
    static constexpr auto TYPE_NUM_BITS = 32;
 
  public:
-    //
    enum class TYPE
    {
       NONE = 0,
@@ -56,7 +55,10 @@ class Object
 
    ID m_id;
 
-   static std::unordered_map< std::string, TYPE > s_map;
+   static inline std::unordered_map< std::string, TYPE > s_map = {{"ENEMY", Object::TYPE::ENEMY},
+                                                                  {"PLAYER", Object::TYPE::PLAYER},
+                                                                  {"ANIMATION_POINT", Object::TYPE::ANIMATION_POINT},
+                                                                  {"PATHFINDER_NODE", Object::TYPE::PATHFINDER_NODE}};
    static inline ID s_currentID = 0;
 };
 

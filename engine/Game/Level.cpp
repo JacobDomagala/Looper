@@ -320,6 +320,8 @@ Level::DeleteObject(Object::ID deletedObject)
 Object&
 Level::GetObjectRef(Object::ID objectID)
 {
+   Object* requestedObject = nullptr;
+
    switch (Object::GetTypeFromID(objectID))
    {
       case Object::TYPE::ENEMY: {
@@ -327,7 +329,7 @@ Level::GetObjectRef(Object::ID objectID)
 
          if (it != m_objects.end())
          {
-            return *(*it);
+            requestedObject = (*it).get();
          }
       }
       break;
@@ -349,7 +351,8 @@ Level::GetObjectRef(Object::ID objectID)
 
                if (it != points.end())
                {
-                  return *it;
+                  requestedObject = &(*it);
+                  break;
                }
             }
          }
@@ -362,14 +365,20 @@ Level::GetObjectRef(Object::ID objectID)
 
          if (it != nodes.end())
          {
-            return *it;
+            requestedObject = &(*it);
          }
       }
       break;
 
       default: {
+         m_logger.Log(Logger::TYPE::FATAL, "Trying to get Object on unknown type!");
       }
    }
+
+   // This should never happen
+   assert(requestedObject);
+
+   return *requestedObject;
 }
 
 void
