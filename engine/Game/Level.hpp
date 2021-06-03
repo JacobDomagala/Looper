@@ -61,6 +61,9 @@ class Level
    void
    DeleteObject(Object::ID deletedObject);
 
+   Object&
+   GetObjectRef(Object::ID object);
+
    void
    Move(const glm::vec2& moveBy);
 

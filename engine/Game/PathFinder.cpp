@@ -91,8 +91,14 @@ PathFinder::GetNearestNode(const glm::ivec2& position) const
    return nearestNode;
 }
 
-std::vector< Node >
+const std::vector< Node >&
 PathFinder::GetAllNodes() const
+{
+   return m_nodes;
+}
+
+std::vector< Node >&
+PathFinder::GetAllNodes()
 {
    return m_nodes;
 }

@@ -8,7 +8,7 @@
 namespace dgame {
 
 Enemy::Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite,
-             AnimationPoint::vectorPtr keypoints, Animatable::ANIMATION_TYPE animationType)
+             const std::vector< AnimationPoint >& keypoints, Animatable::ANIMATION_TYPE animationType)
    : GameObject(context, pos, size, sprite, TYPE::ENEMY), Animatable(animationType)
 {
    m_currentState.m_currentHP = m_maxHP;

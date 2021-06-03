@@ -52,8 +52,11 @@ class PathFinder
    Node::NodeID
    GetNearestNode(const glm::ivec2& position) const;
 
-   std::vector< Node >
+   const std::vector< Node >&
    GetAllNodes() const;
+
+   std::vector< Node >&
+   GetAllNodes();
 
    bool
    IsInitialized() const;

@@ -297,19 +297,19 @@ EditorGUI::Render()
             auto animationPoints = animatablePtr->GetAnimationKeypoints();
             auto newNodePosition = m_currentlySelectedGameObject->GetLocalPosition();
             ImGui::BeginChild("Animation Points", {0, 100}, true);
-            for (dgame::AnimationPoint::vectorPtr::size_type i = 0; i < animationPoints.size(); ++i)
+            for (uint32_t i = 0; i < animationPoints.size(); ++i)
             {
                const auto& node = animationPoints[i];
                auto label =
-                  fmt::format("[{}] Pos({:.{}f},{:.{}f}) Time={}s", i, node->m_end.x, 1, node->m_end.y, 1, node->m_timeDuration.count());
+                  fmt::format("[{}] Pos({:.{}f},{:.{}f}) Time={}s", i, node.m_end.x, 1, node.m_end.y, 1, node.m_timeDuration.count());
                if (ImGui::Selectable(label.c_str()))
                {
-                  m_parent.GetCamera().SetCameraAtPosition(node->m_end);
-                  m_parent.HandleObjectSelected(node->GetID(), true);
+                  m_parent.GetCamera().SetCameraAtPosition(node.m_end);
+                  m_parent.HandleObjectSelected(node.GetID(), true);
                   m_parent.SetRenderAnimationPoints(true);
                }
 
-               newNodePosition = node->m_end;
+               newNodePosition = node.m_end;
             }
 
             if (ImGui::Button("New"))

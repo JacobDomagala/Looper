@@ -52,9 +52,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
       {
          for (auto& nodeJson : json[key]["nodes"])
          {
-            m_pathinder.AddNode(
-               Node(glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]), nodeJson["id"],
-                                        std::vector< Node::NodeID >(nodeJson["connected to"].begin(), nodeJson["connected to"].end())));
+            m_pathinder.AddNode(Node(glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]), nodeJson["id"],
+                                     std::vector< Node::NodeID >(nodeJson["connected to"].begin(), nodeJson["connected to"].end())));
          }
       }
       else if (key == "SHADER")
@@ -85,26 +84,27 @@ Level::Load(Application* context, const std::string& pathToLevel)
             const auto weapons = enemy["weapons"];
             const auto name = enemy["name"];
 
-            AnimationPoint::vectorPtr keypointsPositions = {};
-            glm::vec2 beginPoint = glm::vec2(position[0], position[1]);
-
-            for (auto& point : enemy["animate positions"])
-            {
-               auto animationPoint = std::make_shared< AnimationPoint >();
-               animationPoint->m_end = glm::vec2(point["end position"][0], point["end position"][1]);
-               animationPoint->m_timeDuration = Timer::seconds(point["time duration"]);
-
-               keypointsPositions.emplace_back(animationPoint);
-
-               beginPoint = animationPoint->m_end;
-            }
-
             auto object = std::make_shared< Enemy >(*context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture,
-                                                    keypointsPositions);
+                                                    std::vector< AnimationPoint >{});
             object->SetName(name);
             object->GetSprite().Scale(glm::vec2(enemy["scale"][0], enemy["scale"][1]));
             object->GetSprite().Rotate(enemy["rotation"]);
 
+            std::vector< AnimationPoint > keypointsPositions = {};
+            glm::vec2 beginPoint = glm::vec2(position[0], position[1]);
+
+            for (auto& point : enemy["animate positions"])
+            {
+               AnimationPoint animationPoint(object->GetID());
+               animationPoint.m_end = glm::vec2(point["end position"][0], point["end position"][1]);
+               animationPoint.m_timeDuration = Timer::seconds(point["time duration"]);
+
+               keypointsPositions.emplace_back(animationPoint);
+
+               beginPoint = animationPoint.m_end;
+            }
+
+            object->SetAnimationKeypoints(keypointsPositions);
             m_objects.emplace_back(object);
          }
       }
@@ -174,8 +174,8 @@ Level::Save(const std::string& pathToLevel)
       for (const auto& point : keypoints)
       {
          nlohmann::json animationPoint;
-         animationPoint["end position"] = {point->m_end.x, point->m_end.y};
-         animationPoint["time duration"] = point->m_timeDuration.count();
+         animationPoint["end position"] = {point.m_end.x, point.m_end.y};
+         animationPoint["time duration"] = point.m_timeDuration.count();
 
          enemyJson["animate positions"].emplace_back(animationPoint);
       }
@@ -206,7 +206,7 @@ Level::AddGameObject(GameObject::TYPE objectType)
    {
       case GameObject::TYPE::ENEMY: {
          newObject =
-            std::make_shared< Enemy >(*m_contextPointer, defaultPosition, defaultSize, defaultTexture, AnimationPoint::vectorPtr{});
+            std::make_shared< Enemy >(*m_contextPointer, defaultPosition, defaultSize, defaultTexture, std::vector< AnimationPoint >{});
          m_objects.push_back(newObject);
       }
       break;
@@ -219,7 +219,6 @@ Level::AddGameObject(GameObject::TYPE objectType)
       break;
 
       default: {
-
       }
    }
 
@@ -259,7 +258,7 @@ Level::CheckCollision(const glm::ivec2& localPos, const Player& player)
       auto length = glm::length(glm::vec2(localPos - obj->GetCenteredLocalPosition()));
       auto objSize = obj->GetSize();
 
-      if (length < static_cast<float>(objSize.x) / 2.5f)
+      if (length < static_cast< float >(objSize.x) / 2.5f)
       {
          obj->Hit(player.GetWeaponDmg());
 
@@ -315,6 +314,61 @@ Level::DeleteObject(Object::ID deletedObject)
    else
    {
       m_objects.erase(objectIter);
+   }
+}
+
+Object&
+Level::GetObjectRef(Object::ID objectID)
+{
+   switch (Object::GetTypeFromID(objectID))
+   {
+      case Object::TYPE::ENEMY: {
+         auto it = std::find_if(m_objects.begin(), m_objects.end(), [objectID](const auto& object) { return object->GetID() == objectID; });
+
+         if (it != m_objects.end())
+         {
+            return *(*it);
+         }
+      }
+      break;
+
+      case Object::TYPE::PLAYER: {
+         // Assume it's the player
+         return *m_player;
+      }
+      break;
+
+      case Object::TYPE::ANIMATION_POINT: {
+         for (auto& object : m_objects)
+         {
+            auto animatePtr = std::dynamic_pointer_cast< Animatable >(object);
+            if (animatePtr)
+            {
+               auto& points = animatePtr->GetAnimationKeypoints();
+               auto it = std::find_if(points.begin(), points.end(), [objectID](const auto& point) { return point.GetID() == objectID; });
+
+               if (it != points.end())
+               {
+                  return *it;
+               }
+            }
+         }
+      }
+      break;
+
+      case Object::TYPE::PATHFINDER_NODE: {
+         auto& nodes = m_pathinder.GetAllNodes();
+         auto it = std::find_if(nodes.begin(), nodes.end(), [objectID](const auto& node) { return node.GetID() == objectID; });
+
+         if (it != nodes.end())
+         {
+            return *it;
+         }
+      }
+      break;
+
+      default: {
+      }
    }
 }
 

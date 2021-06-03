@@ -15,18 +15,8 @@ class Editor;
 class EditorObject
 {
  public:
-   // Pair of Linked object and its parent
-   // Useful for handling AnimationPoints
-   using LinkedObject = std::pair< std::shared_ptr< Object >, std::shared_ptr< GameObject > >;
-
- public:
-   // Constructors and destructors
-   EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite,
-                LinkedObject linkedObject);
    EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite,
                 Object::ID linkedObject);
-   ~EditorObject() = default;
-   EditorObject(EditorObject&&) = default;
 
    bool
    Visible() const;
@@ -92,9 +82,6 @@ class EditorObject
    std::string
    GetName() const;
 
-   std::shared_ptr< Object >
-   GetLinkedObject();
-
    Object::ID
    GetLinkedObjectID();
 
@@ -150,17 +137,11 @@ class EditorObject
    // should this object be visible
    bool m_visible = false;
 
-   // matrices for transforming object
-   // glm::mat4 m_translateMatrix;
-   // glm::vec2 m_translateVal;
-   // glm::mat4 m_rotateMatrix;
-   // glm::mat4 m_scaleMatrix;
-
    std::string m_name;
 
    // Linked object's ID
    Object::ID m_objectID = Object::INVALID_ID;
-   LinkedObject m_linkedObject = {nullptr, nullptr};
+   bool m_hasLinkedObject = false;
    Editor& m_editor;
 
    bool m_selected = false;

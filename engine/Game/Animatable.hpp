@@ -13,16 +13,16 @@ namespace dgame {
 
 struct AnimationPoint : public Object
 {
-   using vectorPtr = std::vector< std::shared_ptr< AnimationPoint > >;
-
-   AnimationPoint() : Object(Object::TYPE::ANIMATION_POINT)
+   AnimationPoint(ID parentID) : Object(Object::TYPE::ANIMATION_POINT), m_parent(parentID)
    {
    }
 
-   AnimationPoint(const glm::vec2& endPosition, Timer::seconds timeDuration)
-      : Object(Object::TYPE::ANIMATION_POINT), m_timeDuration(timeDuration), m_end(endPosition)
+   AnimationPoint(ID parentID, const glm::vec2& endPosition, Timer::seconds timeDuration)
+      : Object(Object::TYPE::ANIMATION_POINT), m_parent(parentID), m_timeDuration(timeDuration), m_end(endPosition)
    {
    }
+
+   ID m_parent = INVALID_ID;
 
    // duration of adnimation throughout entire animation section
    Timer::seconds m_timeDuration = Timer::seconds(0);
@@ -65,23 +65,26 @@ class Animatable
    glm::vec2
    SingleAnimate(Timer::milliseconds updateTime);
 
-   std::shared_ptr< AnimationPoint >
-   CreateAnimationNode();
+   AnimationPoint
+   CreateAnimationNode(Object::ID parentID);
 
    void
-   AddAnimationNode(std::shared_ptr< AnimationPoint > pathNodeMapPosition);
+   AddAnimationNode(const AnimationPoint& pathNodeMapPosition);
 
    void
-   UpdateAnimationNode(const std::shared_ptr< AnimationPoint >& pathNodeMapPosition);
+   UpdateAnimationNode(const AnimationPoint& pathNodeMapPosition);
 
    void
-   DeleteAnimationNode(const std::shared_ptr< AnimationPoint >& pathNodeMapPosition);
+   DeleteAnimationNode(Object::ID animationID);
 
    void
-   SetAnimationKeypoints(const AnimationPoint::vectorPtr& keypoints);
+   SetAnimationKeypoints(const std::vector< AnimationPoint >& keypoints);
 
-   AnimationPoint::vectorPtr
+   std::vector< AnimationPoint >&
    GetAnimationKeypoints();
+
+   const std::vector< AnimationPoint >&
+   GetAnimationKeypoints() const;
 
    Timer::seconds
    GetAnimationDuration() const;
@@ -119,7 +122,7 @@ class Animatable
 
    struct AnimationState
    {
-      AnimationPoint::vectorPtr::iterator m_currentAnimationPoint;
+      std::vector< AnimationPoint >::iterator m_currentAnimationPoint;
       glm::vec2 m_currentAnimationBegin;
       glm::vec2 m_currentAnimationEnd;
       glm::vec2 m_currentAnimationPosition;
@@ -138,7 +141,7 @@ class Animatable
    std::deque< AnimationState > m_statesQueue;
    AnimationState m_currentAnimationState;
 
-   AnimationPoint::vectorPtr m_animationPoints;
+   std::vector< AnimationPoint > m_animationPoints;
    ANIMATION_TYPE m_type = ANIMATION_TYPE::LOOP;
    glm::vec2 m_animationStartPosition;
 

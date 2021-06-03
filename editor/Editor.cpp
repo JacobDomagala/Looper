@@ -7,7 +7,6 @@
 #include "Window.hpp"
 
 #include <GLFW/glfw3.h>
-#include <fstream>
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
 #include <string>
@@ -32,10 +31,6 @@ Editor::Editor(const glm::ivec2& screenSize) : m_gui(*this)
    m_gui.Init();
 
    m_deltaTime = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000));
-}
-
-Editor::~Editor()
-{
 }
 
 void
@@ -169,11 +164,11 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
       if (m_movementOnEditorObject || m_movementOnGameObject)
       {
          // Editor objects selected have higher priority of movement
-         // for example when animation point is selected and its placed on top of game object)
+         // for example when animation point is selected and it's placed on top of game object
          if (m_movementOnEditorObject)
          {
             m_currentEditorObjectSelected->Rotate(-angle, true);
-            m_gui.ObjectUpdated(m_currentEditorObjectSelected->GetLinkedObject()->GetID());
+            m_gui.ObjectUpdated(m_currentEditorObjectSelected->GetLinkedObjectID());
          }
          else
          {
@@ -191,17 +186,17 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
    {
       auto mouseMovementLength = glm::length(axis);
 
-      const auto minCameraMovement = 1.0f;
-      const auto maxCameraMovement = 2.0f;
+      constexpr auto minCameraMovement = 1.0f;
+      constexpr auto maxCameraMovement = 2.0f;
 
       mouseMovementLength = glm::clamp(mouseMovementLength, minCameraMovement, maxCameraMovement);
 
-      const auto moveBy = glm::vec3(axis.x, axis.y, 0.0f);
+      const auto& moveBy = glm::vec3(axis.x, axis.y, 0.0f);
 
       if (m_movementOnEditorObject || m_movementOnGameObject)
       {
          // Editor objects selected have higher priority of movement
-         // for example when animation point is selected and its placed on top of game object)
+         // for example when animation point is selected and it's placed on top of game object
          if (m_movementOnEditorObject)
          {
             m_currentEditorObjectSelected->Move(m_camera.ConvertToCameraVector(moveBy), false);
@@ -277,7 +272,7 @@ void
 Editor::HandleObjectSelected(Object::ID objectID, bool fromGUI)
 {
    auto it = std::find_if(m_editorObjects.begin(), m_editorObjects.end(),
-                          [objectID](const auto& editorObject) { return editorObject->GetLinkedObject()->GetID() == objectID; });
+                          [objectID](const auto& editorObject) { return editorObject->GetLinkedObjectID() == objectID; });
 
    if (it != m_editorObjects.end())
    {
@@ -371,8 +366,6 @@ Editor::ActionOnObject(Editor::ACTION action)
          if (m_editorObjectSelected && m_currentEditorObjectSelected)
          {
             m_gui.ObjectDeleted(m_currentEditorObjectSelected->GetLinkedObjectID());
-            // m_currentLevel->DeleteObject(m_currentSelectedGameObject->GetID());
-            // m_objects.erase(std::find(m_objects.begin(), m_objects.end(), m_currentEditorObjectSelected->GetLinkedObject()));
             m_editorObjects.erase(std::find(m_editorObjects.begin(), m_editorObjects.end(), m_currentEditorObjectSelected));
             m_currentEditorObjectSelected->DeleteLinkedObject();
             UnselectEditorObject();
@@ -386,7 +379,6 @@ Editor::ActionOnObject(Editor::ACTION action)
             else
             {
                m_currentLevel->DeleteObject(m_currentSelectedGameObject->GetID());
-               // m_objects.erase(std::find(m_objects.begin(), m_objects.end(), m_currentSelectedGameObject));
             }
 
             m_gui.ObjectDeleted(m_currentSelectedGameObject->GetID());
@@ -439,7 +431,7 @@ Editor::DrawAnimationPoints()
          std::vector< Object::ID > animaltionPointIDs = {};
          const auto& animationPoints = animatePtr->GetAnimationKeypoints();
          std::transform(animationPoints.begin(), animationPoints.end(), std::back_inserter(animaltionPointIDs),
-                        [](const auto& animationKeyPoint) { return animationKeyPoint->GetID(); });
+                        [](const auto& animationKeyPoint) { return animationKeyPoint.GetID(); });
 
          auto lineStart = animatePtr->GetAnimationStartLocation();
          for (auto& object : m_editorObjects)
@@ -553,27 +545,23 @@ Editor::LoadLevel(const std::string& levelPath)
    m_currentLevel->Load(this, levelPath);
 
    // Populate editor objects
-   const auto pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
-   std::for_each(pathfinderNodes.begin(), pathfinderNodes.end(), [this](const auto& node) {
-      auto object = std::make_shared< EditorObject >(*this, node.m_position, glm::ivec2(40, 40), "NodeSprite.png", node.GetID());
-
-      object->SetVisible(false);
-      m_editorObjects.push_back(object);
+   const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
+   std::transform(pathfinderNodes.begin(), pathfinderNodes.end(), std::back_inserter(m_editorObjects), [this](const auto& node) {
+      return std::make_shared< EditorObject >(*this, node.m_position, glm::ivec2(40, 40), "NodeSprite.png", node.GetID());
    });
 
-   const auto gameObjects = m_currentLevel->GetObjects();
+   const auto& gameObjects = m_currentLevel->GetObjects();
    for (const auto& object : gameObjects)
    {
       const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(object);
 
       if (animatablePtr)
       {
-         auto animationPoints = animatablePtr->GetAnimationKeypoints();
+         const auto& animationPoints = animatablePtr->GetAnimationKeypoints();
 
-         for (auto& point : animationPoints)
+         for (const auto& point : animationPoints)
          {
-            auto editorObject = std::make_shared< EditorObject >(*this, point->m_end, glm::ivec2(20, 20), "Default128.png",
-                                                                 std::make_pair(std::dynamic_pointer_cast< dgame::Object >(point), object));
+            auto editorObject = std::make_shared< EditorObject >(*this, point.m_end, glm::ivec2(20, 20), "Default128.png", point.GetID());
             editorObject->SetName("Animationpoint" + object->GetName());
 
             m_editorObjects.push_back(editorObject);
@@ -612,10 +600,9 @@ Editor::AddObject(Object::TYPE objectType)
             m_logger.Log(Logger::TYPE::WARNING, "Added new Animation point without currently selected object!");
          }
          auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
-         auto newNode = animatablePtr->CreateAnimationNode();
+         auto newNode = animatablePtr->CreateAnimationNode(m_currentSelectedGameObject->GetID());
          newObject = std::make_shared< EditorObject >(
-            *this, newNode->m_end, glm::ivec2(20, 20), "Default128.png",
-            std::make_pair(std::dynamic_pointer_cast< dgame::Object >(newNode), m_currentSelectedGameObject));
+            *this, newNode.m_end, glm::ivec2(20, 20), "Default128.png", newNode.GetID());
 
          m_editorObjects.push_back(newObject);
          animatablePtr->ResetAnimation();
@@ -728,7 +715,7 @@ Editor::SetRenderAnimationPoints(bool render)
       for (auto& animationPoint : animationPoints)
       {
          auto it = std::find_if(m_editorObjects.begin(), m_editorObjects.end(), [&animationPoint](auto& editorObject) {
-             return editorObject->GetLinkedObjectID() == animationPoint->GetID();
+             return editorObject->GetLinkedObjectID() == animationPoint.GetID();
          });
 
          if (it != m_editorObjects.end())
@@ -853,8 +840,9 @@ Editor::GeneratePathfinder(int density)
          if (!obstacle)
          {
             auto node = std::make_shared< Node >(glm::ivec2(j * grad, i * grad) + offset, i + j, std::vector< Node::NodeID >{});
-            auto object = std::make_shared< EditorObject >(*this, node->m_position + offset, glm::ivec2(grad, grad), "NodeSprite.png",
-                                                           std::make_pair(std::dynamic_pointer_cast< dgame::Object >(node), nullptr));
+            auto object =
+               std::make_shared< EditorObject >(*this, node->m_position + offset, glm::ivec2(grad, grad), "NodeSprite.png", node->GetID());
+
             object->SetVisible(true);
             m_editorObjects.push_back(object);
          }

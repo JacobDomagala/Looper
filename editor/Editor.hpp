@@ -22,7 +22,7 @@ class Editor : public Application
 {
  public:
    Editor(const glm::ivec2& screenSize);
-   ~Editor() override;
+   ~Editor() override = default;
 
    // APPLICATION OVERRIDES
    void

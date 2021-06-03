@@ -18,7 +18,7 @@ class Enemy : public GameObject, public Animatable
 {
  public:
    Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& textureName,
-         AnimationPoint::vectorPtr keypoints = {}, Animatable::ANIMATION_TYPE animationType = Animatable::ANIMATION_TYPE::REVERSABLE);
+         const std::vector<AnimationPoint>& keypoints = {}, Animatable::ANIMATION_TYPE animationType = Animatable::ANIMATION_TYPE::REVERSABLE);
    ~Enemy() override = default;
 
    bool
