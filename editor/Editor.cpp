@@ -252,8 +252,6 @@ Editor::HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameOb
    {
       if (m_currentSelectedGameObject)
       {
-         SetRenderAnimationPoints(false);
-
          // unselect previously selected object
          UnselectGameObject();
       }
@@ -267,12 +265,6 @@ Editor::HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameOb
       if (m_editorObjectSelected)
       {
          UnselectEditorObject();
-      }
-
-      auto animatePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
-      if (animatePtr)
-      {
-         SetRenderAnimationPoints(animatePtr->GetRenderAnimationSteps());
       }
 
       m_gui.GameObjectSelected(m_currentSelectedGameObject);
@@ -459,9 +451,9 @@ Editor::DrawAnimationPoints()
                {
                   Renderer::DrawLine(lineStart, object->GetLocalPosition(), {1.0f, 0.0f, 1.0f, 1.0f});
                   lineStart = object->GetCenteredGlobalPosition();
-               }
 
-               object->Render();
+                  object->Render();
+               }
             }
          }
       }
@@ -567,7 +559,6 @@ Editor::LoadLevel(const std::string& levelPath)
 
       object->SetVisible(false);
       m_editorObjects.push_back(object);
-      // m_objects.push_back(std::dynamic_pointer_cast< dgame::Object >(node));
    });
 
    const auto gameObjects = m_currentLevel->GetObjects();
@@ -586,7 +577,6 @@ Editor::LoadLevel(const std::string& levelPath)
             editorObject->SetName("Animationpoint" + object->GetName());
 
             m_editorObjects.push_back(editorObject);
-            m_objects.push_back(std::dynamic_pointer_cast< dgame::Object >(point));
          }
       }
    }

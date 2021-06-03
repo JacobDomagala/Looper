@@ -195,9 +195,6 @@ class Editor : public Application
    std::vector< std::shared_ptr< EditorObject > > m_editorObjects;
    std::shared_ptr< EditorObject > m_currentEditorObjectSelected;
 
-   // Represents all objects located in game, such as Gameobjects, light sources, particle emiters etc.
-   std::vector< std::shared_ptr< dgame::Object > > m_objects;
-
    bool m_showWaypoints = true;
 
    bool m_drawGrid = false;
