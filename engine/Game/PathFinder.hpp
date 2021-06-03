@@ -35,13 +35,13 @@ class PathFinder
 {
  public:
    PathFinder();
-   PathFinder(std::vector< std::shared_ptr< Node > >&& nodes);
+   PathFinder(std::vector< Node >&& nodes);
 
    void
-   AddNode(std::shared_ptr< Node > newNode);
+   AddNode(Node newNode);
 
    void
-   DeleteNode(std::shared_ptr< Node > deletedNode);
+   DeleteNode(Node deletedNode);
 
    Node::NodeID
    FindNodeIdx(const glm::ivec2& position) const;
@@ -52,7 +52,7 @@ class PathFinder
    Node::NodeID
    GetNearestNode(const glm::ivec2& position) const;
 
-   std::vector< std::shared_ptr< Node > >
+   std::vector< Node >
    GetAllNodes() const;
 
    bool
@@ -60,7 +60,7 @@ class PathFinder
 
  private:
    bool m_initialized = false;
-   std::vector< std::shared_ptr< Node > > m_nodes;
+   std::vector< Node > m_nodes;
 };
 
 } // namespace dgame

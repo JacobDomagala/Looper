@@ -165,12 +165,12 @@ Enemy::Shoot()
 void
 Enemy::ChasePlayer()
 {
-   auto gameHandle = ConvertToGameHandle();
+   auto* gameHandle = ConvertToGameHandle();
 
-   auto playerPos = m_currentState.m_lastPlayersPos; // m_contextHandle.GetPlayer()->GetCenteredLocalPosition();
-   auto moveBy = m_currentState.m_movementSpeed * static_cast<float>(gameHandle->GetDeltaTime().count());
+   const auto& playerPos = m_currentState.m_lastPlayersPos; // m_contextHandle.GetPlayer()->GetCenteredLocalPosition();
+   const auto moveBy = m_currentState.m_movementSpeed * static_cast<float>(gameHandle->GetDeltaTime().count());
 
-   auto distanceToNode = glm::length(static_cast< glm::vec2 >(playerPos - GameObject::m_currentState.m_centeredLocalPosition));
+   const auto distanceToNode = glm::length(static_cast< glm::vec2 >(playerPos - GameObject::m_currentState.m_centeredLocalPosition));
 
    if ((distanceToNode < 5.0f) && (distanceToNode != 0.0f))
    {

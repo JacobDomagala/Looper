@@ -17,9 +17,6 @@ class Game;
 class Level
 {
  public:
-   Level() = default;
-
-   ~Level() = default;
 
    std::shared_ptr< GameObject >
    AddGameObject(GameObject::TYPE objectType);
@@ -60,6 +57,9 @@ class Level
 
    void
    DeleteObject(std::shared_ptr< Object > deletedObject);
+
+   void
+   DeleteObject(Object::ID deletedObject);
 
    void
    Move(const glm::vec2& moveBy);

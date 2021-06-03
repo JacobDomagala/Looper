@@ -15,7 +15,21 @@ EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const
 
    m_centeredLocalPosition = m_editor.GetLevel().GetLocalVec(m_centeredGlobalPosition);
    m_linkedObject = linkedObject;
-   m_objectID = m_linkedObject.first ? m_linkedObject.first->GetID() : -1;
+   m_objectID = m_linkedObject.first ? m_linkedObject.first->GetID() : Object::INVALID_ID;
+}
+
+EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite,
+                           Object::ID linkedObject)
+   : m_editor(editor)
+{
+   m_globalPosition = m_editor.GetLevel().GetGlobalVec(positionOnMap);
+   m_localPosition = positionOnMap;
+   m_sprite.SetSpriteTextured(m_globalPosition, size, sprite);
+   m_centeredGlobalPosition = m_sprite.GetPosition();
+
+   m_centeredLocalPosition = m_editor.GetLevel().GetLocalVec(m_centeredGlobalPosition);
+   // m_linkedObject = linkedObject;
+   m_objectID = linkedObject;
 }
 
 bool
@@ -177,6 +191,12 @@ EditorObject::GetLinkedObject()
    return m_linkedObject.first;
 }
 
+Object::ID
+EditorObject::GetLinkedObjectID()
+{
+   return m_objectID;
+}
+
 void
 EditorObject::DeleteLinkedObject()
 {
@@ -189,12 +209,12 @@ EditorObject::DeleteLinkedObject()
             animatablePtr->DeleteAnimationNode(std::dynamic_pointer_cast< AnimationPoint >(m_linkedObject.first));
             animatablePtr->ResetAnimation();
 
-            m_linkedObject.second->Move(animatablePtr->GetAnimationStartLocation() - m_linkedObject.second->GetGlobalPosition());
+            m_linkedObject.second->Move(animatablePtr->GetAnimationStartLocation() - m_linkedObject.second->GetGlobalPosition(), false);
          }
          break;
 
          case Object::TYPE::PATHFINDER_NODE: {
-            m_editor.GetLevel().GetPathfinder().DeleteNode(std::dynamic_pointer_cast< Node >(m_linkedObject.first));
+           //  m_editor.GetLevel().GetPathfinder().DeleteNode(std::dynamic_pointer_cast< Node >(m_linkedObject.first));
          }
          break;
 

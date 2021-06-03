@@ -21,8 +21,10 @@ class EditorObject
 
  public:
    // Constructors and destructors
-   EditorObject(Editor& editor, const glm::vec2& localPosition, const glm::ivec2& size, const std::string& sprite,
+   EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite,
                 LinkedObject linkedObject);
+   EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite,
+                Object::ID linkedObject);
    ~EditorObject() = default;
    EditorObject(EditorObject&&) = default;
 
@@ -93,6 +95,9 @@ class EditorObject
    std::shared_ptr< Object >
    GetLinkedObject();
 
+   Object::ID
+   GetLinkedObjectID();
+
    void
    DeleteLinkedObject();
 
@@ -153,7 +158,8 @@ class EditorObject
 
    std::string m_name;
 
-   Object::ID m_objectID = -1;
+   // Linked object's ID
+   Object::ID m_objectID = Object::INVALID_ID;
    LinkedObject m_linkedObject = {nullptr, nullptr};
    Editor& m_editor;
 

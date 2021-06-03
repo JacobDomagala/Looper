@@ -53,7 +53,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
          for (auto& nodeJson : json[key]["nodes"])
          {
             m_pathinder.AddNode(
-               std::make_shared< Node >(glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]), nodeJson["id"],
+               Node(glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]), nodeJson["id"],
                                         std::vector< Node::NodeID >(nodeJson["connected to"].begin(), nodeJson["connected to"].end())));
          }
       }
@@ -124,9 +124,9 @@ Level::Save(const std::string& pathToLevel)
    for (const auto& node : nodes)
    {
       nlohmann::json nodeJson;
-      nodeJson["id"] = node->m_ID;
-      nodeJson["position"] = {node->m_position.x, node->m_position.y};
-      nodeJson["connected to"] = node->m_connectedNodes;
+      nodeJson["id"] = node.m_ID;
+      nodeJson["position"] = {node.m_position.x, node.m_position.y};
+      nodeJson["connected to"] = node.m_connectedNodes;
 
       json["PATHFINDER"]["nodes"].emplace_back(nodeJson);
    }
@@ -299,6 +299,23 @@ void
 Level::DeleteObject(std::shared_ptr< Object > deletedObject)
 {
    m_objects.erase(std::find(m_objects.begin(), m_objects.end(), deletedObject));
+}
+
+void
+Level::DeleteObject(Object::ID deletedObject)
+{
+   auto objectIter =
+      std::find_if(m_objects.begin(), m_objects.end(), [deletedObject](const auto& object) { return object->GetID() == deletedObject; });
+
+   if (objectIter == m_objects.end())
+   {
+      m_logger.Log(Logger::TYPE::FATAL, "Trying to delete an object that doesn't exist! Object type: {}",
+                   Object::GetTypeString(deletedObject));
+   }
+   else
+   {
+      m_objects.erase(objectIter);
+   }
 }
 
 void

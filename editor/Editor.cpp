@@ -205,7 +205,7 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
          if (m_movementOnEditorObject)
          {
             m_currentEditorObjectSelected->Move(m_camera.ConvertToCameraVector(moveBy), false);
-            m_gui.ObjectUpdated(m_currentEditorObjectSelected->GetLinkedObject()->GetID());
+            m_gui.ObjectUpdated(m_currentEditorObjectSelected->GetLinkedObjectID());
          }
          else
          {
@@ -378,8 +378,9 @@ Editor::ActionOnObject(Editor::ACTION action)
 
          if (m_editorObjectSelected && m_currentEditorObjectSelected)
          {
-            m_gui.ObjectDeleted(m_currentEditorObjectSelected->GetLinkedObject()->GetID());
-            m_objects.erase(std::find(m_objects.begin(), m_objects.end(), m_currentEditorObjectSelected->GetLinkedObject()));
+            m_gui.ObjectDeleted(m_currentEditorObjectSelected->GetLinkedObjectID());
+            // m_currentLevel->DeleteObject(m_currentSelectedGameObject->GetID());
+            // m_objects.erase(std::find(m_objects.begin(), m_objects.end(), m_currentEditorObjectSelected->GetLinkedObject()));
             m_editorObjects.erase(std::find(m_editorObjects.begin(), m_editorObjects.end(), m_currentEditorObjectSelected));
             m_currentEditorObjectSelected->DeleteLinkedObject();
             UnselectEditorObject();
@@ -392,7 +393,8 @@ Editor::ActionOnObject(Editor::ACTION action)
             }
             else
             {
-               m_objects.erase(std::find(m_objects.begin(), m_objects.end(), m_currentSelectedGameObject));
+               m_currentLevel->DeleteObject(m_currentSelectedGameObject->GetID());
+               // m_objects.erase(std::find(m_objects.begin(), m_objects.end(), m_currentSelectedGameObject));
             }
 
             m_gui.ObjectDeleted(m_currentSelectedGameObject->GetID());
@@ -425,7 +427,8 @@ Editor::DrawEditorObjects()
 {
    for (auto& object : m_editorObjects)
    {
-      if (object->IsVisible())
+       // Animation points are handled in Editor::DrawAnimationPoints()
+      if (object->IsVisible() && (Object::GetTypeFromID(object->GetLinkedObjectID()) != Object::TYPE::ANIMATION_POINT))
       {
          object->Render();
       }
@@ -441,8 +444,8 @@ Editor::DrawAnimationPoints()
 
       if (animatePtr && animatePtr->GetRenderAnimationSteps())
       {
-         auto animaltionPointIDs = std::vector< int >{};
-         const auto animationPoints = animatePtr->GetAnimationKeypoints();
+         std::vector< Object::ID > animaltionPointIDs = {};
+         const auto& animationPoints = animatePtr->GetAnimationKeypoints();
          std::transform(animationPoints.begin(), animationPoints.end(), std::back_inserter(animaltionPointIDs),
                         [](const auto& animationKeyPoint) { return animationKeyPoint->GetID(); });
 
@@ -451,15 +454,13 @@ Editor::DrawAnimationPoints()
          {
             if (object->IsVisible())
             {
-               if (object->GetLinkedObject())
+               auto it = std::find(animaltionPointIDs.begin(), animaltionPointIDs.end(), object->GetLinkedObjectID());
+               if (it != animaltionPointIDs.end())
                {
-                  auto it = std::find(animaltionPointIDs.begin(), animaltionPointIDs.end(), object->GetLinkedObject()->GetID());
-                  if (it != animaltionPointIDs.end())
-                  {
-                     Renderer::DrawLine(lineStart, object->GetLocalPosition(), {1.0f, 0.0f, 1.0f, 1.0f});
-                     lineStart = object->GetCenteredGlobalPosition();
-                  }
+                  Renderer::DrawLine(lineStart, object->GetLocalPosition(), {1.0f, 0.0f, 1.0f, 1.0f});
+                  lineStart = object->GetCenteredGlobalPosition();
                }
+
                object->Render();
             }
          }
@@ -470,12 +471,14 @@ Editor::DrawAnimationPoints()
 void
 Editor::DrawBoundingBoxes()
 {
-   auto drawBoundingBox = [](const Sprite& sprite) {
+   constexpr glm::vec4 color = {1.0f, 0.2f, 0.1f, 1.0f};
+
+   auto drawBoundingBox = [color](const Sprite& sprite) {
       const auto rect = sprite.GetTransformedRectangle();
-      Renderer::DrawLine(rect[0], rect[1], {1.0f, 0.2f, 0.1f, 1.0f});
-      Renderer::DrawLine(rect[1], rect[2], {1.0f, 0.2f, 0.1f, 1.0f});
-      Renderer::DrawLine(rect[2], rect[3], {1.0f, 0.2f, 0.1f, 1.0f});
-      Renderer::DrawLine(rect[3], rect[0], {1.0f, 0.2f, 0.1f, 1.0f});
+      Renderer::DrawLine(rect[0], rect[1], color);
+      Renderer::DrawLine(rect[1], rect[2], color);
+      Renderer::DrawLine(rect[2], rect[3], color);
+      Renderer::DrawLine(rect[3], rect[0], color);
    };
 
    if (m_currentSelectedGameObject)
@@ -560,12 +563,11 @@ Editor::LoadLevel(const std::string& levelPath)
    // Populate editor objects
    const auto pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
    std::for_each(pathfinderNodes.begin(), pathfinderNodes.end(), [this](const auto& node) {
-      auto object = std::make_shared< EditorObject >(*this, node->m_position, glm::ivec2(40, 40), "NodeSprite.png",
-                                                     std::make_pair(std::dynamic_pointer_cast< dgame::Object >(node), nullptr));
+      auto object = std::make_shared< EditorObject >(*this, node.m_position, glm::ivec2(40, 40), "NodeSprite.png", node.GetID());
 
       object->SetVisible(false);
       m_editorObjects.push_back(object);
-      m_objects.push_back(std::dynamic_pointer_cast< dgame::Object >(node));
+      // m_objects.push_back(std::dynamic_pointer_cast< dgame::Object >(node));
    });
 
    const auto gameObjects = m_currentLevel->GetObjects();
@@ -715,7 +717,7 @@ Editor::ShowWaypoints(bool showwaypoints)
       m_showWaypoints = showwaypoints;
 
       std::for_each(m_editorObjects.begin(), m_editorObjects.end(), [showwaypoints](auto& object) {
-         if (object->GetLinkedObject()->GetType() == dgame::Object::TYPE::PATHFINDER_NODE)
+         if (Object::GetTypeFromID(object->GetLinkedObjectID()) == dgame::Object::TYPE::PATHFINDER_NODE)
          {
             object->SetVisible(showwaypoints);
          }
@@ -736,7 +738,7 @@ Editor::SetRenderAnimationPoints(bool render)
       for (auto& animationPoint : animationPoints)
       {
          auto it = std::find_if(m_editorObjects.begin(), m_editorObjects.end(), [&animationPoint](auto& editorObject) {
-            return editorObject->GetLinkedObject()->GetID() == animationPoint->GetID();
+             return editorObject->GetLinkedObjectID() == animationPoint->GetID();
          });
 
          if (it != m_editorObjects.end())

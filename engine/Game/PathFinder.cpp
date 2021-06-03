@@ -7,20 +7,20 @@ PathFinder::PathFinder()
 {
 }
 
-PathFinder::PathFinder(std::vector< std::shared_ptr< Node > >&& nodes) : m_nodes(nodes)
+PathFinder::PathFinder(std::vector< Node >&& nodes) : m_nodes(nodes)
 {
    m_initialized = true;
 }
 
 void
-PathFinder::AddNode(std::shared_ptr< Node > newNode)
+PathFinder::AddNode(Node newNode)
 {
    m_nodes.push_back(newNode);
    m_initialized = true;
 }
 
 void
-PathFinder::DeleteNode(std::shared_ptr< Node > deletedNode)
+PathFinder::DeleteNode(Node deletedNode)
 {
    m_nodes.erase(std::find(m_nodes.begin(), m_nodes.end(), deletedNode));
 
@@ -33,9 +33,9 @@ PathFinder::DeleteNode(std::shared_ptr< Node > deletedNode)
 Node::NodeID
 PathFinder::FindNodeIdx(const glm::ivec2& position) const
 {
-   auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(), [position](const auto& node) { return node->m_position == position; });
+   auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(), [position](const auto& node) { return node.m_position == position; });
 
-   return (nodeFound != m_nodes.end()) ? (*nodeFound)->m_ID : 0;
+   return (nodeFound != m_nodes.end()) ? nodeFound->m_ID : 0;
 }
 
 glm::ivec2
@@ -43,26 +43,26 @@ PathFinder::GetNearestPosition(/*const glm::ivec2& objectPos*/ Node::NodeID curr
 {
    glm::ivec2 returnPos{};
 
-   auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(), [currIdx](const auto& node) { return node->m_ID == currIdx; });
+   auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(), [currIdx](const auto& node) { return node.m_ID == currIdx; });
 
    if (nodeFound != m_nodes.end())
    {
-      auto nearestNode = *nodeFound;
-      auto length = glm::length(static_cast< glm::vec2 >(targetPos - nearestNode->m_position));
+      const auto& nearestNode = *nodeFound;
+      auto length = glm::length(static_cast< glm::vec2 >(targetPos - nearestNode.m_position));
 
-      for (const auto& nodeIdx : nearestNode->m_connectedNodes)
+      for (const auto& nodeIdx : nearestNode.m_connectedNodes)
       {
-         auto currentNodeIt = std::find_if(m_nodes.begin(), m_nodes.end(), [nodeIdx](const auto& node) { return node->m_ID == nodeIdx; });
+         auto currentNodeIt = std::find_if(m_nodes.begin(), m_nodes.end(), [nodeIdx](const auto& node) { return node.m_ID == nodeIdx; });
 
          if (currentNodeIt != m_nodes.end())
          {
-            auto currentNode = *currentNodeIt;
+            const auto& currentNode = *currentNodeIt;
 
-            auto currentLength = glm::length(static_cast< glm::vec2 >(targetPos - currentNode->m_position));
+            auto currentLength = glm::length(static_cast< glm::vec2 >(targetPos - currentNode.m_position));
             if (currentLength < length)
             {
                length = currentLength;
-               returnPos = currentNode->m_position;
+               returnPos = currentNode.m_position;
             }
          }
       }
@@ -79,11 +79,11 @@ PathFinder::GetNearestNode(const glm::ivec2& position) const
 
    for (const auto& node : m_nodes)
    {
-      auto currentLength = glm::length(static_cast< glm::vec2 >(position - node->m_position));
+      auto currentLength = glm::length(static_cast< glm::vec2 >(position - node.m_position));
 
       if (currentLength < currentMinLen)
       {
-         nearestNode = node->m_ID;
+         nearestNode = node.m_ID;
          currentMinLen = currentLength;
       }
    }
@@ -91,7 +91,7 @@ PathFinder::GetNearestNode(const glm::ivec2& position) const
    return nearestNode;
 }
 
-std::vector< std::shared_ptr< Node > >
+std::vector< Node >
 PathFinder::GetAllNodes() const
 {
    return m_nodes;
