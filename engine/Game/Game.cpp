@@ -20,11 +20,10 @@ Game::MainLoop()
 
    while (IsRunning())
    {
-      InputManager::PollEvents();
-
       m_timer.ToggleTimer();
+      singleFrameTimer += m_timer.GetFloatDeltaTime();
 
-      if (singleFrameTimer >= TARGET_TIME)
+      while (IsRunning() && (singleFrameTimer > TARGET_TIME))
       {
          m_window->Clear();
          Renderer::BeginScene(m_camera);
@@ -43,17 +42,13 @@ Game::MainLoop()
 
          ++m_frames;
          m_frameTimer += singleFrameTimer;
-         singleFrameTimer = 0.0f;
+         // singleFrameTimer = 0.0f;
          Renderer::EndScene();
          SwapBuffers();
-      }
-      else
-      {
-         // Temporary solution for locking FPS
-         while (singleFrameTimer < TARGET_TIME)
-         {
-            singleFrameTimer += m_timer.GetFloatDeltaTime();
-         }
+
+         singleFrameTimer -= TARGET_TIME;
+
+         InputManager::PollEvents();
       }
    }
 }
