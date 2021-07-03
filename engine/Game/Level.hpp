@@ -118,7 +118,7 @@ class Level
    PathFinder&
    GetPathfinder()
    {
-      return m_pathinder;
+      return m_pathFinder;
    }
 
    std::shared_ptr< Player >
@@ -165,7 +165,7 @@ class Level
 
    glm::ivec2 m_levelSize = {0, 0};
    std::vector< std::shared_ptr< GameObject > > m_objects;
-   PathFinder m_pathinder;
+   PathFinder m_pathFinder;
 
    // Tile handling stuff (deprecated)
    std::unordered_map< std::string, Texture > m_textures;

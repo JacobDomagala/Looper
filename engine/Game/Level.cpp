@@ -52,7 +52,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
       {
          for (auto& nodeJson : json[key]["nodes"])
          {
-            m_pathinder.AddNode(Node(glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]),
+            m_pathFinder.AddNode(Node(glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]),
                                      nodeJson["id"],
                                      std::vector< Node::NodeID >(nodeJson["connected to"].begin(),
                                                                  nodeJson["connected to"].end())));
@@ -125,7 +125,7 @@ Level::Save(const std::string& pathToLevel)
 {
    nlohmann::json json;
 
-   const auto nodes = m_pathinder.GetAllNodes();
+   const auto nodes = m_pathFinder.GetAllNodes();
    for (const auto& node : nodes)
    {
       nlohmann::json nodeJson;
@@ -379,7 +379,7 @@ Level::GetObjectRef(Object::ID objectID)
       break;
 
       case Object::TYPE::PATHFINDER_NODE: {
-         auto& nodes = m_pathinder.GetAllNodes();
+         auto& nodes = m_pathFinder.GetAllNodes();
          auto it = std::find_if(nodes.begin(), nodes.end(),
                                 [objectID](const auto& node) { return node.GetID() == objectID; });
 

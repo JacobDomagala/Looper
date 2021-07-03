@@ -66,6 +66,7 @@ class Texture
    // width and size of texture
    int32_t m_width = 0;
    int32_t m_height = 0;
+   int32_t m_numChannels = 0;
 
    std::string m_name = "EmptyName.png";
 
