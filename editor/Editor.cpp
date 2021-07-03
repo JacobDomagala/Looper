@@ -159,7 +159,7 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
       // otherwise
       const auto movementVector = currentCursorPos - m_lastCursorPosition;
 
-      const auto maxRotationAngle = 0.025f;
+      constexpr auto maxRotationAngle = 0.025f;
       const auto angle = glm::clamp(axis.x > 0 ? movementVector.x : -movementVector.y,
                                     -maxRotationAngle, maxRotationAngle);
 
@@ -405,7 +405,10 @@ Editor::Render()
    {
       Renderer::BeginScene(m_camera);
 
-      m_currentLevel->Render();
+      m_currentLevel->GetSprite().Render();
+      DrawBackgroundObjects();
+      m_currentLevel->RenderGameObject();
+
       DrawEditorObjects();
       DrawAnimationPoints();
       DrawBoundingBoxes();
@@ -416,13 +419,26 @@ Editor::Render()
 }
 
 void
+Editor::DrawBackgroundObjects()
+{
+   for (auto& object : m_editorObjects)
+   {
+      if (object->IsVisible() && object->GetIsBackground())
+      {
+         object->Render();
+      }
+   }
+}
+
+void
 Editor::DrawEditorObjects()
 {
    for (auto& object : m_editorObjects)
    {
       // Animation points are handled in Editor::DrawAnimationPoints()
       if (object->IsVisible()
-          && (Object::GetTypeFromID(object->GetLinkedObjectID()) != Object::TYPE::ANIMATION_POINT))
+          && (Object::GetTypeFromID(object->GetLinkedObjectID()) != Object::TYPE::ANIMATION_POINT)
+          && !object->GetIsBackground())
       {
          object->Render();
       }
@@ -854,25 +870,27 @@ Editor::GeneratePathfinder(int density)
          {
             for (int l = j * grad; l < j * grad + grad; ++l)
             {
-               if (collision[l + k * levelSize.x].w != 0)
-               {
-                  obstacle = true;
-                  break;
-               }
+               // if (collision && collision[l + k * levelSize.x].w != 0)
+               //{
+               //   obstacle = true;
+               //   break;
+               //}
             }
          }
 
-         if (!obstacle)
-         {
-            auto node = std::make_shared< Node >(glm::ivec2(j * grad, i * grad) + offset, i + j,
-                                                 std::vector< Node::NodeID >{});
-            auto object = std::make_shared< EditorObject >(*this, node->m_position + offset,
-                                                           glm::ivec2(grad, grad), "NodeSprite.png",
-                                                           node->GetID());
 
-            object->SetVisible(true);
-            m_editorObjects.push_back(object);
-         }
+         auto node = std::make_shared< Node >(glm::ivec2(j * grad, i * grad) + offset, i + j,
+                                              std::vector< Node::NodeID >{});
+         auto object = std::make_shared< EditorObject >(
+            *this, node->m_position, glm::ivec2(grad, grad), "white.png", node->GetID());
+
+         object->SetColor(obstacle ? glm::vec3{1.0f, 0.0f, 0.0f} : glm::vec3{0.0f, 1.0f, 0.0f});
+         object->SetIsBackground(true);
+         object->SetVisible(true);
+
+         m_editorObjects.push_back(object);
+
+
          // m_debugObjs.push_back(std::make_unique< Line >(glm::vec2(0, 0), glm::vec2(0, 0)));
       }
    }

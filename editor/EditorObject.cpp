@@ -22,6 +22,11 @@ EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const
 bool
 EditorObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 {
+   if (Object ::GetTypeFromID(m_objectID) == Object::TYPE::PATHFINDER_NODE)
+   {
+      return false;
+   }
+
    bool collided = false;
 
    Camera camera = m_editor.GetCamera();
@@ -67,6 +72,18 @@ void
 EditorObject::SetColor(const glm::vec3& color)
 {
    m_sprite.SetColor(color);
+}
+
+void
+EditorObject::SetIsBackground(bool isBackground)
+{
+   m_isBackground = isBackground;
+}
+
+bool
+EditorObject::GetIsBackground() const
+{
+   return m_isBackground;
 }
 
 glm::ivec2

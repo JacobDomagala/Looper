@@ -54,9 +54,9 @@ Level::Load(Application* context, const std::string& pathToLevel)
          for (auto& nodeJson : json[key]["nodes"])
          {
             m_pathFinder.AddNode(Node(glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]),
-                                     nodeJson["id"],
-                                     std::vector< Node::NodeID >(nodeJson["connected to"].begin(),
-                                                                 nodeJson["connected to"].end())));
+                                      nodeJson["id"],
+                                      std::vector< Node::NodeID >(nodeJson["connected to"].begin(),
+                                                                  nodeJson["connected to"].end())));
          }
       }
       else if (key == "SHADER")
@@ -465,7 +465,12 @@ void
 Level::Render()
 {
    m_background.Render();
+   RenderGameObject();
+}
 
+void
+Level::RenderGameObject()
+{
    for (auto& obj : m_objects)
    {
       if (obj->Visible())
@@ -529,11 +534,11 @@ Level::GetSprite()
 void
 Level::SetSize(const glm::ivec2& newSize)
 {
-   const auto oldSize = static_cast<glm::vec2>(m_levelSize);
+   const auto oldSize = static_cast< glm::vec2 >(m_levelSize);
    m_levelSize = newSize;
    m_background.SetSize(newSize);
    // Make sure top left is always 0,0
-   const auto diff = oldSize / 2.0f - static_cast<glm::vec2>(newSize) / 2.0f;
+   const auto diff = oldSize / 2.0f - static_cast< glm::vec2 >(newSize) / 2.0f;
 
    m_background.Translate(-diff);
 }

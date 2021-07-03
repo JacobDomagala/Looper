@@ -136,6 +136,9 @@ class Editor : public Application
    ActionOnObject(ACTION action);
 
    void
+   DrawBackgroundObjects();
+
+   void
    DrawEditorObjects();
 
    void
@@ -200,7 +203,7 @@ class Editor : public Application
    bool m_showWaypoints = true;
 
    bool m_drawGrid = false;
-   int32_t m_gridCellSize = 20;
+   int32_t m_gridCellSize = 128;
 
    EditorGUI m_gui;
 

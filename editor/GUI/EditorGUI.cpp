@@ -93,7 +93,7 @@ EditorGUI::Render()
    ImGui::SameLine();
    if (ImGui::Button("Create"))
    {
-      m_parent.CreateLevel({3000, 3000});
+      m_parent.CreateLevel({3072, 3072});
    }
    ImGui::End();
 
@@ -123,7 +123,7 @@ EditorGUI::Render()
       if (ImGui::CollapsingHeader("Pathfinder"))
       {
          static bool renderPathfinderNodes = false;
-         static int gridDensity = 20;
+         static int gridDensity = 128;
          if (ImGui::Checkbox("Render nodes", &renderPathfinderNodes))
          {
             m_parent.ShowWaypoints(renderPathfinderNodes);
@@ -189,6 +189,10 @@ EditorGUI::Render()
       const auto cameraPos = m_parent.GetCamera().GetPosition();
       ImGui::Text("Camera Position %f, %f", static_cast< double >(cameraPos.x),
                   static_cast< double >(cameraPos.y));
+
+      const auto cameraZoom = m_parent.GetCamera().GetZoomLevel();
+      ImGui::Text("Camera Zoom %f", static_cast< double >(cameraZoom));
+
       const auto cursorOpengGLPos = m_parent.ScreenToGlobal(InputManager::GetMousePos());
       ImGui::Text("Cursor Position %f, %f", static_cast< double >(cursorOpengGLPos.x),
                   static_cast< double >(cursorOpengGLPos.y));

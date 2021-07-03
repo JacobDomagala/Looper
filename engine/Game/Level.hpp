@@ -79,6 +79,10 @@ class Level
    void
    Render();
 
+   // Renders only game objects
+   void
+   RenderGameObject();
+
    bool
    CheckCollision(const glm::ivec2& localPos, const Player& player);
 

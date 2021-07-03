@@ -26,6 +26,12 @@ class EditorObject
    SetColor(const glm::vec3& color);
 
    void
+   SetIsBackground(bool isBackground);
+
+   bool
+   GetIsBackground() const;
+
+   void
    SetCenteredLocalPosition(const glm::ivec2& pos);
 
    void
@@ -147,6 +153,7 @@ class EditorObject
    Editor& m_editor;
 
    bool m_selected = false;
+   bool m_isBackground = false;
 
    // object's sprite
    Sprite m_sprite;
