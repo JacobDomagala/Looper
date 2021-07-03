@@ -44,7 +44,8 @@ class Application : public InputListener
    Log(Logger::TYPE t, const std::string& log);
 
    void
-   RenderText(std::string text, const glm::vec2& position, float scale, const glm::vec3& color = glm::vec3(1.0f, 1.0f, 1.0f));
+   RenderText(std::string text, const glm::vec2& position, float scale,
+              const glm::vec3& color = glm::vec3(1.0f, 1.0f, 1.0f));
 
    // convert from global position (OpenGL) to screen position (in pixels)
    glm::vec2

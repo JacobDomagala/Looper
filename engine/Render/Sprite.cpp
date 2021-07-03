@@ -23,21 +23,23 @@ Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
 }
 
 byte_vec4*
-Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName)
+Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size,
+                          const std::string& fileName)
 {
    m_texture = TextureLibrary::GetTexture(fileName);
-   auto returnPtr = reinterpret_cast< byte_vec4* >(m_texture->GetData()); // m_texture->LoadTextureFromFile(fileName);
+   auto returnPtr = reinterpret_cast< byte_vec4* >(
+      m_texture->GetData()); // m_texture->LoadTextureFromFile(fileName);
 
    /*glGenVertexArrays(1, &m_vertexArrayBuffer);
    glGenBuffers(1, &m_vertexBuffer);
    glBindVertexArray(m_vertexArrayBuffer);
    glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
 
-   glm::vec4 positions[] = {glm::vec4(0.0f + size.x, 0.0f, 1.0f, 1.0f),         glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
-                            glm::vec4(0.0f, 0.0f - size.y, 0.0f, 0.0f),
+   glm::vec4 positions[] = {glm::vec4(0.0f + size.x, 0.0f, 1.0f, 1.0f),         glm::vec4(0.0f,
+   0.0f, 0.0f, 1.0f), glm::vec4(0.0f, 0.0f - size.y, 0.0f, 0.0f),
 
-                            glm::vec4(0.0f + size.x, 0.0f, 1.0f, 1.0f),         glm::vec4(0.0f, 0.0f - size.y, 0.0f, 0.0f),
-                            glm::vec4(0.0f + size.x, 0.0f - size.y, 1.0f, 0.0f)};*/
+                            glm::vec4(0.0f + size.x, 0.0f, 1.0f, 1.0f),         glm::vec4(0.0f, 0.0f
+   - size.y, 0.0f, 0.0f), glm::vec4(0.0f + size.x, 0.0f - size.y, 1.0f, 0.0f)};*/
 
    /*m_centeredPosition.x = position.x + (size.x / 2.0f);
    m_centeredPosition.y = position.y - (size.y / 2.0f);*/
@@ -79,7 +81,8 @@ Sprite::Update(bool isReverse)
 void
 Sprite::Render()
 {
-   Renderer::DrawQuad(m_currentState.m_translateVal, m_size, m_currentState.m_angle, TextureLibrary::GetTexture(m_texture->GetName()), 1.0f,
+   Renderer::DrawQuad(m_currentState.m_translateVal, m_size, m_currentState.m_angle,
+                      TextureLibrary::GetTexture(m_texture->GetName()), 1.0f,
                       m_currentState.m_color);
 }
 
@@ -122,7 +125,8 @@ Sprite::GetTranslation() const
 float
 Sprite::GetRotation(RotationType type) const
 {
-   return type == RotationType::DEGREES ? glm::degrees(m_currentState.m_angle) : m_currentState.m_angle;
+   return type == RotationType::DEGREES ? glm::degrees(m_currentState.m_angle)
+                                        : m_currentState.m_angle;
 }
 
 glm::vec2&
@@ -172,32 +176,39 @@ void
 Sprite::Rotate(float angle, RotationType type)
 {
    m_currentState.m_angle = type == RotationType::DEGREES ? glm::degrees(angle) : angle;
-   m_currentState.m_angle = glm::clamp(m_currentState.m_angle, glm::radians(-360.0f), glm::radians(360.0f));
+   m_currentState.m_angle =
+      glm::clamp(m_currentState.m_angle, glm::radians(-360.0f), glm::radians(360.0f));
 }
 
 void
 Sprite::RotateCumulative(float angle, RotationType type)
 {
    m_currentState.m_angle += type == RotationType::DEGREES ? glm::degrees(angle) : angle;
-   m_currentState.m_angle = glm::clamp(m_currentState.m_angle, glm::radians(-360.0f), glm::radians(360.0f));
+   m_currentState.m_angle =
+      glm::clamp(m_currentState.m_angle, glm::radians(-360.0f), glm::radians(360.0f));
 }
 
 void
 Sprite::Scale(const glm::vec2& scaleValue)
 {
    m_currentState.m_scaleVal = scaleValue;
-   m_currentState.m_scaleVal.x = glm::clamp(m_currentState.m_scaleVal.x, s_SCALERANGE.first, s_SCALERANGE.second);
-   m_currentState.m_scaleVal.y = glm::clamp(m_currentState.m_scaleVal.y, s_SCALERANGE.first, s_SCALERANGE.second);
+   m_currentState.m_scaleVal.x =
+      glm::clamp(m_currentState.m_scaleVal.x, s_SCALERANGE.first, s_SCALERANGE.second);
+   m_currentState.m_scaleVal.y =
+      glm::clamp(m_currentState.m_scaleVal.y, s_SCALERANGE.first, s_SCALERANGE.second);
 
-   m_size = static_cast< glm::vec2 >(m_size) * (m_currentState.m_scaleVal + m_currentState.m_uniformScaleValue);
+   m_size = static_cast< glm::vec2 >(m_size)
+            * (m_currentState.m_scaleVal + m_currentState.m_uniformScaleValue);
 }
 
 void
 Sprite::ScaleCumulative(const glm::vec2& scaleValue)
 {
    m_currentState.m_scaleVal += scaleValue;
-   m_currentState.m_scaleVal.x = glm::clamp(m_currentState.m_scaleVal.x, s_SCALERANGE.first, s_SCALERANGE.second);
-   m_currentState.m_scaleVal.y = glm::clamp(m_currentState.m_scaleVal.y, s_SCALERANGE.first, s_SCALERANGE.second);
+   m_currentState.m_scaleVal.x =
+      glm::clamp(m_currentState.m_scaleVal.x, s_SCALERANGE.first, s_SCALERANGE.second);
+   m_currentState.m_scaleVal.y =
+      glm::clamp(m_currentState.m_scaleVal.y, s_SCALERANGE.first, s_SCALERANGE.second);
 }
 
 void
@@ -212,16 +223,18 @@ Sprite::ScaleUniformly(const float scaleValue)
 {
    m_currentState.m_uniformScaleValue = scaleValue;
    /*  m_currentState.m_scaleVal += glm::vec2(scaleValue, scaleValue);
-     m_currentState.m_scaleVal.x = glm::clamp(m_currentState.m_scaleVal.x, m_scaleRange.first, m_scaleRange.second);
-     m_currentState.m_scaleVal.y = glm::clamp(m_currentState.m_scaleVal.y, m_scaleRange.first, m_scaleRange.second);*/
+     m_currentState.m_scaleVal.x = glm::clamp(m_currentState.m_scaleVal.x, m_scaleRange.first,
+     m_scaleRange.second); m_currentState.m_scaleVal.y = glm::clamp(m_currentState.m_scaleVal.y,
+     m_scaleRange.first, m_scaleRange.second);*/
 }
 
 std::array< glm::vec2, 4 >
 Sprite::GetTransformedRectangle() const
 {
-   glm::mat4 transformMat = glm::translate(glm::mat4(1.0f), glm::vec3(m_currentState.m_translateVal, 0.0f))
-                            * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
-                            * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
+   glm::mat4 transformMat =
+      glm::translate(glm::mat4(1.0f), glm::vec3(m_currentState.m_translateVal, 0.0f))
+      * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
+      * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
 
    const glm::vec2 topLeft = transformMat * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
    const glm::vec2 bottomLeft = transformMat * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);

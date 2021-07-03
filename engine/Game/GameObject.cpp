@@ -5,8 +5,8 @@
 
 namespace dgame {
 
-GameObject::GameObject(Application& contextHandle, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite,
-                       Object::TYPE type)
+GameObject::GameObject(Application& contextHandle, const glm::vec2& positionOnMap,
+                       const glm::ivec2& size, const std::string& sprite, Object::TYPE type)
    : Object(type), m_appHandle(contextHandle)
 {
    m_currentState.m_globalPosition = m_appHandle.GetLevel().GetGlobalVec(positionOnMap);
@@ -14,7 +14,8 @@ GameObject::GameObject(Application& contextHandle, const glm::vec2& positionOnMa
    m_currentState.m_visible = true;
    m_collision = m_sprite.SetSpriteTextured(m_currentState.m_globalPosition, size, sprite);
    m_currentState.m_centeredGlobalPosition = m_sprite.GetPosition();
-   m_currentState.m_centeredLocalPosition = m_appHandle.GetLevel().GetLocalVec(m_currentState.m_centeredGlobalPosition);
+   m_currentState.m_centeredLocalPosition =
+      m_appHandle.GetLevel().GetLocalVec(m_currentState.m_centeredGlobalPosition);
    m_type = type;
 
    m_id = s_currentID;
@@ -33,7 +34,8 @@ GameObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 
    const auto transformed0 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[0], 0.0f, 1.0f);
    const auto transformed1 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[1], 0.0f, 1.0f);
-   //const auto transformed2 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[2], 0.0f, 1.0f);
+   // const auto transformed2 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[2],
+   // 0.0f, 1.0f);
    const auto transformed3 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[3], 0.0f, 1.0f);
 
    const auto minX = transformed1.x;
@@ -41,10 +43,12 @@ GameObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
    const auto minY = transformed3.y;
    const auto maxY = transformed0.y;
 
-   const auto globalPosition = camera.GetViewMatrix() * glm::vec4(m_appHandle.ScreenToGlobal(screenPosition), 0.0f, 1.0f);
+   const auto globalPosition =
+      camera.GetViewMatrix() * glm::vec4(m_appHandle.ScreenToGlobal(screenPosition), 0.0f, 1.0f);
 
    // If 'screenPosition' is inside 'object' sprite (rectangle)
-   if (globalPosition.x >= minX && globalPosition.x <= maxX && globalPosition.y <= maxY && globalPosition.y >= minY)
+   if (globalPosition.x >= minX && globalPosition.x <= maxX && globalPosition.y <= maxY
+       && globalPosition.y >= minY)
    {
       collided = true;
    }
@@ -153,7 +157,8 @@ GameObject::CreateSprite(const glm::vec2& position, const glm::ivec2& size)
 }
 
 void
-GameObject::CreateSpriteTextured(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName)
+GameObject::CreateSpriteTextured(const glm::vec2& position, const glm::ivec2& size,
+                                 const std::string& fileName)
 {
    m_collision = m_sprite.SetSpriteTextured(position, size, fileName);
    m_currentState.m_globalPosition = m_sprite.GetPosition();

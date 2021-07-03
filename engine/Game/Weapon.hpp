@@ -16,8 +16,14 @@ class Weapon
    const std::string m_name;
    float m_reloadTime;
 
-   Weapon(int32_t range, int32_t dmg, int32_t ammoNum, bool hasAmmo, const std::string& name, float reloadTime)
-      : m_range(range), m_dmg(dmg), m_ammoNum(ammoNum), m_hasAmmo(hasAmmo), m_name(name), m_reloadTime(reloadTime)
+   Weapon(int32_t range, int32_t dmg, int32_t ammoNum, bool hasAmmo, const std::string& name,
+          float reloadTime)
+      : m_range(range),
+        m_dmg(dmg),
+        m_ammoNum(ammoNum),
+        m_hasAmmo(hasAmmo),
+        m_name(name),
+        m_reloadTime(reloadTime)
    {
    }
 

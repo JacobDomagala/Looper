@@ -17,7 +17,6 @@ class Game;
 class Level
 {
  public:
-
    std::shared_ptr< GameObject >
    AddGameObject(GameObject::TYPE objectType);
 
@@ -53,7 +52,8 @@ class Level
    LoadShaders(const std::string& shaderName);
 
    void
-   AddGameObject(Game& game, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite);
+   AddGameObject(Game& game, const glm::vec2& pos, const glm::ivec2& size,
+                 const std::string& sprite);
 
    void
    DeleteObject(std::shared_ptr< Object > deletedObject);

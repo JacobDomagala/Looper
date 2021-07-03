@@ -6,8 +6,8 @@
 
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
-#include <imgui.h>
 #include <fmt/format.h>
+#include <imgui.h>
 
 namespace dgame {
 
@@ -145,14 +145,15 @@ EditorGUI::Render()
       ImGui::SetNextTreeNodeOpen(true);
       if (ImGui::CollapsingHeader("Objects"))
       {
-         //static int selected = 0;
+         // static int selected = 0;
          auto gameObjects = m_currentLevel->GetObjects();
 
          ImGui::BeginChild("Loaded Objects", {0, 100}, true);
          for (auto& object : gameObjects)
          {
-            auto label = fmt::format("[{}] {} ({}, {})", object->GetTypeString().c_str(), object->GetName().c_str(),
-                                     object->GetLocalPosition().x, object->GetLocalPosition().y);
+            auto label = fmt::format("[{}] {} ({}, {})", object->GetTypeString().c_str(),
+                                     object->GetName().c_str(), object->GetLocalPosition().x,
+                                     object->GetLocalPosition().y);
 
             if (ImGui::Selectable(label.c_str()))
             {
@@ -163,7 +164,9 @@ EditorGUI::Render()
 
          std::string items[] = {"ENEMY", "PLAYER"};
 
-         if (ImGui::BeginCombo("##combo", "Add")) // The second parameter is the label previewed before opening the combo.
+         if (ImGui::BeginCombo(
+                "##combo",
+                "Add")) // The second parameter is the label previewed before opening the combo.
          {
             for (int n = 0; n < IM_ARRAYSIZE(items); n++)
             {
@@ -184,9 +187,11 @@ EditorGUI::Render()
       ImGui::SetNextWindowSize(ImVec2(debugWindowWidth, debugWindowHeight));
       ImGui::Begin("Debug");
       const auto cameraPos = m_parent.GetCamera().GetPosition();
-      ImGui::Text("Camera Position %f, %f", static_cast<double>(cameraPos.x), static_cast<double>(cameraPos.y));
+      ImGui::Text("Camera Position %f, %f", static_cast< double >(cameraPos.x),
+                  static_cast< double >(cameraPos.y));
       const auto cursorOpengGLPos = m_parent.ScreenToGlobal(InputManager::GetMousePos());
-      ImGui::Text("Cursor Position %f, %f", static_cast<double>(cursorOpengGLPos.x), static_cast<double>(cursorOpengGLPos.y));
+      ImGui::Text("Cursor Position %f, %f", static_cast< double >(cursorOpengGLPos.x),
+                  static_cast< double >(cursorOpengGLPos.y));
       ImGui::End();
    }
 
@@ -218,7 +223,8 @@ EditorGUI::Render()
       {
          auto objectPosition = m_currentlySelectedGameObject->GetLocalPosition();
          auto sprite_size = m_currentlySelectedGameObject->GetSprite().GetSize();
-         auto rotation = m_currentlySelectedGameObject->GetSprite().GetRotation(Sprite::RotationType::DEGREES);
+         auto rotation =
+            m_currentlySelectedGameObject->GetSprite().GetRotation(Sprite::RotationType::DEGREES);
 
          ImGui::InputInt2("Position", &objectPosition.x);
 
@@ -240,14 +246,16 @@ EditorGUI::Render()
          if (m_currentLevel)
          {
             ImGui::Image(
-               reinterpret_cast< void* >(static_cast< size_t >(m_currentlySelectedGameObject->GetSprite().GetTexture().GetTextureHandle())),
+               reinterpret_cast< void* >(static_cast< size_t >(
+                  m_currentlySelectedGameObject->GetSprite().GetTexture().GetTextureHandle())),
                {150, 150});
          }
       }
 
       if (m_currentlySelectedGameObject->GetType() != GameObject::TYPE::PLAYER)
       {
-         const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentlySelectedGameObject);
+         const auto animatablePtr =
+            std::dynamic_pointer_cast< Animatable >(m_currentlySelectedGameObject);
 
          ImGui::SetNextTreeNodeOpen(true);
          if (ImGui::CollapsingHeader("Animation"))
@@ -255,13 +263,15 @@ EditorGUI::Render()
             ImGui::Text("Type");
             ImGui::SameLine();
 
-            if (ImGui::RadioButton("Loop", animatablePtr->GetAnimationType() == Animatable::ANIMATION_TYPE::LOOP))
+            if (ImGui::RadioButton("Loop", animatablePtr->GetAnimationType()
+                                              == Animatable::ANIMATION_TYPE::LOOP))
             {
                animatablePtr->SetAnimationType(Animatable::ANIMATION_TYPE::LOOP);
             }
 
             ImGui::SameLine();
-            if (ImGui::RadioButton("Reversal", animatablePtr->GetAnimationType() == Animatable::ANIMATION_TYPE::REVERSABLE))
+            if (ImGui::RadioButton("Reversal", animatablePtr->GetAnimationType()
+                                                  == Animatable::ANIMATION_TYPE::REVERSABLE))
             {
                animatablePtr->SetAnimationType(Animatable::ANIMATION_TYPE::REVERSABLE);
             }
@@ -279,10 +289,11 @@ EditorGUI::Render()
 
 
             static float timer = 0.0f;
-            const auto animationDuration = static_cast< float >(Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count());
+            const auto animationDuration = static_cast< float >(
+               Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count());
             if (m_parent.IsObjectAnimated())
             {
-               timer += static_cast<float>(m_parent.GetDeltaTime().count());
+               timer += static_cast< float >(m_parent.GetDeltaTime().count());
                timer = glm::min(animationDuration, timer);
             }
 
@@ -293,15 +304,15 @@ EditorGUI::Render()
                   animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(timer))));
             }
 
-            //static int selected = 0;
+            // static int selected = 0;
             auto animationPoints = animatablePtr->GetAnimationKeypoints();
             auto newNodePosition = m_currentlySelectedGameObject->GetLocalPosition();
             ImGui::BeginChild("Animation Points", {0, 100}, true);
             for (uint32_t i = 0; i < animationPoints.size(); ++i)
             {
                const auto& node = animationPoints[i];
-               auto label =
-                  fmt::format("[{}] Pos({:.{}f},{:.{}f}) Time={}s", i, node.m_end.x, 1, node.m_end.y, 1, node.m_timeDuration.count());
+               auto label = fmt::format("[{}] Pos({:.{}f},{:.{}f}) Time={}s", i, node.m_end.x, 1,
+                                        node.m_end.y, 1, node.m_timeDuration.count());
                if (ImGui::Selectable(label.c_str()))
                {
                   m_parent.GetCamera().SetCameraAtPosition(node.m_end);
@@ -344,8 +355,7 @@ EditorGUI::GameObjectUnselected()
    m_currentlySelectedGameObject = nullptr;
 }
 
-void
-EditorGUI::EditorObjectSelected(std::shared_ptr< EditorObject > /*object*/)
+void EditorGUI::EditorObjectSelected(std::shared_ptr< EditorObject > /*object*/)
 {
    // m_currentlySelectedEditorObject = object;
 }
@@ -362,13 +372,11 @@ EditorGUI::LevelLoaded(std::shared_ptr< Level > levelLoaded)
    m_currentLevel = levelLoaded;
 }
 
-void
-EditorGUI::ObjectUpdated(Object::ID /*ID*/)
+void EditorGUI::ObjectUpdated(Object::ID /*ID*/)
 {
 }
 
-void
-EditorGUI::ObjectDeleted(Object::ID /*ID*/)
+void EditorGUI::ObjectDeleted(Object::ID /*ID*/)
 {
 }
 

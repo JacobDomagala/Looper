@@ -27,7 +27,8 @@ Game::MainLoop()
       {
          m_window->Clear();
          Renderer::BeginScene(m_camera);
-         const auto dt = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000 * Timer::AreTimersRunning()));
+         const auto dt = Timer::milliseconds(
+            static_cast< long >(TARGET_TIME * 1000 * Timer::AreTimersRunning()));
          ProcessInput(dt);
 
          Render();
@@ -37,8 +38,8 @@ Game::MainLoop()
             m_frameTimer = 0.0f;
             m_frames = 0;
          }
-         RenderText(std::to_string(m_framesLastSecond) + " FPS", glm::vec2(-WIDTH / 2.0f, -HEIGHT / 2.0f), 0.4f,
-                    glm::vec3(1.0f, 0.0f, 1.0f));
+         RenderText(std::to_string(m_framesLastSecond) + " FPS",
+                    glm::vec2(-WIDTH / 2.0f, -HEIGHT / 2.0f), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));
 
          ++m_frames;
          m_frameTimer += singleFrameTimer;
@@ -109,7 +110,8 @@ Game::CorrectPosition()
    glm::ivec2 playerPosition = m_playerPosition;
    glm::ivec2 levelSize = m_currentLevel->GetSize();
 
-   auto linearPosition = static_cast< uint32_t >(floor(playerPosition.x + playerPosition.y * levelSize.x));
+   auto linearPosition =
+      static_cast< uint32_t >(floor(playerPosition.x + playerPosition.y * levelSize.x));
 
    byte_vec4* tmpCollision = m_collision;
 
@@ -136,7 +138,8 @@ Game::CorrectPosition()
       returnVal.y = (levelSize.y - 1) - playerPosition.y;
       return returnVal;
    }
-   // if you stand where you're not supposed to due to fucking float -> int32_t conversion (FeelsBadMan)
+   // if you stand where you're not supposed to due to fucking float -> int32_t conversion
+   // (FeelsBadMan)
    if (tmpCollision[linearPosition].w != 0)
    {
       // the value of getting you out of shit < -6 ; 5 >
@@ -147,10 +150,12 @@ Game::CorrectPosition()
          {
             playerDestination = playerPosition + glm::ivec2(i, j);
 
-            linearPosition = static_cast< uint32_t >(floor(playerDestination.x + playerDestination.y * levelSize.x));
+            linearPosition = static_cast< uint32_t >(
+               floor(playerDestination.x + playerDestination.y * levelSize.x));
 
-            if ((playerDestination.x > 0) && (playerDestination.x < levelSize.x) && (playerDestination.y > 0)
-                && (playerDestination.y < levelSize.y) && (tmpCollision[linearPosition].w == 0))
+            if ((playerDestination.x > 0) && (playerDestination.x < levelSize.x)
+                && (playerDestination.y > 0) && (playerDestination.y < levelSize.y)
+                && (tmpCollision[linearPosition].w == 0))
             {
                return glm::ivec2(playerDestination.x, playerDestination.y) - playerPosition;
             }
@@ -385,7 +390,7 @@ Game::CheckBulletCollision(int32_t range)
    const int32_t ystep = (y1 < y2) ? 1 : -1;
    int32_t y = static_cast< int32_t >(y1);
 
-   const auto maxX = static_cast<int32_t>(x2);
+   const auto maxX = static_cast< int32_t >(x2);
 
    glm::ivec2 levelSize = m_currentLevel->GetSize();
 
@@ -464,7 +469,8 @@ Game::CheckCollision(glm::ivec2& moveBy)
    glm::ivec2 destination = playerPosition + moveBy;
    glm::ivec2 returnVal = glm::ivec2();
 
-   if (destination.x < 0 || destination.x > levelSize.x || destination.y < 0 || destination.y > levelSize.y)
+   if (destination.x < 0 || destination.x > levelSize.x || destination.y < 0
+       || destination.y > levelSize.y)
    {
       return returnVal;
    }
@@ -474,8 +480,10 @@ Game::CheckCollision(glm::ivec2& moveBy)
    glm::vec2 nMoveBy = glm::normalize(glm::vec2(moveBy));
    glm::ivec2 direction = glm::ivec2(glm::ceil(nMoveBy.x), glm::ceil(nMoveBy.y));
 
-   uint32_t linearDestination = static_cast< uint32_t >(floor(destination.x + destination.y * levelSize.x));
-   uint32_t linearPosition = static_cast< uint32_t >(floor(playerPosition.x + playerPosition.y * levelSize.x));
+   uint32_t linearDestination =
+      static_cast< uint32_t >(floor(destination.x + destination.y * levelSize.x));
+   uint32_t linearPosition =
+      static_cast< uint32_t >(floor(playerPosition.x + playerPosition.y * levelSize.x));
    auto linearLevelSize = levelSize.x * levelSize.y;
 
    uint32_t tmpPosition = linearPosition;
@@ -496,7 +504,8 @@ Game::CheckCollision(glm::ivec2& moveBy)
    {
       glm::ivec2 tmpDest = playerPosition + direction * i;
       tmpPosition = static_cast< uint32_t >(floor(tmpDest.x + tmpDest.y * levelSize.x));
-      if ((tmpPosition > 0) && (tmpPosition < static_cast<uint32_t>(linearLevelSize)) && (tmpDest.x < levelSize.x) && (tmpDest.y < levelSize.y)
+      if ((tmpPosition > 0) && (tmpPosition < static_cast< uint32_t >(linearLevelSize))
+          && (tmpDest.x < levelSize.x) && (tmpDest.y < levelSize.y)
           && (tmpCollision[tmpPosition].w == 0))
       {
          returnVal = tmpDest - playerPosition;
@@ -516,8 +525,8 @@ Game::CheckCollision(glm::ivec2& moveBy)
             glm::ivec2 tmpDest = playerPosition + tmpDirection * j;
 
             tmpPosition = static_cast< uint32_t >(floor(tmpDest.x + tmpDest.y * levelSize.x));
-            if ((tmpDest.x > 0) && (tmpDest.y > 0) && (tmpDest.x < levelSize.x) && (tmpDest.y < levelSize.y)
-                && (tmpCollision[tmpPosition].w == 0))
+            if ((tmpDest.x > 0) && (tmpDest.y > 0) && (tmpDest.x < levelSize.x)
+                && (tmpDest.y < levelSize.y) && (tmpCollision[tmpPosition].w == 0))
             {
                returnVal = tmpDest - playerPosition;
                returnVal += positionBias;
@@ -533,8 +542,8 @@ Game::CheckCollision(glm::ivec2& moveBy)
             glm::ivec2 tmpDest = playerPosition + tmpDirection * j;
 
             tmpPosition = static_cast< uint32_t >(floor(tmpDest.x + tmpDest.y * levelSize.x));
-            if ((tmpDest.x > 0) && (tmpDest.y > 0) && (tmpDest.x < levelSize.x) && (tmpDest.y < levelSize.y)
-                && (tmpCollision[tmpPosition].w == 0))
+            if ((tmpDest.x > 0) && (tmpDest.y > 0) && (tmpDest.x < levelSize.x)
+                && (tmpDest.y < levelSize.y) && (tmpCollision[tmpPosition].w == 0))
             {
                returnVal = tmpDest - playerPosition;
                returnVal += positionBias;
@@ -557,7 +566,8 @@ Game::CheckCollision(const glm::ivec2& currentPosition, const glm::ivec2& moveBy
    glm::ivec2 destination = playerPosition + moveBy;
    glm::ivec2 returnVal = glm::ivec2();
 
-   if (destination.x < 0 || destination.x > levelSize.x || destination.y < 0 || destination.y > levelSize.y)
+   if (destination.x < 0 || destination.x > levelSize.x || destination.y < 0
+       || destination.y > levelSize.y)
    {
       return returnVal;
    }
@@ -567,8 +577,10 @@ Game::CheckCollision(const glm::ivec2& currentPosition, const glm::ivec2& moveBy
    glm::vec2 nMoveBy = glm::normalize(glm::vec2(moveBy));
    glm::ivec2 direction = glm::ivec2(glm::ceil(nMoveBy.x), glm::ceil(nMoveBy.y));
 
-   uint32_t linearDestination = static_cast< uint32_t >(floor(destination.x + destination.y * levelSize.x));
-   uint32_t linearPosition = static_cast< uint32_t >(floor(playerPosition.x + playerPosition.y * levelSize.x));
+   uint32_t linearDestination =
+      static_cast< uint32_t >(floor(destination.x + destination.y * levelSize.x));
+   uint32_t linearPosition =
+      static_cast< uint32_t >(floor(playerPosition.x + playerPosition.y * levelSize.x));
    auto linearLevelSize = levelSize.x * levelSize.y;
 
    uint32_t tmpPosition = linearPosition;
@@ -589,7 +601,8 @@ Game::CheckCollision(const glm::ivec2& currentPosition, const glm::ivec2& moveBy
    {
       glm::ivec2 tmpDest = playerPosition + direction * i;
       tmpPosition = static_cast< uint32_t >(floor(tmpDest.x + tmpDest.y * levelSize.x));
-      if ((tmpPosition > 0) && (tmpPosition < static_cast<uint32_t>(linearLevelSize)) && (tmpDest.x < levelSize.x) && (tmpDest.y < levelSize.y)
+      if ((tmpPosition > 0) && (tmpPosition < static_cast< uint32_t >(linearLevelSize))
+          && (tmpDest.x < levelSize.x) && (tmpDest.y < levelSize.y)
           && (tmpCollision[tmpPosition].w == 0))
       {
          returnVal = tmpDest - playerPosition;
@@ -609,8 +622,8 @@ Game::CheckCollision(const glm::ivec2& currentPosition, const glm::ivec2& moveBy
             glm::ivec2 tmpDest = playerPosition + tmpDirection * j;
 
             tmpPosition = static_cast< uint32_t >(floor(tmpDest.x + tmpDest.y * levelSize.x));
-            if ((tmpDest.x > 0) && (tmpDest.y > 0) && (tmpDest.x < levelSize.x) && (tmpDest.y < levelSize.y)
-                && (tmpCollision[tmpPosition].w == 0))
+            if ((tmpDest.x > 0) && (tmpDest.y > 0) && (tmpDest.x < levelSize.x)
+                && (tmpDest.y < levelSize.y) && (tmpCollision[tmpPosition].w == 0))
             {
                returnVal = tmpDest - playerPosition;
                returnVal += positionBias;
@@ -626,8 +639,8 @@ Game::CheckCollision(const glm::ivec2& currentPosition, const glm::ivec2& moveBy
             glm::ivec2 tmpDest = playerPosition + tmpDirection * j;
 
             tmpPosition = static_cast< uint32_t >(floor(tmpDest.x + tmpDest.y * levelSize.x));
-            if ((tmpDest.x > 0) && (tmpDest.y > 0) && (tmpDest.x < levelSize.x) && (tmpDest.y < levelSize.y)
-                && (tmpCollision[tmpPosition].w == 0))
+            if ((tmpDest.x > 0) && (tmpDest.y > 0) && (tmpDest.x < levelSize.x)
+                && (tmpDest.y < levelSize.y) && (tmpCollision[tmpPosition].w == 0))
             {
                returnVal = tmpDest - playerPosition;
                returnVal += positionBias;
@@ -653,8 +666,10 @@ Game::CheckMove(glm::ivec2& moveBy)
 void
 Game::KeyEvents()
 {
-   int32_t cameraMovement = static_cast< int32_t >(0.8f * static_cast<float>(m_deltaTime.count()));
-   int32_t playerMovement = static_cast< int32_t >(0.5f * static_cast<float>(m_deltaTime.count()));
+   int32_t cameraMovement =
+      static_cast< int32_t >(0.8f * static_cast< float >(m_deltaTime.count()));
+   int32_t playerMovement =
+      static_cast< int32_t >(0.5f * static_cast< float >(m_deltaTime.count()));
 
    glm::ivec2 playerMoveBy = glm::ivec2();
    glm::ivec2 cameraMoveBy = glm::ivec2();
@@ -743,8 +758,8 @@ Game::MouseEvents()
 {
    glm::vec2 tmp = CheckBulletCollision(m_player->GetWeaponRange());
 
-   /*DrawLine(m_currentLevel->GetGlobalVec(m_player->GetCenteredLocalPosition()), m_currentLevel->GetGlobalVec(tmp),
-            glm::vec3(0.0f, 1.0f, 0.0f));*/
+   /*DrawLine(m_currentLevel->GetGlobalVec(m_player->GetCenteredLocalPosition()),
+      m_currentLevel->GetGlobalVec(tmp), glm::vec3(0.0f, 1.0f, 0.0f));*/
    Renderer::DrawLine(m_player->GetLocalPosition(), tmp, {0.8f, 0.0f, 0.3f, 1.0f});
    ////PRIMARY FIRE
    // if (Win_Window::GetKeyState(VK_LBUTTON))
@@ -787,22 +802,22 @@ Game::MouseEvents()
 
       if (cursor.x > borderValue)
       {
-         float someX = (cursor.x - borderValue) * static_cast<float>(multiplier);
+         float someX = (cursor.x - borderValue) * static_cast< float >(multiplier);
          cameraMoveBy += glm::vec2(cameraMovement * someX, 0.0f);
       }
       else if (cursor.x < -borderValue)
       {
-         float someX = (cursor.x + borderValue) * static_cast<float>(multiplier);
+         float someX = (cursor.x + borderValue) * static_cast< float >(multiplier);
          cameraMoveBy += glm::vec2(cameraMovement * someX, 0.0f);
       }
       if (cursor.y > borderValue)
       {
-         float someY = (cursor.y - borderValue) * static_cast<float>(multiplier);
+         float someY = (cursor.y - borderValue) * static_cast< float >(multiplier);
          cameraMoveBy += glm::vec2(0.0f, cameraMovement * someY);
       }
       else if (cursor.y < -borderValue)
       {
-         float someY = (cursor.y + borderValue) * static_cast<float>(multiplier);
+         float someY = (cursor.y + borderValue) * static_cast< float >(multiplier);
          cameraMoveBy += glm::vec2(0.0f, cameraMovement * someY);
       }
       if (glm::length(glm::vec2(cameraMoveBy)) > 0.0f)
@@ -849,7 +864,8 @@ Game::RenderSecondPass()
    // m_frameBuffer.DrawFrameBuffer();
 
    /* RenderText(std::to_string(m_deltaTime.count()) + " ms",
-               glm::vec2(static_cast< float >(-WIDTH / 2), static_cast< float >(-HEIGHT / 2) + 20), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));*/
+               glm::vec2(static_cast< float >(-WIDTH / 2), static_cast< float >(-HEIGHT / 2) + 20),
+      0.4f, glm::vec3(1.0f, 0.0f, 1.0f));*/
 }
 
 void

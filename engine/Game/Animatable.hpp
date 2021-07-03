@@ -18,7 +18,10 @@ struct AnimationPoint : public Object
    }
 
    AnimationPoint(ID parentID, const glm::vec2& endPosition, Timer::seconds timeDuration)
-      : Object(Object::TYPE::ANIMATION_POINT), m_parent(parentID), m_timeDuration(timeDuration), m_end(endPosition)
+      : Object(Object::TYPE::ANIMATION_POINT),
+        m_parent(parentID),
+        m_timeDuration(timeDuration),
+        m_end(endPosition)
    {
    }
 

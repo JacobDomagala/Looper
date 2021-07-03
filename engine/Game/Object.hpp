@@ -7,7 +7,8 @@
 
 namespace dgame {
 
-// Base class for all objects located in the game (player, enemy, light source, particle emitter etc.
+// Base class for all objects located in the game (player, enemy, light source, particle emitter
+// etc.
 class Object
 {
  public:
@@ -55,10 +56,11 @@ class Object
 
    ID m_id;
 
-   static inline std::unordered_map< std::string, TYPE > s_map = {{"ENEMY", Object::TYPE::ENEMY},
-                                                                  {"PLAYER", Object::TYPE::PLAYER},
-                                                                  {"ANIMATION_POINT", Object::TYPE::ANIMATION_POINT},
-                                                                  {"PATHFINDER_NODE", Object::TYPE::PATHFINDER_NODE}};
+   static inline std::unordered_map< std::string, TYPE > s_map = {
+      {"ENEMY", Object::TYPE::ENEMY},
+      {"PLAYER", Object::TYPE::PLAYER},
+      {"ANIMATION_POINT", Object::TYPE::ANIMATION_POINT},
+      {"PATHFINDER_NODE", Object::TYPE::PATHFINDER_NODE}};
    static inline ID s_currentID = 0;
 };
 

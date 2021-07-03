@@ -7,7 +7,8 @@
 namespace dgame {
 
 void
-Camera::Create(const glm::vec3& position, const glm::ivec2& windowSize, const glm::vec3& lookAt, const glm::vec3& upVec, float cameraSpeed)
+Camera::Create(const glm::vec3& position, const glm::ivec2& windowSize, const glm::vec3& lookAt,
+               const glm::vec3& upVec, float cameraSpeed)
 {
    m_position = position;
    m_lookAtDirection = lookAt;
@@ -62,8 +63,8 @@ Camera::Move(const glm::vec3& conventionalVector)
 {
    m_position += ConvertToCameraVector(conventionalVector) * m_cameraSpeed;
 
-   m_position =
-      glm::vec3(glm::clamp(m_position.x, -m_levelSize.x, m_levelSize.x), glm::clamp(m_position.y, -m_levelSize.y, m_levelSize.y), 0.0f);
+   m_position = glm::vec3(glm::clamp(m_position.x, -m_levelSize.x, m_levelSize.x),
+                          glm::clamp(m_position.y, -m_levelSize.y, m_levelSize.y), 0.0f);
 
    UpdateViewMatrix();
 }

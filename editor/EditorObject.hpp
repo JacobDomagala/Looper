@@ -15,8 +15,8 @@ class Editor;
 class EditorObject
 {
  public:
-   EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite,
-                Object::ID linkedObject);
+   EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size,
+                const std::string& sprite, Object::ID linkedObject);
 
    bool
    Visible() const;
@@ -90,11 +90,13 @@ class EditorObject
 
    // Create sprite with default texture
    void
-   CreateSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(10, 10));
+   CreateSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
+                const glm::ivec2& size = glm::ivec2(10, 10));
 
    // Create sprite with texture from 'fileName'
    void
-   CreateSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(16, 16),
+   CreateSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
+                        const glm::ivec2& size = glm::ivec2(16, 16),
                         const std::string& fileName = "Default.png");
 
    // Move object by 'moveBy'

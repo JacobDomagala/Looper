@@ -16,10 +16,12 @@ FileManager::ReadFile(const std::string& fileName, FileType)
 
    if (!fileHandle.is_open())
    {
-      m_logger.Log(Logger::TYPE::FATAL, "FileManager::ReadFile -> " + fileName + " can't be opened!");
+      m_logger.Log(Logger::TYPE::FATAL,
+                   "FileManager::ReadFile -> " + fileName + " can't be opened!");
    }
 
-   std::string returnVal((std::istreambuf_iterator< char >(fileHandle)), std::istreambuf_iterator< char >());
+   std::string returnVal((std::istreambuf_iterator< char >(fileHandle)),
+                         std::istreambuf_iterator< char >());
    fileHandle.close();
 
    if (returnVal.empty())
@@ -37,11 +39,13 @@ FileManager::LoadImageData(const std::string& imageName)
    int force_channels = 0;
    int w, h, n;
 
-   ImageHandleType textureData(stbi_load(pathToImage.c_str(), &w, &h, &n, force_channels), stbi_image_free);
+   ImageHandleType textureData(stbi_load(pathToImage.c_str(), &w, &h, &n, force_channels),
+                               stbi_image_free);
 
    if (!textureData)
    {
-      m_logger.Log(Logger::TYPE::FATAL, fmt::format("FileManager::LoadImage -> {} can't be opened!", pathToImage));
+      m_logger.Log(Logger::TYPE::FATAL,
+                   fmt::format("FileManager::LoadImage -> {} can't be opened!", pathToImage));
    }
 
    return {std::move(textureData), {w, h}, n};
@@ -58,7 +62,8 @@ FileManager::LoadImageRawBytes(const std::string& fileName)
 
    if (!textureData)
    {
-      m_logger.Log(Logger::TYPE::FATAL, "FileManager::LoadImageRawBytes -> " + pathToImage + " can't be opened!");
+      m_logger.Log(Logger::TYPE::FATAL,
+                   "FileManager::LoadImageRawBytes -> " + pathToImage + " can't be opened!");
    }
 
    return textureData;
@@ -75,7 +80,8 @@ FileManager::LoadImageRawData(const std::string& fileName)
 
    if (!textureData)
    {
-      m_logger.Log(Logger::TYPE::FATAL, "FileManager::LoadImageRawData -> " + pathToImage + " can't be opened!");
+      m_logger.Log(Logger::TYPE::FATAL,
+                   "FileManager::LoadImageRawData -> " + pathToImage + " can't be opened!");
    }
 
    return {textureData, {w, h}, n};
@@ -88,7 +94,8 @@ FileManager::LoadJsonFile(const std::string& pathToFile)
 
    if (!jsonFile.is_open())
    {
-      m_logger.Log(Logger::TYPE::FATAL, "FileManager::LoadJsonFile -> " + pathToFile + " can't be opened!");
+      m_logger.Log(Logger::TYPE::FATAL,
+                   "FileManager::LoadJsonFile -> " + pathToFile + " can't be opened!");
    }
 
    nlohmann::json json;
@@ -96,7 +103,8 @@ FileManager::LoadJsonFile(const std::string& pathToFile)
 
    if (json.is_null())
    {
-      m_logger.Log(Logger::TYPE::FATAL, "FileManager::LoadJsonFile -> " + pathToFile + " is empty!");
+      m_logger.Log(Logger::TYPE::FATAL,
+                   "FileManager::LoadJsonFile -> " + pathToFile + " is empty!");
    }
 
    return json;

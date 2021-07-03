@@ -33,17 +33,21 @@ PathFinder::DeleteNode(Node deletedNode)
 Node::NodeID
 PathFinder::FindNodeIdx(const glm::ivec2& position) const
 {
-   auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(), [position](const auto& node) { return node.m_position == position; });
+   auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(), [position](const auto& node) {
+      return node.m_position == position;
+   });
 
    return (nodeFound != m_nodes.end()) ? nodeFound->m_ID : 0;
 }
 
 glm::ivec2
-PathFinder::GetNearestPosition(/*const glm::ivec2& objectPos*/ Node::NodeID currIdx, const glm::ivec2& targetPos) const
+PathFinder::GetNearestPosition(/*const glm::ivec2& objectPos*/ Node::NodeID currIdx,
+                               const glm::ivec2& targetPos) const
 {
    glm::ivec2 returnPos{};
 
-   auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(), [currIdx](const auto& node) { return node.m_ID == currIdx; });
+   auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(),
+                                 [currIdx](const auto& node) { return node.m_ID == currIdx; });
 
    if (nodeFound != m_nodes.end())
    {
@@ -52,13 +56,16 @@ PathFinder::GetNearestPosition(/*const glm::ivec2& objectPos*/ Node::NodeID curr
 
       for (const auto& nodeIdx : nearestNode.m_connectedNodes)
       {
-         auto currentNodeIt = std::find_if(m_nodes.begin(), m_nodes.end(), [nodeIdx](const auto& node) { return node.m_ID == nodeIdx; });
+         auto currentNodeIt =
+            std::find_if(m_nodes.begin(), m_nodes.end(),
+                         [nodeIdx](const auto& node) { return node.m_ID == nodeIdx; });
 
          if (currentNodeIt != m_nodes.end())
          {
             const auto& currentNode = *currentNodeIt;
 
-            auto currentLength = glm::length(static_cast< glm::vec2 >(targetPos - currentNode.m_position));
+            auto currentLength =
+               glm::length(static_cast< glm::vec2 >(targetPos - currentNode.m_position));
             if (currentLength < length)
             {
                length = currentLength;

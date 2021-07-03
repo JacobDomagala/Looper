@@ -15,7 +15,8 @@ struct Node : public Object
    {
    }
 
-   Node(glm::ivec2 posOnMap, NodeID ID, std::vector< NodeID > connectedTo) : Object(Object::TYPE::PATHFINDER_NODE)
+   Node(glm::ivec2 posOnMap, NodeID ID, std::vector< NodeID > connectedTo)
+      : Object(Object::TYPE::PATHFINDER_NODE)
    {
       m_position = posOnMap;
       m_ID = ID;

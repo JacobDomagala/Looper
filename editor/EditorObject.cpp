@@ -5,8 +5,8 @@
 
 namespace dgame {
 
-EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite,
-                           Object::ID linkedObject)
+EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size,
+                           const std::string& sprite, Object::ID linkedObject)
    : m_editor(editor)
 {
    m_globalPosition = m_editor.GetLevel().GetGlobalVec(positionOnMap);
@@ -38,10 +38,12 @@ EditorObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
    const auto minY = transformed3.y;
    const auto maxY = transformed0.y;
 
-   const auto globalPosition = camera.GetViewMatrix() * glm::vec4(m_editor.ScreenToGlobal(screenPosition), 0.0f, 1.0f);
+   const auto globalPosition =
+      camera.GetViewMatrix() * glm::vec4(m_editor.ScreenToGlobal(screenPosition), 0.0f, 1.0f);
 
    // If 'screenPosition' is inside 'object' sprite (rectangle)
-   if (globalPosition.x >= minX && globalPosition.x <= maxX && globalPosition.y <= maxY && globalPosition.y >= minY)
+   if (globalPosition.x >= minX && globalPosition.x <= maxX && globalPosition.y <= maxY
+       && globalPosition.y >= minY)
    {
       collided = true;
    }
@@ -141,7 +143,8 @@ EditorObject::CreateSprite(const glm::vec2& globalPosition, const glm::ivec2& si
 }
 
 void
-EditorObject::CreateSpriteTextured(const glm::vec2& /*position*/, const glm::ivec2& /*size*/, const std::string& /*fileName*/)
+EditorObject::CreateSpriteTextured(const glm::vec2& /*position*/, const glm::ivec2& /*size*/,
+                                   const std::string& /*fileName*/)
 {
    m_globalPosition = m_sprite.GetPosition();
 }
@@ -186,7 +189,8 @@ EditorObject::DeleteLinkedObject()
       switch (Object::GetTypeFromID(m_objectID))
       {
          case Object::TYPE::ANIMATION_POINT: {
-            auto& animationPoint = dynamic_cast< AnimationPoint& >(m_editor.GetLevel().GetObjectRef(m_objectID));
+            auto& animationPoint =
+               dynamic_cast< AnimationPoint& >(m_editor.GetLevel().GetObjectRef(m_objectID));
             auto& object = m_editor.GetLevel().GetObjectRef(animationPoint.m_parent);
 
             auto& enemy = dynamic_cast< Enemy& >(object);
@@ -223,7 +227,8 @@ EditorObject::Move(const glm::vec2& moveBy, bool /*isCameraMovement*/)
       switch (Object::GetTypeFromID(m_objectID))
       {
          case Object::TYPE::ANIMATION_POINT: {
-            auto& animationPoint = dynamic_cast< AnimationPoint& >(m_editor.GetLevel().GetObjectRef(m_objectID));
+            auto& animationPoint =
+               dynamic_cast< AnimationPoint& >(m_editor.GetLevel().GetObjectRef(m_objectID));
             animationPoint.m_end += moveBy;
             m_editor.UpdateAnimationData();
          }
@@ -258,7 +263,8 @@ EditorObject::Rotate(float angle, bool cumulative)
       switch (Object::GetTypeFromID(m_objectID))
       {
          case Object::TYPE::ANIMATION_POINT: {
-            auto& animationPoint = dynamic_cast< AnimationPoint& >(m_editor.GetLevel().GetObjectRef(m_objectID));
+            auto& animationPoint =
+               dynamic_cast< AnimationPoint& >(m_editor.GetLevel().GetObjectRef(m_objectID));
             animationPoint.m_rotation = rotate;
             m_editor.UpdateAnimationData();
          }

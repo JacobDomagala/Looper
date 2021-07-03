@@ -6,7 +6,8 @@
 
 namespace dgame {
 
-Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& size, const std::string& sprite, const std::string& name)
+Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& size,
+               const std::string& sprite, const std::string& name)
    : GameObject(game, position, size, sprite, TYPE::PLAYER)
 {
    m_logger.Init("Player");
@@ -23,8 +24,9 @@ Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& s
    m_currentWeapon = m_weapons.at(0).get();
 }
 
-//void
-//Player::CreateSprite(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName)
+// void
+// Player::CreateSprite(const glm::vec2& position, const glm::ivec2& size, const std::string&
+// fileName)
 //{
 //   m_collision = m_sprite.SetSpriteTextured(position, size, fileName);
 //   GameObject::m_currentState.m_centeredGlobalPosition = m_sprite.GetPosition();
@@ -32,12 +34,12 @@ Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& s
 //}
 
 void
-Player::LoadShaders(const std::string& )
+Player::LoadShaders(const std::string&)
 {
 }
 
 void
-Player::LoadShaders(const Shader& )
+Player::LoadShaders(const Shader&)
 {
 }
 
@@ -45,7 +47,8 @@ bool
 Player::CheckCollision(const glm::ivec2& bulletPosition, Enemy const* enemy, bool enemyShooting)
 {
    // if the bullet is inside collision zone then player got hit
-   if (glm::length(glm::vec2(bulletPosition - GameObject::m_currentState.m_centeredLocalPosition)) < (static_cast<float>(m_sprite.GetSize().x)) / 2.5f)
+   if (glm::length(glm::vec2(bulletPosition - GameObject::m_currentState.m_centeredLocalPosition))
+       < (static_cast< float >(m_sprite.GetSize().x)) / 2.5f)
    {
       if (enemyShooting)
       {
@@ -60,7 +63,9 @@ Player::CheckCollision(const glm::ivec2& bulletPosition, Enemy const* enemy, boo
 glm::vec2
 Player::GetScreenPosition() const
 {
-   glm::vec4 screenPosition = m_appHandle.GetProjection() * glm::vec4(GameObject::m_currentState.m_centeredGlobalPosition, 0.0f, 1.0f);
+   glm::vec4 screenPosition =
+      m_appHandle.GetProjection()
+      * glm::vec4(GameObject::m_currentState.m_centeredGlobalPosition, 0.0f, 1.0f);
    return glm::vec2(screenPosition.x, screenPosition.y);
 }
 
@@ -82,7 +87,8 @@ Player::UpdateInternal(bool isReverse)
             const auto cursorPos = gameHandle->ScreenToGlobal(gameHandle->GetCursor());
             const auto spritePosition = GameObject::m_currentState.m_globalPosition;
 
-            m_currentState.m_viewAngle = glm::atan(spritePosition.y - cursorPos.y, spritePosition.x - cursorPos.x);
+            m_currentState.m_viewAngle =
+               glm::atan(spritePosition.y - cursorPos.y, spritePosition.x - cursorPos.x);
          }
       }
 
@@ -103,7 +109,8 @@ Player::Shoot()
 {
    auto gameHandle = ConvertToGameHandle();
 
-   glm::ivec2 direction = static_cast< glm::ivec2 >(gameHandle->GetCursor()) - GameObject::m_currentState.m_localPosition;
+   glm::ivec2 direction = static_cast< glm::ivec2 >(gameHandle->GetCursor())
+                          - GameObject::m_currentState.m_localPosition;
    m_currentWeapon->Shoot(direction);
 }
 
@@ -117,9 +124,11 @@ void
 Player::SetCenteredLocalPosition(const glm::ivec2& pos)
 {
    GameObject::m_currentState.m_centeredLocalPosition = pos;
-   GameObject::m_currentState.m_localPosition = glm::ivec2(GameObject::m_currentState.m_centeredLocalPosition.x - m_sprite.GetSize().x / 2,
-                                                           GameObject::m_currentState.m_centeredLocalPosition.y - m_sprite.GetSize().y / 2);
-   GameObject::m_currentState.m_globalPosition = m_appHandle.GetLevel().GetGlobalVec(GameObject::m_currentState.m_localPosition);
+   GameObject::m_currentState.m_localPosition =
+      glm::ivec2(GameObject::m_currentState.m_centeredLocalPosition.x - m_sprite.GetSize().x / 2,
+                 GameObject::m_currentState.m_centeredLocalPosition.y - m_sprite.GetSize().y / 2);
+   GameObject::m_currentState.m_globalPosition =
+      m_appHandle.GetLevel().GetGlobalVec(GameObject::m_currentState.m_localPosition);
    GameObject::m_currentState.m_centeredGlobalPosition =
       m_appHandle.GetLevel().GetGlobalVec(GameObject::m_currentState.m_centeredLocalPosition);
 }
@@ -139,7 +148,7 @@ Player::GetReloadTime() const
 void
 Player::ChangeWepon(int32_t idx)
 {
-   m_currentWeapon = m_weapons.at(static_cast<size_t>(idx)).get();
+   m_currentWeapon = m_weapons.at(static_cast< size_t >(idx)).get();
 }
 
 int32_t

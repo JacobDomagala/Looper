@@ -7,8 +7,9 @@
 
 namespace dgame {
 
-Enemy::Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite,
-             const std::vector< AnimationPoint >& keypoints, Animatable::ANIMATION_TYPE animationType)
+Enemy::Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size,
+             const std::string& sprite, const std::vector< AnimationPoint >& keypoints,
+             Animatable::ANIMATION_TYPE animationType)
    : GameObject(context, pos, size, sprite, TYPE::ENEMY), Animatable(animationType)
 {
    m_currentState.m_currentHP = m_maxHP;
@@ -28,7 +29,8 @@ void
 Enemy::DealWithPlayer()
 {
    auto gameHandle = ConvertToGameHandle();
-   auto collided = gameHandle->IsPlayerInVision(this, static_cast< int32_t >(m_currentState.m_visionRange));
+   auto collided =
+      gameHandle->IsPlayerInVision(this, static_cast< int32_t >(m_currentState.m_visionRange));
    const auto playerPosition = gameHandle->GetPlayer()->GetCenteredLocalPosition();
 
    m_timer.ToggleTimer();
@@ -62,7 +64,8 @@ Enemy::DealWithPlayer()
       m_currentState.m_timeSinceCombatEnded += m_timer.GetMsDeltaTime();
       const auto chaseTime = Timer::seconds(3);
 
-      if ((m_currentState.m_action != ACTION::IDLE) && (m_currentState.m_timeSinceCombatEnded < chaseTime))
+      if ((m_currentState.m_action != ACTION::IDLE)
+          && (m_currentState.m_timeSinceCombatEnded < chaseTime))
       {
          m_currentState.m_action = ACTION::CHASING_PLAYER;
          ChasePlayer();
@@ -139,12 +142,13 @@ Enemy::Shoot()
    m_appHandle.RenderText("POW POW", glm::vec2(128.0f, 64.0f), 1.0f, glm::vec3(0.0f, 0.1f, 0.4f));
    if (glm::length(static_cast< glm::vec2 >(m_appHandle.GetPlayer()->GetCenteredLocalPosition()
                                             - GameObject::m_currentState.m_centeredLocalPosition))
-       <= static_cast<float>(m_weapon->GetRange()))
+       <= static_cast< float >(m_weapon->GetRange()))
    {
       if (m_currentState.m_timeSinceLastShot >= m_weapon->GetReloadTime())
       {
-         auto collided = gameHandle->CheckBulletCollision(this, m_appHandle.GetLevel().GetGlobalVec(m_currentState.m_targetShootPosition),
-                                                          m_weapon->GetRange());
+         auto collided = gameHandle->CheckBulletCollision(
+            this, m_appHandle.GetLevel().GetGlobalVec(m_currentState.m_targetShootPosition),
+            m_weapon->GetRange());
 
          // if we hit anything draw a line
          if (collided.first != glm::ivec2(0, 0))
@@ -167,27 +171,34 @@ Enemy::ChasePlayer()
 {
    auto* gameHandle = ConvertToGameHandle();
 
-   const auto& playerPos = m_currentState.m_lastPlayersPos; // m_contextHandle.GetPlayer()->GetCenteredLocalPosition();
-   const auto moveBy = m_currentState.m_movementSpeed * static_cast<float>(gameHandle->GetDeltaTime().count());
+   const auto& playerPos =
+      m_currentState.m_lastPlayersPos; // m_contextHandle.GetPlayer()->GetCenteredLocalPosition();
+   const auto moveBy =
+      m_currentState.m_movementSpeed * static_cast< float >(gameHandle->GetDeltaTime().count());
 
-   const auto distanceToNode = glm::length(static_cast< glm::vec2 >(playerPos - GameObject::m_currentState.m_centeredLocalPosition));
+   const auto distanceToNode = glm::length(
+      static_cast< glm::vec2 >(playerPos - GameObject::m_currentState.m_centeredLocalPosition));
 
    if ((distanceToNode < 5.0f) && (distanceToNode != 0.0f))
    {
-      Move(m_currentState.m_targetMovePosition - GameObject::m_currentState.m_centeredLocalPosition, false);
-      m_currentState.m_currentNodeIdx =
-         gameHandle->GetLevel().GetPathfinder().FindNodeIdx(GameObject::m_currentState.m_centeredLocalPosition);
+      Move(m_currentState.m_targetMovePosition - GameObject::m_currentState.m_centeredLocalPosition,
+           false);
+      m_currentState.m_currentNodeIdx = gameHandle->GetLevel().GetPathfinder().FindNodeIdx(
+         GameObject::m_currentState.m_centeredLocalPosition);
    }
    else if (m_currentState.m_targetMovePosition
-            == GameObject::m_currentState.m_centeredLocalPosition /*|| m_targetMovePosition == glm::ivec2(0, 0)*/)
+            == GameObject::m_currentState
+                  .m_centeredLocalPosition /*|| m_targetMovePosition == glm::ivec2(0, 0)*/)
    {
-      m_currentState.m_currentNodeIdx =
-         gameHandle->GetLevel().GetPathfinder().FindNodeIdx(GameObject::m_currentState.m_centeredLocalPosition);
+      m_currentState.m_currentNodeIdx = gameHandle->GetLevel().GetPathfinder().FindNodeIdx(
+         GameObject::m_currentState.m_centeredLocalPosition);
       m_currentState.m_targetMovePosition =
-         gameHandle->GetLevel().GetPathfinder().GetNearestPosition(m_currentState.m_currentNodeIdx, playerPos);
+         gameHandle->GetLevel().GetPathfinder().GetNearestPosition(m_currentState.m_currentNodeIdx,
+                                                                   playerPos);
       if (m_currentState.m_targetMovePosition != glm::ivec2(0, 0))
       {
-         auto move = m_currentState.m_targetMovePosition - GameObject::m_currentState.m_centeredLocalPosition;
+         auto move = m_currentState.m_targetMovePosition
+                     - GameObject::m_currentState.m_centeredLocalPosition;
          auto nMove = glm::normalize(static_cast< glm::vec2 >(move));
 
          Move(nMove * moveBy, false);
@@ -197,16 +208,18 @@ Enemy::ChasePlayer()
    {
       if (m_currentState.m_targetMovePosition == glm::ivec2())
       {
-         m_currentState.m_currentNodeIdx =
-            gameHandle->GetLevel().GetPathfinder().GetNearestNode(GameObject::m_currentState.m_centeredLocalPosition);
+         m_currentState.m_currentNodeIdx = gameHandle->GetLevel().GetPathfinder().GetNearestNode(
+            GameObject::m_currentState.m_centeredLocalPosition);
       }
 
       m_currentState.m_targetMovePosition = playerPos;
-      // gameHandle->GetLevel().GetPathfinder().GetNearestPosition(m_currentState.m_currentNodeIdx, playerPos);
+      // gameHandle->GetLevel().GetPathfinder().GetNearestPosition(m_currentState.m_currentNodeIdx,
+      // playerPos);
 
       if (m_currentState.m_targetMovePosition != glm::ivec2(0, 0))
       {
-         auto move = m_currentState.m_targetMovePosition - GameObject::m_currentState.m_centeredLocalPosition;
+         auto move = m_currentState.m_targetMovePosition
+                     - GameObject::m_currentState.m_centeredLocalPosition;
          auto nMove = glm::normalize(static_cast< glm::vec2 >(move));
 
          Move(nMove * moveBy, false);
@@ -221,44 +234,52 @@ Enemy::ReturnToInitialPosition()
 {
    auto gameHandle = ConvertToGameHandle();
 
-   auto moveBy = m_currentState.m_movementSpeed * static_cast<float>(gameHandle->GetDeltaTime().count());
-   auto vectorToInitialPos = static_cast< glm::vec2 >(m_initialPosition - GameObject::m_currentState.m_centeredLocalPosition);
+   auto moveBy =
+      m_currentState.m_movementSpeed * static_cast< float >(gameHandle->GetDeltaTime().count());
+   auto vectorToInitialPos = static_cast< glm::vec2 >(
+      m_initialPosition - GameObject::m_currentState.m_centeredLocalPosition);
    auto lengthToInitialPos = glm::length(vectorToInitialPos);
-   auto distanceToNode =
-      glm::length(static_cast< glm::vec2 >(m_currentState.m_targetMovePosition - GameObject::m_currentState.m_centeredLocalPosition));
+   auto distanceToNode = glm::length(static_cast< glm::vec2 >(
+      m_currentState.m_targetMovePosition - GameObject::m_currentState.m_centeredLocalPosition));
 
    if (lengthToInitialPos < 5.0f)
    {
       Move(vectorToInitialPos, false);
-      m_currentState.m_currentNodeIdx =
-         gameHandle->GetLevel().GetPathfinder().FindNodeIdx(GameObject::m_currentState.m_centeredLocalPosition);
+      m_currentState.m_currentNodeIdx = gameHandle->GetLevel().GetPathfinder().FindNodeIdx(
+         GameObject::m_currentState.m_centeredLocalPosition);
       m_currentState.m_isAtInitialPos = true;
    }
    else if ((distanceToNode < 5.0f) && (distanceToNode != 0.0f))
    {
-      Move(m_currentState.m_targetMovePosition - GameObject::m_currentState.m_centeredLocalPosition, false);
-      m_currentState.m_currentNodeIdx =
-         gameHandle->GetLevel().GetPathfinder().FindNodeIdx(GameObject::m_currentState.m_centeredLocalPosition);
+      Move(m_currentState.m_targetMovePosition - GameObject::m_currentState.m_centeredLocalPosition,
+           false);
+      m_currentState.m_currentNodeIdx = gameHandle->GetLevel().GetPathfinder().FindNodeIdx(
+         GameObject::m_currentState.m_centeredLocalPosition);
    }
-   else if (m_currentState.m_targetMovePosition == GameObject::m_currentState.m_centeredLocalPosition)
+   else if (m_currentState.m_targetMovePosition
+            == GameObject::m_currentState.m_centeredLocalPosition)
    {
-      m_currentState.m_currentNodeIdx =
-         gameHandle->GetLevel().GetPathfinder().FindNodeIdx(GameObject::m_currentState.m_centeredLocalPosition);
-      m_currentState.m_targetMovePosition = gameHandle->GetLevel().GetPathfinder().GetNearestPosition(
-         /*m_centeredLocalPosition*/ m_currentState.m_currentNodeIdx, m_initialPosition);
-      auto move = m_currentState.m_targetMovePosition - GameObject::m_currentState.m_centeredLocalPosition;
+      m_currentState.m_currentNodeIdx = gameHandle->GetLevel().GetPathfinder().FindNodeIdx(
+         GameObject::m_currentState.m_centeredLocalPosition);
+      m_currentState.m_targetMovePosition =
+         gameHandle->GetLevel().GetPathfinder().GetNearestPosition(
+            /*m_centeredLocalPosition*/ m_currentState.m_currentNodeIdx, m_initialPosition);
+      auto move =
+         m_currentState.m_targetMovePosition - GameObject::m_currentState.m_centeredLocalPosition;
       auto nMove = glm::normalize(static_cast< glm::vec2 >(move));
 
       Move(nMove * moveBy, false);
    }
    else
    {
-      m_currentState.m_targetMovePosition = gameHandle->GetLevel().GetPathfinder().GetNearestPosition(
-         /*m_centeredLocalPosition*/ m_currentState.m_currentNodeIdx, m_initialPosition);
+      m_currentState.m_targetMovePosition =
+         gameHandle->GetLevel().GetPathfinder().GetNearestPosition(
+            /*m_centeredLocalPosition*/ m_currentState.m_currentNodeIdx, m_initialPosition);
 
       if (m_currentState.m_targetMovePosition != glm::ivec2(0, 0))
       {
-         auto move = m_currentState.m_targetMovePosition - GameObject::m_currentState.m_centeredLocalPosition;
+         auto move = m_currentState.m_targetMovePosition
+                     - GameObject::m_currentState.m_centeredLocalPosition;
          auto nMove = glm::normalize(static_cast< glm::vec2 >(move));
 
          Move(nMove * moveBy, false);

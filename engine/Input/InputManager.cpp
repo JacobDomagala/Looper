@@ -7,7 +7,8 @@
 namespace dgame {
 
 void
-InputManager::InternalKeyCallback(GLFWwindow* , int32_t key, int32_t scancode, int32_t action, int32_t mods)
+InputManager::InternalKeyCallback(GLFWwindow*, int32_t key, int32_t scancode, int32_t action,
+                                  int32_t mods)
 {
    s_logger.Log(Logger::TYPE::TRACE, "GLFW key {} {} scan code - {}", action, key, scancode);
 
@@ -17,7 +18,7 @@ InputManager::InternalKeyCallback(GLFWwindow* , int32_t key, int32_t scancode, i
 }
 
 void
-InputManager::InternalMouseButtonCallback(GLFWwindow* , int32_t button, int32_t action, int32_t mods)
+InputManager::InternalMouseButtonCallback(GLFWwindow*, int32_t button, int32_t action, int32_t mods)
 {
    s_logger.Log(Logger::TYPE::TRACE, "GLFW mouse button {} {} {}", button, action, mods);
 
@@ -25,7 +26,7 @@ InputManager::InternalMouseButtonCallback(GLFWwindow* , int32_t button, int32_t 
 }
 
 void
-InputManager::InternalCursorPositionCallback(GLFWwindow* , double x, double y)
+InputManager::InternalCursorPositionCallback(GLFWwindow*, double x, double y)
 {
    s_logger.Log(Logger::TYPE::TRACE, "GLFW cursor pos {} {}", x, y);
 
@@ -35,7 +36,7 @@ InputManager::InternalCursorPositionCallback(GLFWwindow* , double x, double y)
 }
 
 void
-InputManager::InternalMouseScrollCallback(GLFWwindow* , double xoffset, double yoffset)
+InputManager::InternalMouseScrollCallback(GLFWwindow*, double xoffset, double yoffset)
 {
    s_logger.Log(Logger::TYPE::TRACE, "GLFW scroll {} {}", xoffset, yoffset);
 
@@ -143,7 +144,8 @@ InputManager::GetMousePos()
 void
 InputManager::SetMousePos(const glm::vec2& position)
 {
-   glfwSetCursorPos(s_windowHandle, static_cast< double >(position.x), static_cast< double >(position.y));
+   glfwSetCursorPos(s_windowHandle, static_cast< double >(position.x),
+                    static_cast< double >(position.y));
 }
 
 } // namespace dgame

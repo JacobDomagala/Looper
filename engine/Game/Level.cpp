@@ -52,8 +52,10 @@ Level::Load(Application* context, const std::string& pathToLevel)
       {
          for (auto& nodeJson : json[key]["nodes"])
          {
-            m_pathinder.AddNode(Node(glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]), nodeJson["id"],
-                                     std::vector< Node::NodeID >(nodeJson["connected to"].begin(), nodeJson["connected to"].end())));
+            m_pathinder.AddNode(Node(glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]),
+                                     nodeJson["id"],
+                                     std::vector< Node::NodeID >(nodeJson["connected to"].begin(),
+                                                                 nodeJson["connected to"].end())));
          }
       }
       else if (key == "SHADER")
@@ -69,7 +71,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
          const auto weapons = json[key]["weapons"];
          const auto name = json[key]["name"];
 
-         m_player = std::make_shared< Player >(*context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture, name);
+         m_player = std::make_shared< Player >(*context, glm::vec2(position[0], position[1]),
+                                               glm::ivec2(size[0], size[1]), texture, name);
          m_player->GetSprite().Scale(glm::vec2(json[key]["scale"][0], json[key]["scale"][1]));
          m_player->GetSprite().Rotate(json[key]["rotation"]);
          m_objects.emplace_back(m_player);
@@ -84,7 +87,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
             const auto weapons = enemy["weapons"];
             const auto name = enemy["name"];
 
-            auto object = std::make_shared< Enemy >(*context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture,
+            auto object = std::make_shared< Enemy >(*context, glm::vec2(position[0], position[1]),
+                                                    glm::ivec2(size[0], size[1]), texture,
                                                     std::vector< AnimationPoint >{});
             object->SetName(name);
             object->GetSprite().Scale(glm::vec2(enemy["scale"][0], enemy["scale"][1]));
@@ -110,7 +114,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
       }
       else
       {
-         m_logger.Log(Logger::TYPE::WARNING, "Level::Load -> Unspecified type " + key + " during level loading");
+         m_logger.Log(Logger::TYPE::WARNING,
+                      "Level::Load -> Unspecified type " + key + " during level loading");
       }
    }
 }
@@ -142,9 +147,11 @@ Level::Save(const std::string& pathToLevel)
    // Serialize player
    json["PLAYER"]["name"] = m_player->GetName();
    json["PLAYER"]["position"] = {m_player->GetLocalPosition().x, m_player->GetLocalPosition().y};
-   json["PLAYER"]["scale"] = {m_player->GetSprite().GetScale().x, m_player->GetSprite().GetScale().y};
+   json["PLAYER"]["scale"] = {m_player->GetSprite().GetScale().x,
+                              m_player->GetSprite().GetScale().y};
    json["PLAYER"]["rotation"] = m_player->GetSprite().GetRotation();
-   json["PLAYER"]["size"] = {m_player->GetSprite().GetOriginalSize().x, m_player->GetSprite().GetOriginalSize().y};
+   json["PLAYER"]["size"] = {m_player->GetSprite().GetOriginalSize().x,
+                             m_player->GetSprite().GetOriginalSize().y};
    json["PLAYER"]["texture"] = m_player->GetSprite().GetTextureName();
    json["PLAYER"]["weapons"] = m_player->GetWeapons();
 
@@ -160,7 +167,8 @@ Level::Save(const std::string& pathToLevel)
 
       enemyJson["name"] = object->GetName();
       enemyJson["position"] = {object->GetLocalPosition().x, object->GetLocalPosition().y};
-      enemyJson["size"] = {object->GetSprite().GetOriginalSize().x, object->GetSprite().GetOriginalSize().y};
+      enemyJson["size"] = {object->GetSprite().GetOriginalSize().x,
+                           object->GetSprite().GetOriginalSize().y};
       enemyJson["scale"] = {object->GetSprite().GetScale().x, object->GetSprite().GetScale().y};
       enemyJson["rotation"] = object->GetSprite().GetRotation();
       enemyJson["texture"] = object->GetSprite().GetTextureName();
@@ -168,7 +176,8 @@ Level::Save(const std::string& pathToLevel)
       auto enemyPtr = dynamic_cast< Enemy* >(object.get());
 
       enemyJson["weapons"] = enemyPtr->GetWeapon();
-      enemyJson["animation type"] = enemyPtr->GetAnimationType() == Animatable::ANIMATION_TYPE::LOOP ? "Loop" : "Reversable";
+      enemyJson["animation type"] =
+         enemyPtr->GetAnimationType() == Animatable::ANIMATION_TYPE::LOOP ? "Loop" : "Reversable";
 
       const auto keypoints = enemyPtr->GetAnimationKeypoints();
       for (const auto& point : keypoints)
@@ -205,14 +214,15 @@ Level::AddGameObject(GameObject::TYPE objectType)
    switch (objectType)
    {
       case GameObject::TYPE::ENEMY: {
-         newObject =
-            std::make_shared< Enemy >(*m_contextPointer, defaultPosition, defaultSize, defaultTexture, std::vector< AnimationPoint >{});
+         newObject = std::make_shared< Enemy >(*m_contextPointer, defaultPosition, defaultSize,
+                                               defaultTexture, std::vector< AnimationPoint >{});
          m_objects.push_back(newObject);
       }
       break;
 
       case GameObject::TYPE::PLAYER: {
-         newObject = std::make_shared< Player >(*m_contextPointer, defaultPosition, defaultSize, defaultTexture);
+         newObject = std::make_shared< Player >(*m_contextPointer, defaultPosition, defaultSize,
+                                                defaultTexture);
          m_player = std::dynamic_pointer_cast< Player >(newObject);
          m_objects.push_back(newObject);
       }
@@ -276,8 +286,9 @@ Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
    m_locked = false;
    m_levelSize = size;
 
-   m_background.SetSpriteTextured(glm::vec2(static_cast< float >(m_levelSize.x) / 2.0f, static_cast< float >(m_levelSize.y) / 2.0f), size,
-                                  fileName);
+   m_background.SetSpriteTextured(glm::vec2(static_cast< float >(m_levelSize.x) / 2.0f,
+                                            static_cast< float >(m_levelSize.y) / 2.0f),
+                                  size, fileName);
    // m_shaders.LoadDefault();
 }
 
@@ -288,7 +299,8 @@ Level::LoadShaders(const std::string&)
 }
 
 void
-Level::AddGameObject(Game& game, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite)
+Level::AddGameObject(Game& game, const glm::vec2& pos, const glm::ivec2& size,
+                     const std::string& sprite)
 {
    std::unique_ptr< GameObject > object = std::make_unique< Enemy >(game, pos, size, sprite);
    m_objects.push_back(std::move(object));
@@ -304,11 +316,14 @@ void
 Level::DeleteObject(Object::ID deletedObject)
 {
    auto objectIter =
-      std::find_if(m_objects.begin(), m_objects.end(), [deletedObject](const auto& object) { return object->GetID() == deletedObject; });
+      std::find_if(m_objects.begin(), m_objects.end(), [deletedObject](const auto& object) {
+         return object->GetID() == deletedObject;
+      });
 
    if (objectIter == m_objects.end())
    {
-      m_logger.Log(Logger::TYPE::FATAL, "Trying to delete an object that doesn't exist! Object type: {}",
+      m_logger.Log(Logger::TYPE::FATAL,
+                   "Trying to delete an object that doesn't exist! Object type: {}",
                    Object::GetTypeString(deletedObject));
    }
    else
@@ -325,7 +340,9 @@ Level::GetObjectRef(Object::ID objectID)
    switch (Object::GetTypeFromID(objectID))
    {
       case Object::TYPE::ENEMY: {
-         auto it = std::find_if(m_objects.begin(), m_objects.end(), [objectID](const auto& object) { return object->GetID() == objectID; });
+         auto it = std::find_if(m_objects.begin(), m_objects.end(), [objectID](const auto& object) {
+            return object->GetID() == objectID;
+         });
 
          if (it != m_objects.end())
          {
@@ -347,7 +364,9 @@ Level::GetObjectRef(Object::ID objectID)
             if (animatePtr)
             {
                auto& points = animatePtr->GetAnimationKeypoints();
-               auto it = std::find_if(points.begin(), points.end(), [objectID](const auto& point) { return point.GetID() == objectID; });
+               auto it = std::find_if(points.begin(), points.end(), [objectID](const auto& point) {
+                  return point.GetID() == objectID;
+               });
 
                if (it != points.end())
                {
@@ -361,7 +380,8 @@ Level::GetObjectRef(Object::ID objectID)
 
       case Object::TYPE::PATHFINDER_NODE: {
          auto& nodes = m_pathinder.GetAllNodes();
-         auto it = std::find_if(nodes.begin(), nodes.end(), [objectID](const auto& node) { return node.GetID() == objectID; });
+         auto it = std::find_if(nodes.begin(), nodes.end(),
+                                [objectID](const auto& node) { return node.GetID() == objectID; });
 
          if (it != nodes.end())
          {
@@ -491,9 +511,10 @@ Level::GetGameObjectOnLocation(const glm::vec2& screenPosition)
    //   }
    //}
 
-   auto objectOnLocation = std::find_if(m_objects.begin(), m_objects.end(), [screenPosition](const auto& object) {
-      return object->CheckIfCollidedScreenPosion(screenPosition);
-   });
+   auto objectOnLocation =
+      std::find_if(m_objects.begin(), m_objects.end(), [screenPosition](const auto& object) {
+         return object->CheckIfCollidedScreenPosion(screenPosition);
+      });
 
    return objectOnLocation != m_objects.end() ? *objectOnLocation : nullptr;
 }

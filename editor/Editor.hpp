@@ -114,13 +114,15 @@ class Editor : public Application
    GetGridData() const;
 
    void
-   HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameObject, bool fromGUI = false);
+   HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameObject,
+                            bool fromGUI = false);
 
    void
    HandleObjectSelected(Object::ID objectID, bool fromGUI);
 
    void
-   HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedObject, bool fromGUI = false);
+   HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedObject,
+                              bool fromGUI = false);
 
  private:
    enum class ACTION

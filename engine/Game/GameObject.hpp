@@ -19,7 +19,8 @@ class GameObject : public Object
 {
  public:
    // Constructors and destructors
-   GameObject(Application& game, const glm::vec2& localPosition, const glm::ivec2& size, const std::string& sprite, Object::TYPE type);
+   GameObject(Application& game, const glm::vec2& localPosition, const glm::ivec2& size,
+              const std::string& sprite, Object::TYPE type);
    ~GameObject() override = default;
 
    virtual void Hit(int32_t) = 0;
@@ -89,11 +90,13 @@ class GameObject : public Object
 
    // Create sprite with default texture
    virtual void
-   CreateSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(10, 10));
+   CreateSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
+                const glm::ivec2& size = glm::ivec2(10, 10));
 
    // Create sprite with texture from 'fileName'
    virtual void
-   CreateSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(16, 16),
+   CreateSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
+                        const glm::ivec2& size = glm::ivec2(16, 16),
                         const std::string& fileName = "Default.png");
 
    // Move object by 'moveBy'
