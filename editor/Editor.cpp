@@ -140,6 +140,15 @@ Editor::CursorPositionCallback(const CursorPositionEvent& event)
       else
       {
          ShowCursor(true);
+         if (m_currentLevel->GetPathfinder().IsInitialized())
+         {
+            const auto tile =
+               m_currentLevel->GetTileFromPosition(ScreenToGlobal(currentCursorPosition));
+             if (tile >= 0)
+             {
+                m_currentLevel->GetPathfinder().SetNodeOccupied(tile);
+             }
+         }
       }
 
       m_lastCursorPosition = currentCursorPosition;
@@ -879,17 +888,16 @@ Editor::GeneratePathfinder(int density)
          }
 
 
-         auto node = std::make_shared< Node >(glm::ivec2(j * grad, i * grad) + offset, i + j,
-                                              std::vector< Node::NodeID >{});
+         Node node(glm::ivec2(j * grad, i * grad) + offset, j + i * w, std::vector< Node::NodeID >{});
          auto object = std::make_shared< EditorObject >(
-            *this, node->m_position, glm::ivec2(grad, grad), "white.png", node->GetID());
+            *this, node.m_position, glm::ivec2(grad, grad), "white.png", node.GetID());
 
          object->SetColor(obstacle ? glm::vec3{1.0f, 0.0f, 0.0f} : glm::vec3{0.0f, 1.0f, 0.0f});
          object->SetIsBackground(true);
          object->SetVisible(true);
 
          m_editorObjects.push_back(object);
-
+         m_currentLevel->GetPathfinder().AddNode(node);
 
          // m_debugObjs.push_back(std::make_unique< Line >(glm::vec2(0, 0), glm::vec2(0, 0)));
       }

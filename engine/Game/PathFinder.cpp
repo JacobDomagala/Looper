@@ -110,6 +110,17 @@ PathFinder::GetAllNodes()
    return m_nodes;
 }
 
+void
+PathFinder::SetNodeOccupied(Node::NodeID nodeID)
+{
+   auto node = std::find_if(m_nodes.begin(), m_nodes.end(),
+                            [nodeID](const auto& node) { return node.m_ID == nodeID; });
+
+   assert(node != m_nodes.end());
+
+   node->m_occupied = true;
+}
+
 bool
 PathFinder::IsInitialized() const
 {

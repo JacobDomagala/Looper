@@ -28,6 +28,9 @@ class Level
    glm::vec2
    GetGlobalVec(const glm::vec2& local) const;
 
+   int32_t
+   GetTileFromPosition(const glm::vec2& local) const;
+
    void
    MoveObjs(const glm::vec2& moveBy, bool isCameraMovement = true);
 
@@ -82,6 +85,9 @@ class Level
    // Renders only game objects
    void
    RenderGameObject();
+
+   bool
+   IsInLevelBoundaries(const glm::vec2& position) const;
 
    bool
    CheckCollision(const glm::ivec2& localPos, const Player& player);
@@ -168,6 +174,7 @@ class Level
    bool m_locked = false;
 
    glm::ivec2 m_levelSize = {0, 0};
+   uint32_t m_tileWidth = 128;
    std::vector< std::shared_ptr< GameObject > > m_objects;
    PathFinder m_pathFinder;
 

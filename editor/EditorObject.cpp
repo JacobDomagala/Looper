@@ -299,6 +299,24 @@ EditorObject::Update(bool /*isReverse*/)
 void
 EditorObject::Render()
 {
+   if (m_hasLinkedObject)
+   {
+      switch (Object::GetTypeFromID(m_objectID))
+      {
+         case Object::TYPE::PATHFINDER_NODE: {
+            auto& pathfinderNode =
+               dynamic_cast< Node& >(m_editor.GetLevel().GetObjectRef(m_objectID));
+
+            m_sprite.SetColor(pathfinderNode.m_occupied ? glm::vec3{1.0f, 0.0f, 0.0f}
+                                                        : glm::vec3{0.0f, 1.0f, 0.0f});
+         }
+         break;
+
+         default: {
+         }
+      }
+   }
+
    m_sprite.Render();
 }
 

@@ -24,6 +24,7 @@ struct Node : public Object
    }
 
    // Map position
+   bool m_occupied = false;
    glm::ivec2 m_position = {};
    NodeID m_ID = -1;
    std::vector< NodeID > m_connectedNodes = {};
@@ -58,6 +59,9 @@ class PathFinder
 
    std::vector< Node >&
    GetAllNodes();
+
+   void
+   SetNodeOccupied(Node::NodeID nodeID);
 
    bool
    IsInitialized() const;

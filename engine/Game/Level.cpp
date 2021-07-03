@@ -261,6 +261,29 @@ Level::GetGlobalVec(const glm::vec2& local) const
    return local;
 }
 
+int32_t
+Level::GetTileFromPosition(const glm::vec2& local) const
+{
+   if (!IsInLevelBoundaries(local))
+   {
+      return -1;
+   }
+
+   const auto numTilesWidth = m_levelSize.x / m_tileWidth;
+
+   const auto w = glm::floor(local.x / m_tileWidth);
+   const auto h = glm::floor(local.y / m_tileWidth);
+
+   return w + h * numTilesWidth;
+}
+
+bool
+Level::IsInLevelBoundaries(const glm::vec2& position) const
+{
+   return position.x >= 0 && position.x <= m_levelSize.x && position.y >= 0
+          && position.y <= m_levelSize.y;
+}
+
 bool
 Level::CheckCollision(const glm::ivec2& localPos, const Player& player)
 {

@@ -196,6 +196,10 @@ EditorGUI::Render()
       const auto cursorOpengGLPos = m_parent.ScreenToGlobal(InputManager::GetMousePos());
       ImGui::Text("Cursor Position %f, %f", static_cast< double >(cursorOpengGLPos.x),
                   static_cast< double >(cursorOpengGLPos.y));
+
+      const auto tile = m_parent.GetLevel().GetTileFromPosition(cursorOpengGLPos);
+      ImGui::Text("Cursor on tile %d", tile);
+
       ImGui::End();
    }
 
