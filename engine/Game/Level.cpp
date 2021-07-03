@@ -18,7 +18,8 @@ void
 Level::Create(Application* context, const glm::ivec2& size)
 {
    m_levelSize = size;
-   m_background.SetSprite(glm::vec2(0.0f, 0.0f), m_levelSize);
+   const auto halfSize = size / 2;
+   m_background.SetSprite(glm::vec2(halfSize), m_levelSize);
    m_contextPointer = context;
 }
 
@@ -528,8 +529,13 @@ Level::GetSprite()
 void
 Level::SetSize(const glm::ivec2& newSize)
 {
+   const auto oldSize = static_cast<glm::vec2>(m_levelSize);
    m_levelSize = newSize;
    m_background.SetSize(newSize);
+   // Make sure top left is always 0,0
+   const auto diff = oldSize / 2.0f - static_cast<glm::vec2>(newSize) / 2.0f;
+
+   m_background.Translate(-diff);
 }
 
 } // namespace dgame
