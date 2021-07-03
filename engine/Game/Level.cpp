@@ -222,10 +222,17 @@ Level::AddGameObject(GameObject::TYPE objectType)
       break;
 
       case GameObject::TYPE::PLAYER: {
-         newObject = std::make_shared< Player >(*m_contextPointer, defaultPosition, defaultSize,
-                                                defaultTexture);
-         m_player = std::dynamic_pointer_cast< Player >(newObject);
-         m_objects.push_back(newObject);
+         if (m_player != nullptr)
+         {
+            newObject = m_player;
+         }
+         else
+         {
+            newObject = std::make_shared< Player >(*m_contextPointer, defaultPosition, defaultSize,
+                                                   defaultTexture);
+            m_player = std::dynamic_pointer_cast< Player >(newObject);
+            m_objects.push_back(newObject);
+         }
       }
       break;
 
