@@ -64,9 +64,9 @@ class Camera
 
    // Convert 'conventionalVector' to camera state related vector
    // Example:
-   // - conventionalVector = vec(1.0f, 0.0f, 0.0f)
+   // - conventionalVector = vec3(1.0f, 0.0f, 0.0f)
    // - current camera is rotated by 90 degrees
-   // function will return vec2(0.0f, 1.0f, 0.0f)
+   // function will return vec3(0.0f, 1.0f, 0.0f)
    glm::vec3
    ConvertToCameraVector(const glm::vec3& conventionalVector) const;
 
