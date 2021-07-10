@@ -100,6 +100,8 @@ class Sprite
    void
    ScaleUniformly(const float scaleValue);
 
+   //        0,       1,          2,           3
+   // topRight, topLeft, bottomLeft, bottomRight
    std::array< glm::vec2, 4 >
    GetTransformedRectangle() const;
 

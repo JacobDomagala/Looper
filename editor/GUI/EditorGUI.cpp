@@ -198,7 +198,7 @@ EditorGUI::Render()
                   static_cast< double >(cursorOpengGLPos.y));
 
       const auto tile = m_parent.GetLevel().GetTileFromPosition(cursorOpengGLPos);
-      ImGui::Text("Cursor on tile %d", tile);
+      ImGui::Text("Cursor on tile (%d, %d)", tile.first, tile.second);
 
       ImGui::End();
    }

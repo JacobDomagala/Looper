@@ -140,15 +140,15 @@ Editor::CursorPositionCallback(const CursorPositionEvent& event)
       else
       {
          ShowCursor(true);
-         if (m_currentLevel->GetPathfinder().IsInitialized())
-         {
-            const auto tile =
-               m_currentLevel->GetTileFromPosition(ScreenToGlobal(currentCursorPosition));
-             if (tile >= 0)
-             {
-                m_currentLevel->GetPathfinder().SetNodeOccupied(tile);
-             }
-         }
+         //if (m_currentLevel->GetPathfinder().IsInitialized())
+         //{
+         //   const auto tile =
+         //      m_currentLevel->GetTileFromPosition(ScreenToGlobal(currentCursorPosition));
+         //    if (tile >= 0)
+         //    {
+         //       m_currentLevel->GetPathfinder().SetNodeOccupied(tile);
+         //    }
+         //}
       }
 
       m_lastCursorPosition = currentCursorPosition;
@@ -813,6 +813,8 @@ Editor::Update()
          m_animateGameObject = false;
       }
    }
+
+
 }
 
 void
@@ -874,21 +876,23 @@ Editor::GeneratePathfinder(int density)
       for (int j = 0; j < w; ++j)
       {
          bool obstacle = false;
-         // check if there's an obstacle in current rectangle
-         for (int k = i * grad; k < i * grad + grad; ++k)
-         {
-            for (int l = j * grad; l < j * grad + grad; ++l)
-            {
-               // if (collision && collision[l + k * levelSize.x].w != 0)
-               //{
-               //   obstacle = true;
-               //   break;
-               //}
-            }
-         }
+         //// check if there's an obstacle in current rectangle
+         //for (int k = i * grad; k < i * grad + grad; ++k)
+         //{
+         //   for (int l = j * grad; l < j * grad + grad; ++l)
+         //   {
+         //      // if (collision && collision[l + k * levelSize.x].w != 0)
+         //      //{
+         //      //   obstacle = true;
+         //      //   break;
+         //      //}
+         //   }
+         //}
 
 
-         Node node(glm::ivec2(j * grad, i * grad) + offset, j + i * w, std::vector< Node::NodeID >{});
+         Node node(
+            glm::ivec2 {j,i}, glm::ivec2(j * grad, i * grad) + offset, j + i * w,
+            std::vector< Node::NodeID >{});
          auto object = std::make_shared< EditorObject >(
             *this, node.m_position, glm::ivec2(grad, grad), "white.png", node.GetID());
 

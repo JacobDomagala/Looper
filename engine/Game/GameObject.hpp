@@ -154,6 +154,8 @@ class GameObject : public Object
       glm::vec2 m_translateVal;
       glm::mat4 m_rotateMatrix;
       glm::mat4 m_scaleMatrix;
+
+      std::vector< std::pair<int32_t, int32_t> > m_occupiedNodes;
    };
 
    std::deque< State > m_statesQueue;

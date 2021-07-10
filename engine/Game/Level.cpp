@@ -7,6 +7,7 @@
 #include "Timer.hpp"
 #include "Window.hpp"
 
+#include <set>
 #include <algorithm>
 #include <fstream>
 #include <functional>
@@ -53,7 +54,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
       {
          for (auto& nodeJson : json[key]["nodes"])
          {
-            m_pathFinder.AddNode(Node(glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]),
+            m_pathFinder.AddNode(Node(glm::ivec2(nodeJson["coords"][0], nodeJson["coords"][1]),
+                                      glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]),
                                       nodeJson["id"],
                                       std::vector< Node::NodeID >(nodeJson["connected to"].begin(),
                                                                   nodeJson["connected to"].end())));
@@ -268,12 +270,90 @@ Level::GetGlobalVec(const glm::vec2& local) const
    return local;
 }
 
-int32_t
+std::vector< std::pair<int32_t, int32_t> >
+Level::GameObjectMoved(const std::array< glm::vec2, 4 >& box,
+                       const std::vector< std::pair< int32_t, int32_t > >& currentTiles)
+{
+   auto new_tiles = GetTilesFromBoundingBox(box);
+
+   if (m_pathFinder.IsInitialized())
+   {
+      for (auto tileID : currentTiles)
+      {
+         m_pathFinder.SetNodeFreed(tileID);
+      }
+
+      for (auto tileID : new_tiles)
+      {
+         m_pathFinder.SetNodeOccupied(tileID);
+      }
+   }
+
+   return new_tiles;
+}
+
+std::vector< std::pair<int32_t, int32_t> >
+Level::GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const
+{
+   /**
+   * Given 2 convex shapes:
+   * 1. Calculate perpndicular vector to one of the side and normalize it
+   * 2. Loop through every point on the first polygon and project it onto the axis
+   *    (Keep track of the highest and lowest values found for this polygon)
+   * 3. Do the same for the second polygon.
+   */
+
+    /*  let axis = {
+      x : -(vertices[1].y - vertices[0].y),
+      y : vertices[1].x - vertices[0].x
+   }*/
+
+   const auto axis = glm::normalize(glm::vec2(-(box[0].y - box[3].y), box[0].x - box[3].x));
+
+   // For both shapes
+
+   // const auto topRightTile = GetTileFromPosition(box[0]);
+   // const auto topLeftTile = GetTileFromPosition(box[1]);
+   // const auto bottomLeftTile = GetTileFromPosition(box[2]);
+   // const auto bottomRightTile = GetTileFromPosition(box[3]);
+
+   float minX = std::numeric_limits< float >::max();
+   float maxX = std::numeric_limits< float >::min();
+
+   float minY = std::numeric_limits< float >::max();
+   float maxY = std::numeric_limits< float >::min();
+
+   for (const auto val : box)
+   {
+      minX = glm::min(minX, val.x);
+      maxX = glm::max(maxX, val.x);
+
+      minY = glm::min(minY, val.y);
+      maxY = glm::max(maxY, val.y);
+   }
+
+   const auto minTileID = GetTileFromPosition(glm::vec2{minX, minY});
+   const auto maxTileID = GetTileFromPosition(glm::vec2{maxX, maxY});
+
+   std::vector< std::pair<int32_t, int32_t> > ret;
+
+   for (int y = minTileID.second; y <= maxTileID.second; ++y)
+   {
+      for (int x = minTileID.first; x <= maxTileID.first; ++x)
+      {
+         ret.push_back({x, y});
+      }
+   }
+
+   return ret;
+}
+
+std::pair< int32_t, int32_t >
 Level::GetTileFromPosition(const glm::vec2& local) const
 {
    if (!IsInLevelBoundaries(local))
    {
-      return -1;
+      return {-1, -1};
    }
 
    const auto numTilesWidth = m_levelSize.x / m_tileWidth;
@@ -281,7 +361,7 @@ Level::GetTileFromPosition(const glm::vec2& local) const
    const auto w = glm::floor(local.x / m_tileWidth);
    const auto h = glm::floor(local.y / m_tileWidth);
 
-   return w + h * numTilesWidth;
+   return {w, h};
 }
 
 bool

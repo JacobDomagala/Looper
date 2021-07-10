@@ -7,6 +7,7 @@
 
 namespace dgame {
 
+// Should be Tile probably
 struct Node : public Object
 {
    using NodeID = int32_t;
@@ -15,17 +16,25 @@ struct Node : public Object
    {
    }
 
-   Node(glm::ivec2 posOnMap, NodeID ID, std::vector< NodeID > connectedTo)
+   Node(glm::ivec2 coords, glm::ivec2 posOnMap, NodeID ID, std::vector< NodeID > connectedTo)
       : Object(Object::TYPE::PATHFINDER_NODE)
    {
       m_position = posOnMap;
       m_ID = ID;
       m_connectedNodes = connectedTo;
+
+      m_xPos = coords.x;
+      m_yPos = coords.y;
    }
+
+   // X.Y coords
+   int32_t m_xPos = {};
+   int32_t m_yPos = {};
 
    // Map position
    bool m_occupied = false;
    glm::ivec2 m_position = {};
+
    NodeID m_ID = -1;
    std::vector< NodeID > m_connectedNodes = {};
 
@@ -61,7 +70,10 @@ class PathFinder
    GetAllNodes();
 
    void
-   SetNodeOccupied(Node::NodeID nodeID);
+   SetNodeOccupied(const std::pair<int32_t, int32_t>& nodeCoords);
+
+   void
+   SetNodeFreed(const std::pair< int32_t, int32_t >& nodeCoords);
 
    bool
    IsInitialized() const;

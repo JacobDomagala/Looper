@@ -1,5 +1,6 @@
 #include <PathFinder.hpp>
 #include <algorithm>
+#include <array>
 
 namespace dgame {
 
@@ -111,14 +112,33 @@ PathFinder::GetAllNodes()
 }
 
 void
-PathFinder::SetNodeOccupied(Node::NodeID nodeID)
+PathFinder::SetNodeOccupied(const std::pair< int32_t, int32_t >& nodeCoords)
 {
-   auto node = std::find_if(m_nodes.begin(), m_nodes.end(),
-                            [nodeID](const auto& node) { return node.m_ID == nodeID; });
+   if (nodeCoords != std::pair< int32_t, int32_t >{-1, -1})
+   {
+      auto node = std::find_if(m_nodes.begin(), m_nodes.end(), [nodeCoords](const auto& node) {
+         return (node.m_xPos == nodeCoords.first) and (node.m_yPos == nodeCoords.second);
+      });
 
-   assert(node != m_nodes.end());
+      assert(node != m_nodes.end());
 
-   node->m_occupied = true;
+      node->m_occupied = true;
+   }
+}
+
+void
+PathFinder::SetNodeFreed(const std::pair< int32_t, int32_t >& nodeCoords)
+{
+   if (nodeCoords != std::pair< int32_t, int32_t >{-1, -1})
+   {
+      auto node = std::find_if(m_nodes.begin(), m_nodes.end(), [nodeCoords](const auto& node) {
+         return (node.m_xPos == nodeCoords.first) and (node.m_yPos == nodeCoords.second);
+      });
+
+      assert(node != m_nodes.end());
+
+      node->m_occupied = false;
+   }
 }
 
 bool

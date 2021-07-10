@@ -28,11 +28,18 @@ class Level
    glm::vec2
    GetGlobalVec(const glm::vec2& local) const;
 
-   int32_t
+   std::vector< std::pair< int32_t, int32_t > >
+   GetTilesFromBoundingBox(const std::array<glm::vec2, 4>& box) const;
+
+   std::pair<int32_t, int32_t>
    GetTileFromPosition(const glm::vec2& local) const;
 
    void
    MoveObjs(const glm::vec2& moveBy, bool isCameraMovement = true);
+
+   std::vector< std::pair< int32_t, int32_t > >
+   GameObjectMoved(const std::array< glm::vec2, 4 >& box,
+                   const std::vector< std::pair< int32_t, int32_t > >& currentTiles);
 
    void
    Create(Application* context, const glm::ivec2& size);

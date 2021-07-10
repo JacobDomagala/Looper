@@ -72,6 +72,9 @@ void
 GameObject::SetSize(const glm::vec2& newSize)
 {
    m_sprite.SetSize(newSize);
+
+   m_currentState.m_occupiedNodes = m_appHandle.GetLevel().GameObjectMoved(
+      m_sprite.GetTransformedRectangle(), m_currentState.m_occupiedNodes);
 }
 
 void
@@ -200,18 +203,27 @@ GameObject::Move(const glm::vec2& moveBy, bool isCameraMovement)
       m_currentState.m_localPosition += moveBy;
       m_currentState.m_centeredLocalPosition += moveBy;
    }
+
+   m_currentState.m_occupiedNodes = m_appHandle.GetLevel().GameObjectMoved(
+      m_sprite.GetTransformedRectangle(), m_currentState.m_occupiedNodes);
 }
 
 void
 GameObject::Scale(const glm::vec2& scaleVal, bool cumulative)
 {
    cumulative ? m_sprite.ScaleCumulative(scaleVal) : m_sprite.Scale(scaleVal);
+
+   m_currentState.m_occupiedNodes = m_appHandle.GetLevel().GameObjectMoved(
+      m_sprite.GetTransformedRectangle(), m_currentState.m_occupiedNodes);
 }
 
 void
 GameObject::Rotate(float angle, bool cumulative)
 {
    cumulative ? m_sprite.RotateCumulative(angle) : m_sprite.Rotate(angle);
+
+   m_currentState.m_occupiedNodes = m_appHandle.GetLevel().GameObjectMoved(
+      m_sprite.GetTransformedRectangle(), m_currentState.m_occupiedNodes);
 }
 
 void
