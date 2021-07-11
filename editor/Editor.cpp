@@ -624,6 +624,7 @@ Editor::LoadLevel(const std::string& levelPath)
 void
 Editor::SaveLevel(const std::string& levelPath)
 {
+   m_levelFileName = levelPath;
    m_currentLevel->Save(levelPath);
 }
 

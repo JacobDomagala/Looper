@@ -136,6 +136,7 @@ Level::Save(const std::string& pathToLevel)
    {
       nlohmann::json nodeJson;
       nodeJson["id"] = node.m_ID;
+      nodeJson["coords"] = {node.m_xPos, node.m_yPos};
       nodeJson["position"] = {node.m_position.x, node.m_position.y};
       nodeJson["connected to"] = node.m_connectedNodes;
 
@@ -566,7 +567,8 @@ Level::Update(bool isReverse)
       {
          if (obj->GetType() == Object::TYPE::ENEMY)
          {
-            std::dynamic_pointer_cast< Enemy >(obj)->DealWithPlayer();
+            // TODO: Fix with updated pathfinding
+            // std::dynamic_pointer_cast< Enemy >(obj)->DealWithPlayer();
          }
 
          obj->Update(isReverse);
