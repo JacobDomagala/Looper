@@ -102,7 +102,7 @@ class Editor : public Application
    UpdateAnimationData();
 
    void
-   GeneratePathfinder(int density);
+   GeneratePathfinder();
 
    void
    DrawGrid();
@@ -132,6 +132,9 @@ class Editor : public Application
    };
 
  private:
+   std::shared_ptr< EditorObject >
+   GetEditorObjectByID(Object::ID ID);
+
    void
    ActionOnObject(ACTION action);
 
@@ -202,7 +205,7 @@ class Editor : public Application
 
    bool m_showWaypoints = true;
 
-   bool m_drawGrid = false;
+   bool m_drawGrid = true;
    int32_t m_gridCellSize = 128;
 
    EditorGUI m_gui;

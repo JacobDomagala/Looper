@@ -22,6 +22,7 @@ Level::Create(Application* context, const glm::ivec2& size)
    const auto halfSize = size / 2;
    m_background.SetSprite(glm::vec2(halfSize), m_levelSize);
    m_contextPointer = context;
+   m_pathFinder.Initialize(m_levelSize, m_tileWidth);
 }
 
 void
@@ -52,6 +53,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
       }
       else if (key == "PATHFINDER")
       {
+         m_pathFinder.Initialize(m_levelSize, m_tileWidth);
+
          for (auto& nodeJson : json[key]["nodes"])
          {
             m_pathFinder.AddNode(Node(glm::ivec2(nodeJson["coords"][0], nodeJson["coords"][1]),

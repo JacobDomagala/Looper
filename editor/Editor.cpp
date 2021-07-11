@@ -570,6 +570,7 @@ Editor::CreateLevel(const glm::ivec2& size)
 
    m_levelLoaded = true;
    m_gui.LevelLoaded(m_currentLevel);
+   GeneratePathfinder();
 }
 
 void
@@ -732,6 +733,19 @@ Editor::ShowWireframe(bool /*wireframeEnabled*/)
    //}
 }
 
+std::shared_ptr< EditorObject >
+Editor::GetEditorObjectByID(Object::ID ID)
+{
+   auto editorObject = std::find_if(m_editorObjects.begin(), m_editorObjects.end(),
+                          [ID](const auto& editorObject) {
+         return editorObject->GetLinkedObjectID() == ID;
+                          });
+
+   assert(editorObject != m_editorObjects.end());
+
+   return *editorObject;
+}
+
 void
 Editor::ShowWaypoints(bool showwaypoints)
 {
@@ -814,7 +828,22 @@ Editor::Update()
       }
    }
 
+   if (m_currentLevel)
+   {
+      const auto objects = m_currentLevel->GetObjects();
+      if (objects.size() >= 2)
+      {
+         const auto from = objects[0]->GetCenteredLocalPosition();
+         const auto to = objects[1]->GetCenteredLocalPosition();
 
+         const auto nodes = m_currentLevel->GetPathfinder().GetPath(from, to);
+         for (auto node : nodes)
+         {
+            GetEditorObjectByID(m_currentLevel->GetPathfinder().GetNodeFromID(node).GetID())
+               ->SetColor(glm::vec3{0.2f, 0.3f, 0.0f});
+         }
+      }
+   }
 }
 
 void
@@ -859,52 +888,21 @@ Editor::IsRunning()
 }
 
 void
-Editor::GeneratePathfinder(int density)
+Editor::GeneratePathfinder()
 {
-   const auto levelSize = m_currentLevel->GetSize();
-   const auto grad = density;
+   auto& pathfinder = m_currentLevel->GetPathfinder();
+   const auto tileSize = m_currentLevel->GetTileSize();
 
-   const auto w = levelSize.x / grad;
-   const auto h = levelSize.y / grad;
-   const auto offset = glm::ivec2(grad / 2, grad / 2);
-   const auto collision = m_currentLevel->GetCollision().GetVec4Data();
-
-   // height
-   for (int i = 0; i < h; ++i)
+   for (const auto& node : pathfinder.GetAllNodes())
    {
-      // width
-      for (int j = 0; j < w; ++j)
-      {
-         bool obstacle = false;
-         //// check if there's an obstacle in current rectangle
-         //for (int k = i * grad; k < i * grad + grad; ++k)
-         //{
-         //   for (int l = j * grad; l < j * grad + grad; ++l)
-         //   {
-         //      // if (collision && collision[l + k * levelSize.x].w != 0)
-         //      //{
-         //      //   obstacle = true;
-         //      //   break;
-         //      //}
-         //   }
-         //}
+      auto object = std::make_shared< EditorObject >(
+         *this, node.m_position, glm::ivec2(tileSize, tileSize), "white.png", node.GetID());
 
+      object->SetColor(node.m_occupied ? glm::vec3{1.0f, 0.0f, 0.0f} : glm::vec3{0.0f, 1.0f, 0.0f});
+      object->SetIsBackground(true);
+      object->SetVisible(true);
 
-         Node node(
-            glm::ivec2 {j,i}, glm::ivec2(j * grad, i * grad) + offset, j + i * w,
-            std::vector< Node::NodeID >{});
-         auto object = std::make_shared< EditorObject >(
-            *this, node.m_position, glm::ivec2(grad, grad), "white.png", node.GetID());
-
-         object->SetColor(obstacle ? glm::vec3{1.0f, 0.0f, 0.0f} : glm::vec3{0.0f, 1.0f, 0.0f});
-         object->SetIsBackground(true);
-         object->SetVisible(true);
-
-         m_editorObjects.push_back(object);
-         m_currentLevel->GetPathfinder().AddNode(node);
-
-         // m_debugObjs.push_back(std::make_unique< Line >(glm::vec2(0, 0), glm::vec2(0, 0)));
-      }
+      m_editorObjects.push_back(object);
    }
 }
 

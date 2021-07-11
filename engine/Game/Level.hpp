@@ -168,6 +168,12 @@ class Level
       return m_collision;
    }
 
+   uint32_t
+   GetTileSize() const
+   {
+      return m_tileWidth;
+   }
+
  private:
    Logger m_logger = Logger("Level");
 
@@ -184,9 +190,6 @@ class Level
    uint32_t m_tileWidth = 128;
    std::vector< std::shared_ptr< GameObject > > m_objects;
    PathFinder m_pathFinder;
-
-   // Tile handling stuff (deprecated)
-   std::unordered_map< std::string, Texture > m_textures;
 };
 
 } // namespace dgame

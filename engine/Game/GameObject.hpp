@@ -129,6 +129,9 @@ class GameObject : public Object
    virtual void
    UpdateInternal(bool isReverse) = 0;
 
+   void
+   UpdateCollision();
+
    Game*
    ConvertToGameHandle();
 
@@ -165,7 +168,7 @@ class GameObject : public Object
 
    TYPE m_type;
 
-   bool m_hasCollision = true;
+   bool m_hasCollision = false;
 
    // object's sprite
    Sprite m_sprite;

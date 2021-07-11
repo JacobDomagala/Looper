@@ -123,18 +123,10 @@ EditorGUI::Render()
       if (ImGui::CollapsingHeader("Pathfinder"))
       {
          static bool renderPathfinderNodes = false;
-         static int gridDensity = 128;
          if (ImGui::Checkbox("Render nodes", &renderPathfinderNodes))
          {
             m_parent.ShowWaypoints(renderPathfinderNodes);
          }
-         ImGui::SameLine();
-         if (ImGui::Button("Generate Nodes"))
-         {
-            m_parent.GeneratePathfinder(gridDensity);
-         }
-         ImGui::SameLine();
-         ImGui::InputInt("density", &gridDensity);
       }
 
       ImGui::SetNextTreeNodeOpen(true);
@@ -197,8 +189,17 @@ EditorGUI::Render()
       ImGui::Text("Cursor Position %f, %f", static_cast< double >(cursorOpengGLPos.x),
                   static_cast< double >(cursorOpengGLPos.y));
 
-      const auto tile = m_parent.GetLevel().GetTileFromPosition(cursorOpengGLPos);
-      ImGui::Text("Cursor on tile (%d, %d)", tile.first, tile.second);
+      auto& pathfinder = m_parent.GetLevel().GetPathfinder();
+      const auto nodeID = pathfinder.GetNodeFromPosition(cursorOpengGLPos);
+      Node curNode{};
+
+      if (nodeID != -1)
+      {
+         curNode = pathfinder.GetNodeFromID(nodeID);
+      }
+
+      ImGui::Text("Cursor on tile ID = %d Coords(%d, %d)", curNode.m_ID, curNode.m_xPos,
+                  curNode.m_yPos);
 
       ImGui::End();
    }
@@ -223,6 +224,12 @@ EditorGUI::Render()
          if (ImGui::InputText("Name", &name[0], nameLength))
          {
             m_currentlySelectedGameObject->SetName(name);
+         }
+
+         auto collision = m_currentlySelectedGameObject->GetHasCollision();
+         if (ImGui::Checkbox("Has Collision", &collision))
+         {
+            m_currentlySelectedGameObject->SetHasCollision(collision);
          }
       }
 

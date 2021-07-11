@@ -171,6 +171,18 @@ void
 GameObject::SetHasCollision(bool hasCollision)
 {
    m_hasCollision = hasCollision;
+
+   if (!m_hasCollision)
+   {
+      for (auto& node : m_currentState.m_occupiedNodes)
+      {
+         m_appHandle.GetLevel().GetPathfinder().SetNodeFreed(node);
+      }
+   }
+   else
+   {
+      UpdateCollision();
+   }
 }
 
 bool
@@ -192,6 +204,16 @@ GameObject::GetName() const
 }
 
 void
+GameObject::UpdateCollision()
+{
+   if (m_hasCollision)
+   {
+      m_currentState.m_occupiedNodes = m_appHandle.GetLevel().GameObjectMoved(
+         m_sprite.GetTransformedRectangle(), m_currentState.m_occupiedNodes);
+   }
+}
+
+void
 GameObject::Move(const glm::vec2& moveBy, bool isCameraMovement)
 {
    m_sprite.Translate(moveBy);
@@ -204,8 +226,7 @@ GameObject::Move(const glm::vec2& moveBy, bool isCameraMovement)
       m_currentState.m_centeredLocalPosition += moveBy;
    }
 
-   m_currentState.m_occupiedNodes = m_appHandle.GetLevel().GameObjectMoved(
-      m_sprite.GetTransformedRectangle(), m_currentState.m_occupiedNodes);
+   UpdateCollision();
 }
 
 void
@@ -213,8 +234,7 @@ GameObject::Scale(const glm::vec2& scaleVal, bool cumulative)
 {
    cumulative ? m_sprite.ScaleCumulative(scaleVal) : m_sprite.Scale(scaleVal);
 
-   m_currentState.m_occupiedNodes = m_appHandle.GetLevel().GameObjectMoved(
-      m_sprite.GetTransformedRectangle(), m_currentState.m_occupiedNodes);
+   UpdateCollision();
 }
 
 void
@@ -222,8 +242,7 @@ GameObject::Rotate(float angle, bool cumulative)
 {
    cumulative ? m_sprite.RotateCumulative(angle) : m_sprite.Rotate(angle);
 
-   m_currentState.m_occupiedNodes = m_appHandle.GetLevel().GameObjectMoved(
-      m_sprite.GetTransformedRectangle(), m_currentState.m_occupiedNodes);
+   UpdateCollision();
 }
 
 void

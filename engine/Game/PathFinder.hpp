@@ -16,37 +16,51 @@ struct Node : public Object
    {
    }
 
-   Node(glm::ivec2 coords, glm::ivec2 posOnMap, NodeID ID, std::vector< NodeID > connectedTo)
-      : Object(Object::TYPE::PATHFINDER_NODE)
+   Node(const glm::ivec2& coords, const glm::vec2& posOnMap, NodeID ID,
+        const std::vector< NodeID >& connectedTo)
+      : Object(Object::TYPE::PATHFINDER_NODE),
+        m_position(posOnMap),
+        m_ID(ID),
+        m_connectedNodes(connectedTo),
+        m_xPos(coords.x),
+        m_yPos(coords.y)
    {
-      m_position = posOnMap;
-      m_ID = ID;
-      m_connectedNodes = connectedTo;
-
-      m_xPos = coords.x;
-      m_yPos = coords.y;
    }
 
    // X.Y coords
    int32_t m_xPos = {};
    int32_t m_yPos = {};
 
-   // Map position
+   glm::vec2 m_position = {};
+
    bool m_occupied = false;
-   glm::ivec2 m_position = {};
 
    NodeID m_ID = -1;
+
+   // Node which updated this node
+   NodeID m_parentNode = -1;
+
    std::vector< NodeID > m_connectedNodes = {};
 
    bool m_visited = false;
-   int32_t m_localCost = 0;
+   int32_t m_localCost = std::numeric_limits< int32_t >::max();
+   int32_t m_globalCost = std::numeric_limits< int32_t >::max();
 };
+
+inline bool
+operator==(const Node& left, const Node& right)
+{
+   return left.m_ID == right.m_ID;
+}
 
 class PathFinder
 {
  public:
    PathFinder();
-   PathFinder(std::vector< Node >&& nodes);
+   PathFinder(const glm::ivec2& levelSize, const uint32_t tileSize, std::vector< Node >&& nodes);
+
+   void
+   Initialize(const glm::ivec2& levelSize, const uint32_t tileSize);
 
    void
    AddNode(Node newNode);
@@ -55,13 +69,13 @@ class PathFinder
    DeleteNode(Node deletedNode);
 
    Node::NodeID
-   FindNodeIdx(const glm::ivec2& position) const;
+   FindNodeIdx(const glm::vec2& position) const;
 
-   glm::ivec2
-   GetNearestPosition(Node::NodeID currIdx, const glm::ivec2& targetPos) const;
+   glm::vec2
+   GetNearestPosition(Node::NodeID currIdx, const glm::vec2& targetPos) const;
 
    Node::NodeID
-   GetNearestNode(const glm::ivec2& position) const;
+   GetNearestNode(const glm::vec2& position) const;
 
    const std::vector< Node >&
    GetAllNodes() const;
@@ -69,8 +83,18 @@ class PathFinder
    std::vector< Node >&
    GetAllNodes();
 
+   Node&
+   GetNodeFromID(Node::NodeID ID);
+
+   Node::NodeID
+   GetNodeFromPosition(const glm::vec2& position) const;
+
+
+   std::vector< Node::NodeID >
+   GetPath(const glm::vec2& source, const glm::vec2& destination);
+
    void
-   SetNodeOccupied(const std::pair<int32_t, int32_t>& nodeCoords);
+   SetNodeOccupied(const std::pair< int32_t, int32_t >& nodeCoords);
 
    void
    SetNodeFreed(const std::pair< int32_t, int32_t >& nodeCoords);
@@ -81,6 +105,8 @@ class PathFinder
  private:
    bool m_initialized = false;
    std::vector< Node > m_nodes;
+   glm::ivec2 m_levelSize = {};
+   uint32_t m_tileSize = {};
 };
 
 } // namespace dgame
