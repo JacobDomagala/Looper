@@ -19,11 +19,11 @@ struct Node : public Object
    Node(const glm::ivec2& coords, const glm::vec2& posOnMap, NodeID ID,
         const std::vector< NodeID >& connectedTo)
       : Object(Object::TYPE::PATHFINDER_NODE),
+        m_xPos(coords.x),
+        m_yPos(coords.y),
         m_position(posOnMap),
         m_ID(ID),
-        m_connectedNodes(connectedTo),
-        m_xPos(coords.x),
-        m_yPos(coords.y)
+        m_connectedNodes(connectedTo)
    {
    }
 

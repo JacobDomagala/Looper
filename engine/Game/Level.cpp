@@ -312,7 +312,7 @@ Level::GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const
       y : vertices[1].x - vertices[0].x
    }*/
 
-   const auto axis = glm::normalize(glm::vec2(-(box[0].y - box[3].y), box[0].x - box[3].x));
+   // const auto axis = glm::normalize(glm::vec2(-(box[0].y - box[3].y), box[0].x - box[3].x));
 
    // For both shapes
 
@@ -360,10 +360,10 @@ Level::GetTileFromPosition(const glm::vec2& local) const
       return {-1, -1};
    }
 
-   const auto numTilesWidth = m_levelSize.x / m_tileWidth;
+   // const auto numTilesWidth = static_cast<uint32_t>(m_levelSize.x) / m_tileWidth;
 
-   const auto w = glm::floor(local.x / m_tileWidth);
-   const auto h = glm::floor(local.y / m_tileWidth);
+   const auto w = glm::floor(local.x / static_cast<float>(m_tileWidth));
+   const auto h = glm::floor(local.y / static_cast<float>(m_tileWidth));
 
    return {w, h};
 }
@@ -371,8 +371,8 @@ Level::GetTileFromPosition(const glm::vec2& local) const
 bool
 Level::IsInLevelBoundaries(const glm::vec2& position) const
 {
-   return position.x >= 0 && position.x <= m_levelSize.x && position.y >= 0
-          && position.y <= m_levelSize.y;
+   return position.x >= 0 && position.x <= static_cast< float >(m_levelSize.x) && position.y >= 0
+          && position.y <= static_cast< float >(m_levelSize.y);
 }
 
 bool

@@ -1,6 +1,7 @@
 #include <PathFinder.hpp>
 #include <algorithm>
 #include <array>
+#include <list>
 
 namespace dgame {
 
@@ -20,11 +21,12 @@ PathFinder::Initialize(const glm::ivec2& levelSize, const uint32_t tileSize)
    m_levelSize = levelSize;
    m_tileSize = tileSize;
 
-   const auto grad = tileSize;
+   const auto grad = static_cast<int32_t>(tileSize);
 
-   const auto w = levelSize.x / grad;
-   const auto h = levelSize.y / grad;
-   const auto offset = glm::vec2(grad / 2.0f, grad / 2.0f);
+   const auto w = static_cast< int32_t >(levelSize.x / grad);
+   const auto h = static_cast< int32_t >(levelSize.y / grad);
+   const auto offset =
+      glm::vec2(static_cast< float >(grad) / 2.0f, static_cast< float >(grad) / 2.0f);
 
    // height
    for (int y = 0; y < h; ++y)
@@ -166,13 +168,14 @@ PathFinder::GetAllNodes()
 Node::NodeID
 PathFinder::GetNodeFromPosition(const glm::vec2& position) const
 {
-   if (position.x < 0 or position.x >= m_levelSize.x or position.y < 0 or position.y >= m_levelSize.y)
+   if (position.x < 0 or position.x >= static_cast< float >(m_levelSize.x) or position.y < 0
+       or position.y >= static_cast< float >(m_levelSize.y))
    {
       return -1;
    }
 
-   const auto w = glm::floor(position.x / m_tileSize);
-   const auto h = glm::floor(position.y / m_tileSize);
+   const auto w = static_cast< int32_t >(glm::floor(position.x / static_cast< float >(m_tileSize)));
+   const auto h = static_cast< int32_t >(glm::floor(position.y / static_cast< float >(m_tileSize)));
 
    const auto node = std::find_if(m_nodes.begin(), m_nodes.end(), [w, h](const auto& node) {
       return node.m_xPos == w and node.m_yPos == h;
@@ -180,7 +183,7 @@ PathFinder::GetNodeFromPosition(const glm::vec2& position) const
 
    assert(node != m_nodes.end());
 
-   return node->GetID();
+   return node->m_ID;
 }
 
 Node&
@@ -262,10 +265,10 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
          // If choosing to path through this node is a lower distance than what
          // the neighbour currently has set, update the neighbour to use this node
          // as the path source, and set its distance scores as necessary
-         if (fPossiblyLowerGoal < nodeNeighbour.m_localCost)
+         if (fPossiblyLowerGoal < static_cast< float >(nodeNeighbour.m_localCost))
          {
             nodeNeighbour.m_parentNode = nodeCurrent->m_ID;
-            nodeNeighbour.m_localCost = fPossiblyLowerGoal;
+            nodeNeighbour.m_localCost = static_cast< int32_t >(fPossiblyLowerGoal);
 
             // The best path length to the neighbour being tested has changed, so
             // update the neighbour's score. The heuristic is used to globally bias
