@@ -33,7 +33,7 @@ class Logger
       if (type >= m_currentLogType)
       {
          fmt::print("{}{}<{}> {}\n", Timer::GetCurrentTime(), ToString(type), m_moduleName,
-                    fmt::format(buffer, std::forward< Args >(args)...));
+                    fmt::format(fmt::runtime(buffer), std::forward< Args >(args)...));
       }
    }
 
