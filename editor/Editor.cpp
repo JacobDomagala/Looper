@@ -9,8 +9,8 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
-#include <string>
 #include <set>
+#include <string>
 
 namespace dgame {
 
@@ -562,7 +562,6 @@ Editor::CreateLevel(const glm::ivec2& size)
 
    m_levelLoaded = true;
    m_gui.LevelLoaded(m_currentLevel);
-   GeneratePathfinder();
 }
 
 void
@@ -589,6 +588,7 @@ Editor::LoadLevel(const std::string& levelPath)
 
                      pathfinderNode->SetIsBackground(true);
                      pathfinderNode->SetVisible(m_renderPathfinderNodes);
+                     pathfinderNode->SetColor(glm::vec3{1.0f, 1.0f, 1.0f});
 
                      return pathfinderNode;
                   });
@@ -743,6 +743,12 @@ Editor::RenderNodes(bool render)
    }
 }
 
+bool
+Editor::GetRenderNodes() const
+{
+   return m_renderPathfinderNodes;
+}
+
 void
 Editor::SetRenderAnimationPoints(bool render)
 {
@@ -848,25 +854,6 @@ bool
 Editor::IsRunning()
 {
    return m_isRunning;
-}
-
-void
-Editor::GeneratePathfinder()
-{
-   auto& pathfinder = m_currentLevel->GetPathfinder();
-   const auto tileSize = m_currentLevel->GetTileSize();
-
-   for (const auto& node : pathfinder.GetAllNodes())
-   {
-      auto object = std::make_shared< EditorObject >(
-         *this, node.m_position, glm::ivec2(tileSize, tileSize), "white.png", node.GetID());
-
-      object->SetColor(node.m_occupied ? glm::vec3{1.0f, 0.0f, 0.0f} : glm::vec3{0.0f, 1.0f, 0.0f});
-      object->SetIsBackground(true);
-      object->SetVisible(true);
-
-      m_editorObjects.push_back(object);
-   }
 }
 
 void

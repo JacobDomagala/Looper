@@ -7,6 +7,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
+#include <array>
 
 namespace dgame {
 
@@ -278,9 +279,9 @@ Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, float radia
       s_Data.TextureSlotIndex++;
    }
 
-   constexpr glm::vec4 positions[] = {
+   constexpr auto positions = std::to_array({
       glm::vec4(0.5f, 0.5f, 0.0f, 1.0f), glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f),
-      glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f), glm::vec4(0.5f, -0.5f, 0.0f, 1.0f)};
+      glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f), glm::vec4(0.5f, -0.5f, 0.0f, 1.0f)});
 
    glm::mat4 transformMat = glm::translate(glm::mat4(1.0f), glm::vec3(position, 0.0f))
                             * glm::rotate(glm::mat4(1.0f), radiansRotation, {0.0f, 0.0f, 1.0f})

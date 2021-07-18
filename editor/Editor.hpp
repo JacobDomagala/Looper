@@ -98,8 +98,8 @@ class Editor : public Application
    void
    UpdateAnimationData();
 
-   void
-   GeneratePathfinder();
+   bool
+   GetRenderNodes() const;
 
    void
    DrawGrid();

@@ -122,7 +122,7 @@ EditorGUI::Render()
       ImGui::SetNextTreeNodeOpen(true);
       if (ImGui::CollapsingHeader("Pathfinder"))
       {
-         static bool renderPathfinderNodes = true;
+         static bool renderPathfinderNodes = m_parent.GetRenderNodes();
          if (ImGui::Checkbox("Render nodes", &renderPathfinderNodes))
          {
             m_parent.RenderNodes(renderPathfinderNodes);

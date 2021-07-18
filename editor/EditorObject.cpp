@@ -309,11 +309,11 @@ EditorObject::Render()
 
             if (pathfinderNode.m_occupied)
             {
-               m_sprite.SetColor(glm::vec3{1.0f, 0.0f, 0.0f});
+               SetColor(glm::vec3{1.0f, 0.0f, 0.0f});
             }
 
             m_sprite.Render();
-            // m_sprite.SetColor(glm::vec3{1.0f, 1.0f, 1.0f});
+            SetColor(glm::vec3{1.0f, 1.0f, 1.0f});
          }
          break;
 
