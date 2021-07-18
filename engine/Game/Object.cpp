@@ -19,6 +19,11 @@ TypeToString(Object::TYPE type)
       }
       break;
 
+      case Object::TYPE::OBJECT: {
+         typeStr = "Object";
+      }
+      break;
+
       case Object::TYPE::ANIMATION_POINT: {
          typeStr = "Animation Point";
       }

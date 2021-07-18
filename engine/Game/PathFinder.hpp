@@ -17,13 +17,14 @@ struct Node : public Object
    }
 
    Node(const glm::ivec2& coords, const glm::vec2& posOnMap, NodeID ID,
-        const std::vector< NodeID >& connectedTo)
+        const std::vector< NodeID >& connectedTo, bool occupied = false)
       : Object(Object::TYPE::PATHFINDER_NODE),
         m_xPos(coords.x),
         m_yPos(coords.y),
         m_position(posOnMap),
         m_ID(ID),
-        m_connectedNodes(connectedTo)
+        m_connectedNodes(connectedTo),
+        m_occupied(occupied)
    {
    }
 
@@ -61,6 +62,10 @@ class PathFinder
 
    void
    Initialize(const glm::ivec2& levelSize, const uint32_t tileSize);
+
+   void
+   InitializeEmpty(const glm::ivec2& levelSize, const uint32_t tileSize);
+
 
    void
    AddNode(Node newNode);

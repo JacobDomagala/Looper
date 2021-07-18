@@ -84,10 +84,7 @@ class Editor : public Application
    LaunchGameLoop();
 
    void
-   ShowWireframe(bool wireframeEnabled);
-
-   void
-   ShowWaypoints(bool wireframeEnabled);
+   RenderNodes(bool render);
 
    void
    SetRenderAnimationPoints(bool render);
@@ -203,7 +200,7 @@ class Editor : public Application
    std::vector< std::shared_ptr< EditorObject > > m_editorObjects;
    std::shared_ptr< EditorObject > m_currentEditorObjectSelected;
 
-   bool m_showWaypoints = true;
+   bool m_renderPathfinderNodes = true;
 
    bool m_drawGrid = true;
    int32_t m_gridCellSize = 128;

@@ -313,7 +313,7 @@ EditorObject::Render()
             }
 
             m_sprite.Render();
-            m_sprite.SetColor(glm::vec3{1.0f, 1.0f, 1.0f});
+            // m_sprite.SetColor(glm::vec3{1.0f, 1.0f, 1.0f});
          }
          break;
 

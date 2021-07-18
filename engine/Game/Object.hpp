@@ -24,6 +24,7 @@ class Object
       NONE = 0,
       ENEMY = 1,
       PLAYER = 2,
+      OBJECT = 3,
       ANIMATION_POINT = 4,
       PATHFINDER_NODE = 8
    };
@@ -57,10 +58,11 @@ class Object
    ID m_id;
 
    static inline std::unordered_map< std::string, TYPE > s_map = {
-      {"ENEMY", Object::TYPE::ENEMY},
-      {"PLAYER", Object::TYPE::PLAYER},
-      {"ANIMATION_POINT", Object::TYPE::ANIMATION_POINT},
-      {"PATHFINDER_NODE", Object::TYPE::PATHFINDER_NODE}};
+      {"Enemy", Object::TYPE::ENEMY},
+      {"Player", Object::TYPE::PLAYER},
+      {"Object", Object::TYPE::OBJECT},
+      {"Animation Point", Object::TYPE::ANIMATION_POINT},
+      {"Pathfinder Node", Object::TYPE::PATHFINDER_NODE}};
    static inline ID s_currentID = 0;
 };
 

@@ -16,12 +16,18 @@ PathFinder::PathFinder(const glm::ivec2& levelSize, const uint32_t tileSize,
 }
 
 void
-PathFinder::Initialize(const glm::ivec2& levelSize, const uint32_t tileSize)
+PathFinder::InitializeEmpty(const glm::ivec2& levelSize, const uint32_t tileSize)
 {
    m_levelSize = levelSize;
    m_tileSize = tileSize;
+}
 
-   const auto grad = static_cast<int32_t>(tileSize);
+void
+PathFinder::Initialize(const glm::ivec2& levelSize, const uint32_t tileSize)
+{
+   InitializeEmpty(levelSize, tileSize);
+
+   const auto grad = static_cast< int32_t >(tileSize);
 
    const auto w = static_cast< int32_t >(levelSize.x / grad);
    const auto h = static_cast< int32_t >(levelSize.y / grad);
@@ -293,11 +299,9 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
             // the path algorithm, so it knows if its getting better or worse. At some
             // point the algo will realise this path is worse and abandon it, and then go
             // and search along the next best path.
-            nodeNeighbour.m_globalCost =
-               nodeNeighbour.m_localCost
-               + static_cast< int32_t >(
-                  glm::distance(nodeNeighbour.m_position,
-                                nodeEnd.m_position));
+            nodeNeighbour.m_globalCost = nodeNeighbour.m_localCost
+                                         + static_cast< int32_t >(glm::distance(
+                                            nodeNeighbour.m_position, nodeEnd.m_position));
          }
       }
    }

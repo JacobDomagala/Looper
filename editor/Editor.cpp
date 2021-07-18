@@ -581,8 +581,16 @@ Editor::LoadLevel(const std::string& levelPath)
    const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
    std::transform(pathfinderNodes.begin(), pathfinderNodes.end(),
                   std::back_inserter(m_editorObjects), [this](const auto& node) {
-                     return std::make_shared< EditorObject >(
-                        *this, node.m_position, glm::ivec2(40, 40), "NodeSprite.png", node.GetID());
+                     const auto tileSize = m_currentLevel->GetTileSize();
+
+                     auto pathfinderNode = std::make_shared< EditorObject >(
+                        *this, node.m_position, glm::ivec2(tileSize, tileSize), "white.png",
+                        node.GetID());
+
+                     pathfinderNode->SetIsBackground(true);
+                     pathfinderNode->SetVisible(m_renderPathfinderNodes);
+
+                     return pathfinderNode;
                   });
 
    const auto& gameObjects = m_currentLevel->GetObjects();
@@ -705,27 +713,6 @@ Editor::LaunchGameLoop()
    m_gui.Init();
 }
 
-void
-Editor::ShowWireframe(bool /*wireframeEnabled*/)
-{
-   // for (auto& object : m_currentLevel->GetObjects())
-   //{
-   //   wireframeEnabled ? object->SetObjectSelected() : object->SetObjectUnselected();
-   //}
-
-   // if (m_player)
-   //{
-   //   wireframeEnabled ? m_currentLevel->GetPlayer()->SetObjectSelected() :
-   //   m_currentLevel->GetPlayer()->SetObjectUnselected();
-   //}
-
-   //// Make sure currenlty selected object stays selected
-   // if (m_currentSelectedGameObject)
-   //{
-   //   m_currentSelectedGameObject->SetObjectSelected();
-   //}
-}
-
 std::shared_ptr< EditorObject >
 Editor::GetEditorObjectByID(Object::ID ID)
 {
@@ -740,17 +727,17 @@ Editor::GetEditorObjectByID(Object::ID ID)
 }
 
 void
-Editor::ShowWaypoints(bool showwaypoints)
+Editor::RenderNodes(bool render)
 {
-   if (m_showWaypoints != showwaypoints)
+   if (m_renderPathfinderNodes != render)
    {
-      m_showWaypoints = showwaypoints;
+      m_renderPathfinderNodes = render;
 
-      std::for_each(m_editorObjects.begin(), m_editorObjects.end(), [showwaypoints](auto& object) {
+      std::for_each(m_editorObjects.begin(), m_editorObjects.end(), [render](auto& object) {
          if (Object::GetTypeFromID(object->GetLinkedObjectID())
              == dgame::Object::TYPE::PATHFINDER_NODE)
          {
-            object->SetVisible(showwaypoints);
+            object->SetVisible(render);
          }
       });
    }

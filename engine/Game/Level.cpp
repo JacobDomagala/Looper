@@ -7,11 +7,11 @@
 #include "Timer.hpp"
 #include "Window.hpp"
 
-#include <set>
 #include <algorithm>
 #include <fstream>
 #include <functional>
 #include <nlohmann/json.hpp>
+#include <set>
 
 namespace dgame {
 
@@ -53,7 +53,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
       }
       else if (key == "PATHFINDER")
       {
-         m_pathFinder.Initialize(m_levelSize, m_tileWidth);
+         m_pathFinder.InitializeEmpty(m_levelSize, m_tileWidth);
 
          for (auto& nodeJson : json[key]["nodes"])
          {
@@ -61,7 +61,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
                                       glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]),
                                       nodeJson["id"],
                                       std::vector< Node::NodeID >(nodeJson["connected to"].begin(),
-                                                                  nodeJson["connected to"].end())));
+                                                                  nodeJson["connected to"].end()),
+                                      nodeJson["occupied"]));
          }
       }
       else if (key == "SHADER")
@@ -118,9 +119,29 @@ Level::Load(Application* context, const std::string& pathToLevel)
             m_objects.emplace_back(object);
          }
       }
+      else if (key == "OBJECTS")
+      {
+         for (auto& object : json[key])
+         {
+            const auto position = object["position"];
+            const auto size = object["size"];
+            const auto texture = object["texture"];
+            const auto name = object["name"];
+
+            auto gameObject = std::make_shared< GameObject >(
+               *context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture,
+               Object::TYPE::OBJECT);
+            gameObject->SetName(name);
+            gameObject->GetSprite().Scale(glm::vec2(object["scale"][0], object["scale"][1]));
+            gameObject->GetSprite().Rotate(object["rotation"]);
+            gameObject->SetHasCollision(object["has collision"]);
+
+            m_objects.emplace_back(gameObject);
+         }
+      }
       else
       {
-         m_logger.Log(Logger::TYPE::WARNING,
+         m_logger.Log(Logger::TYPE::FATAL,
                       "Level::Load -> Unspecified type " + key + " during level loading");
       }
    }
@@ -139,6 +160,7 @@ Level::Save(const std::string& pathToLevel)
       nodeJson["coords"] = {node.m_xPos, node.m_yPos};
       nodeJson["position"] = {node.m_position.x, node.m_position.y};
       nodeJson["connected to"] = node.m_connectedNodes;
+      nodeJson["occupied"] = node.m_occupied;
 
       json["PATHFINDER"]["nodes"].emplace_back(nodeJson);
    }
@@ -151,52 +173,85 @@ Level::Save(const std::string& pathToLevel)
    json["BACKGROUND"]["size"] = {m_background.GetSize().x, m_background.GetSize().y};
    json["BACKGROUND"]["collision"] = m_collision.GetName();
 
-   // Serialize player
-   json["PLAYER"]["name"] = m_player->GetName();
-   json["PLAYER"]["position"] = {m_player->GetLocalPosition().x, m_player->GetLocalPosition().y};
-   json["PLAYER"]["scale"] = {m_player->GetSprite().GetScale().x,
-                              m_player->GetSprite().GetScale().y};
-   json["PLAYER"]["rotation"] = m_player->GetSprite().GetRotation();
-   json["PLAYER"]["size"] = {m_player->GetSprite().GetOriginalSize().x,
-                             m_player->GetSprite().GetOriginalSize().y};
-   json["PLAYER"]["texture"] = m_player->GetSprite().GetTextureName();
-   json["PLAYER"]["weapons"] = m_player->GetWeapons();
-
    // Serialize game objects
    for (const auto& object : m_objects)
    {
-      if (object->GetType() == Object::TYPE::PLAYER)
+      switch (object->GetType())
       {
-         continue;
+         case Object::TYPE::PLAYER: {
+            json["PLAYER"]["name"] = m_player->GetName();
+            json["PLAYER"]["position"] = {m_player->GetLocalPosition().x,
+                                          m_player->GetLocalPosition().y};
+            json["PLAYER"]["scale"] = {m_player->GetSprite().GetScale().x,
+                                       m_player->GetSprite().GetScale().y};
+            json["PLAYER"]["rotation"] = m_player->GetSprite().GetRotation();
+            json["PLAYER"]["size"] = {m_player->GetSprite().GetOriginalSize().x,
+                                      m_player->GetSprite().GetOriginalSize().y};
+            json["PLAYER"]["texture"] = m_player->GetSprite().GetTextureName();
+            json["PLAYER"]["weapons"] = m_player->GetWeapons();
+         }
+         break;
+
+         case Object::TYPE::ENEMY: {
+            nlohmann::json enemyJson;
+
+            enemyJson["name"] = object->GetName();
+            enemyJson["position"] = {object->GetLocalPosition().x, object->GetLocalPosition().y};
+            enemyJson["size"] = {object->GetSprite().GetOriginalSize().x,
+                                 object->GetSprite().GetOriginalSize().y};
+            enemyJson["scale"] = {object->GetSprite().GetScale().x,
+                                  object->GetSprite().GetScale().y};
+            enemyJson["rotation"] = object->GetSprite().GetRotation();
+            enemyJson["texture"] = object->GetSprite().GetTextureName();
+
+            auto enemyPtr = dynamic_cast< Enemy* >(object.get());
+
+            enemyJson["weapons"] = enemyPtr->GetWeapon();
+            enemyJson["animation type"] =
+               enemyPtr->GetAnimationType() == Animatable::ANIMATION_TYPE::LOOP ? "Loop"
+                                                                                : "Reversable";
+
+            const auto keypoints = enemyPtr->GetAnimationKeypoints();
+            for (const auto& point : keypoints)
+            {
+               nlohmann::json animationPoint;
+               animationPoint["end position"] = {point.m_end.x, point.m_end.y};
+               animationPoint["time duration"] = point.m_timeDuration.count();
+
+               enemyJson["animate positions"].emplace_back(animationPoint);
+            }
+
+            json["ENEMIES"].emplace_back(enemyJson);
+         }
+         break;
+
+         case Object::TYPE::OBJECT: {
+            nlohmann::json objectJson;
+
+            objectJson["name"] = object->GetName();
+            objectJson["has collision"] = object->GetHasCollision();
+
+            const auto occupiedNodes = object->GetOccupiedNodes();
+            for (auto& node : occupiedNodes)
+            {
+               nlohmann::json occupiedNode;
+               occupiedNode["tile position"] = {node.first, node.second};
+
+               objectJson["occupied nodes"].emplace_back(occupiedNode);
+            }
+
+            objectJson["position"] = {object->GetLocalPosition().x, object->GetLocalPosition().y};
+            objectJson["size"] = {object->GetSprite().GetOriginalSize().x,
+                                  object->GetSprite().GetOriginalSize().y};
+            objectJson["scale"] = {object->GetSprite().GetScale().x,
+                                   object->GetSprite().GetScale().y};
+            objectJson["rotation"] = object->GetSprite().GetRotation();
+            objectJson["texture"] = object->GetSprite().GetTextureName();
+
+            json["OBJECTS"].emplace_back(objectJson);
+         }
+         break;
       }
-
-      nlohmann::json enemyJson;
-
-      enemyJson["name"] = object->GetName();
-      enemyJson["position"] = {object->GetLocalPosition().x, object->GetLocalPosition().y};
-      enemyJson["size"] = {object->GetSprite().GetOriginalSize().x,
-                           object->GetSprite().GetOriginalSize().y};
-      enemyJson["scale"] = {object->GetSprite().GetScale().x, object->GetSprite().GetScale().y};
-      enemyJson["rotation"] = object->GetSprite().GetRotation();
-      enemyJson["texture"] = object->GetSprite().GetTextureName();
-
-      auto enemyPtr = dynamic_cast< Enemy* >(object.get());
-
-      enemyJson["weapons"] = enemyPtr->GetWeapon();
-      enemyJson["animation type"] =
-         enemyPtr->GetAnimationType() == Animatable::ANIMATION_TYPE::LOOP ? "Loop" : "Reversable";
-
-      const auto keypoints = enemyPtr->GetAnimationKeypoints();
-      for (const auto& point : keypoints)
-      {
-         nlohmann::json animationPoint;
-         animationPoint["end position"] = {point.m_end.x, point.m_end.y};
-         animationPoint["time duration"] = point.m_timeDuration.count();
-
-         enemyJson["animate positions"].emplace_back(animationPoint);
-      }
-
-      json["ENEMIES"].emplace_back(enemyJson);
    }
 
    FileManager::SaveJsonFile(pathToLevel, json);
@@ -242,6 +297,14 @@ Level::AddGameObject(GameObject::TYPE objectType)
       }
       break;
 
+      case GameObject::TYPE::OBJECT: {
+         newObject = std::make_shared< GameObject >(*m_contextPointer, defaultPosition, defaultSize,
+                                                    defaultTexture, Object::TYPE::OBJECT);
+
+         m_objects.push_back(newObject);
+      }
+      break;
+
       default: {
       }
    }
@@ -274,7 +337,7 @@ Level::GetGlobalVec(const glm::vec2& local) const
    return local;
 }
 
-std::vector< std::pair<int32_t, int32_t> >
+std::vector< std::pair< int32_t, int32_t > >
 Level::GameObjectMoved(const std::array< glm::vec2, 4 >& box,
                        const std::vector< std::pair< int32_t, int32_t > >& currentTiles)
 {
@@ -296,21 +359,21 @@ Level::GameObjectMoved(const std::array< glm::vec2, 4 >& box,
    return new_tiles;
 }
 
-std::vector< std::pair<int32_t, int32_t> >
+std::vector< std::pair< int32_t, int32_t > >
 Level::GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const
 {
    /**
-   * Given 2 convex shapes:
-   * 1. Calculate perpndicular vector to one of the side and normalize it
-   * 2. Loop through every point on the first polygon and project it onto the axis
-   *    (Keep track of the highest and lowest values found for this polygon)
-   * 3. Do the same for the second polygon.
-   */
+    * Given 2 convex shapes:
+    * 1. Calculate perpndicular vector to one of the side and normalize it
+    * 2. Loop through every point on the first polygon and project it onto the axis
+    *    (Keep track of the highest and lowest values found for this polygon)
+    * 3. Do the same for the second polygon.
+    */
 
-    /*  let axis = {
-      x : -(vertices[1].y - vertices[0].y),
-      y : vertices[1].x - vertices[0].x
-   }*/
+   /*  let axis = {
+     x : -(vertices[1].y - vertices[0].y),
+     y : vertices[1].x - vertices[0].x
+  }*/
 
    // const auto axis = glm::normalize(glm::vec2(-(box[0].y - box[3].y), box[0].x - box[3].x));
 
@@ -339,7 +402,7 @@ Level::GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const
    const auto minTileID = GetTileFromPosition(glm::vec2{minX, minY});
    const auto maxTileID = GetTileFromPosition(glm::vec2{maxX, maxY});
 
-   std::vector< std::pair<int32_t, int32_t> > ret;
+   std::vector< std::pair< int32_t, int32_t > > ret;
 
    for (int y = minTileID.second; y <= maxTileID.second; ++y)
    {
@@ -360,8 +423,8 @@ Level::GetTileFromPosition(const glm::vec2& local) const
       return {-1, -1};
    }
 
-    const auto w = glm::floor(local.x / static_cast<float>(m_tileWidth));
-    const auto h = glm::floor(local.y / static_cast<float>(m_tileWidth));
+   const auto w = glm::floor(local.x / static_cast< float >(m_tileWidth));
+   const auto h = glm::floor(local.y / static_cast< float >(m_tileWidth));
 
    return {w, h};
 }
@@ -399,7 +462,7 @@ Level::CheckCollisionAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toP
    bool noCollision = true;
 
    constexpr auto numSteps = 100;
-   constexpr auto singleStep = 1 / static_cast<float>(numSteps);
+   constexpr auto singleStep = 1 / static_cast< float >(numSteps);
 
    const auto pathVec = toPos - fromPos;
    const auto stepSize = pathVec * singleStep;
@@ -407,7 +470,11 @@ Level::CheckCollisionAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toP
    for (int i = 0; i < numSteps; ++i)
    {
       const auto curPos = fromPos + (stepSize * static_cast< float >(i));
-      noCollision =  !m_pathFinder.GetNodeFromPosition(curPos).m_occupied;
+      if (m_pathFinder.GetNodeFromPosition(curPos).m_occupied)
+      {
+         noCollision = false;
+         break;
+      }
    }
 
    return noCollision;

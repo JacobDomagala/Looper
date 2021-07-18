@@ -122,10 +122,10 @@ EditorGUI::Render()
       ImGui::SetNextTreeNodeOpen(true);
       if (ImGui::CollapsingHeader("Pathfinder"))
       {
-         static bool renderPathfinderNodes = false;
+         static bool renderPathfinderNodes = true;
          if (ImGui::Checkbox("Render nodes", &renderPathfinderNodes))
          {
-            m_parent.ShowWaypoints(renderPathfinderNodes);
+            m_parent.RenderNodes(renderPathfinderNodes);
          }
       }
 
@@ -140,7 +140,7 @@ EditorGUI::Render()
          // static int selected = 0;
          auto gameObjects = m_currentLevel->GetObjects();
 
-         ImGui::BeginChild("Loaded Objects", {0, 100}, true);
+         ImGui::BeginChild("Loaded Objects", {0, 200}, true);
          for (auto& object : gameObjects)
          {
             auto label = fmt::format("[{}] {} ({}, {})", object->GetTypeString().c_str(),
@@ -154,13 +154,13 @@ EditorGUI::Render()
             }
          }
 
-         std::string items[] = {"ENEMY", "PLAYER"};
+         const auto items = std::to_array<std::string>({"Enemy", "Player", "Object"});
 
          if (ImGui::BeginCombo(
                 "##combo",
                 "Add")) // The second parameter is the label previewed before opening the combo.
          {
-            for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+            for (int n = 0; n < items.size(); n++)
             {
                if (ImGui::Selectable(items[n].c_str()))
                {
@@ -267,7 +267,7 @@ EditorGUI::Render()
          }
       }
 
-      if (m_currentlySelectedGameObject->GetType() != GameObject::TYPE::PLAYER)
+      if (m_currentlySelectedGameObject->GetType() == GameObject::TYPE::ENEMY)
       {
          const auto animatablePtr =
             std::dynamic_pointer_cast< Animatable >(m_currentlySelectedGameObject);

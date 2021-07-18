@@ -23,7 +23,9 @@ class GameObject : public Object
               const std::string& sprite, Object::TYPE type);
    ~GameObject() override = default;
 
-   virtual void Hit(int32_t) = 0;
+   virtual void Hit(int32_t)
+   {
+   }
 
    virtual bool
    Visible() const;
@@ -123,11 +125,16 @@ class GameObject : public Object
    bool
    GetHasCollision() const;
 
+   std::vector< std::pair< int32_t, int32_t > >
+   GetOccupiedNodes() const;
+
  protected:
    // should be overriden by derrived class
    // used by GameObject::Update
    virtual void
-   UpdateInternal(bool isReverse) = 0;
+   UpdateInternal(bool isReverse)
+   {
+   }
 
    void
    UpdateCollision();
@@ -158,7 +165,7 @@ class GameObject : public Object
       glm::mat4 m_rotateMatrix;
       glm::mat4 m_scaleMatrix;
 
-      std::vector< std::pair<int32_t, int32_t> > m_occupiedNodes;
+      std::vector< std::pair< int32_t, int32_t > > m_occupiedNodes;
    };
 
    std::deque< State > m_statesQueue;

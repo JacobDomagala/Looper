@@ -20,6 +20,8 @@ GameObject::GameObject(Application& contextHandle, const glm::vec2& positionOnMa
 
    m_id = s_currentID;
    ++s_currentID;
+
+   UpdateCollision();
 }
 
 bool
@@ -211,6 +213,12 @@ GameObject::UpdateCollision()
       m_currentState.m_occupiedNodes = m_appHandle.GetLevel().GameObjectMoved(
          m_sprite.GetTransformedRectangle(), m_currentState.m_occupiedNodes);
    }
+}
+
+std::vector< std::pair< int32_t, int32_t > >
+GameObject::GetOccupiedNodes() const
+{
+   return m_currentState.m_occupiedNodes;
 }
 
 void
