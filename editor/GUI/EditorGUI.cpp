@@ -260,10 +260,20 @@ EditorGUI::Render()
       {
          if (m_currentLevel)
          {
+            auto& sprite = m_currentlySelectedGameObject->GetSprite();
             ImGui::Image(
-               reinterpret_cast< void* >(static_cast< size_t >(
-                  m_currentlySelectedGameObject->GetSprite().GetTexture().GetTextureHandle())),
+               reinterpret_cast< void* >(static_cast< size_t >(sprite.GetTexture().GetTextureHandle())),
                {150, 150});
+            ImGui::InputText("FileName", &sprite.GetTextureName()[0], sprite.GetTextureName().size(),
+                             ImGuiInputTextFlags_ReadOnly);
+            if (ImGui::Button("Change Texture"))
+            {
+               auto textureName = file_dialog({{"png", "jpg"}}, false);
+               if (!textureName.empty())
+               {
+                  sprite.SetTextureFromFile(textureName);
+               }
+            }
          }
       }
 
