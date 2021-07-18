@@ -133,8 +133,6 @@ Enemy::SetTargetShootPosition(const glm::vec2& playerPos)
 void
 Enemy::Shoot()
 {
-   auto gameHandle = ConvertToGameHandle();
-
    m_currentState.m_timeSinceLastShot += m_timer.GetFloatDeltaTime();
 
    if (glm::length(static_cast< glm::vec2 >(m_appHandle.GetPlayer()->GetCenteredGlobalPosition()

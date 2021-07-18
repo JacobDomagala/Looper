@@ -160,7 +160,7 @@ EditorGUI::Render()
                 "##combo",
                 "Add")) // The second parameter is the label previewed before opening the combo.
          {
-            for (int n = 0; n < items.size(); n++)
+            for (uint32_t n = 0; n < items.size(); n++)
             {
                if (ImGui::Selectable(items[n].c_str()))
                {

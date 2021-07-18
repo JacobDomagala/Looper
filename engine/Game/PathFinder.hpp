@@ -22,8 +22,8 @@ struct Node : public Object
         m_xPos(coords.x),
         m_yPos(coords.y),
         m_position(posOnMap),
-        m_ID(ID),
         m_occupied(occupied),
+        m_ID(ID),
         m_connectedNodes(connectedTo)
    {
    }

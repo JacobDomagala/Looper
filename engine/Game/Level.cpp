@@ -251,6 +251,12 @@ Level::Save(const std::string& pathToLevel)
             json["OBJECTS"].emplace_back(objectJson);
          }
          break;
+
+         default: {
+            m_logger.Log(Logger::TYPE::WARNING,
+                         "Unhandled Object type {} present in game level file!",
+                         object->GetTypeString());
+         }
       }
    }
 

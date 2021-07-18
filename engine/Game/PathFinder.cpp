@@ -237,7 +237,7 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
 
    // Setup starting conditions
    Node* nodeCurrent = &nodeStart;
-   nodeStart.m_localCost = 0.0f;
+   nodeStart.m_localCost = 0;
    nodeStart.m_globalCost =
       static_cast< int32_t >(glm::distance(nodeStart.m_position, nodeEnd.m_position));
 
