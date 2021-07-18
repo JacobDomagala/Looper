@@ -633,15 +633,9 @@ Level::Scale(const glm::vec2& scaleVal)
 void
 Level::Rotate(float angle, bool cumulative)
 {
-   // Move objects to center of level
-   // Rotate them
-   // Move them back on position
-
    for (auto& obj : m_objects)
    {
-      // obj->Move(m_background.GetCenteredPosition());
       obj->Rotate(angle, cumulative);
-      // obj->Move(-m_background.GetCenteredPosition());
    }
 
    cumulative ? m_background.RotateCumulative(angle) : m_background.Rotate(angle);
@@ -658,7 +652,6 @@ Level::Update(bool isReverse)
       {
          if (obj->GetType() == Object::TYPE::ENEMY)
          {
-            // TODO: Fix with updated pathfinding
             std::dynamic_pointer_cast< Enemy >(obj)->DealWithPlayer();
          }
 
@@ -671,11 +664,11 @@ void
 Level::Render()
 {
    m_background.Render();
-   RenderGameObject();
+   RenderGameObjects();
 }
 
 void
-Level::RenderGameObject()
+Level::RenderGameObjects()
 {
    for (auto& obj : m_objects)
    {

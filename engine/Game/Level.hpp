@@ -91,7 +91,7 @@ class Level
 
    // Renders only game objects
    void
-   RenderGameObject();
+   RenderGameObjects();
 
    bool
    IsInLevelBoundaries(const glm::vec2& position) const;

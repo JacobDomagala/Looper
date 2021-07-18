@@ -219,7 +219,7 @@ EditorGUI::Render()
 
          auto type = m_currentlySelectedGameObject->GetTypeString();
 
-         ImGui::InputText("Type", &type[0], 10, ImGuiInputTextFlags_ReadOnly);
+         ImGui::InputText("Type", &type[0], type.size(), ImGuiInputTextFlags_ReadOnly);
 
          if (ImGui::InputText("Name", &name[0], nameLength))
          {

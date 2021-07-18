@@ -299,8 +299,11 @@ Editor::UnselectGameObject()
    m_gameObjectSelected = false;
    m_movementOnGameObject = false;
    m_gui.GameObjectUnselected();
-   m_currentSelectedGameObject->SetColor({1.0f, 1.0f, 1.0f});
-   m_currentSelectedGameObject.reset();
+   if (m_currentSelectedGameObject)
+   {
+      m_currentSelectedGameObject->SetColor({1.0f, 1.0f, 1.0f});
+      m_currentSelectedGameObject.reset();
+   }
 }
 
 void
@@ -326,8 +329,11 @@ Editor::UnselectEditorObject()
    m_gui.EditorObjectUnselected();
    m_editorObjectSelected = false;
    m_movementOnEditorObject = false;
-   m_currentEditorObjectSelected->SetObjectUnselected();
-   m_currentEditorObjectSelected.reset();
+   if (m_currentEditorObjectSelected)
+   {
+      m_currentEditorObjectSelected->SetObjectUnselected();
+      m_currentEditorObjectSelected.reset();
+   }
 }
 
 void
@@ -408,7 +414,7 @@ Editor::Render()
 
       m_currentLevel->GetSprite().Render();
       DrawBackgroundObjects();
-      m_currentLevel->RenderGameObject();
+      m_currentLevel->RenderGameObjects();
 
       DrawEditorObjects();
       DrawAnimationPoints();
@@ -550,7 +556,10 @@ Editor::CreateLevel(const glm::ivec2& size)
 {
    if (m_levelLoaded)
    {
+      UnselectEditorObject();
+      UnselectGameObject();
       m_currentLevel.reset();
+      m_editorObjects.clear();
    }
 
    m_currentLevel = std::make_shared< Level >();
@@ -569,7 +578,10 @@ Editor::LoadLevel(const std::string& levelPath)
 {
    if (m_levelLoaded)
    {
+      UnselectEditorObject();
+      UnselectGameObject();
       m_currentLevel.reset();
+      m_editorObjects.clear();
    }
 
    m_levelFileName = levelPath;
