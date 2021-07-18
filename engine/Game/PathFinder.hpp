@@ -83,12 +83,17 @@ class PathFinder
    std::vector< Node >&
    GetAllNodes();
 
+   Node::NodeID
+   GetNodeIDFromPosition(const glm::vec2& position) const;
+
+   Node::NodeID
+   GetNodeIDFromTile(const glm::ivec2& tile) const;
+
    Node&
    GetNodeFromID(Node::NodeID ID);
 
-   Node::NodeID
-   GetNodeFromPosition(const glm::vec2& position) const;
-
+   Node&
+   GetNodeFromPosition(const glm::vec2& position);
 
    std::vector< Node::NodeID >
    GetPath(const glm::vec2& source, const glm::vec2& destination);

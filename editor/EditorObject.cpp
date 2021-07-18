@@ -304,15 +304,16 @@ EditorObject::Render()
       switch (Object::GetTypeFromID(m_objectID))
       {
          case Object::TYPE::PATHFINDER_NODE: {
-            //auto& pathfinderNode =
-            //   dynamic_cast< Node& >(m_editor.GetLevel().GetObjectRef(m_objectID));
+            auto& pathfinderNode =
+               dynamic_cast< Node& >(m_editor.GetLevel().GetObjectRef(m_objectID));
 
-            /*m_sprite.SetColor(pathfinderNode.m_occupied ? glm::vec3{1.0f, 0.0f, 0.0f}
-                                                        : glm::vec3{0.0f, 1.0f, 0.0f});*/
+            if (pathfinderNode.m_occupied)
+            {
+               m_sprite.SetColor(glm::vec3{1.0f, 0.0f, 0.0f});
+            }
 
             m_sprite.Render();
             m_sprite.SetColor(glm::vec3{1.0f, 1.0f, 1.0f});
-            // pathfinderNode.m_occupied = false;
          }
          break;
 

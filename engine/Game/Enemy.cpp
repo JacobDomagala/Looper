@@ -29,14 +29,15 @@ void
 Enemy::DealWithPlayer()
 {
    auto gameHandle = ConvertToGameHandle();
-   auto collided =
-      gameHandle->IsPlayerInVision(this, static_cast< int32_t >(m_currentState.m_visionRange));
-   const auto playerPosition = gameHandle->GetPlayer()->GetCenteredLocalPosition();
+
+   const auto playerPosition = gameHandle->GetPlayer()->GetCenteredGlobalPosition();
+   auto notCollided = gameHandle->GetLevel().CheckCollisionAlongTheLine(
+      GameObject::m_currentState.m_centeredGlobalPosition, playerPosition);
 
    m_timer.ToggleTimer();
 
    // player in enemy's sight of vision
-   if (collided)
+   if (notCollided)
    {
       m_currentState.m_action = ACTION::SHOOTING;
       m_currentState.m_lastPlayersPos = playerPosition;
@@ -139,24 +140,13 @@ Enemy::Shoot()
 
    m_currentState.m_timeSinceLastShot += m_timer.GetFloatDeltaTime();
 
-   m_appHandle.RenderText("POW POW", glm::vec2(128.0f, 64.0f), 1.0f, glm::vec3(0.0f, 0.1f, 0.4f));
-   if (glm::length(static_cast< glm::vec2 >(m_appHandle.GetPlayer()->GetCenteredLocalPosition()
-                                            - GameObject::m_currentState.m_centeredLocalPosition))
+   if (glm::length(static_cast< glm::vec2 >(m_appHandle.GetPlayer()->GetCenteredGlobalPosition()
+                                            - GameObject::m_currentState.m_centeredGlobalPosition))
        <= static_cast< float >(m_weapon->GetRange()))
    {
       if (m_currentState.m_timeSinceLastShot >= m_weapon->GetReloadTime())
       {
-         auto collided = gameHandle->CheckBulletCollision(
-            this, m_appHandle.GetLevel().GetGlobalVec(m_currentState.m_targetShootPosition),
-            m_weapon->GetRange());
-
-         // if we hit anything draw a line
-         if (collided.first != glm::ivec2(0, 0))
-         {
-            // gameHandle->DrawLine(GameObject::m_currentState.m_centeredGlobalPosition,
-            // m_appHandle.GetLevel().GetGlobalVec(collided.first));
-         }
-
+         // Shoot
          m_currentState.m_timeSinceLastShot = 0.0f;
       }
    }
@@ -171,59 +161,19 @@ Enemy::ChasePlayer()
 {
    auto* gameHandle = ConvertToGameHandle();
 
-   const auto& playerPos =
-      m_currentState.m_lastPlayersPos; // m_contextHandle.GetPlayer()->GetCenteredLocalPosition();
-   const auto moveBy =
-      m_currentState.m_movementSpeed * static_cast< float >(gameHandle->GetDeltaTime().count());
+   const auto& playerPos = m_currentState.m_lastPlayersPos;
+   const auto moveBy = 0.01f;
 
-   const auto distanceToNode = glm::length(
-      static_cast< glm::vec2 >(playerPos - GameObject::m_currentState.m_centeredLocalPosition));
+   auto& pathFinder = gameHandle->GetLevel().GetPathfinder();
 
-   if ((distanceToNode < 5.0f) && (distanceToNode != 0.0f))
+   const auto curPosition = GameObject::m_currentState.m_centeredGlobalPosition;
+   const auto tiles = pathFinder.GetPath(curPosition, playerPos);
+
+   if (tiles.size() > 0)
    {
-      Move(m_currentState.m_targetMovePosition - GameObject::m_currentState.m_centeredLocalPosition,
-           false);
-      m_currentState.m_currentNodeIdx = gameHandle->GetLevel().GetPathfinder().FindNodeIdx(
-         GameObject::m_currentState.m_centeredLocalPosition);
-   }
-   else if (m_currentState.m_targetMovePosition
-            == GameObject::m_currentState
-                  .m_centeredLocalPosition /*|| m_targetMovePosition == glm::ivec2(0, 0)*/)
-   {
-      m_currentState.m_currentNodeIdx = gameHandle->GetLevel().GetPathfinder().FindNodeIdx(
-         GameObject::m_currentState.m_centeredLocalPosition);
-      m_currentState.m_targetMovePosition =
-         gameHandle->GetLevel().GetPathfinder().GetNearestPosition(m_currentState.m_currentNodeIdx,
-                                                                   playerPos);
-      if (m_currentState.m_targetMovePosition != glm::ivec2(0, 0))
-      {
-         auto move = m_currentState.m_targetMovePosition
-                     - GameObject::m_currentState.m_centeredLocalPosition;
-         auto nMove = glm::normalize(static_cast< glm::vec2 >(move));
-
-         Move(nMove * moveBy, false);
-      }
-   }
-   else
-   {
-      if (m_currentState.m_targetMovePosition == glm::ivec2())
-      {
-         m_currentState.m_currentNodeIdx = gameHandle->GetLevel().GetPathfinder().GetNearestNode(
-            GameObject::m_currentState.m_centeredLocalPosition);
-      }
-
-      m_currentState.m_targetMovePosition = playerPos;
-      // gameHandle->GetLevel().GetPathfinder().GetNearestPosition(m_currentState.m_currentNodeIdx,
-      // playerPos);
-
-      if (m_currentState.m_targetMovePosition != glm::ivec2(0, 0))
-      {
-         auto move = m_currentState.m_targetMovePosition
-                     - GameObject::m_currentState.m_centeredLocalPosition;
-         auto nMove = glm::normalize(static_cast< glm::vec2 >(move));
-
-         Move(nMove * moveBy, false);
-      }
+      const auto moveVal =
+         moveBy * (pathFinder.GetNodeFromID(tiles.front()).m_position - curPosition);
+      Move(moveVal, false);
    }
 
    m_currentState.m_isAtInitialPos = false;

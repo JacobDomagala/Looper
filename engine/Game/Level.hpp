@@ -99,6 +99,9 @@ class Level
    bool
    CheckCollision(const glm::ivec2& localPos, const Player& player);
 
+   bool
+   CheckCollisionAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos);
+
    void
    LockCamera()
    {

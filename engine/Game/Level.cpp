@@ -360,10 +360,8 @@ Level::GetTileFromPosition(const glm::vec2& local) const
       return {-1, -1};
    }
 
-   // const auto numTilesWidth = static_cast<uint32_t>(m_levelSize.x) / m_tileWidth;
-
-   const auto w = glm::floor(local.x / static_cast<float>(m_tileWidth));
-   const auto h = glm::floor(local.y / static_cast<float>(m_tileWidth));
+    const auto w = glm::floor(local.x / static_cast<float>(m_tileWidth));
+    const auto h = glm::floor(local.y / static_cast<float>(m_tileWidth));
 
    return {w, h};
 }
@@ -393,6 +391,26 @@ Level::CheckCollision(const glm::ivec2& localPos, const Player& player)
       obj->SetColor({1.0f, 1.0f, 1.0f});
    }
    return true;
+}
+
+bool
+Level::CheckCollisionAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos)
+{
+   bool noCollision = true;
+
+   constexpr auto numSteps = 100;
+   constexpr auto singleStep = 1 / static_cast<float>(numSteps);
+
+   const auto pathVec = toPos - fromPos;
+   const auto stepSize = pathVec * singleStep;
+
+   for (int i = 0; i < numSteps; ++i)
+   {
+      const auto curPos = fromPos + (stepSize * static_cast< float >(i));
+      noCollision =  !m_pathFinder.GetNodeFromPosition(curPos).m_occupied;
+   }
+
+   return noCollision;
 }
 
 void
@@ -568,7 +586,7 @@ Level::Update(bool isReverse)
          if (obj->GetType() == Object::TYPE::ENEMY)
          {
             // TODO: Fix with updated pathfinding
-            // std::dynamic_pointer_cast< Enemy >(obj)->DealWithPlayer();
+            std::dynamic_pointer_cast< Enemy >(obj)->DealWithPlayer();
          }
 
          obj->Update(isReverse);

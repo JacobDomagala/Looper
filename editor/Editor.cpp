@@ -10,6 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
 #include <string>
+#include <set>
 
 namespace dgame {
 
@@ -140,15 +141,6 @@ Editor::CursorPositionCallback(const CursorPositionEvent& event)
       else
       {
          ShowCursor(true);
-         //if (m_currentLevel->GetPathfinder().IsInitialized())
-         //{
-         //   const auto tile =
-         //      m_currentLevel->GetTileFromPosition(ScreenToGlobal(currentCursorPosition));
-         //    if (tile >= 0)
-         //    {
-         //       m_currentLevel->GetPathfinder().SetNodeOccupied(tile);
-         //    }
-         //}
       }
 
       m_lastCursorPosition = currentCursorPosition;
@@ -737,10 +729,10 @@ Editor::ShowWireframe(bool /*wireframeEnabled*/)
 std::shared_ptr< EditorObject >
 Editor::GetEditorObjectByID(Object::ID ID)
 {
-   auto editorObject = std::find_if(m_editorObjects.begin(), m_editorObjects.end(),
-                          [ID](const auto& editorObject) {
+   auto editorObject =
+      std::find_if(m_editorObjects.begin(), m_editorObjects.end(), [ID](const auto& editorObject) {
          return editorObject->GetLinkedObjectID() == ID;
-                          });
+      });
 
    assert(editorObject != m_editorObjects.end());
 
@@ -826,23 +818,6 @@ Editor::Update()
       else
       {
          m_animateGameObject = false;
-      }
-   }
-
-   if (m_currentLevel)
-   {
-      const auto objects = m_currentLevel->GetObjects();
-      if (objects.size() >= 2)
-      {
-         const auto from = objects[0]->GetCenteredLocalPosition();
-         const auto to = objects[1]->GetCenteredLocalPosition();
-
-         const auto nodes = m_currentLevel->GetPathfinder().GetPath(from, to);
-         for (auto node : nodes)
-         {
-            GetEditorObjectByID(m_currentLevel->GetPathfinder().GetNodeFromID(node).GetID())
-               ->SetColor(glm::vec3{0.2f, 0.3f, 0.0f});
-         }
       }
    }
 }

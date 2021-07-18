@@ -166,7 +166,7 @@ PathFinder::GetAllNodes()
 }
 
 Node::NodeID
-PathFinder::GetNodeFromPosition(const glm::vec2& position) const
+PathFinder::GetNodeIDFromPosition(const glm::vec2& position) const
 {
    if (position.x < 0 or position.x >= static_cast< float >(m_levelSize.x) or position.y < 0
        or position.y >= static_cast< float >(m_levelSize.y))
@@ -187,6 +187,12 @@ PathFinder::GetNodeFromPosition(const glm::vec2& position) const
 }
 
 Node&
+PathFinder::GetNodeFromPosition(const glm::vec2& position)
+{
+   return GetNodeFromID(GetNodeIDFromPosition(position));
+}
+
+Node&
 PathFinder::GetNodeFromID(Node::NodeID ID)
 {
    const auto node = std::find_if(m_nodes.begin(), m_nodes.end(),
@@ -197,11 +203,23 @@ PathFinder::GetNodeFromID(Node::NodeID ID)
    return *node;
 }
 
+Node::NodeID
+PathFinder::GetNodeIDFromTile(const glm::ivec2& tile) const
+{
+   const auto node = std::find_if(m_nodes.begin(), m_nodes.end(), [tile](const auto& node) {
+      return node.m_xPos == tile.x and node.m_yPos == tile.y;
+   });
+
+   assert(node != m_nodes.end());
+
+   return node->m_ID;
+}
+
 std::vector< Node::NodeID >
 PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
 {
-   auto& nodeStart = GetNodeFromID(GetNodeFromPosition(source));
-   auto& nodeEnd = GetNodeFromID(GetNodeFromPosition(destination));
+   auto& nodeStart = GetNodeFromPosition(source);
+   auto& nodeEnd = GetNodeFromPosition(destination);
 
    // Reset Navigation Graph - default all node states
    std::for_each(m_nodes.begin(), m_nodes.end(), [](auto& node) {
@@ -279,7 +297,7 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
                nodeNeighbour.m_localCost
                + static_cast< int32_t >(
                   glm::distance(nodeNeighbour.m_position,
-                                nodeEnd.m_position)); /*heuristic(nodeNeighbour, nodeEnd);*/
+                                nodeEnd.m_position));
          }
       }
    }

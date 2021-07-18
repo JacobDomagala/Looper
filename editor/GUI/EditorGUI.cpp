@@ -190,7 +190,7 @@ EditorGUI::Render()
                   static_cast< double >(cursorOpengGLPos.y));
 
       auto& pathfinder = m_parent.GetLevel().GetPathfinder();
-      const auto nodeID = pathfinder.GetNodeFromPosition(cursorOpengGLPos);
+      const auto nodeID = pathfinder.GetNodeIDFromPosition(cursorOpengGLPos);
       Node curNode{};
 
       if (nodeID != -1)

@@ -655,10 +655,10 @@ Game::CheckCollision(const glm::ivec2& currentPosition, const glm::ivec2& moveBy
 }
 
 bool
-Game::CheckMove(glm::ivec2& moveBy)
+Game::CheckMove(glm::vec2& moveBy)
 {
-   moveBy = CheckCollision(moveBy);
-   m_player->Move(moveBy, false);
+   // moveBy = CheckCollision(moveBy);
+   // m_player->Move(moveBy, false);
 
    return glm::length(glm::vec2(moveBy)) > 0;
 }
@@ -666,13 +666,14 @@ Game::CheckMove(glm::ivec2& moveBy)
 void
 Game::KeyEvents()
 {
+   // Camera movement is disabled
    int32_t cameraMovement =
-      static_cast< int32_t >(0.8f * static_cast< float >(m_deltaTime.count()));
+      static_cast< int32_t >(0.0f * static_cast< float >(m_deltaTime.count()));
    int32_t playerMovement =
       static_cast< int32_t >(0.5f * static_cast< float >(m_deltaTime.count()));
 
-   glm::ivec2 playerMoveBy = glm::ivec2();
-   glm::ivec2 cameraMoveBy = glm::ivec2();
+   auto playerMoveBy = glm::vec2();
+   auto cameraMoveBy = glm::vec2();
 
    m_reverse = InputManager::CheckKeyPressed(GLFW_KEY_LEFT_CONTROL);
 
@@ -710,23 +711,23 @@ Game::KeyEvents()
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_W))
       {
-         playerMoveBy += glm::ivec2(0, -playerMovement);
-         cameraMoveBy += glm::ivec2(0, cameraMovement);
+         playerMoveBy += glm::vec2(0, -playerMovement);
+         cameraMoveBy += glm::vec2(0, cameraMovement);
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_S))
       {
-         playerMoveBy += glm::ivec2(0, playerMovement);
-         cameraMoveBy += glm::ivec2(0, -cameraMovement);
+         playerMoveBy += glm::vec2(0, playerMovement);
+         cameraMoveBy += glm::vec2(0, -cameraMovement);
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_A))
       {
-         playerMoveBy += glm::ivec2(-playerMovement, 0);
-         cameraMoveBy += glm::ivec2(cameraMovement, 0);
+         playerMoveBy += glm::vec2(-playerMovement, 0);
+         cameraMoveBy += glm::vec2(cameraMovement, 0);
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_D))
       {
-         playerMoveBy += glm::ivec2(playerMovement, 0);
-         cameraMoveBy += glm::ivec2(-cameraMovement, 0);
+         playerMoveBy += glm::vec2(playerMovement, 0);
+         cameraMoveBy += glm::vec2(-cameraMovement, 0);
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_R))
       {
@@ -743,12 +744,14 @@ Game::KeyEvents()
 
       if (glm::length(glm::vec2(playerMoveBy)) > 0.0f)
       {
-         m_currentLevel->Move(cameraMoveBy);
+         //m_currentLevel->Move(cameraMoveBy);
+         m_camera.Move(glm ::vec3{cameraMoveBy, 0.0f});
+         m_player->Move(playerMoveBy);
 
-         if (CheckMove(playerMoveBy) == false)
-         {
-            m_currentLevel->Move(-cameraMoveBy);
-         }
+         //if (CheckMove(playerMoveBy) == false)
+         //{
+         //   //m_currentLevel->Move(-cameraMoveBy);
+         //}
       }
    }
 }

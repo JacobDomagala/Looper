@@ -99,7 +99,7 @@ class Game : public Application
    CorrectPosition();
 
    bool
-   CheckMove(glm::ivec2& moveBy);
+   CheckMove(glm::vec2& moveBy);
 
    void
    KeyEvents();
@@ -119,9 +119,6 @@ class Game : public Application
    // draws to screen
    void
    RenderSecondPass();
-
-   void
-   RayTracer();
 
    void
    HandleReverseLogic();
