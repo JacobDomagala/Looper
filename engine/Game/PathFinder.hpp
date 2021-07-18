@@ -23,8 +23,8 @@ struct Node : public Object
         m_yPos(coords.y),
         m_position(posOnMap),
         m_ID(ID),
-        m_connectedNodes(connectedTo),
-        m_occupied(occupied)
+        m_occupied(occupied),
+        m_connectedNodes(connectedTo)
    {
    }
 

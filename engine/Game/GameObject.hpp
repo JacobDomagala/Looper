@@ -132,7 +132,7 @@ class GameObject : public Object
    // should be overriden by derrived class
    // used by GameObject::Update
    virtual void
-   UpdateInternal(bool isReverse)
+   UpdateInternal(bool /*isReverse*/)
    {
    }
 
