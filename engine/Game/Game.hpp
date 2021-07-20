@@ -62,10 +62,6 @@ class Game : public Application
    void
    LoadLevel(const std::string& levelName);
 
-   // TODO move all collision related code to Level class?
-   void
-   SetCollisionMap(byte_vec4* collision);
-
    glm::vec2
    GetWindowSize() const override;
 
@@ -135,9 +131,6 @@ class Game : public Application
 
    // all maps
    std::vector< std::string > m_levels;
-
-   // TODO: Move entire collision logic to Level class
-   byte_vec4* m_collision = nullptr;
 
    // framebuffer for first pass
    Framebuffer m_frameBuffer;

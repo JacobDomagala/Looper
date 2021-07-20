@@ -39,16 +39,6 @@ Level::Load(Application* context, const std::string& pathToLevel)
 
          LoadPremade(background, glm::ivec2(size[0], size[1]));
 
-         // Temporary solution
-         // This should be moved to Level class soon
-         auto gameHandle = static_cast< Game* >(context);
-         if (gameHandle)
-         {
-            const auto collision = json[key]["collision"];
-            m_collision.LoadTextureFromFile(collision);
-            gameHandle->SetCollisionMap(m_collision.GetVec4Data());
-         }
-
          m_contextPointer = context;
       }
       else if (key == "PATHFINDER")

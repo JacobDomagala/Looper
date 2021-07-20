@@ -215,7 +215,7 @@ GameObject::UpdateCollision()
    }
 }
 
-std::vector< std::pair< int32_t, int32_t > >
+std::vector< Tile_t >
 GameObject::GetOccupiedNodes() const
 {
    return m_currentState.m_occupiedNodes;
