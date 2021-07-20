@@ -343,9 +343,9 @@ Level::GetGlobalVec(const glm::vec2& local) const
    return local;
 }
 
-std::vector< std::pair< int32_t, int32_t > >
+std::vector< Tile_t >
 Level::GameObjectMoved(const std::array< glm::vec2, 4 >& box,
-                       const std::vector< std::pair< int32_t, int32_t > >& currentTiles)
+                       const std::vector< Tile_t >& currentTiles)
 {
    auto new_tiles = GetTilesFromBoundingBox(box);
 
@@ -365,63 +365,24 @@ Level::GameObjectMoved(const std::array< glm::vec2, 4 >& box,
    return new_tiles;
 }
 
-std::vector< std::pair< int32_t, int32_t > >
+std::vector< Tile_t >
 Level::GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const
 {
-   /**
-    * Given 2 convex shapes:
-    * 1. Calculate perpndicular vector to one of the side and normalize it
-    * 2. Loop through every point on the first polygon and project it onto the axis
-    *    (Keep track of the highest and lowest values found for this polygon)
-    * 3. Do the same for the second polygon.
-    */
+   std::vector< Tile_t > ret;
 
-   /*  let axis = {
-     x : -(vertices[1].y - vertices[0].y),
-     y : vertices[1].x - vertices[0].x
-  }*/
+   auto insertToVec = [&ret](std::vector< Tile_t > tiles) {
+      ret.insert(ret.end(), tiles.begin(), tiles.end());
+   };
 
-   // const auto axis = glm::normalize(glm::vec2(-(box[0].y - box[3].y), box[0].x - box[3].x));
-
-   // For both shapes
-
-   // const auto topRightTile = GetTileFromPosition(box[0]);
-   // const auto topLeftTile = GetTileFromPosition(box[1]);
-   // const auto bottomLeftTile = GetTileFromPosition(box[2]);
-   // const auto bottomRightTile = GetTileFromPosition(box[3]);
-
-   float minX = std::numeric_limits< float >::max();
-   float maxX = std::numeric_limits< float >::min();
-
-   float minY = std::numeric_limits< float >::max();
-   float maxY = std::numeric_limits< float >::min();
-
-   for (const auto val : box)
-   {
-      minX = glm::min(minX, val.x);
-      maxX = glm::max(maxX, val.x);
-
-      minY = glm::min(minY, val.y);
-      maxY = glm::max(maxY, val.y);
-   }
-
-   const auto minTileID = GetTileFromPosition(glm::vec2{minX, minY});
-   const auto maxTileID = GetTileFromPosition(glm::vec2{maxX, maxY});
-
-   std::vector< std::pair< int32_t, int32_t > > ret;
-
-   for (int y = minTileID.second; y <= maxTileID.second; ++y)
-   {
-      for (int x = minTileID.first; x <= maxTileID.first; ++x)
-      {
-         ret.push_back({x, y});
-      }
-   }
+   insertToVec(GetTilesAlongTheLine(box[0], box[3]));
+   insertToVec(GetTilesAlongTheLine(box[3], box[2]));
+   insertToVec(GetTilesAlongTheLine(box[2], box[1]));
+   insertToVec(GetTilesAlongTheLine(box[1], box[0]));
 
    return ret;
 }
 
-std::pair< int32_t, int32_t >
+Tile_t
 Level::GetTileFromPosition(const glm::vec2& local) const
 {
    if (!IsInLevelBoundaries(local))
@@ -484,6 +445,25 @@ Level::CheckCollisionAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toP
    }
 
    return noCollision;
+}
+
+std::vector< Tile_t >
+Level::GetTilesAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos) const
+{
+   std::set< Tile_t > tiles;
+
+   constexpr auto numSteps = 100;
+   constexpr auto singleStep = 1 / static_cast< float >(numSteps);
+
+   const auto pathVec = toPos - fromPos;
+   const auto stepSize = pathVec * singleStep;
+
+   for (int i = 0; i < numSteps; ++i)
+   {
+      tiles.insert(GetTileFromPosition(fromPos + (stepSize * static_cast< float >(i))));
+   }
+
+   return {tiles.begin(), tiles.end()};
 }
 
 void

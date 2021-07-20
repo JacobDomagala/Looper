@@ -125,7 +125,7 @@ class GameObject : public Object
    bool
    GetHasCollision() const;
 
-   std::vector< std::pair< int32_t, int32_t > >
+   std::vector< Tile_t >
    GetOccupiedNodes() const;
 
  protected:
@@ -165,7 +165,7 @@ class GameObject : public Object
       glm::mat4 m_rotateMatrix;
       glm::mat4 m_scaleMatrix;
 
-      std::vector< std::pair< int32_t, int32_t > > m_occupiedNodes;
+      std::vector< Tile_t > m_occupiedNodes;
    };
 
    std::deque< State > m_statesQueue;

@@ -66,7 +66,6 @@ class PathFinder
    void
    InitializeEmpty(const glm::ivec2& levelSize, const uint32_t tileSize);
 
-
    void
    AddNode(Node newNode);
 

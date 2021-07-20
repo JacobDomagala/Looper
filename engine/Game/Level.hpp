@@ -17,6 +17,9 @@ class Game;
 class Level
 {
  public:
+   static constexpr Tile_t invalidTile = Tile_t{-1, -1};
+
+ public:
    std::shared_ptr< GameObject >
    AddGameObject(GameObject::TYPE objectType);
 
@@ -28,18 +31,18 @@ class Level
    glm::vec2
    GetGlobalVec(const glm::vec2& local) const;
 
-   std::vector< std::pair< int32_t, int32_t > >
-   GetTilesFromBoundingBox(const std::array<glm::vec2, 4>& box) const;
+   std::vector< Tile_t >
+   GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const;
 
-   std::pair<int32_t, int32_t>
+   Tile_t
    GetTileFromPosition(const glm::vec2& local) const;
 
    void
    MoveObjs(const glm::vec2& moveBy, bool isCameraMovement = true);
 
-   std::vector< std::pair< int32_t, int32_t > >
+   std::vector< Tile_t >
    GameObjectMoved(const std::array< glm::vec2, 4 >& box,
-                   const std::vector< std::pair< int32_t, int32_t > >& currentTiles);
+                   const std::vector< Tile_t >& currentTiles);
 
    void
    Create(Application* context, const glm::ivec2& size);
@@ -101,6 +104,9 @@ class Level
 
    bool
    CheckCollisionAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos);
+
+   std::vector< Tile_t >
+   GetTilesAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos) const;
 
    void
    LockCamera()
