@@ -427,9 +427,9 @@ Level::GetCollidedPosition(const glm::vec2& fromPos, const glm::vec2& toPos)
 
    for (int i = 0; i < numSteps; ++i)
    {
-      const auto curPos = fromPos + (stepSize * static_cast< float >(i));
+      auto curPos = fromPos + (stepSize * static_cast< float >(i));
 
-      if (m_pathFinder.GetNodeFromPosition(curPos).m_occupied)
+      if (!IsInLevelBoundaries(curPos) or m_pathFinder.GetNodeFromPosition(curPos).m_occupied)
       {
          break;
       }
@@ -437,7 +437,8 @@ Level::GetCollidedPosition(const glm::vec2& fromPos, const glm::vec2& toPos)
       returnPosition = curPos;
    }
 
-   return returnPosition;
+   return glm::clamp(returnPosition, glm::vec2{0.0f, 0.0f},
+                     static_cast< glm::vec2 >(m_levelSize - 1));
 }
 
 bool
@@ -454,7 +455,7 @@ Level::CheckCollisionAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toP
    for (int i = 0; i < numSteps; ++i)
    {
       const auto curPos = fromPos + (stepSize * static_cast< float >(i));
-      if (m_pathFinder.GetNodeFromPosition(curPos).m_occupied)
+      if (!IsInLevelBoundaries(curPos) or m_pathFinder.GetNodeFromPosition(curPos).m_occupied)
       {
          noCollision = false;
          break;
