@@ -51,7 +51,7 @@ class Application : public InputListener
    glm::vec2
    GlobalToScreen(const glm::vec2& globalPos) const;
 
-   // convert from global position (OpenGL) to screen position (in pixels)
+   // convert from screen position (in pixels) to global position (OpenGL)
    glm::vec2
    ScreenToGlobal(const glm::vec2& screenPos);
 

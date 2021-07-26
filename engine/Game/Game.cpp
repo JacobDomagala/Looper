@@ -242,12 +242,13 @@ Game::KeyEvents()
 void
 Game::MouseEvents()
 {
-   const auto collided =
-      CheckBulletCollision(m_player->GetCenteredGlobalPosition(), m_player->GetWeaponRange());
+   const auto playerPos = m_player->GetCenteredGlobalPosition();
+   const auto mousePos = ScreenToGlobal(InputManager::GetMousePos());
+   const auto collided = m_currentLevel->GetCollidedPosition(playerPos, mousePos);
 
    /*DrawLine(m_currentLevel->GetGlobalVec(m_player->GetCenteredLocalPosition()),
       m_currentLevel->GetGlobalVec(tmp), glm::vec3(0.0f, 1.0f, 0.0f));*/
-   Renderer::DrawLine(m_player->GetLocalPosition(), collided, {0.8f, 0.0f, 0.3f, 1.0f});
+   Renderer::DrawLine(m_player->GetCenteredGlobalPosition(), collided, {0.8f, 0.0f, 0.3f, 1.0f});
    ////PRIMARY FIRE
    // if (Win_Window::GetKeyState(VK_LBUTTON))
    //{
