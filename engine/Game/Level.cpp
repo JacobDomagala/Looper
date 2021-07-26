@@ -423,17 +423,18 @@ Level::GetCollidedPosition(const glm::vec2& fromPos, const glm::vec2& toPos)
    const auto pathVec = toPos - fromPos;
    const auto stepSize = pathVec * singleStep;
 
-   glm::vec2 returnPosition = {};
+   glm::vec2 returnPosition = fromPos;
 
    for (int i = 0; i < numSteps; ++i)
    {
       const auto curPos = fromPos + (stepSize * static_cast< float >(i));
-      returnPosition = curPos;
 
       if (m_pathFinder.GetNodeFromPosition(curPos).m_occupied)
       {
          break;
       }
+
+      returnPosition = curPos;
    }
 
    return returnPosition;

@@ -142,23 +142,24 @@ Game::CheckCollision(const glm::ivec2& /*currentPosition*/, const glm::ivec2& /*
    return {};
 }
 
-bool
-Game::CheckMove(glm::vec2& moveBy)
+void
+Game::MoveGameObject(GameObject* gameObject, const glm::vec2& moveBy) const
 {
-   // moveBy = CheckCollision(moveBy);
-   // m_player->Move(moveBy, false);
+   const auto fromPosition = gameObject->GetCenteredGlobalPosition();
+   const auto destination = fromPosition + moveBy;
 
-   return glm::length(glm::vec2(moveBy)) > 0;
+   const auto actualMoveBy =
+      m_currentLevel->GetCollidedPosition(fromPosition, destination) - fromPosition;
+   gameObject->Move(actualMoveBy, false);
 }
 
 void
 Game::KeyEvents()
 {
+   const auto floatDeltaTime = static_cast< float >(m_deltaTime.count());
    // Camera movement is disabled
-   int32_t cameraMovement =
-      static_cast< int32_t >(0.0f * static_cast< float >(m_deltaTime.count()));
-   int32_t playerMovement =
-      static_cast< int32_t >(0.5f * static_cast< float >(m_deltaTime.count()));
+   auto cameraMovement = 0.0f * floatDeltaTime;
+   auto playerMovement = 0.5f * floatDeltaTime;
 
    auto playerMoveBy = glm::vec2();
    auto cameraMoveBy = glm::vec2();
@@ -232,14 +233,8 @@ Game::KeyEvents()
 
       if (glm::length(glm::vec2(playerMoveBy)) > 0.0f)
       {
-         // m_currentLevel->Move(cameraMoveBy);
-         m_camera.Move(glm ::vec3{cameraMoveBy, 0.0f});
-         m_player->Move(playerMoveBy, false);
-
-         // if (CheckMove(playerMoveBy) == false)
-         //{
-         //   //m_currentLevel->Move(-cameraMoveBy);
-         //}
+         m_camera.Move(glm::vec3{cameraMoveBy, 0.0f});
+         MoveGameObject(m_player.get(), playerMoveBy);
       }
    }
 }

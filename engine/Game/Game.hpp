@@ -99,8 +99,13 @@ class Game : public Application
    glm::ivec2
    CorrectPosition();
 
-   bool
-   CheckMove(glm::vec2& moveBy);
+   /**
+    * \brief Try to move GameObject \c gameObject by \c moveBy vector
+    * \param[in] gameObject Object to move
+    * \param[in] moveBy Movement vector
+    */
+   void
+   MoveGameObject(GameObject* gameObject, const glm::vec2& moveBy) const;
 
    void
    KeyEvents();
