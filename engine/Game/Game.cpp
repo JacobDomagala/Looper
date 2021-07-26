@@ -122,10 +122,12 @@ Game::IsPlayerInVision(Enemy* /*from*/, int32_t /*range*/)
    return false;
 }
 
-glm::ivec2
-Game::CheckBulletCollision(int32_t /*range*/)
+glm::vec2
+Game::CheckBulletCollision(const glm::vec2& positon, float range)
 {
-   return glm::ivec2();
+   return m_currentLevel->GetCollidedPosition(
+      positon, glm::clamp(positon + range, glm::vec2{0.0f, 0.0f},
+                          static_cast< glm::vec2 >(m_currentLevel->GetSize())));
 }
 
 glm::ivec2
@@ -137,7 +139,6 @@ Game::CheckCollision(glm::ivec2& /*moveBy*/)
 glm::ivec2
 Game::CheckCollision(const glm::ivec2& /*currentPosition*/, const glm::ivec2& /*moveBy*/)
 {
-
    return {};
 }
 
@@ -231,11 +232,11 @@ Game::KeyEvents()
 
       if (glm::length(glm::vec2(playerMoveBy)) > 0.0f)
       {
-         //m_currentLevel->Move(cameraMoveBy);
+         // m_currentLevel->Move(cameraMoveBy);
          m_camera.Move(glm ::vec3{cameraMoveBy, 0.0f});
-         m_player->Move(playerMoveBy);
+         m_player->Move(playerMoveBy, false);
 
-         //if (CheckMove(playerMoveBy) == false)
+         // if (CheckMove(playerMoveBy) == false)
          //{
          //   //m_currentLevel->Move(-cameraMoveBy);
          //}
@@ -246,11 +247,12 @@ Game::KeyEvents()
 void
 Game::MouseEvents()
 {
-   glm::vec2 tmp = CheckBulletCollision(m_player->GetWeaponRange());
+   const auto collided =
+      CheckBulletCollision(m_player->GetCenteredGlobalPosition(), m_player->GetWeaponRange());
 
    /*DrawLine(m_currentLevel->GetGlobalVec(m_player->GetCenteredLocalPosition()),
       m_currentLevel->GetGlobalVec(tmp), glm::vec3(0.0f, 1.0f, 0.0f));*/
-   Renderer::DrawLine(m_player->GetLocalPosition(), tmp, {0.8f, 0.0f, 0.3f, 1.0f});
+   Renderer::DrawLine(m_player->GetLocalPosition(), collided, {0.8f, 0.0f, 0.3f, 1.0f});
    ////PRIMARY FIRE
    // if (Win_Window::GetKeyState(VK_LBUTTON))
    //{

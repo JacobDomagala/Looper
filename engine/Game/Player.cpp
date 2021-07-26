@@ -151,7 +151,7 @@ Player::ChangeWepon(int32_t idx)
    m_currentWeapon = m_weapons.at(static_cast< size_t >(idx)).get();
 }
 
-int32_t
+float
 Player::GetWeaponRange() const
 {
    return m_currentWeapon->GetRange();

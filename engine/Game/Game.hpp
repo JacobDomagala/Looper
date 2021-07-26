@@ -84,9 +84,14 @@ class Game : public Application
    void
    RenderLine(const glm::ivec2& collided, const glm::vec3& color);
 
-   // bullet collision for player
-   glm::ivec2
-   CheckBulletCollision(int32_t range);
+   /**
+    * \brief Check bullet collision along the line, starting from \c position
+    * with length of \c range
+    *
+    * \return Returns collided position (or \c position + \c range if not collided)
+    */
+   glm::vec2
+   CheckBulletCollision(const glm::vec2& positon, float range);
 
    glm::ivec2
    CheckCollision(glm::ivec2& moveBy);

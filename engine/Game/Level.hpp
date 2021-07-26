@@ -102,6 +102,14 @@ class Level
    bool
    CheckCollision(const glm::ivec2& localPos, const Player& player);
 
+   /**
+    * \brief Get collided position along the line (from-to).
+    *
+    * \return Return the collided position or \c toPos if nothing was on the path
+    */
+   glm::vec2
+   GetCollidedPosition(const glm::vec2& fromPos, const glm::vec2& toPos);
+
    bool
    CheckCollisionAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos);
 

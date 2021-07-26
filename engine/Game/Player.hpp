@@ -18,9 +18,8 @@ class Enemy;
 class Player : public GameObject
 {
  public:
-   explicit Player(Application& game, const glm::vec2& position, const glm::ivec2& size,
-                   const std::string& sprite, const std::string& name = "Anonymous");
-   ~Player() override = default;
+   Player(Application& game, const glm::vec2& position, const glm::ivec2& size,
+          const std::string& sprite, const std::string& name = "Anonymous");
 
    // check if player got git by enemy
    bool
@@ -60,7 +59,7 @@ class Player : public GameObject
    ChangeWepon(int32_t idx);
 
    // get player's current weapon range
-   int32_t
+   float
    GetWeaponRange() const;
 
    // get player's current weapon's damage

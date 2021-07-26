@@ -398,8 +398,8 @@ Level::CheckCollision(const glm::ivec2& localPos, const Player& player)
 {
    for (auto& obj : m_objects)
    {
-      auto length = glm::length(glm::vec2(localPos - obj->GetCenteredLocalPosition()));
-      auto objSize = obj->GetSize();
+      const auto length = glm::length(glm::vec2(localPos - obj->GetCenteredLocalPosition()));
+      const auto objSize = obj->GetSize();
 
       if (length < static_cast< float >(objSize.x) / 2.5f)
       {
@@ -410,7 +410,33 @@ Level::CheckCollision(const glm::ivec2& localPos, const Player& player)
 
       obj->SetColor({1.0f, 1.0f, 1.0f});
    }
+
    return true;
+}
+
+glm::vec2
+Level::GetCollidedPosition(const glm::vec2& fromPos, const glm::vec2& toPos)
+{
+   constexpr auto numSteps = 100;
+   constexpr auto singleStep = 1 / static_cast< float >(numSteps);
+
+   const auto pathVec = toPos - fromPos;
+   const auto stepSize = pathVec * singleStep;
+
+   glm::vec2 returnPosition = {};
+
+   for (int i = 0; i < numSteps; ++i)
+   {
+      const auto curPos = fromPos + (stepSize * static_cast< float >(i));
+      returnPosition = curPos;
+
+      if (m_pathFinder.GetNodeFromPosition(curPos).m_occupied)
+      {
+         break;
+      }
+   }
+
+   return returnPosition;
 }
 
 bool
