@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Common.hpp"
 #include "Object.hpp"
 
 #include <glm/glm.hpp>
@@ -57,63 +58,137 @@ operator==(const Node& left, const Node& right)
 class PathFinder
 {
  public:
-   PathFinder();
+   PathFinder() = default;
    PathFinder(const glm::ivec2& levelSize, const uint32_t tileSize, std::vector< Node >&& nodes);
 
+   /**
+    * \brief Initialize Pathfinder. This will create nodes for entire Level.
+    *
+    * \param[in] levelSize Size of the current Level
+    * \param[in] tileSize Size of tile
+    */
    void
    Initialize(const glm::ivec2& levelSize, const uint32_t tileSize);
 
+   /**
+    * \brief Initialize Pathfinder. This will not create nodes.
+    *
+    * \param[in] levelSize Size of the current Level
+    * \param[in] tileSize Size of tile
+    */
    void
    InitializeEmpty(const glm::ivec2& levelSize, const uint32_t tileSize);
 
-   void
-   AddNode(Node newNode);
-
-   void
-   DeleteNode(Node deletedNode);
-
-   Node::NodeID
-   FindNodeIdx(const glm::vec2& position) const;
-
-   glm::vec2
-   GetNearestPosition(Node::NodeID currIdx, const glm::vec2& targetPos) const;
-
-   Node::NodeID
-   GetNearestNode(const glm::vec2& position) const;
-
-   const std::vector< Node >&
-   GetAllNodes() const;
-
-   std::vector< Node >&
-   GetAllNodes();
-
-   Node::NodeID
-   GetNodeIDFromPosition(const glm::vec2& position) const;
-
-   Node::NodeID
-   GetNodeIDFromTile(const glm::ivec2& tile) const;
-
-   Node&
-   GetNodeFromID(Node::NodeID ID);
-
-   Node&
-   GetNodeFromPosition(const glm::vec2& position);
-
-   std::vector< Node::NodeID >
-   GetPath(const glm::vec2& source, const glm::vec2& destination);
-
-   void
-   SetNodeOccupied(const std::pair< int32_t, int32_t >& nodeCoords);
-
-   void
-   SetNodeFreed(const std::pair< int32_t, int32_t >& nodeCoords);
-
+   /**
+    * \brief Check whether the Pathfinder is initialized
+    *
+    * \return Whether it's initialized
+    */
    bool
    IsInitialized() const;
 
+   /**
+    * \brief Add node to the Pathfinder
+    *
+    * \param[in] newNode Node to add
+    */
+   void
+   AddNode(Node&& newNode);
+
+   /**
+    * \brief Delete node from the Pathfinder
+    *
+    * \param[in] nodeToDelete Node to delete
+    */
+   void
+   DeleteNode(Node::NodeID nodeToDelete);
+
+   /**
+    * \brief Get nodes (const version)
+    *
+    * \return Nodes vector
+    */
+   const std::vector< Node >&
+   GetAllNodes() const;
+
+   /**
+    * \brief Get nodes (non-const version)
+    *
+    * \return Nodes vector
+    */
+   std::vector< Node >&
+   GetAllNodes();
+
+   /**
+    * \brief Get NodeID from position
+    *
+    * \param[in] position Position on the map
+    *
+    * \return NodeID
+    */
+   Node::NodeID
+   GetNodeIDFromPosition(const glm::vec2& position) const;
+
+   /**
+    * \brief Get Node from position
+    *
+    * \param[in] position Position on the map
+    *
+    * \return Node
+    */
+   Node&
+   GetNodeFromPosition(const glm::vec2& position);
+
+   /**
+    * \brief Get NodeID from tile
+    *
+    * \param[in] tile Tile on the map
+    *
+    * \return NodeID
+    */
+   Node::NodeID
+   GetNodeIDFromTile(const glm::ivec2& tile) const;
+
+   /**
+    * \brief Get Node from NodeID
+    *
+    * \param[in] ID NodeID
+    *
+    * \return Node
+    */
+   Node&
+   GetNodeFromID(Node::NodeID ID);
+
+   /**
+    * \brief Get path from \c source to \c destination. Uses A* algorithm.
+    *
+    * \param[in] source Starting point on the map
+    * \param[in] destination Destination on the map
+    *
+    * \return Nodes along the way
+    */
+   std::vector< Node::NodeID >
+   GetPath(const glm::vec2& source, const glm::vec2& destination);
+
+   /**
+    * \brief Set node (on the given tile) occupied
+    *
+    * \param[in] nodeCoords Tile on the map
+    */
+   void
+   SetNodeOccupied(const Tile_t& nodeCoords);
+
+   /**
+    * \brief Set node (on the given tile) freed
+    *
+    * \param[in] nodeCoords Tile on the map
+    */
+   void
+   SetNodeFreed(const Tile_t& nodeCoords);
+
  private:
    bool m_initialized = false;
-   std::vector< Node > m_nodes;
+   std::vector< Node > m_nodes = {};
    glm::ivec2 m_levelSize = {};
    uint32_t m_tileSize = {};
 };

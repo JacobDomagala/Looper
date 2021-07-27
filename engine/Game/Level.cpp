@@ -161,7 +161,6 @@ Level::Save(const std::string& pathToLevel)
    // Serialize background
    json["BACKGROUND"]["texture"] = m_background.GetTextureName();
    json["BACKGROUND"]["size"] = {m_background.GetSize().x, m_background.GetSize().y};
-   json["BACKGROUND"]["collision"] = m_collision.GetName();
 
    // Serialize game objects
    for (const auto& object : m_objects)
@@ -393,27 +392,6 @@ Level::IsInLevelBoundaries(const glm::vec2& position) const
           && position.y <= static_cast< float >(m_levelSize.y);
 }
 
-bool
-Level::CheckCollision(const glm::ivec2& localPos, const Player& player)
-{
-   for (auto& obj : m_objects)
-   {
-      const auto length = glm::length(glm::vec2(localPos - obj->GetCenteredLocalPosition()));
-      const auto objSize = obj->GetSize();
-
-      if (length < static_cast< float >(objSize.x) / 2.5f)
-      {
-         obj->Hit(player.GetWeaponDmg());
-
-         return false;
-      }
-
-      obj->SetColor({1.0f, 1.0f, 1.0f});
-   }
-
-   return true;
-}
-
 glm::vec2
 Level::GetCollidedPosition(const glm::vec2& fromPos, const glm::vec2& toPos)
 {
@@ -503,20 +481,6 @@ Level::LoadShaders(const std::string&)
 }
 
 void
-Level::AddGameObject(Game& game, const glm::vec2& pos, const glm::ivec2& size,
-                     const std::string& sprite)
-{
-   std::unique_ptr< GameObject > object = std::make_unique< Enemy >(game, pos, size, sprite);
-   m_objects.push_back(std::move(object));
-}
-
-void
-Level::DeleteObject(std::shared_ptr< Object > deletedObject)
-{
-   m_objects.erase(std::find(m_objects.begin(), m_objects.end(), deletedObject));
-}
-
-void
 Level::DeleteObject(Object::ID deletedObject)
 {
    auto objectIter =
@@ -603,40 +567,6 @@ Level::GetObjectRef(Object::ID objectID)
    assert(requestedObject);
 
    return *requestedObject;
-}
-
-void
-Level::Move(const glm::vec2& moveBy)
-{
-   for (auto& obj : m_objects)
-   {
-      obj->Move(moveBy);
-   }
-
-   m_background.Translate(moveBy);
-   // MoveCamera(moveBy);
-}
-
-void
-Level::Scale(const glm::vec2& scaleVal)
-{
-   for (auto& obj : m_objects)
-   {
-      obj->Scale(scaleVal);
-   }
-
-   m_background.Scale(scaleVal);
-}
-
-void
-Level::Rotate(float angle, bool cumulative)
-{
-   for (auto& obj : m_objects)
-   {
-      obj->Rotate(angle, cumulative);
-   }
-
-   cumulative ? m_background.RotateCumulative(angle) : m_background.Rotate(angle);
 }
 
 void

@@ -153,9 +153,6 @@ class Game : public Application
 
    // state of the game
    GameState m_state = GameState::GAME;
-
-   // player position on map (centered)
-   glm::vec2 m_playerPosition;
 };
 
 } // namespace dgame

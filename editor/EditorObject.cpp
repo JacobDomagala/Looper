@@ -219,7 +219,7 @@ EditorObject::DeleteLinkedObject()
 
          case Object::TYPE::PATHFINDER_NODE: {
             auto& node = dynamic_cast< Node& >(m_editor.GetLevel().GetObjectRef(m_objectID));
-            m_editor.GetLevel().GetPathfinder().DeleteNode(node);
+            m_editor.GetLevel().GetPathfinder().DeleteNode(node.m_ID);
          }
          break;
 

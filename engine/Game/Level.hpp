@@ -65,26 +65,10 @@ class Level
    LoadShaders(const std::string& shaderName);
 
    void
-   AddGameObject(Game& game, const glm::vec2& pos, const glm::ivec2& size,
-                 const std::string& sprite);
-
-   void
-   DeleteObject(std::shared_ptr< Object > deletedObject);
-
-   void
    DeleteObject(Object::ID deletedObject);
 
    Object&
    GetObjectRef(Object::ID object);
-
-   void
-   Move(const glm::vec2& moveBy);
-
-   void
-   Scale(const glm::vec2& scaleVal);
-
-   void
-   Rotate(float angle, bool cumulative = false);
 
    void
    Update(bool isReverse);
@@ -92,15 +76,21 @@ class Level
    void
    Render();
 
-   // Renders only game objects
+   /**
+    * \brief Renders game objects
+    */
    void
    RenderGameObjects();
 
+   /**
+    * \brief Checks whether \c position is inside level boundaries
+    *
+    * \param[in] position Position to check
+    *
+    * \return True if it's on the map, false otherwise
+    */
    bool
    IsInLevelBoundaries(const glm::vec2& position) const;
-
-   bool
-   CheckCollision(const glm::ivec2& localPos, const Player& player);
 
    /**
     * \brief Get collided position along the line (from-to).
@@ -110,9 +100,25 @@ class Level
    glm::vec2
    GetCollidedPosition(const glm::vec2& fromPos, const glm::vec2& toPos);
 
+   /**
+    * \brief Checks collision along the line (fromPos - toPos)
+    *
+    * \param[in] fromPos Starting position
+    * \param[in] toPos Ending position
+    *
+    * \return True if not collided, False otherwise
+    */
    bool
    CheckCollisionAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos);
 
+   /**
+    * \brief Get tiles along the line (fromPos - toPos)
+    *
+    * \param[in] fromPos Starting position
+    * \param[in] toPos Ending position
+    *
+    * \return Vector of tiles
+    */
    std::vector< Tile_t >
    GetTilesAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos) const;
 
@@ -179,12 +185,6 @@ class Level
    std::shared_ptr< GameObject >
    GetGameObjectOnLocation(const glm::vec2& screenPosition);
 
-   const Texture&
-   GetCollision() const
-   {
-      return m_collision;
-   }
-
    uint32_t
    GetTileSize() const
    {
@@ -196,7 +196,6 @@ class Level
 
    Application* m_contextPointer = nullptr;
    Sprite m_background;
-   Texture m_collision;
 
    std::string m_shaderName = "DefaultShader";
    std::shared_ptr< Player > m_player = nullptr;
@@ -206,6 +205,7 @@ class Level
    glm::ivec2 m_levelSize = {0, 0};
    uint32_t m_tileWidth = 128;
    std::vector< std::shared_ptr< GameObject > > m_objects;
+   std::unordered_map<Object::ID, std::unique_ptr<GameObject>> m_gameObjects;
    PathFinder m_pathFinder;
 };
 

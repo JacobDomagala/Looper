@@ -1,13 +1,9 @@
-#include <PathFinder.hpp>
+#include "PathFinder.hpp"
+
 #include <algorithm>
-#include <array>
 #include <list>
 
 namespace dgame {
-
-PathFinder::PathFinder()
-{
-}
 
 PathFinder::PathFinder(const glm::ivec2& levelSize, const uint32_t tileSize,
                        std::vector< Node >&& nodes)
@@ -69,94 +65,28 @@ PathFinder::Initialize(const glm::ivec2& levelSize, const uint32_t tileSize)
          node.m_occupied = obstacle;
 
 
-         AddNode(node);
+         AddNode(std::move(node));
       }
    }
 }
 
 void
-PathFinder::AddNode(Node newNode)
+PathFinder::AddNode(Node&& newNode)
 {
-   m_nodes.push_back(newNode);
-   m_initialized = true;
+   m_nodes.push_back(std::move(newNode));
 }
 
 void
-PathFinder::DeleteNode(Node deletedNode)
+PathFinder::DeleteNode(Node::NodeID nodeToDelete)
 {
-   m_nodes.erase(std::find(m_nodes.begin(), m_nodes.end(), deletedNode));
+   m_nodes.erase(std::find_if(m_nodes.begin(), m_nodes.end(), [nodeToDelete](const auto& node) {
+      return nodeToDelete == node.m_ID;
+   }));
 
    if (m_nodes.empty())
    {
       m_initialized = false;
    }
-}
-
-Node::NodeID
-PathFinder::FindNodeIdx(const glm::vec2& position) const
-{
-   auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(), [position](const auto& node) {
-      return node.m_position == position;
-   });
-
-   return (nodeFound != m_nodes.end()) ? nodeFound->m_ID : 0;
-}
-
-glm::vec2
-PathFinder::GetNearestPosition(/*const glm::ivec2& objectPos*/ Node::NodeID currIdx,
-                               const glm::vec2& targetPos) const
-{
-   glm::vec2 returnPos{};
-
-   auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(),
-                                 [currIdx](const auto& node) { return node.m_ID == currIdx; });
-
-   if (nodeFound != m_nodes.end())
-   {
-      const auto& nearestNode = *nodeFound;
-      auto length = glm::length(targetPos - nearestNode.m_position);
-
-      for (const auto& nodeIdx : nearestNode.m_connectedNodes)
-      {
-         auto currentNodeIt =
-            std::find_if(m_nodes.begin(), m_nodes.end(),
-                         [nodeIdx](const auto& node) { return node.m_ID == nodeIdx; });
-
-         if (currentNodeIt != m_nodes.end())
-         {
-            const auto& currentNode = *currentNodeIt;
-
-            const auto currentLength = glm::length(targetPos - currentNode.m_position);
-            if (currentLength < length)
-            {
-               length = currentLength;
-               returnPos = currentNode.m_position;
-            }
-         }
-      }
-   }
-
-   return returnPos;
-}
-
-Node::NodeID
-PathFinder::GetNearestNode(const glm::vec2& position) const
-{
-   Node::NodeID nearestNode(-1);
-   auto currentMinLen(FLT_MAX);
-
-   for (const auto& node : m_nodes)
-   {
-      auto currentLength = glm::length(static_cast< glm::vec2 >(position - node.m_position));
-
-      if (currentLength < currentMinLen)
-      {
-         nearestNode = node.m_ID;
-         currentMinLen = currentLength;
-      }
-   }
-
-   return nearestNode;
 }
 
 const std::vector< Node >&
@@ -327,9 +257,9 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
 }
 
 void
-PathFinder::SetNodeOccupied(const std::pair< int32_t, int32_t >& nodeCoords)
+PathFinder::SetNodeOccupied(const Tile_t& nodeCoords)
 {
-   if (nodeCoords != std::pair< int32_t, int32_t >{-1, -1})
+   if (nodeCoords != Tile_t{-1, -1})
    {
       auto node = std::find_if(m_nodes.begin(), m_nodes.end(), [nodeCoords](const auto& node) {
          return (node.m_xPos == nodeCoords.first) and (node.m_yPos == nodeCoords.second);
@@ -342,9 +272,9 @@ PathFinder::SetNodeOccupied(const std::pair< int32_t, int32_t >& nodeCoords)
 }
 
 void
-PathFinder::SetNodeFreed(const std::pair< int32_t, int32_t >& nodeCoords)
+PathFinder::SetNodeFreed(const Tile_t& nodeCoords)
 {
-   if (nodeCoords != std::pair< int32_t, int32_t >{-1, -1})
+   if (nodeCoords != Tile_t{-1, -1})
    {
       auto node = std::find_if(m_nodes.begin(), m_nodes.end(), [nodeCoords](const auto& node) {
          return (node.m_xPos == nodeCoords.first) and (node.m_yPos == nodeCoords.second);

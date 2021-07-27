@@ -246,36 +246,8 @@ Game::MouseEvents()
    const auto mousePos = ScreenToGlobal(InputManager::GetMousePos());
    const auto collided = m_currentLevel->GetCollidedPosition(playerPos, mousePos);
 
-   /*DrawLine(m_currentLevel->GetGlobalVec(m_player->GetCenteredLocalPosition()),
-      m_currentLevel->GetGlobalVec(tmp), glm::vec3(0.0f, 1.0f, 0.0f));*/
    Renderer::DrawLine(m_player->GetCenteredGlobalPosition(), collided, {0.8f, 0.0f, 0.3f, 1.0f});
-   ////PRIMARY FIRE
-   // if (Win_Window::GetKeyState(VK_LBUTTON))
-   //{
-   //	timer.ToggleTimer();
-   //
-   //	delta += timer.GetDeltaTime();
-   //	if (delta >= player.GetReloadTime())
-   //		primaryFire = false;
 
-   //	if (!primaryFire)
-   //	{
-   //		player.Shoot();
-   //		glm::vec2 tmp = CheckBulletCollision(player.GetWeaponRange());
-   //		//DrawLine(player.GetGlobalPosition(), currentLevel.GetGlobalVec(tmp));
-   //		primaryFire = true;
-   //		delta = 0.0f;
-   //	}
-   //}
-
-   ////ALTERNATIVE FIRE
-   //	if (Win_Window::GetKeyState(VK_RBUTTON))
-   //{
-   //	alternativeFire = true;
-   //	player.Shoot();
-   //}
-
-   // TODO: Find some easier formula for this?
    if (!m_reverse)
    {
       // value to control how fast should camera move
