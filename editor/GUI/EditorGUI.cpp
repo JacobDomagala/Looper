@@ -138,7 +138,7 @@ EditorGUI::Render()
       if (ImGui::CollapsingHeader("Objects"))
       {
          // static int selected = 0;
-         auto gameObjects = m_currentLevel->GetObjects();
+         const auto& gameObjects = m_currentLevel->GetObjects();
 
          ImGui::BeginChild("Loaded Objects", {0, 200}, true);
          for (auto& object : gameObjects)
@@ -154,7 +154,7 @@ EditorGUI::Render()
             }
          }
 
-         const auto items = std::to_array<std::string>({"Enemy", "Player", "Object"});
+         const auto items = std::to_array< std::string >({"Enemy", "Player", "Object"});
 
          if (ImGui::BeginCombo(
                 "##combo",
@@ -261,11 +261,11 @@ EditorGUI::Render()
          if (m_currentLevel)
          {
             auto& sprite = m_currentlySelectedGameObject->GetSprite();
-            ImGui::Image(
-               reinterpret_cast< void* >(static_cast< size_t >(sprite.GetTexture().GetTextureHandle())),
-               {150, 150});
-            ImGui::InputText("FileName", &sprite.GetTextureName()[0], sprite.GetTextureName().size(),
-                             ImGuiInputTextFlags_ReadOnly);
+            ImGui::Image(reinterpret_cast< void* >(
+                            static_cast< size_t >(sprite.GetTexture().GetTextureHandle())),
+                         {150, 150});
+            ImGui::InputText("FileName", &sprite.GetTextureName()[0],
+                             sprite.GetTextureName().size(), ImGuiInputTextFlags_ReadOnly);
             if (ImGui::Button("Change Texture"))
             {
                auto textureName = file_dialog({{"png", "jpg"}}, false);

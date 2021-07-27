@@ -167,7 +167,7 @@ class Level
       return m_player;
    }
 
-   std::vector< std::shared_ptr< GameObject > >
+   const std::vector< std::shared_ptr< GameObject > >&
    GetObjects(bool includePlayer = false);
 
    std::string
@@ -205,7 +205,6 @@ class Level
    glm::ivec2 m_levelSize = {0, 0};
    uint32_t m_tileWidth = 128;
    std::vector< std::shared_ptr< GameObject > > m_objects;
-   std::unordered_map<Object::ID, std::unique_ptr<GameObject>> m_gameObjects;
    PathFinder m_pathFinder;
 };
 
