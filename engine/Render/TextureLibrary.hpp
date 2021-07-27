@@ -27,7 +27,8 @@ class TextureLibrary
    LoadTexture(const std::string& textureName);
 
  private:
-   static inline std::unordered_map< std::string, std::shared_ptr< Texture > > s_loadedTextures = {};
+   static inline std::unordered_map< std::string, std::shared_ptr< Texture > > s_loadedTextures =
+      {};
    static inline Logger s_logger = Logger("TextureLibrary");
 };
 

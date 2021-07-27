@@ -19,8 +19,6 @@ namespace dgame {
 class Game : public Application
 {
  public:
-   Game() = default;
-   ~Game() override = default;
 
    void
    MainLoop() override;
@@ -31,15 +29,6 @@ class Game : public Application
 
    bool
    IsReverse() const;
-
-   std::pair< glm::ivec2, bool >
-   CheckBulletCollision(Enemy* from, glm::vec2 targetPosition, int32_t range);
-
-   bool
-   IsPlayerInVision(Enemy* from, int32_t range);
-
-   glm::ivec2
-   CheckCollision(const glm::ivec2& currentPosition, const glm::ivec2& moveBy);
 
    void
    ProcessInput(Timer::milliseconds deltaTime);
@@ -61,10 +50,6 @@ class Game : public Application
 
    void
    LoadLevel(const std::string& levelName);
-
-   // TODO move all collision related code to Level class?
-   void
-   SetCollisionMap(byte_vec4* collision);
 
    glm::vec2
    GetWindowSize() const override;
@@ -88,18 +73,22 @@ class Game : public Application
    void
    RenderLine(const glm::ivec2& collided, const glm::vec3& color);
 
-   // bullet collision for player
-   glm::ivec2
-   CheckBulletCollision(int32_t range);
+   /**
+    * \brief Check bullet collision along the line, starting from \c position
+    * with length of \c range
+    *
+    * \return Returns collided position (or \c position + \c range if not collided)
+    */
+   glm::vec2
+   CheckBulletCollision(const glm::vec2& positon, float range);
 
-   glm::ivec2
-   CheckCollision(glm::ivec2& moveBy);
-
-   glm::ivec2
-   CorrectPosition();
-
-   bool
-   CheckMove(glm::ivec2& moveBy);
+   /**
+    * \brief Try to move GameObject \c gameObject by \c moveBy vector
+    * \param[in] gameObject Object to move
+    * \param[in] moveBy Movement vector
+    */
+   void
+   MoveGameObject(GameObject* gameObject, const glm::vec2& moveBy) const;
 
    void
    KeyEvents();
@@ -121,9 +110,6 @@ class Game : public Application
    RenderSecondPass();
 
    void
-   RayTracer();
-
-   void
    HandleReverseLogic();
 
    bool
@@ -139,9 +125,6 @@ class Game : public Application
    // all maps
    std::vector< std::string > m_levels;
 
-   // TODO: Move entire collision logic to Level class
-   byte_vec4* m_collision = nullptr;
-
    // framebuffer for first pass
    Framebuffer m_frameBuffer;
 
@@ -153,9 +136,6 @@ class Game : public Application
 
    // state of the game
    GameState m_state = GameState::GAME;
-
-   // player position on map (centered)
-   glm::vec2 m_playerPosition;
 };
 
 } // namespace dgame

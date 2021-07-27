@@ -79,7 +79,8 @@ class Window
    operator std::string() const
    {
       std::stringstream returnStr;
-      returnStr << "Window title - " << m_title << "\nWindow dimensions - " << m_width << "x" << m_height;
+      returnStr << "Window title - " << m_title << "\nWindow dimensions - " << m_width << "x"
+                << m_height;
 
       return returnStr.str();
    }
@@ -87,7 +88,8 @@ class Window
    friend std::ostream&
    operator<<(std::ostream& os, Window window)
    {
-      os << "Window title - " << window.m_title << "\n Window dimensions - " << window.m_width << "x" << window.m_height;
+      os << "Window title - " << window.m_title << "\n Window dimensions - " << window.m_width
+         << "x" << window.m_height;
 
       return os;
    }

@@ -28,13 +28,12 @@ class Logger
 
    template < typename... Args >
    void
-   Log(TYPE type, const std::string& buffer, const Args&... args) const
+   Log(TYPE type, const std::string& buffer, Args&&... args) const
    {
       if (type >= m_currentLogType)
       {
-         fmt::vprint("{}{}<{}> ", fmt::make_format_args(Timer::GetCurrentTime(), ToString(type), m_moduleName));
-         fmt::vprint(buffer, fmt::make_format_args(args...));
-         fmt::print("\n");
+         fmt::print("{}{}<{}> {}\n", Timer::GetCurrentTime(), ToString(type), m_moduleName,
+                    fmt::format(fmt::runtime(buffer), std::forward< Args >(args)...));
       }
    }
 

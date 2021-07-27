@@ -17,10 +17,9 @@ class Game;
 class Level
 {
  public:
-   Level() = default;
+   static constexpr Tile_t invalidTile = Tile_t{-1, -1};
 
-   ~Level() = default;
-
+ public:
    std::shared_ptr< GameObject >
    AddGameObject(GameObject::TYPE objectType);
 
@@ -32,8 +31,18 @@ class Level
    glm::vec2
    GetGlobalVec(const glm::vec2& local) const;
 
+   std::vector< Tile_t >
+   GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const;
+
+   Tile_t
+   GetTileFromPosition(const glm::vec2& local) const;
+
    void
-   MoveObjs(const glm::vec2& moveBy, bool isCameraMovement = true);
+   MoveObjs(const glm::vec2& moveBy);
+
+   std::vector< Tile_t >
+   GameObjectMoved(const std::array< glm::vec2, 4 >& box,
+                   const std::vector< Tile_t >& currentTiles);
 
    void
    Create(Application* context, const glm::ivec2& size);
@@ -56,19 +65,10 @@ class Level
    LoadShaders(const std::string& shaderName);
 
    void
-   AddGameObject(Game& game, const glm::vec2& pos, const glm::ivec2& size, const std::string& sprite);
+   DeleteObject(Object::ID deletedObject);
 
-   void
-   DeleteObject(std::shared_ptr< Object > deletedObject);
-
-   void
-   Move(const glm::vec2& moveBy);
-
-   void
-   Scale(const glm::vec2& scaleVal);
-
-   void
-   Rotate(float angle, bool cumulative = false);
+   Object&
+   GetObjectRef(Object::ID object);
 
    void
    Update(bool isReverse);
@@ -76,8 +76,51 @@ class Level
    void
    Render();
 
+   /**
+    * \brief Renders game objects
+    */
+   void
+   RenderGameObjects();
+
+   /**
+    * \brief Checks whether \c position is inside level boundaries
+    *
+    * \param[in] position Position to check
+    *
+    * \return True if it's on the map, false otherwise
+    */
    bool
-   CheckCollision(const glm::ivec2& localPos, const Player& player);
+   IsInLevelBoundaries(const glm::vec2& position) const;
+
+   /**
+    * \brief Get collided position along the line (from-to).
+    *
+    * \return Return the collided position or \c toPos if nothing was on the path
+    */
+   glm::vec2
+   GetCollidedPosition(const glm::vec2& fromPos, const glm::vec2& toPos);
+
+   /**
+    * \brief Checks collision along the line (fromPos - toPos)
+    *
+    * \param[in] fromPos Starting position
+    * \param[in] toPos Ending position
+    *
+    * \return True if not collided, False otherwise
+    */
+   bool
+   CheckCollisionAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos);
+
+   /**
+    * \brief Get tiles along the line (fromPos - toPos)
+    *
+    * \param[in] fromPos Starting position
+    * \param[in] toPos Ending position
+    *
+    * \return Vector of tiles
+    */
+   std::vector< Tile_t >
+   GetTilesAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos) const;
 
    void
    LockCamera()
@@ -115,7 +158,7 @@ class Level
    PathFinder&
    GetPathfinder()
    {
-      return m_pathinder;
+      return m_pathFinder;
    }
 
    std::shared_ptr< Player >
@@ -124,7 +167,7 @@ class Level
       return m_player;
    }
 
-   std::vector< std::shared_ptr< GameObject > >
+   const std::vector< std::shared_ptr< GameObject > >&
    GetObjects(bool includePlayer = false);
 
    std::string
@@ -142,10 +185,10 @@ class Level
    std::shared_ptr< GameObject >
    GetGameObjectOnLocation(const glm::vec2& screenPosition);
 
-   const Texture&
-   GetCollision() const
+   uint32_t
+   GetTileSize() const
    {
-      return m_collision;
+      return m_tileWidth;
    }
 
  private:
@@ -153,7 +196,6 @@ class Level
 
    Application* m_contextPointer = nullptr;
    Sprite m_background;
-   Texture m_collision;
 
    std::string m_shaderName = "DefaultShader";
    std::shared_ptr< Player > m_player = nullptr;
@@ -161,11 +203,9 @@ class Level
    bool m_locked = false;
 
    glm::ivec2 m_levelSize = {0, 0};
+   uint32_t m_tileWidth = 128;
    std::vector< std::shared_ptr< GameObject > > m_objects;
-   PathFinder m_pathinder;
-
-   // Tile handling stuff (deprecated)
-   std::unordered_map< std::string, Texture > m_textures;
+   PathFinder m_pathFinder;
 };
 
 } // namespace dgame

@@ -18,13 +18,12 @@ class Enemy;
 class Player : public GameObject
 {
  public:
-   explicit Player(Application& game, const glm::vec2& position, const glm::ivec2& size, const std::string& sprite,
-                   const std::string& name = "Anonymous");
-   ~Player() override = default;
+   Player(Application& game, const glm::vec2& position, const glm::ivec2& size,
+          const std::string& sprite, const std::string& name = "Anonymous");
 
    // check if player got git by enemy
    bool
-   CheckCollision(const glm::ivec2& bulletPosition, Enemy const* enemy, bool enemyShooting = true);
+   CheckCollision(const glm::vec2& bulletPosition, Enemy const* enemy, bool enemyShooting = true);
 
    // load shaders with given name
    void
@@ -34,17 +33,9 @@ class Player : public GameObject
    void
    LoadShaders(const Shader& program);
 
-   // set position on map
-   void
-   SetLocalPosition(const glm::ivec2& pos) override;
-
-   // set centered (center of player's sprite) position on map
-   void
-   SetCenteredLocalPosition(const glm::ivec2& pos) override;
-
    // set position in OpenGL
    void
-   SetGlobalPosition(const glm::vec2& position) override;
+   SetPosition(const glm::vec2& position) override;
 
    // get centered (center of player's sprite) position on screen
    // using projection matrix from OpenGL
@@ -60,7 +51,7 @@ class Player : public GameObject
    ChangeWepon(int32_t idx);
 
    // get player's current weapon range
-   int32_t
+   float
    GetWeaponRange() const;
 
    // get player's current weapon's damage

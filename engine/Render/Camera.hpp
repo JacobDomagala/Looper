@@ -16,7 +16,8 @@ class Camera
    ~Camera() = default;
 
    void
-   Create(const glm::vec3& position, const glm::ivec2& windowSize, const glm::vec3& lookAt = {0.0f, 0.0f, -1.0f},
+   Create(const glm::vec3& position, const glm::ivec2& windowSize,
+          const glm::vec3& lookAt = {0.0f, 0.0f, -1.0f},
           const glm::vec3& upVec = {0.0f, 1.0f, 0.0f}, float cameraSpeed = 5.0f);
 
    void
@@ -63,9 +64,9 @@ class Camera
 
    // Convert 'conventionalVector' to camera state related vector
    // Example:
-   // - conventionalVector = vec(1.0f, 0.0f, 0.0f)
+   // - conventionalVector = vec3(1.0f, 0.0f, 0.0f)
    // - current camera is rotated by 90 degrees
-   // function will return vec2(0.0f, 1.0f, 0.0f)
+   // function will return vec3(0.0f, 1.0f, 0.0f)
    glm::vec3
    ConvertToCameraVector(const glm::vec3& conventionalVector) const;
 

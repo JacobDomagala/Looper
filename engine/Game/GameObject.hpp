@@ -19,10 +19,13 @@ class GameObject : public Object
 {
  public:
    // Constructors and destructors
-   GameObject(Application& game, const glm::vec2& localPosition, const glm::ivec2& size, const std::string& sprite, Object::TYPE type);
+   GameObject(Application& game, const glm::vec2& position, const glm::ivec2& size,
+              const std::string& sprite, Object::TYPE type);
    ~GameObject() override = default;
 
-   virtual void Hit(int32_t) = 0;
+   virtual void Hit(int32_t)
+   {
+   }
 
    virtual bool
    Visible() const;
@@ -32,13 +35,7 @@ class GameObject : public Object
    SetColor(const glm::vec3& color);
 
    virtual void
-   SetCenteredLocalPosition(const glm::ivec2& pos);
-
-   virtual void
-   SetLocalPosition(const glm::ivec2& position);
-
-   virtual void
-   SetGlobalPosition(const glm::vec2& position);
+   SetPosition(const glm::vec2& position);
 
    virtual void
    SetShaders(const std::string& shader);
@@ -55,21 +52,13 @@ class GameObject : public Object
    virtual glm::ivec2
    GetSize() const;
 
-   // Get cenetered position in local(level wise) coords
-   virtual glm::ivec2
-   GetCenteredLocalPosition() const;
-
    // Get centered position in global(OpenGL) coords
    virtual glm::vec2
-   GetCenteredGlobalPosition() const;
+   GetCenteredPosition() const;
 
    // Get position in global (OpenGL) coords
    virtual glm::vec2
-   GetGlobalPosition() const;
-
-   // Get position in local (level wise) coords
-   virtual glm::ivec2
-   GetLocalPosition() const;
+   GetPosition() const;
 
    virtual bool
    CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const;
@@ -89,16 +78,18 @@ class GameObject : public Object
 
    // Create sprite with default texture
    virtual void
-   CreateSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(10, 10));
+   CreateSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
+                const glm::ivec2& size = glm::ivec2(10, 10));
 
    // Create sprite with texture from 'fileName'
    virtual void
-   CreateSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(16, 16),
+   CreateSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
+                        const glm::ivec2& size = glm::ivec2(16, 16),
                         const std::string& fileName = "Default.png");
 
    // Move object by 'moveBy'
    virtual void
-   Move(const glm::vec2& moveBy, bool isCameraMovement = true);
+   Move(const glm::vec2& moveBy);
 
    virtual void
    Scale(const glm::vec2& scaleVal, bool cumulative = false);
@@ -120,11 +111,19 @@ class GameObject : public Object
    bool
    GetHasCollision() const;
 
+   std::vector< Tile_t >
+   GetOccupiedNodes() const;
+
  protected:
    // should be overriden by derrived class
    // used by GameObject::Update
    virtual void
-   UpdateInternal(bool isReverse) = 0;
+   UpdateInternal(bool /*isReverse*/)
+   {
+   }
+
+   void
+   UpdateCollision();
 
    Game*
    ConvertToGameHandle();
@@ -132,16 +131,10 @@ class GameObject : public Object
    struct State
    {
       // global position (in OpenGL coords)
-      glm::vec2 m_globalPosition;
+      glm::vec2 m_position;
 
       // center of global's position (in OpenGL coords)
-      glm::vec2 m_centeredGlobalPosition;
-
-      // local position (map coords)
-      glm::ivec2 m_localPosition;
-
-      // center of local's position (map coords)
-      glm::ivec2 m_centeredLocalPosition;
+      glm::vec2 m_centeredPosition;
 
       // should this object be visible
       bool m_visible;
@@ -151,6 +144,8 @@ class GameObject : public Object
       glm::vec2 m_translateVal;
       glm::mat4 m_rotateMatrix;
       glm::mat4 m_scaleMatrix;
+
+      std::vector< Tile_t > m_occupiedNodes;
    };
 
    std::deque< State > m_statesQueue;
@@ -160,7 +155,7 @@ class GameObject : public Object
 
    TYPE m_type;
 
-   bool m_hasCollision = true;
+   bool m_hasCollision = false;
 
    // object's sprite
    Sprite m_sprite;
@@ -170,9 +165,6 @@ class GameObject : public Object
    byte_vec4* m_collision;
 
    std::string m_name = "DummyName";
-   int m_id;
-
-   static inline int s_currentID = 0;
 };
 
 } // namespace dgame

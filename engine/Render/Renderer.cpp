@@ -7,6 +7,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
+#include <array>
 
 namespace dgame {
 
@@ -67,7 +68,8 @@ Renderer::Init()
 {
    s_Data.QuadVertexArray = std::make_shared< VertexArray >();
 
-   s_Data.QuadVertexBuffer = std::make_shared< VertexBuffer >(static_cast< uint32_t >(s_Data.MaxVertices * sizeof(QuadVertex)));
+   s_Data.QuadVertexBuffer = std::make_shared< VertexBuffer >(
+      static_cast< uint32_t >(s_Data.MaxVertices * sizeof(QuadVertex)));
    s_Data.QuadVertexBuffer->SetLayout({{ShaderDataType::Float3, "a_Position"},
                                        {ShaderDataType::Float4, "a_Color"},
                                        {ShaderDataType::Float2, "a_TexCoord"},
@@ -102,7 +104,7 @@ Renderer::Init()
 
    int32_t samplers[s_Data.MaxTextureSlots];
    for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
-      samplers[i] = static_cast<int32_t>(i);
+      samplers[i] = static_cast< int32_t >(i);
 
    s_Data.TextureShader = ShaderLibrary::GetShader("DefaultShader");
    s_Data.TextureShader->UseProgram();
@@ -114,8 +116,10 @@ Renderer::Init()
 
    s_LineData.LineVertexArray = std::make_shared< VertexArray >();
 
-   s_LineData.LineVertexBuffer = std::make_shared< VertexBuffer >(static_cast< uint32_t >(s_LineData.MaxVertices * sizeof(LineVertex)));
-   s_LineData.LineVertexBuffer->SetLayout({{ShaderDataType::Float3, "a_Position"}, {ShaderDataType::Float4, "a_Color"}});
+   s_LineData.LineVertexBuffer = std::make_shared< VertexBuffer >(
+      static_cast< uint32_t >(s_LineData.MaxVertices * sizeof(LineVertex)));
+   s_LineData.LineVertexBuffer->SetLayout(
+      {{ShaderDataType::Float3, "a_Position"}, {ShaderDataType::Float4, "a_Color"}});
    s_LineData.LineVertexArray->AddVertexBuffer(s_LineData.LineVertexBuffer);
 
    s_LineData.LineVertexBufferBase = new LineVertex[s_LineData.MaxVertices];
@@ -177,15 +181,17 @@ Renderer::SendData(PrimitiveType type)
 {
    if (type == PrimitiveType::QUAD)
    {
-      auto dataSize = static_cast< uint32_t >(reinterpret_cast< uint8_t* >(s_Data.QuadVertexBufferPtr)
-                                              - reinterpret_cast< uint8_t* >(s_Data.QuadVertexBufferBase));
+      auto dataSize =
+         static_cast< uint32_t >(reinterpret_cast< uint8_t* >(s_Data.QuadVertexBufferPtr)
+                                 - reinterpret_cast< uint8_t* >(s_Data.QuadVertexBufferBase));
       s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, dataSize);
       Flush(PrimitiveType::QUAD);
    }
    else
    {
-      auto dataSize = static_cast< uint32_t >(reinterpret_cast< uint8_t* >(s_LineData.LineVertexBufferPtr)
-                                              - reinterpret_cast< uint8_t* >(s_LineData.LineVertexBufferBase));
+      auto dataSize =
+         static_cast< uint32_t >(reinterpret_cast< uint8_t* >(s_LineData.LineVertexBufferPtr)
+                                 - reinterpret_cast< uint8_t* >(s_LineData.LineVertexBufferBase));
       s_LineData.LineVertexBuffer->SetData(s_LineData.LineVertexBufferBase, dataSize);
       Flush(PrimitiveType::LINE);
    }
@@ -239,8 +245,9 @@ Renderer::FlushAndReset(PrimitiveType type)
 }
 
 void
-Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, float radiansRotation, const std::shared_ptr< Texture >& texture,
-                   float tilingFactor, const glm::vec4& tintColor)
+Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, float radiansRotation,
+                   const std::shared_ptr< Texture >& texture, float tilingFactor,
+                   const glm::vec4& tintColor)
 {
    constexpr size_t quadVertexCount = 4;
    constexpr glm::vec2 textureCoords[] = {{1.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f}};
@@ -255,7 +262,7 @@ Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, float radia
    {
       if (*s_Data.TextureSlots[i] == *texture)
       {
-         textureIndex = static_cast<float>(i);
+         textureIndex = static_cast< float >(i);
          break;
       }
    }
@@ -267,13 +274,14 @@ Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, float radia
          FlushAndReset(PrimitiveType::QUAD);
       }
 
-      textureIndex = static_cast<float>(s_Data.TextureSlotIndex);
+      textureIndex = static_cast< float >(s_Data.TextureSlotIndex);
       s_Data.TextureSlots.at(s_Data.TextureSlotIndex) = texture;
       s_Data.TextureSlotIndex++;
    }
 
-   constexpr glm::vec4 positions[] = {glm::vec4(0.5f, 0.5f, 0.0f, 1.0f), glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f),
-                                      glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f), glm::vec4(0.5f, -0.5f, 0.0f, 1.0f)};
+   constexpr auto positions = std::to_array({
+      glm::vec4(0.5f, 0.5f, 0.0f, 1.0f), glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f),
+      glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f), glm::vec4(0.5f, -0.5f, 0.0f, 1.0f)});
 
    glm::mat4 transformMat = glm::translate(glm::mat4(1.0f), glm::vec3(position, 0.0f))
                             * glm::rotate(glm::mat4(1.0f), radiansRotation, {0.0f, 0.0f, 1.0f})
@@ -293,7 +301,8 @@ Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, float radia
 }
 
 void
-Renderer::DrawLine(const glm::vec2& startPosition, const glm::vec2& endPosition, const glm::vec4& color)
+Renderer::DrawLine(const glm::vec2& startPosition, const glm::vec2& endPosition,
+                   const glm::vec4& color)
 {
    constexpr size_t LineVertexCount = 2;
 
@@ -304,7 +313,8 @@ Renderer::DrawLine(const glm::vec2& startPosition, const glm::vec2& endPosition,
 
    for (size_t i = 0; i < LineVertexCount; i++)
    {
-      s_LineData.LineVertexBufferPtr->Position = glm::vec3(i == 0 ? startPosition : endPosition, 0.0f);
+      s_LineData.LineVertexBufferPtr->Position =
+         glm::vec3(i == 0 ? startPosition : endPosition, 0.0f);
       s_LineData.LineVertexBufferPtr->Color = color;
       s_LineData.LineVertexBufferPtr++;
    }

@@ -22,7 +22,7 @@ class Editor : public Application
 {
  public:
    Editor(const glm::ivec2& screenSize);
-   ~Editor() override;
+   ~Editor() override = default;
 
    // APPLICATION OVERRIDES
    void
@@ -84,10 +84,7 @@ class Editor : public Application
    LaunchGameLoop();
 
    void
-   ShowWireframe(bool wireframeEnabled);
-
-   void
-   ShowWaypoints(bool wireframeEnabled);
+   RenderNodes(bool render);
 
    void
    SetRenderAnimationPoints(bool render);
@@ -101,8 +98,8 @@ class Editor : public Application
    void
    UpdateAnimationData();
 
-   void
-   GeneratePathfinder(int density);
+   bool
+   GetRenderNodes() const;
 
    void
    DrawGrid();
@@ -114,13 +111,15 @@ class Editor : public Application
    GetGridData() const;
 
    void
-   HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameObject, bool fromGUI = false);
+   HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameObject,
+                            bool fromGUI = false);
 
    void
    HandleObjectSelected(Object::ID objectID, bool fromGUI);
 
    void
-   HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedObject, bool fromGUI = false);
+   HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedObject,
+                              bool fromGUI = false);
 
  private:
    enum class ACTION
@@ -130,8 +129,14 @@ class Editor : public Application
    };
 
  private:
+   std::shared_ptr< EditorObject >
+   GetEditorObjectByID(Object::ID ID);
+
    void
    ActionOnObject(ACTION action);
+
+   void
+   DrawBackgroundObjects();
 
    void
    DrawEditorObjects();
@@ -195,13 +200,10 @@ class Editor : public Application
    std::vector< std::shared_ptr< EditorObject > > m_editorObjects;
    std::shared_ptr< EditorObject > m_currentEditorObjectSelected;
 
-   // Represents all objects located in game, such as Gameobjects, light sources, particle emiters etc.
-   std::vector< std::shared_ptr< dgame::Object > > m_objects;
+   bool m_renderPathfinderNodes = true;
 
-   bool m_showWaypoints = true;
-
-   bool m_drawGrid = false;
-   int32_t m_gridCellSize = 20;
+   bool m_drawGrid = true;
+   int32_t m_gridCellSize = 128;
 
    EditorGUI m_gui;
 

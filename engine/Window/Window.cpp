@@ -15,7 +15,8 @@ Window::Window(int32_t width, int32_t height, const std::string& title)
 {
    m_logger.Init("Window");
 
-   glfwSetErrorCallback([](int, const char* description) { fprintf(stderr, "Error: %s\n", description); });
+   glfwSetErrorCallback(
+      [](int, const char* description) { fprintf(stderr, "Error: %s\n", description); });
 
    if (GLFW_TRUE != glfwInit())
    {
@@ -99,8 +100,9 @@ Window::GetCursorScreenPosition(const glm::mat4& /*projectionMatrix*/)
 {
    auto cursorPos = GetCursor();
 
-   cursorPos -= glm::vec2((static_cast< float >(m_width) / 2.0f), (static_cast< float >(m_height) / 2.0f));
-   //glm::vec2 tmpCursor = projectionMatrix * glm::vec4(cursorPos, 0.0f, 1.0f);
+   cursorPos -=
+      glm::vec2((static_cast< float >(m_width) / 2.0f), (static_cast< float >(m_height) / 2.0f));
+   // glm::vec2 tmpCursor = projectionMatrix * glm::vec4(cursorPos, 0.0f, 1.0f);
 
    return cursorPos;
 }
@@ -110,7 +112,8 @@ Window::GetCursorNormalized()
 {
    auto cursorPos = GetCursor();
 
-   glm::dvec2 centerOfScreen(static_cast< float >(m_width) / 2.0f, static_cast< float >(m_height) / 2.0f);
+   glm::dvec2 centerOfScreen(static_cast< float >(m_width) / 2.0f,
+                             static_cast< float >(m_height) / 2.0f);
 
    cursorPos -= centerOfScreen;
    cursorPos /= centerOfScreen;

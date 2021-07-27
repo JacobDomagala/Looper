@@ -17,8 +17,9 @@ class Window;
 class Enemy : public GameObject, public Animatable
 {
  public:
-   Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size, const std::string& textureName,
-         AnimationPoint::vectorPtr keypoints = {}, Animatable::ANIMATION_TYPE animationType = Animatable::ANIMATION_TYPE::REVERSABLE);
+   Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size,
+         const std::string& textureName, const std::vector< AnimationPoint >& keypoints = {},
+         Animatable::ANIMATION_TYPE animationType = Animatable::ANIMATION_TYPE::REVERSABLE);
    ~Enemy() override = default;
 
    bool
@@ -51,6 +52,18 @@ class Enemy : public GameObject, public Animatable
  private:
    void
    UpdateInternal(bool isReverse) override;
+
+   /**
+    * @brief Move Enemy to target position
+    * @param[in]: targetPosition target position
+    * @param[in]: exactPosition whether Enemy wants to actually stand in targetPosition,
+    * e.g. when getting back to its initial position
+    *
+    * @return Whether the destination is reached
+    */
+   bool
+   MoveToPosition(const glm::vec2& targetPosition, bool exactPosition = false);
+
    void
    Shoot();
 
@@ -70,11 +83,11 @@ class Enemy : public GameObject, public Animatable
    struct EnemyState
    {
       ACTION m_action = ACTION::IDLE;
-      int32_t m_currentHP;
-      glm::vec2 m_targetShootPosition;
-      glm::ivec2 m_targetMovePosition;
+      int32_t m_currentHP = {};
+      glm::vec2 m_targetShootPosition = {};
+      glm::vec2 m_targetMovePosition = {};
 
-      glm::ivec2 m_lastPlayersPos;
+      glm::vec2 m_lastPlayersPos = {};
 
       bool m_isChasingPlayer = false;
       bool m_isAtInitialPos = true;
@@ -87,8 +100,6 @@ class Enemy : public GameObject, public Animatable
       float m_visionRange = 0.0f;
 
       bool m_combatStarted = false;
-
-      int m_currentNodeIdx;
    };
 
    std::deque< EnemyState > m_statesQueue;
@@ -103,7 +114,7 @@ class Enemy : public GameObject, public Animatable
    // current weapon
    std::unique_ptr< Weapon > m_weapon;
 
-   glm::ivec2 m_initialPosition;
+   glm::vec2 m_initialPosition;
 };
 
 } // namespace dgame

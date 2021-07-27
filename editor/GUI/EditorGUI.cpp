@@ -6,8 +6,8 @@
 
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
-#include <imgui.h>
 #include <fmt/format.h>
+#include <imgui.h>
 
 namespace dgame {
 
@@ -28,7 +28,7 @@ EditorGUI::Init()
    ImGui::StyleColorsDark();
 
    ImGui_ImplGlfw_InitForOpenGL(m_parent.GetWindow().GetWindowHandle(), true);
-   ImGui_ImplOpenGL3_Init("#version 410");
+   ImGui_ImplOpenGL3_Init("#version 450");
 }
 
 void
@@ -93,7 +93,7 @@ EditorGUI::Render()
    ImGui::SameLine();
    if (ImGui::Button("Create"))
    {
-      m_parent.CreateLevel({3000, 3000});
+      m_parent.CreateLevel({3072, 3072});
    }
    ImGui::End();
 
@@ -122,19 +122,11 @@ EditorGUI::Render()
       ImGui::SetNextTreeNodeOpen(true);
       if (ImGui::CollapsingHeader("Pathfinder"))
       {
-         static bool renderPathfinderNodes = false;
-         static int gridDensity = 20;
+         static bool renderPathfinderNodes = m_parent.GetRenderNodes();
          if (ImGui::Checkbox("Render nodes", &renderPathfinderNodes))
          {
-            m_parent.ShowWaypoints(renderPathfinderNodes);
+            m_parent.RenderNodes(renderPathfinderNodes);
          }
-         ImGui::SameLine();
-         if (ImGui::Button("Generate Nodes"))
-         {
-            m_parent.GeneratePathfinder(gridDensity);
-         }
-         ImGui::SameLine();
-         ImGui::InputInt("density", &gridDensity);
       }
 
       ImGui::SetNextTreeNodeOpen(true);
@@ -145,27 +137,29 @@ EditorGUI::Render()
       ImGui::SetNextTreeNodeOpen(true);
       if (ImGui::CollapsingHeader("Objects"))
       {
-         //static int selected = 0;
-         auto gameObjects = m_currentLevel->GetObjects();
+         const auto& gameObjects = m_currentLevel->GetObjects();
 
-         ImGui::BeginChild("Loaded Objects", {0, 100}, true);
+         ImGui::BeginChild("Loaded Objects", {0, 200}, true);
          for (auto& object : gameObjects)
          {
-            auto label = fmt::format("[{}] {} ({}, {})", object->GetTypeString().c_str(), object->GetName().c_str(),
-                                     object->GetLocalPosition().x, object->GetLocalPosition().y);
+            auto label = fmt::format("[{}] {} ({}, {})", object->GetTypeString().c_str(),
+                                     object->GetName().c_str(), object->GetPosition().x,
+                                     object->GetPosition().y);
 
             if (ImGui::Selectable(label.c_str()))
             {
-               m_parent.GetCamera().SetCameraAtPosition(object->GetLocalPosition());
+               m_parent.GetCamera().SetCameraAtPosition(object->GetPosition());
                m_parent.HandleGameObjectSelected(object, true);
             }
          }
 
-         std::string items[] = {"ENEMY", "PLAYER"};
+         const auto items = std::to_array< std::string >({"Enemy", "Player", "Object"});
 
-         if (ImGui::BeginCombo("##combo", "Add")) // The second parameter is the label previewed before opening the combo.
+         if (ImGui::BeginCombo(
+                "##combo",
+                "Add")) // The second parameter is the label previewed before opening the combo.
          {
-            for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+            for (uint32_t n = 0; n < items.size(); n++)
             {
                if (ImGui::Selectable(items[n].c_str()))
                {
@@ -184,9 +178,28 @@ EditorGUI::Render()
       ImGui::SetNextWindowSize(ImVec2(debugWindowWidth, debugWindowHeight));
       ImGui::Begin("Debug");
       const auto cameraPos = m_parent.GetCamera().GetPosition();
-      ImGui::Text("Camera Position %f, %f", static_cast<double>(cameraPos.x), static_cast<double>(cameraPos.y));
+      ImGui::Text("Camera Position %f, %f", static_cast< double >(cameraPos.x),
+                  static_cast< double >(cameraPos.y));
+
+      const auto cameraZoom = m_parent.GetCamera().GetZoomLevel();
+      ImGui::Text("Camera Zoom %f", static_cast< double >(cameraZoom));
+
       const auto cursorOpengGLPos = m_parent.ScreenToGlobal(InputManager::GetMousePos());
-      ImGui::Text("Cursor Position %f, %f", static_cast<double>(cursorOpengGLPos.x), static_cast<double>(cursorOpengGLPos.y));
+      ImGui::Text("Cursor Position %f, %f", static_cast< double >(cursorOpengGLPos.x),
+                  static_cast< double >(cursorOpengGLPos.y));
+
+      auto& pathfinder = m_parent.GetLevel().GetPathfinder();
+      const auto nodeID = pathfinder.GetNodeIDFromPosition(cursorOpengGLPos);
+      Node curNode{};
+
+      if (nodeID != -1)
+      {
+         curNode = pathfinder.GetNodeFromID(nodeID);
+      }
+
+      ImGui::Text("Cursor on tile ID = %d Coords(%d, %d)", curNode.m_ID, curNode.m_xPos,
+                  curNode.m_yPos);
+
       ImGui::End();
    }
 
@@ -205,22 +218,29 @@ EditorGUI::Render()
 
          auto type = m_currentlySelectedGameObject->GetTypeString();
 
-         ImGui::InputText("Type", &type[0], 10, ImGuiInputTextFlags_ReadOnly);
+         ImGui::InputText("Type", &type[0], type.size(), ImGuiInputTextFlags_ReadOnly);
 
          if (ImGui::InputText("Name", &name[0], nameLength))
          {
             m_currentlySelectedGameObject->SetName(name);
+         }
+
+         auto collision = m_currentlySelectedGameObject->GetHasCollision();
+         if (ImGui::Checkbox("Has Collision", &collision))
+         {
+            m_currentlySelectedGameObject->SetHasCollision(collision);
          }
       }
 
       ImGui::SetNextTreeNodeOpen(true);
       if (ImGui::CollapsingHeader("Transform"))
       {
-         auto objectPosition = m_currentlySelectedGameObject->GetLocalPosition();
+         auto objectPosition = m_currentlySelectedGameObject->GetPosition();
          auto sprite_size = m_currentlySelectedGameObject->GetSprite().GetSize();
-         auto rotation = m_currentlySelectedGameObject->GetSprite().GetRotation(Sprite::RotationType::DEGREES);
+         auto rotation =
+            m_currentlySelectedGameObject->GetSprite().GetRotation(Sprite::RotationType::DEGREES);
 
-         ImGui::InputInt2("Position", &objectPosition.x);
+         ImGui::InputFloat2("Position", &objectPosition.x);
 
          if (ImGui::SliderInt2("Size", &sprite_size.x, 10, 500))
          {
@@ -239,15 +259,27 @@ EditorGUI::Render()
       {
          if (m_currentLevel)
          {
-            ImGui::Image(
-               reinterpret_cast< void* >(static_cast< size_t >(m_currentlySelectedGameObject->GetSprite().GetTexture().GetTextureHandle())),
-               {150, 150});
+            auto& sprite = m_currentlySelectedGameObject->GetSprite();
+            ImGui::Image(reinterpret_cast< void* >(
+                            static_cast< size_t >(sprite.GetTexture().GetTextureHandle())),
+                         {150, 150});
+            ImGui::InputText("FileName", &sprite.GetTextureName()[0],
+                             sprite.GetTextureName().size(), ImGuiInputTextFlags_ReadOnly);
+            if (ImGui::Button("Change Texture"))
+            {
+               auto textureName = file_dialog({{"png", "jpg"}}, false);
+               if (!textureName.empty())
+               {
+                  sprite.SetTextureFromFile(textureName);
+               }
+            }
          }
       }
 
-      if (m_currentlySelectedGameObject->GetType() != GameObject::TYPE::PLAYER)
+      if (m_currentlySelectedGameObject->GetType() == GameObject::TYPE::ENEMY)
       {
-         const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentlySelectedGameObject);
+         const auto animatablePtr =
+            std::dynamic_pointer_cast< Animatable >(m_currentlySelectedGameObject);
 
          ImGui::SetNextTreeNodeOpen(true);
          if (ImGui::CollapsingHeader("Animation"))
@@ -255,13 +287,15 @@ EditorGUI::Render()
             ImGui::Text("Type");
             ImGui::SameLine();
 
-            if (ImGui::RadioButton("Loop", animatablePtr->GetAnimationType() == Animatable::ANIMATION_TYPE::LOOP))
+            if (ImGui::RadioButton("Loop", animatablePtr->GetAnimationType()
+                                              == Animatable::ANIMATION_TYPE::LOOP))
             {
                animatablePtr->SetAnimationType(Animatable::ANIMATION_TYPE::LOOP);
             }
 
             ImGui::SameLine();
-            if (ImGui::RadioButton("Reversal", animatablePtr->GetAnimationType() == Animatable::ANIMATION_TYPE::REVERSABLE))
+            if (ImGui::RadioButton("Reversal", animatablePtr->GetAnimationType()
+                                                  == Animatable::ANIMATION_TYPE::REVERSABLE))
             {
                animatablePtr->SetAnimationType(Animatable::ANIMATION_TYPE::REVERSABLE);
             }
@@ -279,10 +313,11 @@ EditorGUI::Render()
 
 
             static float timer = 0.0f;
-            const auto animationDuration = static_cast< float >(Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count());
+            const auto animationDuration = static_cast< float >(
+               Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count());
             if (m_parent.IsObjectAnimated())
             {
-               timer += static_cast<float>(m_parent.GetDeltaTime().count());
+               timer += static_cast< float >(m_parent.GetDeltaTime().count());
                timer = glm::min(animationDuration, timer);
             }
 
@@ -293,23 +328,23 @@ EditorGUI::Render()
                   animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(timer))));
             }
 
-            //static int selected = 0;
+            // static int selected = 0;
             auto animationPoints = animatablePtr->GetAnimationKeypoints();
-            auto newNodePosition = m_currentlySelectedGameObject->GetLocalPosition();
+            auto newNodePosition = m_currentlySelectedGameObject->GetPosition();
             ImGui::BeginChild("Animation Points", {0, 100}, true);
-            for (dgame::AnimationPoint::vectorPtr::size_type i = 0; i < animationPoints.size(); ++i)
+            for (uint32_t i = 0; i < animationPoints.size(); ++i)
             {
                const auto& node = animationPoints[i];
-               auto label =
-                  fmt::format("[{}] Pos({:.{}f},{:.{}f}) Time={}s", i, node->m_end.x, 1, node->m_end.y, 1, node->m_timeDuration.count());
+               auto label = fmt::format("[{}] Pos({:.{}f},{:.{}f}) Time={}s", i, node.m_end.x, 1,
+                                        node.m_end.y, 1, node.m_timeDuration.count());
                if (ImGui::Selectable(label.c_str()))
                {
-                  m_parent.GetCamera().SetCameraAtPosition(node->m_end);
-                  m_parent.HandleObjectSelected(node->GetID(), true);
+                  m_parent.GetCamera().SetCameraAtPosition(node.m_end);
+                  m_parent.HandleObjectSelected(node.GetID(), true);
                   m_parent.SetRenderAnimationPoints(true);
                }
 
-               newNodePosition = node->m_end;
+               newNodePosition = node.m_end;
             }
 
             if (ImGui::Button("New"))
@@ -344,8 +379,7 @@ EditorGUI::GameObjectUnselected()
    m_currentlySelectedGameObject = nullptr;
 }
 
-void
-EditorGUI::EditorObjectSelected(std::shared_ptr< EditorObject > /*object*/)
+void EditorGUI::EditorObjectSelected(std::shared_ptr< EditorObject > /*object*/)
 {
    // m_currentlySelectedEditorObject = object;
 }
@@ -362,13 +396,11 @@ EditorGUI::LevelLoaded(std::shared_ptr< Level > levelLoaded)
    m_currentLevel = levelLoaded;
 }
 
-void
-EditorGUI::ObjectUpdated(Object::ID /*ID*/)
+void EditorGUI::ObjectUpdated(Object::ID /*ID*/)
 {
 }
 
-void
-EditorGUI::ObjectDeleted(Object::ID /*ID*/)
+void EditorGUI::ObjectDeleted(Object::ID /*ID*/)
 {
 }
 

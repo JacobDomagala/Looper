@@ -15,16 +15,8 @@ class Editor;
 class EditorObject
 {
  public:
-   // Pair of Linked object and its parent
-   // Useful for handling AnimationPoints
-   using LinkedObject = std::pair< std::shared_ptr< Object >, std::shared_ptr< GameObject > >;
-
- public:
-   // Constructors and destructors
-   EditorObject(Editor& editor, const glm::vec2& localPosition, const glm::ivec2& size, const std::string& sprite,
-                LinkedObject linkedObject);
-   ~EditorObject() = default;
-   EditorObject(EditorObject&&) = default;
+   EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size,
+                const std::string& sprite, Object::ID linkedObject);
 
    bool
    Visible() const;
@@ -34,13 +26,13 @@ class EditorObject
    SetColor(const glm::vec3& color);
 
    void
-   SetCenteredLocalPosition(const glm::ivec2& pos);
+   SetIsBackground(bool isBackground);
+
+   bool
+   GetIsBackground() const;
 
    void
-   SetLocalPosition(const glm::ivec2& position);
-
-   void
-   SetGlobalPosition(const glm::vec2& position);
+   SetPosition(const glm::vec2& position);
 
    void
    SetShaders(const Shader& program);
@@ -58,21 +50,13 @@ class EditorObject
    glm::ivec2
    GetSize() const;
 
-   // Get cenetered position in local(level wise) coords
-   glm::ivec2
-   GetCenteredLocalPosition() const;
-
    // Get centered position in global(OpenGL) coords
    glm::vec2
-   GetCenteredGlobalPosition() const;
+   GetCenteredPosition() const;
 
    // Get position in global (OpenGL) coords
    glm::vec2
-   GetGlobalPosition() const;
-
-   // Get position in local (level wise) coords
-   glm::ivec2
-   GetLocalPosition() const;
+   GetPosition() const;
 
    bool
    CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const;
@@ -90,24 +74,26 @@ class EditorObject
    std::string
    GetName() const;
 
-   std::shared_ptr< Object >
-   GetLinkedObject();
+   Object::ID
+   GetLinkedObjectID();
 
    void
    DeleteLinkedObject();
 
    // Create sprite with default texture
    void
-   CreateSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(10, 10));
+   CreateSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
+                const glm::ivec2& size = glm::ivec2(10, 10));
 
    // Create sprite with texture from 'fileName'
    void
-   CreateSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(16, 16),
+   CreateSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
+                        const glm::ivec2& size = glm::ivec2(16, 16),
                         const std::string& fileName = "Default.png");
 
    // Move object by 'moveBy'
    void
-   Move(const glm::vec2& moveBy, bool isCameraMovement = true);
+   Move(const glm::vec2& moveBy);
 
    void
    Scale(const glm::vec2& scaleVal, bool cumulative = false);
@@ -131,33 +117,23 @@ class EditorObject
 
  private:
    // global position (in OpenGL coords)
-   glm::vec2 m_globalPosition;
+   glm::vec2 m_position;
 
    // center of global's position (in OpenGL coords)
-   glm::vec2 m_centeredGlobalPosition;
-
-   // local position (map coords)
-   glm::ivec2 m_localPosition;
-
-   // center of local's position (map coords)
-   glm::ivec2 m_centeredLocalPosition;
+   glm::vec2 m_centeredPosition;
 
    // should this object be visible
    bool m_visible = false;
 
-   // matrices for transforming object
-   // glm::mat4 m_translateMatrix;
-   // glm::vec2 m_translateVal;
-   // glm::mat4 m_rotateMatrix;
-   // glm::mat4 m_scaleMatrix;
-
    std::string m_name;
 
-   Object::ID m_objectID = -1;
-   LinkedObject m_linkedObject = {nullptr, nullptr};
+   // Linked object's ID
+   Object::ID m_objectID = Object::INVALID_ID;
+   bool m_hasLinkedObject = false;
    Editor& m_editor;
 
    bool m_selected = false;
+   bool m_isBackground = false;
 
    // object's sprite
    Sprite m_sprite;

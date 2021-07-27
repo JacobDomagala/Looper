@@ -4,12 +4,13 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+
 namespace dgame {
 
 void
 OpenGLRendererAPI::Init()
 {
-   int status = gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
+   int status = gladLoadGLLoader(reinterpret_cast< GLADloadproc >(glfwGetProcAddress));
 
    if (status != 1)
    {
@@ -25,8 +26,10 @@ OpenGLRendererAPI::Init()
    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
    glDebugMessageCallback(
-      [](GLenum /*source*/, GLenum type, GLuint /*id*/, GLenum severity, GLsizei /*length*/, const GLchar* message, const void* logger) {
-         const auto buffer = fmt::format("OpenGL: type = {}, severity = {}, message = {}", type, severity, message);
+      [](GLenum /*source*/, GLenum type, GLuint /*id*/, GLenum severity, GLsizei /*length*/,
+         const GLchar* message, const void* logger) {
+         const auto buffer =
+            fmt::format("OpenGL: type = {}, severity = {}, message = {}", type, severity, message);
 
          auto logg = reinterpret_cast< const Logger* >(logger);
 
@@ -48,7 +51,8 @@ OpenGLRendererAPI::Init()
       },
       &m_logger);
 
-   glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+   glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL,
+                         GL_FALSE);
 
    glEnable(GL_BLEND);
    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -75,7 +79,8 @@ OpenGLRendererAPI::Clear()
 }
 
 void
-OpenGLRendererAPI::DrawIndexed(const std::shared_ptr< VertexArray >& vertexArray, uint32_t indexCount)
+OpenGLRendererAPI::DrawIndexed(const std::shared_ptr< VertexArray >& vertexArray,
+                               uint32_t indexCount)
 {
    uint32_t count = indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetCount();
    glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);

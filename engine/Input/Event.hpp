@@ -59,7 +59,8 @@ struct CursorPositionEvent : public Event
 
 struct MouseScrollEvent : public Event
 {
-   MouseScrollEvent(double xOffset, double yOffset) : Event(EventType::MOUSE_SCROLL), m_xOffset(xOffset), m_yOffset(yOffset)
+   MouseScrollEvent(double xOffset, double yOffset)
+      : Event(EventType::MOUSE_SCROLL), m_xOffset(xOffset), m_yOffset(yOffset)
    {
    }
 

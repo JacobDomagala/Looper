@@ -1,37 +1,36 @@
 ﻿---
 Language:        				Cpp
-Standard:        				Cpp11
 UseTab:          				Never
-ColumnLimit:     				140
+ColumnLimit:     				100
 IndentWidth:     				3
-ContinuationIndentWidth: 			3
+ContinuationIndentWidth: 		3
 TabWidth:        				3
-AccessModifierOffset: 				-2
-MaxEmptyLinesToKeep: 				2
+AccessModifierOffset: 			-2
+MaxEmptyLinesToKeep: 			2
 DisableFormat:   				false
 
-AlignAfterOpenBracket: 				Align
-AlignConsecutiveDeclarations: 			false
-AlignConsecutiveAssignments:			false
-AlignEscapedNewlinesLeft: 			true
+AlignAfterOpenBracket: 			Align
+AlignConsecutiveDeclarations: 	false
+AlignConsecutiveAssignments:	false
+AlignEscapedNewlinesLeft: 		true
 AlignOperands:   				true
-AlignTrailingComments: 				true
+AlignTrailingComments: 			true
 
-BinPackArguments: 				true
-BinPackParameters: 				true
+BinPackArguments: 							true
+BinPackParameters: 							true
 AllowAllParametersOfDeclarationOnNextLine: 	false
 
-AlwaysBreakAfterDefinitionReturnType: 		None
+AlwaysBreakAfterDefinitionReturnType: 	None
 AlwaysBreakAfterReturnType: 			All
 
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterClass:      				true
-  AfterControlStatement: 			true
+  AfterControlStatement: 		true
   AfterEnum:       				true
   AfterFunction:   				true
   AfterNamespace:  				false
-  AfterObjCDeclaration: 			true
+  AfterObjCDeclaration: 		true
   AfterStruct:     				true
   AfterUnion:      				true
   BeforeCatch:     				true
@@ -41,62 +40,60 @@ BraceWrapping:
 AllowShortBlocksOnASingleLine: 			false
 AllowShortCaseLabelsOnASingleLine: 		false
 AllowShortFunctionsOnASingleLine: 		None
-AllowShortIfStatementsOnASingleLine: 		false
+AllowShortIfStatementsOnASingleLine: 	false
 AllowShortLoopsOnASingleLine: 			false
 KeepEmptyLinesAtTheStartOfBlocks: 		false
 
-BreakBeforeBinaryOperators: 			NonAssignment
-BreakBeforeTernaryOperators: 			true
+BreakBeforeBinaryOperators: 				NonAssignment
+BreakBeforeTernaryOperators: 				true
 BreakConstructorInitializersBeforeComma: 	false
-BreakStringLiterals: 				true
+BreakStringLiterals: 						true
 
 ConstructorInitializerAllOnOneLineOrOnePerLine:	true
-ConstructorInitializerIndentWidth: 		3
+ConstructorInitializerIndentWidth: 				3
 
 Cpp11BracedListStyle: 				true
 
-IndentCaseLabels: 				true
-IndentWrappedFunctionNames: 			false
+IndentCaseLabels: 					true
+IndentWrappedFunctionNames: 		false
 NamespaceIndentation: 				None
 
 DerivePointerAlignment: 			false
-PointerAlignment: 				Left
+PointerAlignment: 					Left
 
-SpaceBeforeAssignmentOperators: 		true
-SpaceBeforeParens: 				ControlStatements
+SpaceBeforeAssignmentOperators: 	true
+SpaceBeforeParens: 					ControlStatements
 SpaceInEmptyParentheses: 			false
 SpacesInParentheses: 				false
 SpacesInSquareBrackets: 			false
-SpacesInAngles:  				true
+SpacesInAngles:  					true
 
-SpacesBeforeTrailingComments: 			1
+SpacesBeforeTrailingComments: 		1
 SpacesInContainerLiterals: 			true
-SpacesInCStyleCastParentheses: 			false
+SpacesInCStyleCastParentheses: 		false
 
-ReflowComments:  				true
+ReflowComments:  					true
 
-AlwaysBreakBeforeMultilineStrings: 		false
-AlwaysBreakTemplateDeclarations: 		false
+AlwaysBreakBeforeMultilineStrings: 	false
+AlwaysBreakTemplateDeclarations: 	false
 
 SpaceAfterCStyleCast: 				false
-ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH ]
-ExperimentalAutoDetectBinPacking: 		false
+ForEachMacros:						[ foreach, Q_FOREACH, BOOST_FOREACH ]
+ExperimentalAutoDetectBinPacking: 	false
 
 CommentPragmas:  '^ IWYU pragma:'
 
-PenaltyBreakBeforeFirstCallParameter: 		19
-PenaltyBreakComment: 				300
-PenaltyBreakFirstLessLess: 			120
-PenaltyBreakString: 				1000
-PenaltyExcessCharacter: 			1000000
+PenaltyBreakBeforeFirstCallParameter: 	19
+PenaltyBreakComment: 					300
+PenaltyBreakFirstLessLess: 				120
+PenaltyBreakString: 					1000
+PenaltyExcessCharacter: 				1000000
 PenaltyReturnTypeOnItsOwnLine: 			0
 
 ObjCBlockIndentWidth: 				2
 ObjCSpaceAfterProperty: 			false
-ObjCSpaceBeforeProtocolList: 			true
-BreakAfterJavaFieldAnnotations: 		false
+ObjCSpaceBeforeProtocolList: 		true
+BreakAfterJavaFieldAnnotations: 	false
 
 MacroBlockBegin: ''
 MacroBlockEnd:   ''
-
-...

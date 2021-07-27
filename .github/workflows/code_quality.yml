@@ -16,6 +16,4 @@ jobs:
       uses: JacobDomagala/StaticAnalysis@master
       with:
         exclude_dir: dependencies
-
-
-
+        apt_pckgs: xorg-dev

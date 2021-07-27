@@ -54,7 +54,7 @@ Application::Log(Logger::TYPE t, const std::string& log)
 }
 
 void
-Application::RenderText(std::string , const glm::vec2& , float , const glm::vec3& )
+Application::RenderText(std::string, const glm::vec2&, float, const glm::vec3&)
 {
    // m_font.RenderText(GetProjection(), text, position, scale, color);
 }
@@ -69,7 +69,8 @@ glm::vec2
 Application::GlobalToScreen(const glm::vec2& globalPos) const
 {
    // convert to <-1, 1>
-   glm::vec2 projectedPosition = GetProjection() * GetViewMatrix() * glm::vec4(globalPos, 0.0f, 1.0f);
+   glm::vec2 projectedPosition =
+      GetProjection() * GetViewMatrix() * glm::vec4(globalPos, 0.0f, 1.0f);
 
    // convert to <0, 1>
    auto returnPos = (projectedPosition + glm::vec2(1.0f, 1.0f)) / 2.0f;
@@ -95,9 +96,11 @@ Application::ScreenToGlobal(const glm::vec2& screenPos)
    const auto distanceToObject = (screenPos - windowCenterScreen) * zoomRatio;
 
    // Rotate vector according to current camera's rotation
-   const auto rotatedDistanceToObject = glm::rotateZ(glm::vec3(distanceToObject, 0.0f), m_camera.GetRotation());
+   const auto rotatedDistanceToObject =
+      glm::rotateZ(glm::vec3(distanceToObject, 0.0f), m_camera.GetRotation());
 
-   // Compute global position by adding computed distance to camera position (which is located in the center of the screen)
+   // Compute global position by adding computed distance to camera position (which is located in
+   // the center of the screen)
    const auto globalPos = m_camera.GetPosition() + rotatedDistanceToObject;
 
    return globalPos;

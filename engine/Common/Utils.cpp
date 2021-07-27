@@ -20,7 +20,8 @@ CustomFloatToStr(float value, int precision)
 }
 
 bool
-IsPositionClose(const glm::vec2& targetPos, const glm::vec2& startPos, const glm::vec2& currentPos, float mariginValue)
+IsPositionClose(const glm::vec2& targetPos, const glm::vec2& startPos, const glm::vec2& currentPos,
+                float mariginValue)
 {
    bool xCheck = false;
    bool yCheck = false;
@@ -53,7 +54,8 @@ IsPositionClose(const glm::vec2& targetPos, const glm::vec2& startPos, const glm
 
 #if !defined(__APPLE__)
 static std::vector< std::string >
-file_dialog_internal(const std::vector< std::pair< std::string, std::string > >& filetypes, bool save, bool multiple)
+file_dialog_internal(const std::vector< std::pair< std::string, std::string > >& filetypes,
+                     bool save, bool multiple)
 {
    static const int FILE_DIALOG_MAX_BUFFER = 16384;
    if (save && multiple)

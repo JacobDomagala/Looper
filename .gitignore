@@ -309,9 +309,10 @@ paket-files/
 build
 .vscode
 dependencies/Freetype/Freetype*
-dependencies/GLM/GLM*
+dependencies/GLM/glm*
 dependencies/STB_IMAGE/STB_IMAGE*
 dependencies/JSON/JSON*
 dependencies/FMT/FMT*
 dependencies/Imgui/IMGUI*
 dependencies/glfw/GLFW*
+*imgui.ini

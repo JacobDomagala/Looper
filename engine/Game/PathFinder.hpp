@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Common.hpp"
 #include "Object.hpp"
 
 #include <glm/glm.hpp>
@@ -7,6 +8,7 @@
 
 namespace dgame {
 
+// Should be Tile probably
 struct Node : public Object
 {
    using NodeID = int32_t;
@@ -15,52 +17,180 @@ struct Node : public Object
    {
    }
 
-   Node(glm::ivec2 posOnMap, NodeID ID, std::vector< NodeID > connectedTo) : Object(Object::TYPE::PATHFINDER_NODE)
+   Node(const glm::ivec2& coords, const glm::vec2& posOnMap, NodeID ID,
+        const std::vector< NodeID >& connectedTo, bool occupied = false)
+      : Object(Object::TYPE::PATHFINDER_NODE),
+        m_xPos(coords.x),
+        m_yPos(coords.y),
+        m_position(posOnMap),
+        m_occupied(occupied),
+        m_ID(ID),
+        m_connectedNodes(connectedTo)
    {
-      m_position = posOnMap;
-      m_ID = ID;
-      m_connectedNodes = connectedTo;
    }
 
-   // Map position
-   glm::ivec2 m_position = {};
+   // X.Y coords
+   int32_t m_xPos = {};
+   int32_t m_yPos = {};
+
+   glm::vec2 m_position = {};
+
+   bool m_occupied = false;
+
    NodeID m_ID = -1;
+
+   // Node which updated this node
+   NodeID m_parentNode = -1;
+
    std::vector< NodeID > m_connectedNodes = {};
 
    bool m_visited = false;
-   int32_t m_localCost = 0;
+   int32_t m_localCost = std::numeric_limits< int32_t >::max();
+   int32_t m_globalCost = std::numeric_limits< int32_t >::max();
 };
+
+inline bool
+operator==(const Node& left, const Node& right)
+{
+   return left.m_ID == right.m_ID;
+}
 
 class PathFinder
 {
  public:
-   PathFinder();
-   PathFinder(std::vector< std::shared_ptr< Node > >&& nodes);
+   PathFinder() = default;
+   PathFinder(const glm::ivec2& levelSize, const uint32_t tileSize, std::vector< Node >&& nodes);
 
+   /**
+    * \brief Initialize Pathfinder. This will create nodes for entire Level.
+    *
+    * \param[in] levelSize Size of the current Level
+    * \param[in] tileSize Size of tile
+    */
    void
-   AddNode(std::shared_ptr< Node > newNode);
+   Initialize(const glm::ivec2& levelSize, const uint32_t tileSize);
 
+   /**
+    * \brief Initialize Pathfinder. This will not create nodes.
+    *
+    * \param[in] levelSize Size of the current Level
+    * \param[in] tileSize Size of tile
+    */
    void
-   DeleteNode(std::shared_ptr< Node > deletedNode);
+   InitializeEmpty(const glm::ivec2& levelSize, const uint32_t tileSize);
 
-   Node::NodeID
-   FindNodeIdx(const glm::ivec2& position) const;
-
-   glm::ivec2
-   GetNearestPosition(Node::NodeID currIdx, const glm::ivec2& targetPos) const;
-
-   Node::NodeID
-   GetNearestNode(const glm::ivec2& position) const;
-
-   std::vector< std::shared_ptr< Node > >
-   GetAllNodes() const;
-
+   /**
+    * \brief Check whether the Pathfinder is initialized
+    *
+    * \return Whether it's initialized
+    */
    bool
    IsInitialized() const;
 
+   /**
+    * \brief Add node to the Pathfinder
+    *
+    * \param[in] newNode Node to add
+    */
+   void
+   AddNode(Node&& newNode);
+
+   /**
+    * \brief Delete node from the Pathfinder
+    *
+    * \param[in] nodeToDelete Node to delete
+    */
+   void
+   DeleteNode(Node::NodeID nodeToDelete);
+
+   /**
+    * \brief Get nodes (const version)
+    *
+    * \return Nodes vector
+    */
+   const std::vector< Node >&
+   GetAllNodes() const;
+
+   /**
+    * \brief Get nodes (non-const version)
+    *
+    * \return Nodes vector
+    */
+   std::vector< Node >&
+   GetAllNodes();
+
+   /**
+    * \brief Get NodeID from position
+    *
+    * \param[in] position Position on the map
+    *
+    * \return NodeID
+    */
+   Node::NodeID
+   GetNodeIDFromPosition(const glm::vec2& position) const;
+
+   /**
+    * \brief Get Node from position
+    *
+    * \param[in] position Position on the map
+    *
+    * \return Node
+    */
+   Node&
+   GetNodeFromPosition(const glm::vec2& position);
+
+   /**
+    * \brief Get NodeID from tile
+    *
+    * \param[in] tile Tile on the map
+    *
+    * \return NodeID
+    */
+   Node::NodeID
+   GetNodeIDFromTile(const glm::ivec2& tile) const;
+
+   /**
+    * \brief Get Node from NodeID
+    *
+    * \param[in] ID NodeID
+    *
+    * \return Node
+    */
+   Node&
+   GetNodeFromID(Node::NodeID ID);
+
+   /**
+    * \brief Get path from \c source to \c destination. Uses A* algorithm.
+    *
+    * \param[in] source Starting point on the map
+    * \param[in] destination Destination on the map
+    *
+    * \return Nodes along the way
+    */
+   std::vector< Node::NodeID >
+   GetPath(const glm::vec2& source, const glm::vec2& destination);
+
+   /**
+    * \brief Set node (on the given tile) occupied
+    *
+    * \param[in] nodeCoords Tile on the map
+    */
+   void
+   SetNodeOccupied(const Tile_t& nodeCoords);
+
+   /**
+    * \brief Set node (on the given tile) freed
+    *
+    * \param[in] nodeCoords Tile on the map
+    */
+   void
+   SetNodeFreed(const Tile_t& nodeCoords);
+
  private:
    bool m_initialized = false;
-   std::vector< std::shared_ptr< Node > > m_nodes;
+   std::vector< Node > m_nodes = {};
+   glm::ivec2 m_levelSize = {};
+   uint32_t m_tileSize = {};
 };
 
 } // namespace dgame

@@ -29,12 +29,14 @@ class Sprite
 
    // Create sprite without texture
    void
-   SetSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(10, 10));
+   SetSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
+             const glm::ivec2& size = glm::ivec2(10, 10));
 
    // Create sprite with texture
    // Returns byte data used for collision
    byte_vec4*
-   SetSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::ivec2& size = glm::ivec2(10, 10),
+   SetSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
+                     const glm::ivec2& size = glm::ivec2(10, 10),
                      const std::string& fileName = "Default128.png");
 
    void
@@ -98,6 +100,8 @@ class Sprite
    void
    ScaleUniformly(const float scaleValue);
 
+   //        0,       1,          2,           3
+   // topRight, topLeft, bottomLeft, bottomRight
    std::array< glm::vec2, 4 >
    GetTransformedRectangle() const;
 
@@ -111,7 +115,8 @@ class Sprite
    Render();
 
  public:
-   static inline const std::pair< float, float > s_ROTATIONRANGE = {glm::radians(-360.0f), glm::radians(360.0f)};
+   static inline const std::pair< float, float > s_ROTATIONRANGE = {glm::radians(-360.0f),
+                                                                    glm::radians(360.0f)};
    static inline const std::pair< float, float > s_SCALERANGE = {1.0f, 5.0f};
 
  private:

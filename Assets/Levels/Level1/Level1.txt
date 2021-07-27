@@ -1,6 +1,6 @@
 Size: 3000 3000
 Background: Level1.png
-Objects: 
+Objects:
 Particles:
 First_pass_shaders: DefaultShader
 Second_pass_shaders: AfterEffects

@@ -29,7 +29,8 @@ class Font
    SetFont(const std::string& fileName);
 
    void
-   RenderText(const glm::mat4& projectionMatrix, std::string text, glm::vec2 position, GLfloat scale, const glm::vec3& color);
+   RenderText(const glm::mat4& projectionMatrix, std::string text, glm::vec2 position,
+              GLfloat scale, const glm::vec3& color);
 
  private:
    GLuint m_VAO{}, m_VBO{};

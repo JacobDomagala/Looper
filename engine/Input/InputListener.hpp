@@ -10,12 +10,12 @@ class InputListener
    virtual ~InputListener() = default;
 
    virtual void
-   KeyCallback(const KeyEvent& )
+   KeyCallback(const KeyEvent&)
    {
    }
 
    virtual void
-   MouseButtonCallback(const MouseButtonEvent& )
+   MouseButtonCallback(const MouseButtonEvent&)
    {
    }
 
@@ -25,7 +25,7 @@ class InputListener
    }
 
    virtual void
-   MouseScrollCallback(const MouseScrollEvent& )
+   MouseScrollCallback(const MouseScrollEvent&)
    {
    }
 };

@@ -1,26 +1,32 @@
 #include "EditorObject.hpp"
 #include "Animatable.hpp"
 #include "Editor.hpp"
+#include "Enemy.hpp"
 
 namespace dgame {
 
-EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size, const std::string& sprite,
-                           LinkedObject linkedObject)
+EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size,
+                           const std::string& sprite, Object::ID linkedObject)
    : m_editor(editor)
 {
-   m_globalPosition = m_editor.GetLevel().GetGlobalVec(positionOnMap);
-   m_localPosition = positionOnMap;
-   m_sprite.SetSpriteTextured(m_globalPosition, size, sprite);
-   m_centeredGlobalPosition = m_sprite.GetPosition();
+   m_position = m_editor.GetLevel().GetGlobalVec(positionOnMap);
+   m_position = positionOnMap;
+   m_sprite.SetSpriteTextured(m_position, size, sprite);
+   m_centeredPosition = m_sprite.GetPosition();
 
-   m_centeredLocalPosition = m_editor.GetLevel().GetLocalVec(m_centeredGlobalPosition);
-   m_linkedObject = linkedObject;
-   m_objectID = m_linkedObject.first ? m_linkedObject.first->GetID() : -1;
+   m_centeredPosition = m_editor.GetLevel().GetLocalVec(m_centeredPosition);
+   m_objectID = linkedObject;
+   m_hasLinkedObject = true;
 }
 
 bool
 EditorObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 {
+   if (Object ::GetTypeFromID(m_objectID) == Object::TYPE::PATHFINDER_NODE)
+   {
+      return false;
+   }
+
    bool collided = false;
 
    Camera camera = m_editor.GetCamera();
@@ -37,10 +43,12 @@ EditorObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
    const auto minY = transformed3.y;
    const auto maxY = transformed0.y;
 
-   const auto globalPosition = camera.GetViewMatrix() * glm::vec4(m_editor.ScreenToGlobal(screenPosition), 0.0f, 1.0f);
+   const auto globalPosition =
+      camera.GetViewMatrix() * glm::vec4(m_editor.ScreenToGlobal(screenPosition), 0.0f, 1.0f);
 
    // If 'screenPosition' is inside 'object' sprite (rectangle)
-   if (globalPosition.x >= minX && globalPosition.x <= maxX && globalPosition.y <= maxY && globalPosition.y >= minY)
+   if (globalPosition.x >= minX && globalPosition.x <= maxX && globalPosition.y <= maxY
+       && globalPosition.y >= minY)
    {
       collided = true;
    }
@@ -51,7 +59,7 @@ EditorObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 glm::vec2
 EditorObject::GetScreenPositionPixels() const
 {
-   return m_editor.GlobalToScreen(m_centeredGlobalPosition);
+   return m_editor.GlobalToScreen(m_centeredPosition);
 }
 
 bool
@@ -66,52 +74,40 @@ EditorObject::SetColor(const glm::vec3& color)
    m_sprite.SetColor(color);
 }
 
+void
+EditorObject::SetIsBackground(bool isBackground)
+{
+   m_isBackground = isBackground;
+}
+
+bool
+EditorObject::GetIsBackground() const
+{
+   return m_isBackground;
+}
+
 glm::ivec2
 EditorObject::GetSize() const
 {
    return m_sprite.GetSize();
 }
 
-glm::ivec2
-EditorObject::GetCenteredLocalPosition() const
-{
-   return m_centeredLocalPosition;
-}
-
 void
-EditorObject::SetCenteredLocalPosition(const glm::ivec2& pos)
+EditorObject::SetPosition(const glm::vec2& position)
 {
-   m_centeredLocalPosition = pos;
-}
-
-void
-EditorObject::SetLocalPosition(const glm::ivec2& position)
-{
-   m_localPosition = position;
-}
-
-void
-EditorObject::SetGlobalPosition(const glm::vec2& position)
-{
-   m_globalPosition = position;
+   m_position = position;
 }
 
 glm::vec2
-EditorObject::GetGlobalPosition() const
+EditorObject::GetPosition() const
 {
-   return m_globalPosition;
-}
-
-glm::ivec2
-EditorObject::GetLocalPosition() const
-{
-   return m_localPosition;
+   return m_position;
 }
 
 glm::vec2
-EditorObject::GetCenteredGlobalPosition() const
+EditorObject::GetCenteredPosition() const
 {
-   return m_centeredGlobalPosition;
+   return m_centeredPosition;
 }
 
 const Sprite&
@@ -136,13 +132,14 @@ void
 EditorObject::CreateSprite(const glm::vec2& globalPosition, const glm::ivec2& size)
 {
    m_sprite.SetSprite(globalPosition, size);
-   m_globalPosition = m_sprite.GetPosition();
+   m_position = m_sprite.GetPosition();
 }
 
 void
-EditorObject::CreateSpriteTextured(const glm::vec2& /*position*/, const glm::ivec2& /*size*/, const std::string& /*fileName*/)
+EditorObject::CreateSpriteTextured(const glm::vec2& /*position*/, const glm::ivec2& /*size*/,
+                                   const std::string& /*fileName*/)
 {
-   m_globalPosition = m_sprite.GetPosition();
+   m_position = m_sprite.GetPosition();
 }
 
 void
@@ -171,30 +168,34 @@ EditorObject::GetName() const
    return m_name;
 }
 
-std::shared_ptr< Object >
-EditorObject::GetLinkedObject()
+Object::ID
+EditorObject::GetLinkedObjectID()
 {
-   return m_linkedObject.first;
+   return m_objectID;
 }
 
 void
 EditorObject::DeleteLinkedObject()
 {
-   if (m_linkedObject.first)
+   if (m_hasLinkedObject)
    {
-      switch (m_linkedObject.first->GetType())
+      switch (Object::GetTypeFromID(m_objectID))
       {
          case Object::TYPE::ANIMATION_POINT: {
-            auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_linkedObject.second);
-            animatablePtr->DeleteAnimationNode(std::dynamic_pointer_cast< AnimationPoint >(m_linkedObject.first));
-            animatablePtr->ResetAnimation();
+            auto& animationPoint =
+               dynamic_cast< AnimationPoint& >(m_editor.GetLevel().GetObjectRef(m_objectID));
+            auto& object = m_editor.GetLevel().GetObjectRef(animationPoint.m_parent);
 
-            m_linkedObject.second->Move(animatablePtr->GetAnimationStartLocation() - m_linkedObject.second->GetGlobalPosition());
+            auto& enemy = dynamic_cast< Enemy& >(object);
+            enemy.DeleteAnimationNode(m_objectID);
+            enemy.ResetAnimation();
+            enemy.Move(enemy.GetAnimationStartLocation() - enemy.GetPosition());
          }
          break;
 
          case Object::TYPE::PATHFINDER_NODE: {
-            m_editor.GetLevel().GetPathfinder().DeleteNode(std::dynamic_pointer_cast< Node >(m_linkedObject.first));
+            auto& node = dynamic_cast< Node& >(m_editor.GetLevel().GetObjectRef(m_objectID));
+            m_editor.GetLevel().GetPathfinder().DeleteNode(node.m_ID);
          }
          break;
 
@@ -205,27 +206,33 @@ EditorObject::DeleteLinkedObject()
 }
 
 void
-EditorObject::Move(const glm::vec2& moveBy, bool /*isCameraMovement*/)
+EditorObject::Move(const glm::vec2& moveBy)
 {
    m_sprite.Translate(moveBy);
-   m_globalPosition += moveBy;
-   m_centeredGlobalPosition += moveBy;
+   m_position += moveBy;
+   m_centeredPosition += moveBy;
 
-   m_localPosition += moveBy;
-   m_centeredLocalPosition += moveBy;
+   m_position += moveBy;
+   m_centeredPosition += moveBy;
 
-   if (m_linkedObject.first)
+   if (m_hasLinkedObject)
    {
-      switch (m_linkedObject.first->GetType())
+      switch (Object::GetTypeFromID(m_objectID))
       {
          case Object::TYPE::ANIMATION_POINT: {
-            std::dynamic_pointer_cast< AnimationPoint >(m_linkedObject.first)->m_end += moveBy;
+            auto& animationPoint =
+               dynamic_cast< AnimationPoint& >(m_editor.GetLevel().GetObjectRef(m_objectID));
+            animationPoint.m_end += moveBy;
             m_editor.UpdateAnimationData();
          }
          break;
+
          case Object::TYPE::PATHFINDER_NODE: {
-            std::dynamic_pointer_cast< Node >(m_linkedObject.first)->m_position += moveBy;
+            auto& node = dynamic_cast< Node& >(m_editor.GetLevel().GetObjectRef(m_objectID));
+            node.m_position += moveBy;
          }
+         break;
+
          default: {
          }
       }
@@ -244,12 +251,14 @@ EditorObject::Rotate(float angle, bool cumulative)
    cumulative ? m_sprite.RotateCumulative(angle) : m_sprite.Rotate(angle);
 
    auto rotate = m_sprite.GetRotation(Sprite::RotationType::DEGREES);
-   if (m_linkedObject.first)
+   if (m_hasLinkedObject)
    {
-      switch (m_linkedObject.first->GetType())
+      switch (Object::GetTypeFromID(m_objectID))
       {
          case Object::TYPE::ANIMATION_POINT: {
-            std::dynamic_pointer_cast< AnimationPoint >(m_linkedObject.first)->m_rotation = rotate;
+            auto& animationPoint =
+               dynamic_cast< AnimationPoint& >(m_editor.GetLevel().GetObjectRef(m_objectID));
+            animationPoint.m_rotation = rotate;
             m_editor.UpdateAnimationData();
          }
          default: {
@@ -266,7 +275,28 @@ EditorObject::Update(bool /*isReverse*/)
 void
 EditorObject::Render()
 {
-   m_sprite.Render();
+   if (m_hasLinkedObject)
+   {
+      switch (Object::GetTypeFromID(m_objectID))
+      {
+         case Object::TYPE::PATHFINDER_NODE: {
+            auto& pathfinderNode =
+               dynamic_cast< Node& >(m_editor.GetLevel().GetObjectRef(m_objectID));
+
+            if (pathfinderNode.m_occupied)
+            {
+               SetColor(glm::vec3{1.0f, 0.0f, 0.0f});
+            }
+
+            m_sprite.Render();
+            SetColor(glm::vec3{1.0f, 1.0f, 1.0f});
+         }
+         break;
+
+         default: {
+         }
+      }
+   }
 }
 
 void

@@ -2,11 +2,45 @@
 
 namespace dgame {
 
-std::unordered_map< std::string, Object::TYPE > Object::s_map = {{"ENEMY", Object::TYPE::ENEMY},
-                                                                 {"PLAYER", Object::TYPE::PLAYER},
-                                                                 {"ANIMATION_POINT", Object::TYPE::ANIMATION_POINT},
-                                                                 {"PATHFINDER_NODE", Object::TYPE::PATHFINDER_NODE}};
+static std::string
+TypeToString(Object::TYPE type)
+{
+   std::string typeStr = "";
 
+   switch (type)
+   {
+      case Object::TYPE::ENEMY: {
+         typeStr = "Enemy";
+      }
+      break;
+
+      case Object::TYPE::PLAYER: {
+         typeStr = "Player";
+      }
+      break;
+
+      case Object::TYPE::OBJECT: {
+         typeStr = "Object";
+      }
+      break;
+
+      case Object::TYPE::ANIMATION_POINT: {
+         typeStr = "Animation Point";
+      }
+      break;
+
+      case Object::TYPE::PATHFINDER_NODE: {
+         typeStr = "Pathfinder Node";
+      }
+      break;
+
+      default: {
+         typeStr = "No Type";
+      }
+   }
+
+   return typeStr;
+}
 
 Object::TYPE
 Object::GetTypeFromString(const std::string& stringType)
@@ -17,7 +51,10 @@ Object::GetTypeFromString(const std::string& stringType)
 Object::Object(TYPE type)
 {
    m_type = type;
-   m_id = s_currentID;
+
+   // First 32 bits are for ids, the other are for type storage
+   auto type_val = static_cast< ID >(type) << TYPE_NUM_BITS;
+   m_id = type_val + s_currentID;
 
    ++s_currentID;
 }
@@ -37,39 +74,44 @@ Object::GetType() const
 std::string
 Object::GetTypeString() const
 {
-   std::string type = "";
-
-   switch (m_type)
-   {
-      case TYPE::ENEMY: {
-         type = "Enemy";
-      }
-      break;
-
-      case TYPE::PLAYER: {
-         type = "Player";
-      }
-      break;
-
-      case TYPE::ANIMATION_POINT: {
-         type = "Animation Point";
-      }
-      break;
-
-      case TYPE::PATHFINDER_NODE: {
-         type = "Pathfinder Node";
-      }
-      break;
-
-      default: {
-         type = "No Type";
-      }
-   }
-
-   return type;
+   return TypeToString(m_type);
 }
 
-int
+std::string
+Object::GetTypeString(ID id)
+{
+   return TypeToString(GetTypeFromID(id));
+}
+
+Object::TYPE
+Object::GetTypeFromID(ID id)
+{
+   // Shift 'id' value to its type part
+   const auto type_part = id >> TYPE_NUM_BITS;
+
+   if (type_part & static_cast< ID >(TYPE::ENEMY))
+   {
+      return TYPE::ENEMY;
+   }
+   else if (type_part & static_cast< ID >(TYPE::PLAYER))
+   {
+      return TYPE::PLAYER;
+   }
+   else if (type_part & static_cast< ID >(TYPE::ANIMATION_POINT))
+   {
+      return TYPE::ANIMATION_POINT;
+   }
+   else if (type_part & static_cast< ID >(TYPE::PATHFINDER_NODE))
+   {
+      return TYPE::PATHFINDER_NODE;
+   }
+   else
+   {
+      return TYPE::NONE;
+   }
+}
+
+Object::ID
 Object::GetID() const
 {
    return m_id;

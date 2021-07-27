@@ -91,7 +91,7 @@ Shader::CheckCompileStatus(GLuint shaderID)
       GLint maxLength = 0;
       glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &maxLength);
 
-      std::string log(static_cast<std::string::size_type>(maxLength), '\0');
+      std::string log(static_cast< std::string::size_type >(maxLength), '\0');
       glGetShaderInfoLog(shaderID, maxLength, &maxLength, &log[0]);
 
       m_logger.Log(Logger::TYPE::FATAL, log);
@@ -108,7 +108,7 @@ Shader::CheckLinkStatus(GLuint programID)
       GLint maxLength = 0;
       glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &maxLength);
 
-      std::string log(static_cast<std::string::size_type>(maxLength), '\0');
+      std::string log(static_cast< std::string::size_type >(maxLength), '\0');
       glGetProgramInfoLog(programID, maxLength, &maxLength, &log[0]);
 
       m_logger.Log(Logger::TYPE::FATAL, log);
@@ -121,7 +121,8 @@ Shader::GetUniformLocation(const std::string& uniformName)
    GLint location = glGetUniformLocation(m_programID, uniformName.c_str());
    if (!location)
    {
-      m_logger.Log(Logger::TYPE::WARNING, "Uniform location not found. Uniform name: {}", uniformName);
+      m_logger.Log(Logger::TYPE::WARNING, "Uniform location not found. Uniform name: {}",
+                   uniformName);
    }
 
    return location;

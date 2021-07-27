@@ -9,7 +9,7 @@
 
 namespace dgame {
 
-const std::filesystem::path ROOT_DIR = std::filesystem::current_path().parent_path().parent_path();
+const std::filesystem::path ROOT_DIR = std::filesystem::path(std::string(CMAKE_ROOT_DIR));
 const std::filesystem::path ASSETS_DIR = ROOT_DIR / "Assets";
 const std::filesystem::path LEVELS_DIR = ASSETS_DIR / "Levels";
 const std::filesystem::path FONTS_DIR = ASSETS_DIR / "Fonts";
@@ -19,8 +19,7 @@ const std::filesystem::path IMAGES_DIR = ASSETS_DIR / "Images";
 class FileManager
 {
  public:
-   template < typename T >
-   struct ImageData
+   template < typename T > struct ImageData
    {
       T m_bytes;
       glm::ivec2 m_size;
