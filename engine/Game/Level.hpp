@@ -38,7 +38,7 @@ class Level
    GetTileFromPosition(const glm::vec2& local) const;
 
    void
-   MoveObjs(const glm::vec2& moveBy, bool isCameraMovement = true);
+   MoveObjs(const glm::vec2& moveBy);
 
    std::vector< Tile_t >
    GameObjectMoved(const std::array< glm::vec2, 4 >& box,

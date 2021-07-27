@@ -169,8 +169,8 @@ Level::Save(const std::string& pathToLevel)
       {
          case Object::TYPE::PLAYER: {
             json["PLAYER"]["name"] = m_player->GetName();
-            json["PLAYER"]["position"] = {m_player->GetLocalPosition().x,
-                                          m_player->GetLocalPosition().y};
+            json["PLAYER"]["position"] = {m_player->GetPosition().x,
+                                          m_player->GetPosition().y};
             json["PLAYER"]["scale"] = {m_player->GetSprite().GetScale().x,
                                        m_player->GetSprite().GetScale().y};
             json["PLAYER"]["rotation"] = m_player->GetSprite().GetRotation();
@@ -185,7 +185,7 @@ Level::Save(const std::string& pathToLevel)
             nlohmann::json enemyJson;
 
             enemyJson["name"] = object->GetName();
-            enemyJson["position"] = {object->GetLocalPosition().x, object->GetLocalPosition().y};
+            enemyJson["position"] = {object->GetPosition().x, object->GetPosition().y};
             enemyJson["size"] = {object->GetSprite().GetOriginalSize().x,
                                  object->GetSprite().GetOriginalSize().y};
             enemyJson["scale"] = {object->GetSprite().GetScale().x,
@@ -229,7 +229,7 @@ Level::Save(const std::string& pathToLevel)
                objectJson["occupied nodes"].emplace_back(occupiedNode);
             }
 
-            objectJson["position"] = {object->GetLocalPosition().x, object->GetLocalPosition().y};
+            objectJson["position"] = {object->GetPosition().x, object->GetPosition().y};
             objectJson["size"] = {object->GetSprite().GetOriginalSize().x,
                                   object->GetSprite().GetOriginalSize().y};
             objectJson["scale"] = {object->GetSprite().GetScale().x,
@@ -608,11 +608,11 @@ Level::RenderGameObjects()
 }
 
 void
-Level::MoveObjs(const glm::vec2& moveBy, bool isCameraMovement)
+Level::MoveObjs(const glm::vec2& moveBy)
 {
    for (auto& obj : m_objects)
    {
-      obj->Move(moveBy, isCameraMovement);
+      obj->Move(moveBy);
    }
 }
 

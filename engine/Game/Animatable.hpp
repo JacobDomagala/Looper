@@ -105,7 +105,7 @@ class Animatable
    GetLockAnimationSteps();
 
    void
-   SetAnimationStartLocation(const glm::vec2& localPosition);
+   SetAnimationStartLocation(const glm::vec2& position);
 
    glm::vec2
    GetAnimationStartLocation() const;

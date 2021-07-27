@@ -19,7 +19,7 @@ Enemy::Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size,
    m_animationPoints = keypoints;
 
    m_timer.ToggleTimer();
-   m_initialPosition = GameObject::m_currentState.m_localPosition;
+   m_initialPosition = GameObject::m_currentState.m_position;
 
    m_animationStartPosition = m_initialPosition;
    ResetAnimation();
@@ -30,9 +30,9 @@ Enemy::DealWithPlayer()
 {
    auto gameHandle = ConvertToGameHandle();
 
-   const auto playerPosition = gameHandle->GetPlayer()->GetCenteredGlobalPosition();
+   const auto playerPosition = gameHandle->GetPlayer()->GetCenteredPosition();
    const auto playerInVision = gameHandle->GetLevel().CheckCollisionAlongTheLine(
-      GameObject::m_currentState.m_centeredGlobalPosition, playerPosition);
+      GameObject::m_currentState.m_centeredPosition, playerPosition);
 
    m_timer.ToggleTimer();
 
@@ -135,8 +135,8 @@ Enemy::Shoot()
 {
    m_currentState.m_timeSinceLastShot += m_timer.GetFloatDeltaTime();
 
-   if (glm::length(static_cast< glm::vec2 >(m_appHandle.GetPlayer()->GetCenteredGlobalPosition()
-                                            - GameObject::m_currentState.m_centeredGlobalPosition))
+   if (glm::length(static_cast< glm::vec2 >(m_appHandle.GetPlayer()->GetCenteredPosition()
+                                            - GameObject::m_currentState.m_centeredPosition))
        <= static_cast< float >(m_weapon->GetRange()))
    {
       if (m_currentState.m_timeSinceLastShot >= m_weapon->GetReloadTime())
@@ -163,28 +163,28 @@ Enemy::MoveToPosition(const glm::vec2& targetPosition, bool exactPosition)
 
    auto& pathFinder = gameHandle->GetLevel().GetPathfinder();
 
-   const auto curPosition = GameObject::m_currentState.m_centeredGlobalPosition;
+   const auto curPosition = GameObject::m_currentState.m_centeredPosition;
    const auto tiles = pathFinder.GetPath(curPosition, targetPosition);
 
    if (tiles.size() > 0)
    {
       const auto moveVal =
          moveBy * glm::normalize(pathFinder.GetNodeFromID(tiles.back()).m_position - curPosition);
-      Move(moveVal, false);
+      Move(moveVal);
    }
    else if (exactPosition)
    {
       const auto moveVal = moveBy * glm::normalize(targetPosition - curPosition);
-      Move(moveVal, false);
+      Move(moveVal);
 
       constexpr auto errorTreshold = 3.0f;
       const auto distanceToDest =
-         targetPosition - GameObject::m_currentState.m_centeredGlobalPosition;
+         targetPosition - GameObject::m_currentState.m_centeredPosition;
 
       // If Enemy is really close to target destination, just put it there
       if (glm::length(distanceToDest) < errorTreshold)
       {
-         Move(distanceToDest, false);
+         Move(distanceToDest);
          destinationReached = true;
       }
    }
@@ -227,7 +227,7 @@ Enemy::UpdateInternal(bool isReverse)
    {
       if (!m_currentState.m_combatStarted && m_currentState.m_isAtInitialPos)
       {
-         Move(Animate(m_appHandle.GetDeltaTime()), false);
+         Move(Animate(m_appHandle.GetDeltaTime()));
       }
 
       m_statesQueue.push_back(m_currentState);

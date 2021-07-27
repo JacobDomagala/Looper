@@ -143,12 +143,12 @@ EditorGUI::Render()
          for (auto& object : gameObjects)
          {
             auto label = fmt::format("[{}] {} ({}, {})", object->GetTypeString().c_str(),
-                                     object->GetName().c_str(), object->GetLocalPosition().x,
-                                     object->GetLocalPosition().y);
+                                     object->GetName().c_str(), object->GetPosition().x,
+                                     object->GetPosition().y);
 
             if (ImGui::Selectable(label.c_str()))
             {
-               m_parent.GetCamera().SetCameraAtPosition(object->GetLocalPosition());
+               m_parent.GetCamera().SetCameraAtPosition(object->GetPosition());
                m_parent.HandleGameObjectSelected(object, true);
             }
          }
@@ -235,12 +235,12 @@ EditorGUI::Render()
       ImGui::SetNextTreeNodeOpen(true);
       if (ImGui::CollapsingHeader("Transform"))
       {
-         auto objectPosition = m_currentlySelectedGameObject->GetLocalPosition();
+         auto objectPosition = m_currentlySelectedGameObject->GetPosition();
          auto sprite_size = m_currentlySelectedGameObject->GetSprite().GetSize();
          auto rotation =
             m_currentlySelectedGameObject->GetSprite().GetRotation(Sprite::RotationType::DEGREES);
 
-         ImGui::InputInt2("Position", &objectPosition.x);
+         ImGui::InputFloat2("Position", &objectPosition.x);
 
          if (ImGui::SliderInt2("Size", &sprite_size.x, 10, 500))
          {
@@ -330,7 +330,7 @@ EditorGUI::Render()
 
             // static int selected = 0;
             auto animationPoints = animatablePtr->GetAnimationKeypoints();
-            auto newNodePosition = m_currentlySelectedGameObject->GetLocalPosition();
+            auto newNodePosition = m_currentlySelectedGameObject->GetPosition();
             ImGui::BeginChild("Animation Points", {0, 100}, true);
             for (uint32_t i = 0; i < animationPoints.size(); ++i)
             {

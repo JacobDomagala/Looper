@@ -389,9 +389,9 @@ Animatable::GetLockAnimationSteps()
 }
 
 void
-Animatable::SetAnimationStartLocation(const glm::vec2& localPosition)
+Animatable::SetAnimationStartLocation(const glm::vec2& position)
 {
-   m_animationStartPosition = localPosition;
+   m_animationStartPosition = position;
 
    if (m_currentAnimationState.m_currentAnimationPoint == m_animationPoints.begin())
    {

@@ -202,20 +202,20 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
          // for example when animation point is selected and it's placed on top of game object
          if (m_movementOnEditorObject)
          {
-            m_currentEditorObjectSelected->Move(m_camera.ConvertToCameraVector(moveBy), false);
+            m_currentEditorObjectSelected->Move(m_camera.ConvertToCameraVector(moveBy));
             m_gui.ObjectUpdated(m_currentEditorObjectSelected->GetLinkedObjectID());
          }
          else
          {
-            m_currentSelectedGameObject->Move(m_camera.ConvertToCameraVector(moveBy), false);
+            m_currentSelectedGameObject->Move(m_camera.ConvertToCameraVector(moveBy));
             m_currentSelectedGameObject->GetSprite().SetInitialPosition(
-               m_currentSelectedGameObject->GetGlobalPosition());
+               m_currentSelectedGameObject->GetPosition());
             m_gui.ObjectUpdated(m_currentSelectedGameObject->GetID());
             auto animatable = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
             if (animatable)
             {
                animatable->SetAnimationStartLocation(
-                  m_currentSelectedGameObject->GetLocalPosition());
+                  m_currentSelectedGameObject->GetPosition());
                UpdateAnimationData();
             }
          }
@@ -476,9 +476,9 @@ Editor::DrawAnimationPoints()
                                    object->GetLinkedObjectID());
                if (it != animaltionPointIDs.end())
                {
-                  Renderer::DrawLine(lineStart, object->GetLocalPosition(),
+                  Renderer::DrawLine(lineStart, object->GetPosition(),
                                      {1.0f, 0.0f, 1.0f, 1.0f});
-                  lineStart = object->GetCenteredGlobalPosition();
+                  lineStart = object->GetCenteredPosition();
 
                   object->Render();
                }
@@ -625,7 +625,7 @@ Editor::LoadLevel(const std::string& levelPath)
       }
    }
 
-   m_camera.Create(glm::vec3(m_currentLevel->GetPlayer()->GetGlobalPosition(), 0.0f),
+   m_camera.Create(glm::vec3(m_currentLevel->GetPlayer()->GetPosition(), 0.0f),
                    m_window->GetSize());
    m_camera.SetLevelSize(m_currentLevel->GetSize());
 
@@ -681,7 +681,7 @@ Editor::ToggleAnimateObject()
    if (m_animateGameObject)
    {
       auto enemyPtr = std::dynamic_pointer_cast< Enemy >(m_currentSelectedGameObject);
-      enemyPtr->SetLocalPosition(enemyPtr->GetInitialPosition());
+      enemyPtr->SetPosition(enemyPtr->GetInitialPosition());
       m_animateGameObject = false;
    }
    else
@@ -818,7 +818,7 @@ Editor::Update()
 
       if (glm::length(moveBy) > 0.0f)
       {
-         m_currentSelectedGameObject->Move(moveBy, false);
+         m_currentSelectedGameObject->Move(moveBy);
       }
       else
       {

@@ -32,13 +32,7 @@ class EditorObject
    GetIsBackground() const;
 
    void
-   SetCenteredLocalPosition(const glm::ivec2& pos);
-
-   void
-   SetLocalPosition(const glm::ivec2& position);
-
-   void
-   SetGlobalPosition(const glm::vec2& position);
+   SetPosition(const glm::vec2& position);
 
    void
    SetShaders(const Shader& program);
@@ -56,21 +50,13 @@ class EditorObject
    glm::ivec2
    GetSize() const;
 
-   // Get cenetered position in local(level wise) coords
-   glm::ivec2
-   GetCenteredLocalPosition() const;
-
    // Get centered position in global(OpenGL) coords
    glm::vec2
-   GetCenteredGlobalPosition() const;
+   GetCenteredPosition() const;
 
    // Get position in global (OpenGL) coords
    glm::vec2
-   GetGlobalPosition() const;
-
-   // Get position in local (level wise) coords
-   glm::ivec2
-   GetLocalPosition() const;
+   GetPosition() const;
 
    bool
    CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const;
@@ -107,7 +93,7 @@ class EditorObject
 
    // Move object by 'moveBy'
    void
-   Move(const glm::vec2& moveBy, bool isCameraMovement = true);
+   Move(const glm::vec2& moveBy);
 
    void
    Scale(const glm::vec2& scaleVal, bool cumulative = false);
@@ -131,16 +117,10 @@ class EditorObject
 
  private:
    // global position (in OpenGL coords)
-   glm::vec2 m_globalPosition;
+   glm::vec2 m_position;
 
    // center of global's position (in OpenGL coords)
-   glm::vec2 m_centeredGlobalPosition;
-
-   // local position (map coords)
-   glm::ivec2 m_localPosition;
-
-   // center of local's position (map coords)
-   glm::ivec2 m_centeredLocalPosition;
+   glm::vec2 m_centeredPosition;
 
    // should this object be visible
    bool m_visible = false;

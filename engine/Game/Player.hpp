@@ -23,7 +23,7 @@ class Player : public GameObject
 
    // check if player got git by enemy
    bool
-   CheckCollision(const glm::ivec2& bulletPosition, Enemy const* enemy, bool enemyShooting = true);
+   CheckCollision(const glm::vec2& bulletPosition, Enemy const* enemy, bool enemyShooting = true);
 
    // load shaders with given name
    void
@@ -33,17 +33,9 @@ class Player : public GameObject
    void
    LoadShaders(const Shader& program);
 
-   // set position on map
-   void
-   SetLocalPosition(const glm::ivec2& pos) override;
-
-   // set centered (center of player's sprite) position on map
-   void
-   SetCenteredLocalPosition(const glm::ivec2& pos) override;
-
    // set position in OpenGL
    void
-   SetGlobalPosition(const glm::vec2& position) override;
+   SetPosition(const glm::vec2& position) override;
 
    // get centered (center of player's sprite) position on screen
    // using projection matrix from OpenGL

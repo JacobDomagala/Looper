@@ -19,7 +19,7 @@ class GameObject : public Object
 {
  public:
    // Constructors and destructors
-   GameObject(Application& game, const glm::vec2& localPosition, const glm::ivec2& size,
+   GameObject(Application& game, const glm::vec2& position, const glm::ivec2& size,
               const std::string& sprite, Object::TYPE type);
    ~GameObject() override = default;
 
@@ -35,13 +35,7 @@ class GameObject : public Object
    SetColor(const glm::vec3& color);
 
    virtual void
-   SetCenteredLocalPosition(const glm::ivec2& pos);
-
-   virtual void
-   SetLocalPosition(const glm::ivec2& position);
-
-   virtual void
-   SetGlobalPosition(const glm::vec2& position);
+   SetPosition(const glm::vec2& position);
 
    virtual void
    SetShaders(const std::string& shader);
@@ -58,21 +52,13 @@ class GameObject : public Object
    virtual glm::ivec2
    GetSize() const;
 
-   // Get cenetered position in local(level wise) coords
-   virtual glm::ivec2
-   GetCenteredLocalPosition() const;
-
    // Get centered position in global(OpenGL) coords
    virtual glm::vec2
-   GetCenteredGlobalPosition() const;
+   GetCenteredPosition() const;
 
    // Get position in global (OpenGL) coords
    virtual glm::vec2
-   GetGlobalPosition() const;
-
-   // Get position in local (level wise) coords
-   virtual glm::ivec2
-   GetLocalPosition() const;
+   GetPosition() const;
 
    virtual bool
    CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const;
@@ -103,7 +89,7 @@ class GameObject : public Object
 
    // Move object by 'moveBy'
    virtual void
-   Move(const glm::vec2& moveBy, bool isCameraMovement = true);
+   Move(const glm::vec2& moveBy);
 
    virtual void
    Scale(const glm::vec2& scaleVal, bool cumulative = false);
@@ -145,16 +131,10 @@ class GameObject : public Object
    struct State
    {
       // global position (in OpenGL coords)
-      glm::vec2 m_globalPosition;
+      glm::vec2 m_position;
 
       // center of global's position (in OpenGL coords)
-      glm::vec2 m_centeredGlobalPosition;
-
-      // local position (map coords)
-      glm::ivec2 m_localPosition;
-
-      // center of local's position (map coords)
-      glm::ivec2 m_centeredLocalPosition;
+      glm::vec2 m_centeredPosition;
 
       // should this object be visible
       bool m_visible;
@@ -185,9 +165,6 @@ class GameObject : public Object
    byte_vec4* m_collision;
 
    std::string m_name = "DummyName";
-   int m_id;
-
-   static inline int s_currentID = 0;
 };
 
 } // namespace dgame

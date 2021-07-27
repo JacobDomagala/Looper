@@ -9,12 +9,12 @@ EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const
                            const std::string& sprite, Object::ID linkedObject)
    : m_editor(editor)
 {
-   m_globalPosition = m_editor.GetLevel().GetGlobalVec(positionOnMap);
-   m_localPosition = positionOnMap;
-   m_sprite.SetSpriteTextured(m_globalPosition, size, sprite);
-   m_centeredGlobalPosition = m_sprite.GetPosition();
+   m_position = m_editor.GetLevel().GetGlobalVec(positionOnMap);
+   m_position = positionOnMap;
+   m_sprite.SetSpriteTextured(m_position, size, sprite);
+   m_centeredPosition = m_sprite.GetPosition();
 
-   m_centeredLocalPosition = m_editor.GetLevel().GetLocalVec(m_centeredGlobalPosition);
+   m_centeredPosition = m_editor.GetLevel().GetLocalVec(m_centeredPosition);
    m_objectID = linkedObject;
    m_hasLinkedObject = true;
 }
@@ -59,7 +59,7 @@ EditorObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 glm::vec2
 EditorObject::GetScreenPositionPixels() const
 {
-   return m_editor.GlobalToScreen(m_centeredGlobalPosition);
+   return m_editor.GlobalToScreen(m_centeredPosition);
 }
 
 bool
@@ -92,46 +92,22 @@ EditorObject::GetSize() const
    return m_sprite.GetSize();
 }
 
-glm::ivec2
-EditorObject::GetCenteredLocalPosition() const
-{
-   return m_centeredLocalPosition;
-}
-
 void
-EditorObject::SetCenteredLocalPosition(const glm::ivec2& pos)
+EditorObject::SetPosition(const glm::vec2& position)
 {
-   m_centeredLocalPosition = pos;
-}
-
-void
-EditorObject::SetLocalPosition(const glm::ivec2& position)
-{
-   m_localPosition = position;
-}
-
-void
-EditorObject::SetGlobalPosition(const glm::vec2& position)
-{
-   m_globalPosition = position;
+   m_position = position;
 }
 
 glm::vec2
-EditorObject::GetGlobalPosition() const
+EditorObject::GetPosition() const
 {
-   return m_globalPosition;
-}
-
-glm::ivec2
-EditorObject::GetLocalPosition() const
-{
-   return m_localPosition;
+   return m_position;
 }
 
 glm::vec2
-EditorObject::GetCenteredGlobalPosition() const
+EditorObject::GetCenteredPosition() const
 {
-   return m_centeredGlobalPosition;
+   return m_centeredPosition;
 }
 
 const Sprite&
@@ -156,14 +132,14 @@ void
 EditorObject::CreateSprite(const glm::vec2& globalPosition, const glm::ivec2& size)
 {
    m_sprite.SetSprite(globalPosition, size);
-   m_globalPosition = m_sprite.GetPosition();
+   m_position = m_sprite.GetPosition();
 }
 
 void
 EditorObject::CreateSpriteTextured(const glm::vec2& /*position*/, const glm::ivec2& /*size*/,
                                    const std::string& /*fileName*/)
 {
-   m_globalPosition = m_sprite.GetPosition();
+   m_position = m_sprite.GetPosition();
 }
 
 void
@@ -213,7 +189,7 @@ EditorObject::DeleteLinkedObject()
             auto& enemy = dynamic_cast< Enemy& >(object);
             enemy.DeleteAnimationNode(m_objectID);
             enemy.ResetAnimation();
-            enemy.Move(enemy.GetAnimationStartLocation() - enemy.GetGlobalPosition(), false);
+            enemy.Move(enemy.GetAnimationStartLocation() - enemy.GetPosition());
          }
          break;
 
@@ -230,14 +206,14 @@ EditorObject::DeleteLinkedObject()
 }
 
 void
-EditorObject::Move(const glm::vec2& moveBy, bool /*isCameraMovement*/)
+EditorObject::Move(const glm::vec2& moveBy)
 {
    m_sprite.Translate(moveBy);
-   m_globalPosition += moveBy;
-   m_centeredGlobalPosition += moveBy;
+   m_position += moveBy;
+   m_centeredPosition += moveBy;
 
-   m_localPosition += moveBy;
-   m_centeredLocalPosition += moveBy;
+   m_position += moveBy;
+   m_centeredPosition += moveBy;
 
    if (m_hasLinkedObject)
    {

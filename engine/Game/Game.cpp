@@ -115,12 +115,12 @@ Game::CheckBulletCollision(const glm::vec2& positon, float range)
 void
 Game::MoveGameObject(GameObject* gameObject, const glm::vec2& moveBy) const
 {
-   const auto fromPosition = gameObject->GetCenteredGlobalPosition();
+   const auto fromPosition = gameObject->GetCenteredPosition();
    const auto destination = fromPosition + moveBy;
 
    const auto actualMoveBy =
       m_currentLevel->GetCollidedPosition(fromPosition, destination) - fromPosition;
-   gameObject->Move(actualMoveBy, false);
+   gameObject->Move(actualMoveBy);
 }
 
 void
@@ -212,11 +212,11 @@ Game::KeyEvents()
 void
 Game::MouseEvents()
 {
-   const auto playerPos = m_player->GetCenteredGlobalPosition();
+   const auto playerPos = m_player->GetCenteredPosition();
    const auto mousePos = ScreenToGlobal(InputManager::GetMousePos());
    const auto collided = m_currentLevel->GetCollidedPosition(playerPos, mousePos);
 
-   Renderer::DrawLine(m_player->GetCenteredGlobalPosition(), collided, {0.8f, 0.0f, 0.3f, 1.0f});
+   Renderer::DrawLine(m_player->GetCenteredPosition(), collided, {0.8f, 0.0f, 0.3f, 1.0f});
 
    if (!m_reverse)
    {
@@ -290,7 +290,7 @@ Game::LoadLevel(const std::string& pathToLevel)
    m_currentLevel->Load(this, pathToLevel);
    m_player = m_currentLevel->GetPlayer();
 
-   m_camera.Create(glm::vec3(m_player->GetCenteredGlobalPosition(), 0.0f), m_window->GetSize());
+   m_camera.Create(glm::vec3(m_player->GetCenteredPosition(), 0.0f), m_window->GetSize());
    m_camera.SetLevelSize(m_currentLevel->GetSize());
 }
 
