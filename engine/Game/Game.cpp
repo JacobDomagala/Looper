@@ -104,42 +104,12 @@ Game::Init(const std::string configFile)
    m_initialized = true;
 }
 
-glm::ivec2
-Game::CorrectPosition()
-{
-   return glm::ivec2(0, 0);
-}
-
-std::pair< glm::ivec2, bool >
-Game::CheckBulletCollision(Enemy* /*from*/, glm::vec2 /*globalTo*/, int32_t /*range*/)
-{
-   return {glm::ivec2(), false};
-}
-
-bool
-Game::IsPlayerInVision(Enemy* /*from*/, int32_t /*range*/)
-{
-   return false;
-}
-
 glm::vec2
 Game::CheckBulletCollision(const glm::vec2& positon, float range)
 {
    return m_currentLevel->GetCollidedPosition(
       positon, glm::clamp(positon + range, glm::vec2{0.0f, 0.0f},
                           static_cast< glm::vec2 >(m_currentLevel->GetSize())));
-}
-
-glm::ivec2
-Game::CheckCollision(glm::ivec2& /*moveBy*/)
-{
-   return {};
-}
-
-glm::ivec2
-Game::CheckCollision(const glm::ivec2& /*currentPosition*/, const glm::ivec2& /*moveBy*/)
-{
-   return {};
 }
 
 void
@@ -298,22 +268,7 @@ Game::RenderFirstPass()
 {
    // m_frameBuffer.BeginDrawingToTexture();
 
-   // Temporary fix for getting player unstuck from walls
-   // Should only be active when not going in reverse mode
-   // if (!m_reverse)
-   //{
-   //   // player's position on the map
-   //   m_playerPosition = m_currentLevel->GetLocalVec(m_player->GetCenteredGlobalPosition());
-
-   //   glm::ivec2 correction = CorrectPosition();
-
-   //   m_player->Move(correction);
-   //   m_playerPosition += correction;
-   //   m_player->SetCenteredLocalPosition(m_playerPosition);
-   //}
-
    m_currentLevel->Render();
-
 
    // m_frameBuffer.EndDrawingToTexture();
 }

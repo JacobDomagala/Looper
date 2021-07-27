@@ -376,7 +376,7 @@ Level::GetTileFromPosition(const glm::vec2& local) const
 {
    if (!IsInLevelBoundaries(local))
    {
-      return {-1, -1};
+      return invalidTile;
    }
 
    const auto w = glm::floor(local.x / static_cast< float >(m_tileWidth));

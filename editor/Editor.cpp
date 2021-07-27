@@ -31,7 +31,7 @@ Editor::Editor(const glm::ivec2& screenSize) : m_gui(*this)
 
    m_gui.Init();
 
-   m_deltaTime = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000));
+   m_deltaTime = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000.0f));
 }
 
 void

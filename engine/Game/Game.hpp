@@ -19,8 +19,6 @@ namespace dgame {
 class Game : public Application
 {
  public:
-   Game() = default;
-   ~Game() override = default;
 
    void
    MainLoop() override;
@@ -31,15 +29,6 @@ class Game : public Application
 
    bool
    IsReverse() const;
-
-   std::pair< glm::ivec2, bool >
-   CheckBulletCollision(Enemy* from, glm::vec2 targetPosition, int32_t range);
-
-   bool
-   IsPlayerInVision(Enemy* from, int32_t range);
-
-   glm::ivec2
-   CheckCollision(const glm::ivec2& currentPosition, const glm::ivec2& moveBy);
 
    void
    ProcessInput(Timer::milliseconds deltaTime);
@@ -92,12 +81,6 @@ class Game : public Application
     */
    glm::vec2
    CheckBulletCollision(const glm::vec2& positon, float range);
-
-   glm::ivec2
-   CheckCollision(glm::ivec2& moveBy);
-
-   glm::ivec2
-   CorrectPosition();
 
    /**
     * \brief Try to move GameObject \c gameObject by \c moveBy vector

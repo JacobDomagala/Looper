@@ -28,7 +28,7 @@ EditorGUI::Init()
    ImGui::StyleColorsDark();
 
    ImGui_ImplGlfw_InitForOpenGL(m_parent.GetWindow().GetWindowHandle(), true);
-   ImGui_ImplOpenGL3_Init("#version 410");
+   ImGui_ImplOpenGL3_Init("#version 450");
 }
 
 void
@@ -137,7 +137,6 @@ EditorGUI::Render()
       ImGui::SetNextTreeNodeOpen(true);
       if (ImGui::CollapsingHeader("Objects"))
       {
-         // static int selected = 0;
          const auto& gameObjects = m_currentLevel->GetObjects();
 
          ImGui::BeginChild("Loaded Objects", {0, 200}, true);
