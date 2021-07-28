@@ -80,6 +80,12 @@ class PathFinder
    InitializeEmpty(const glm::ivec2& levelSize, const uint32_t tileSize);
 
    /**
+    * \brief Mark Pathfinder as initialized
+    */
+   void
+   SetInitialized();
+
+   /**
     * \brief Check whether the Pathfinder is initialized
     *
     * \return Whether it's initialized

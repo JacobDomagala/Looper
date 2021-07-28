@@ -286,6 +286,12 @@ PathFinder::SetNodeFreed(const Tile_t& nodeCoords)
    }
 }
 
+void
+PathFinder::SetInitialized()
+{
+   m_initialized = true;
+}
+
 bool
 PathFinder::IsInitialized() const
 {
