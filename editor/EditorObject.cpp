@@ -212,9 +212,6 @@ EditorObject::Move(const glm::vec2& moveBy)
    m_position += moveBy;
    m_centeredPosition += moveBy;
 
-   m_position += moveBy;
-   m_centeredPosition += moveBy;
-
    if (m_hasLinkedObject)
    {
       switch (Object::GetTypeFromID(m_objectID))

@@ -54,6 +54,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
                                                                   nodeJson["connected to"].end()),
                                       nodeJson["occupied"]));
          }
+
+         m_pathFinder.SetInitialized();
       }
       else if (key == "SHADER")
       {
