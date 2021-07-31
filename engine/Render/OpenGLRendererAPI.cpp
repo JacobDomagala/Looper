@@ -88,9 +88,9 @@ OpenGLRendererAPI::DrawIndexed(const std::shared_ptr< VertexArray >& vertexArray
 }
 
 void
-OpenGLRendererAPI::DrawLines(uint32_t numLines)
+OpenGLRendererAPI::DrawLines(uint32_t indexCount)
 {
-   glDrawArrays(GL_LINES, 0, numLines * 2);
+   glDrawArrays(GL_LINES, 0, indexCount * 2);
 }
 
 } // namespace dgame

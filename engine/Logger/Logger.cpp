@@ -4,9 +4,8 @@
 
 namespace dgame {
 
-Logger::Logger(const std::string& name)
+Logger::Logger(const std::string& name) : m_moduleName(name)
 {
-   m_moduleName = name;
 }
 
 void

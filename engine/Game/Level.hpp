@@ -23,14 +23,6 @@ class Level
    std::shared_ptr< GameObject >
    AddGameObject(GameObject::TYPE objectType);
 
-   // Convert from OpenGL position to map position
-   glm::vec2
-   GetLocalVec(const glm::vec2& local) const;
-
-   // Convert from map position to OpenGL
-   glm::vec2
-   GetGlobalVec(const glm::vec2& local) const;
-
    std::vector< Tile_t >
    GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const;
 
@@ -68,7 +60,7 @@ class Level
    DeleteObject(Object::ID deletedObject);
 
    Object&
-   GetObjectRef(Object::ID object);
+   GetObjectRef(Object::ID objectID);
 
    void
    Update(bool isReverse);

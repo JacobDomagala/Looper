@@ -41,7 +41,7 @@ Shader::LoadDefault()
 }
 
 std::string
-Shader::ReadShaderFile(std::string fileName)
+Shader::ReadShaderFile(const std::string& fileName)
 {
    return FileManager::ReadFile((SHADERS_DIR / fileName).string());
 }
@@ -82,7 +82,7 @@ Shader::LoadShaders(const std::string& shaderName)
 }
 
 void
-Shader::CheckCompileStatus(GLuint shaderID)
+Shader::CheckCompileStatus(GLuint shaderID) const
 {
    GLint isCompleted = 0;
    glGetShaderiv(shaderID, GL_COMPILE_STATUS, &isCompleted);
@@ -99,7 +99,7 @@ Shader::CheckCompileStatus(GLuint shaderID)
 }
 
 void
-Shader::CheckLinkStatus(GLuint programID)
+Shader::CheckLinkStatus(GLuint programID) const
 {
    GLint isLinked = 0;
    glGetProgramiv(programID, GL_LINK_STATUS, &isLinked);

@@ -12,7 +12,7 @@
 namespace dgame {
 
 void
-Font::SetFont(const std::string& fontName)
+Font::SetFont(const std::string& fileName)
 {
    m_logger.Init("Font");
 
@@ -22,7 +22,7 @@ Font::SetFont(const std::string& fontName)
       m_logger.Log(Logger::Type::FATAL, "Error initializing FreeType!");
 
    FT_Face face;
-   std::string filePath = fmt::format("{}.ttf", (FONTS_DIR / fontName).string());
+   std::string filePath = fmt::format("{}.ttf", (FONTS_DIR / fileName).string());
 
    if (FT_New_Face(ft, filePath.c_str(), 0, &face))
       m_logger.Log(Logger::Type::FATAL, "Error loading font " + filePath);
@@ -81,7 +81,7 @@ Font::SetFont(const std::string& fontName)
    glBindVertexArray(0);
    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
-   m_logger.Log(Logger::Type::INFO, fmt::format("Loaded font: {}", fontName));
+   m_logger.Log(Logger::Type::INFO, fmt::format("Loaded font: {}", fileName));
 }
 
 void

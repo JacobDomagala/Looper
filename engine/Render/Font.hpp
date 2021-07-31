@@ -22,9 +22,6 @@ struct Character
 class Font
 {
  public:
-   Font() = default;
-   ~Font() = default;
-
    void
    SetFont(const std::string& fileName);
 

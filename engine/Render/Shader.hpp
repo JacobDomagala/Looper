@@ -50,13 +50,13 @@ class Shader
 
  private:
    std::string
-   ReadShaderFile(std::string fileName);
+   ReadShaderFile(const std::string& fileName);
 
    void
-   CheckCompileStatus(GLuint shaderID);
+   CheckCompileStatus(GLuint shaderID) const;
 
    void
-   CheckLinkStatus(GLuint programID);
+   CheckLinkStatus(GLuint programID) const;
 
    GLint
    GetUniformLocation(const std::string& uniformName);

@@ -9,7 +9,7 @@ GameObject::GameObject(Application& application, const glm::vec2& position,
                        const glm::ivec2& size, const std::string& sprite, Object::TYPE type)
    : Object(type), m_appHandle(application)
 {
-   m_currentGameObjectState.m_position = m_appHandle.GetLevel().GetGlobalVec(position);
+   m_currentGameObjectState.m_position = position;
    m_currentGameObjectState.m_visible = true;
    m_collision = m_sprite.SetSpriteTextured(m_currentGameObjectState.m_position, size, sprite);
    m_currentGameObjectState.m_centeredPosition = m_sprite.GetPosition();

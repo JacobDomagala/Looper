@@ -26,21 +26,21 @@ InputManager::InternalMouseButtonCallback(GLFWwindow*, int32_t button, int32_t a
 }
 
 void
-InputManager::InternalCursorPositionCallback(GLFWwindow*, double x, double y)
+InputManager::InternalCursorPositionCallback(GLFWwindow* /*window*/, double xPos, double yPos)
 {
-   s_logger.Log(Logger::Type::TRACE, "GLFW cursor pos {} {}", x, y);
+   s_logger.Log(Logger::Type::TRACE, "GLFW cursor pos {} {}", xPos, yPos);
 
-   s_mousePosition = glm::vec2(x, y);
+   s_mousePosition = glm::vec2(xPos, yPos);
 
-   BroadcastEvent(CursorPositionEvent{x, y});
+   BroadcastEvent(CursorPositionEvent{xPos, yPos});
 }
 
 void
-InputManager::InternalMouseScrollCallback(GLFWwindow*, double xoffset, double yoffset)
+InputManager::InternalMouseScrollCallback(GLFWwindow*, double xOffset, double yOffset)
 {
-   s_logger.Log(Logger::Type::TRACE, "GLFW scroll {} {}", xoffset, yoffset);
+   s_logger.Log(Logger::Type::TRACE, "GLFW scroll {} {}", xOffset, yOffset);
 
-   BroadcastEvent(MouseScrollEvent{xoffset, yoffset});
+   BroadcastEvent(MouseScrollEvent{xOffset, yOffset});
 }
 
 void

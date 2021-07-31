@@ -114,9 +114,9 @@ Player::Shoot()
 }
 
 void
-Player::SetPosition(const glm::vec2& pos)
+Player::SetPosition(const glm::vec2& position)
 {
-   m_currentGameObjectState.m_position = pos;
+   m_currentGameObjectState.m_position = position;
 }
 
 float

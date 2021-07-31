@@ -691,7 +691,7 @@ Editor::ToggleAnimateObject()
 }
 
 bool
-Editor::IsObjectAnimated()
+Editor::IsObjectAnimated() const
 {
    return m_animateGameObject;
 }

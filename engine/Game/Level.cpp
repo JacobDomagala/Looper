@@ -67,7 +67,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
          const auto position = json[key]["position"];
          const auto size = json[key]["size"];
          const auto texture = json[key]["texture"];
-         const auto weapons = json[key]["weapons"];
+         // const auto weapons = json[key]["weapons"];
          const auto name = json[key]["name"];
 
          m_player = std::make_shared< Player >(*context, glm::vec2(position[0], position[1]),
@@ -83,7 +83,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
             const auto position = enemy["position"];
             const auto size = enemy["size"];
             const auto texture = enemy["texture"];
-            const auto weapons = enemy["weapons"];
+            // const auto weapons = enemy["weapons"];
             const auto name = enemy["name"];
 
             auto object = std::make_shared< Enemy >(*context, glm::vec2(position[0], position[1]),
@@ -264,7 +264,7 @@ Level::Quit()
 std::shared_ptr< GameObject >
 Level::AddGameObject(GameObject::TYPE objectType)
 {
-   const auto defaultPosition = GetLocalVec(m_contextPointer->GetCamera().GetPosition());
+   const auto defaultPosition = m_contextPointer->GetCamera().GetPosition();
    const auto defaultSize = glm::ivec2(128, 128);
    const auto defaultTexture = std::string("Default128.png");
 
@@ -307,31 +307,6 @@ Level::AddGameObject(GameObject::TYPE objectType)
    }
 
    return newObject;
-}
-
-glm::vec2
-Level::GetLocalVec(const glm::vec2& global) const
-{
-   // get the vector relative to map's position
-   // glm::vec2 returnVal{m_background.GetPosition() - global};
-
-   //// change 'y' to originate in top left
-   // returnVal.y -= m_levelSize.y;
-   // returnVal *= -1;
-
-   return global;
-}
-
-glm::vec2
-Level::GetGlobalVec(const glm::vec2& local) const
-{
-   // glm::vec2 returnVal = local;
-
-   // returnVal *= -1;
-   // returnVal.y += m_levelSize.y;
-   // returnVal = m_background.GetPosition() - returnVal;
-
-   return local;
 }
 
 std::vector< Tile_t >

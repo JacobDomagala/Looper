@@ -48,7 +48,7 @@ class Animatable
    };
 
  public:
-   Animatable(ANIMATION_TYPE type);
+   explicit Animatable(ANIMATION_TYPE type);
 
    void SetAnimationType(ANIMATION_TYPE);
 

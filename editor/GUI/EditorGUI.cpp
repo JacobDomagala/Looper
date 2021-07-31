@@ -136,7 +136,7 @@ EditorGUI::Shutdown()
 bool
 EditorGUI::IsBlockingEvents()
 {
-   ImGuiIO& io = ImGui::GetIO();
+   const ImGuiIO& io = ImGui::GetIO();
    return io.WantCaptureMouse || io.WantTextInput;
 }
 
@@ -487,9 +487,9 @@ EditorGUI::EditorObjectUnselected()
 }
 
 void
-EditorGUI::LevelLoaded(std::shared_ptr< Level > levelLoaded)
+EditorGUI::LevelLoaded(std::shared_ptr< Level > loadedLevel)
 {
-   m_currentLevel = levelLoaded;
+   m_currentLevel = loadedLevel;
 }
 
 void EditorGUI::ObjectUpdated(Object::ID /*ID*/)

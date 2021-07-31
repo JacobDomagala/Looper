@@ -23,10 +23,6 @@ class Sprite
    };
 
  public:
-   Sprite() = default;
-   ~Sprite() = default;
-   Sprite(Sprite&&) = default;
-
    // Create sprite without texture
    void
    SetSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
@@ -115,9 +111,9 @@ class Sprite
    Render();
 
  public:
-   static inline const std::pair< float, float > s_ROTATIONRANGE = {glm::radians(-360.0f),
-                                                                    glm::radians(360.0f)};
-   static inline const std::pair< float, float > s_SCALERANGE = {1.0f, 5.0f};
+   static constexpr std::pair< float, float > s_ROTATIONRANGE = {glm::radians(-360.0f),
+                                                                 glm::radians(360.0f)};
+   static constexpr std::pair< float, float > s_SCALERANGE = {1.0f, 5.0f};
 
  private:
    struct State

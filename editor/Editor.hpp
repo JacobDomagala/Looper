@@ -21,7 +21,7 @@ class Window;
 class Editor : public Application
 {
  public:
-   Editor(const glm::ivec2& screenSize);
+   explicit Editor(const glm::ivec2& screenSize);
    ~Editor() override = default;
 
    // APPLICATION OVERRIDES
@@ -60,10 +60,10 @@ class Editor : public Application
    CreateLevel(const glm::ivec2& size);
 
    void
-   LoadLevel(const std::string& levelName);
+   LoadLevel(const std::string& levelPath);
 
    void
-   SaveLevel(const std::string& levelName);
+   SaveLevel(const std::string& levelPath);
 
    void
    AddGameObject(GameObject::TYPE objectType);
@@ -75,7 +75,7 @@ class Editor : public Application
    ToggleAnimateObject();
 
    bool
-   IsObjectAnimated();
+   IsObjectAnimated() const;
 
    void
    PlayLevel();
@@ -90,7 +90,7 @@ class Editor : public Application
    SetRenderAnimationPoints(bool render);
 
    void
-   SetLockAnimationPoints(bool render);
+   SetLockAnimationPoints(bool lock);
 
    void
    Update();
@@ -118,7 +118,7 @@ class Editor : public Application
    HandleObjectSelected(Object::ID objectID, bool fromGUI);
 
    void
-   HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedObject,
+   HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedEditorObject,
                               bool fromGUI = false);
 
  private:

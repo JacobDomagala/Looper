@@ -7,16 +7,13 @@ namespace dgame {
 
 EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size,
                            const std::string& sprite, Object::ID linkedObject)
-   : m_editor(editor)
+   : m_editor(editor),
+     m_position(positionOnMap),
+     m_centeredPosition(positionOnMap),
+     m_objectID(linkedObject),
+     m_hasLinkedObject(true)
 {
-   m_position = m_editor.GetLevel().GetGlobalVec(positionOnMap);
-   m_position = positionOnMap;
    m_sprite.SetSpriteTextured(m_position, size, sprite);
-   m_centeredPosition = m_sprite.GetPosition();
-
-   m_centeredPosition = m_editor.GetLevel().GetLocalVec(m_centeredPosition);
-   m_objectID = linkedObject;
-   m_hasLinkedObject = true;
 }
 
 bool
@@ -169,7 +166,7 @@ EditorObject::GetName() const
 }
 
 Object::ID
-EditorObject::GetLinkedObjectID()
+EditorObject::GetLinkedObjectID() const
 {
    return m_objectID;
 }
@@ -303,7 +300,7 @@ EditorObject::SetVisible(bool visible)
 }
 
 bool
-EditorObject::IsVisible()
+EditorObject::IsVisible() const
 {
    return m_visible;
 }

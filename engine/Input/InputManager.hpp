@@ -59,9 +59,9 @@ class InputManager
    static void
    InternalMouseButtonCallback(GLFWwindow* window, int32_t button, int32_t action, int32_t mods);
    static void
-   InternalCursorPositionCallback(GLFWwindow* window, double xpos, double ypos);
+   InternalCursorPositionCallback(GLFWwindow* window, double xPos, double yPos);
    static void
-   InternalMouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+   InternalMouseScrollCallback(GLFWwindow* window, double xOffset, double yOffset);
 
  private:
    static void

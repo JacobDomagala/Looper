@@ -44,7 +44,7 @@ class EditorObject
    SetVisible(bool visible);
 
    bool
-   IsVisible();
+   IsVisible() const;
 
    // Get size of object
    glm::ivec2
@@ -75,7 +75,7 @@ class EditorObject
    GetName() const;
 
    Object::ID
-   GetLinkedObjectID();
+   GetLinkedObjectID() const;
 
    void
    DeleteLinkedObject();
@@ -116,6 +116,8 @@ class EditorObject
    SetObjectUnselected();
 
  private:
+   Editor& m_editor;
+
    // global position (in OpenGL coords)
    glm::vec2 m_position;
 
@@ -130,7 +132,7 @@ class EditorObject
    // Linked object's ID
    Object::ID m_objectID = Object::INVALID_ID;
    bool m_hasLinkedObject = false;
-   Editor& m_editor;
+
 
    bool m_selected = false;
    bool m_isBackground = false;

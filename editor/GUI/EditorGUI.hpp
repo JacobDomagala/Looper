@@ -19,7 +19,7 @@ class Level;
 class EditorGUI
 {
  public:
-   EditorGUI(Editor& parent);
+   explicit EditorGUI(Editor& parent);
    ~EditorGUI() = default;
 
    void
