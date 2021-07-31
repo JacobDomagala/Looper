@@ -148,8 +148,8 @@ class GameObject : public Object
       std::vector< Tile_t > m_occupiedNodes;
    };
 
-   std::deque< State > m_statesQueue;
-   State m_currentState;
+   std::deque< State > m_gameObjectStatesQueue;
+   State m_currentGameObjectState;
 
    Application& m_appHandle;
 

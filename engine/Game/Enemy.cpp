@@ -19,7 +19,7 @@ Enemy::Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size,
    m_animationPoints = keypoints;
 
    m_timer.ToggleTimer();
-   m_initialPosition = GameObject::m_currentState.m_position;
+   m_initialPosition = m_currentGameObjectState.m_position;
 
    m_animationStartPosition = m_initialPosition;
    ResetAnimation();
@@ -32,7 +32,7 @@ Enemy::DealWithPlayer()
 
    const auto playerPosition = gameHandle->GetPlayer()->GetCenteredPosition();
    const auto playerInVision = gameHandle->GetLevel().CheckCollisionAlongTheLine(
-      GameObject::m_currentState.m_centeredPosition, playerPosition);
+      m_currentGameObjectState.m_centeredPosition, playerPosition);
 
    m_timer.ToggleTimer();
 
@@ -136,7 +136,7 @@ Enemy::Shoot()
    m_currentState.m_timeSinceLastShot += m_timer.GetFloatDeltaTime();
 
    if (glm::length(static_cast< glm::vec2 >(m_appHandle.GetPlayer()->GetCenteredPosition()
-                                            - GameObject::m_currentState.m_centeredPosition))
+                                            - m_currentGameObjectState.m_centeredPosition))
        <= static_cast< float >(m_weapon->GetRange()))
    {
       if (m_currentState.m_timeSinceLastShot >= m_weapon->GetReloadTime())
@@ -163,7 +163,7 @@ Enemy::MoveToPosition(const glm::vec2& targetPosition, bool exactPosition)
 
    auto& pathFinder = gameHandle->GetLevel().GetPathfinder();
 
-   const auto curPosition = GameObject::m_currentState.m_centeredPosition;
+   const auto curPosition = m_currentGameObjectState.m_centeredPosition;
    const auto tiles = pathFinder.GetPath(curPosition, targetPosition);
 
    if (tiles.size() > 0)
@@ -179,7 +179,7 @@ Enemy::MoveToPosition(const glm::vec2& targetPosition, bool exactPosition)
 
       constexpr auto errorTreshold = 3.0f;
       const auto distanceToDest =
-         targetPosition - GameObject::m_currentState.m_centeredPosition;
+         targetPosition - m_currentGameObjectState.m_centeredPosition;
 
       // If Enemy is really close to target destination, just put it there
       if (glm::length(distanceToDest) < errorTreshold)

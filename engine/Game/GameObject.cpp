@@ -9,10 +9,10 @@ GameObject::GameObject(Application& contextHandle, const glm::vec2& positionOnMa
                        const glm::ivec2& size, const std::string& sprite, Object::TYPE type)
    : Object(type), m_appHandle(contextHandle)
 {
-   m_currentState.m_position = m_appHandle.GetLevel().GetGlobalVec(positionOnMap);
-   m_currentState.m_visible = true;
-   m_collision = m_sprite.SetSpriteTextured(m_currentState.m_position, size, sprite);
-   m_currentState.m_centeredPosition = m_sprite.GetPosition();
+   m_currentGameObjectState.m_position = m_appHandle.GetLevel().GetGlobalVec(positionOnMap);
+   m_currentGameObjectState.m_visible = true;
+   m_collision = m_sprite.SetSpriteTextured(m_currentGameObjectState.m_position, size, sprite);
+   m_currentGameObjectState.m_centeredPosition = m_sprite.GetPosition();
    m_type = type;
 
    UpdateCollision();
@@ -55,13 +55,13 @@ GameObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 glm::vec2
 GameObject::GetScreenPositionPixels() const
 {
-   return m_appHandle.GlobalToScreen(m_currentState.m_centeredPosition);
+   return m_appHandle.GlobalToScreen(m_currentGameObjectState.m_centeredPosition);
 }
 
 bool
 GameObject::Visible() const
 {
-   return m_currentState.m_visible;
+   return m_currentGameObjectState.m_visible;
 }
 
 void
@@ -69,8 +69,8 @@ GameObject::SetSize(const glm::vec2& newSize)
 {
    m_sprite.SetSize(newSize);
 
-   m_currentState.m_occupiedNodes = m_appHandle.GetLevel().GameObjectMoved(
-      m_sprite.GetTransformedRectangle(), m_currentState.m_occupiedNodes);
+   m_currentGameObjectState.m_occupiedNodes = m_appHandle.GetLevel().GameObjectMoved(
+      m_sprite.GetTransformedRectangle(), m_currentGameObjectState.m_occupiedNodes);
 }
 
 void
@@ -88,20 +88,20 @@ GameObject::GetSize() const
 void
 GameObject::SetPosition(const glm::vec2& position)
 {
-   m_currentState.m_position = position;
+   m_currentGameObjectState.m_position = position;
 }
 
 glm::vec2
 GameObject::GetPosition() const
 {
-   return m_currentState.m_position;
+   return m_currentGameObjectState.m_position;
 }
 
 glm::vec2
 GameObject::GetCenteredPosition() const
 {
-   return m_currentState.m_position;
-   // return m_currentState.m_centeredPosition;
+   return m_currentGameObjectState.m_position;
+   // return m_currentGameObjectState.m_centeredPosition;
 }
 
 const Sprite&
@@ -126,7 +126,7 @@ void
 GameObject::CreateSprite(const glm::vec2& position, const glm::ivec2& size)
 {
    m_sprite.SetSprite(position, size);
-   m_currentState.m_position = m_sprite.GetPosition();
+   m_currentGameObjectState.m_position = m_sprite.GetPosition();
 }
 
 void
@@ -134,7 +134,7 @@ GameObject::CreateSpriteTextured(const glm::vec2& position, const glm::ivec2& si
                                  const std::string& fileName)
 {
    m_collision = m_sprite.SetSpriteTextured(position, size, fileName);
-   m_currentState.m_position = m_sprite.GetPosition();
+   m_currentGameObjectState.m_position = m_sprite.GetPosition();
 }
 
 void
@@ -144,7 +144,7 @@ GameObject::SetHasCollision(bool hasCollision)
 
    if (!m_hasCollision)
    {
-      for (auto& node : m_currentState.m_occupiedNodes)
+      for (auto& node : m_currentGameObjectState.m_occupiedNodes)
       {
          m_appHandle.GetLevel().GetPathfinder().SetNodeFreed(node);
       }
@@ -178,23 +178,23 @@ GameObject::UpdateCollision()
 {
    if (m_hasCollision)
    {
-      m_currentState.m_occupiedNodes = m_appHandle.GetLevel().GameObjectMoved(
-         m_sprite.GetTransformedRectangle(), m_currentState.m_occupiedNodes);
+      m_currentGameObjectState.m_occupiedNodes = m_appHandle.GetLevel().GameObjectMoved(
+         m_sprite.GetTransformedRectangle(), m_currentGameObjectState.m_occupiedNodes);
    }
 }
 
 std::vector< Tile_t >
 GameObject::GetOccupiedNodes() const
 {
-   return m_currentState.m_occupiedNodes;
+   return m_currentGameObjectState.m_occupiedNodes;
 }
 
 void
 GameObject::Move(const glm::vec2& moveBy)
 {
    m_sprite.Translate(moveBy);
-   m_currentState.m_position += moveBy;
-   m_currentState.m_centeredPosition += moveBy;
+   m_currentGameObjectState.m_position += moveBy;
+   m_currentGameObjectState.m_centeredPosition += moveBy;
 
    UpdateCollision();
 }
@@ -220,15 +220,15 @@ GameObject::Update(bool isReverse)
 {
    if (isReverse)
    {
-      m_currentState = m_statesQueue.back();
-      m_statesQueue.pop_back();
+      m_currentGameObjectState = m_gameObjectStatesQueue.back();
+      m_gameObjectStatesQueue.pop_back();
    }
    else
    {
-      m_statesQueue.push_back(m_currentState);
-      if (m_statesQueue.size() >= NUM_FRAMES_TO_SAVE)
+      m_gameObjectStatesQueue.push_back(m_currentGameObjectState);
+      if (m_gameObjectStatesQueue.size() >= NUM_FRAMES_TO_SAVE)
       {
-         m_statesQueue.pop_front();
+         m_gameObjectStatesQueue.pop_front();
       }
    }
 
