@@ -294,15 +294,15 @@ Animatable::Update(bool isReverse)
 {
    if (isReverse)
    {
-      m_currentAnimationState = m_statesQueue.back();
-      m_statesQueue.pop_back();
+      m_currentAnimationState = m_animationStatesQueue.back();
+      m_animationStatesQueue.pop_back();
    }
    else
    {
-      m_statesQueue.push_back(m_currentAnimationState);
-      if (m_statesQueue.size() >= NUM_FRAMES_TO_SAVE)
+      m_animationStatesQueue.push_back(m_currentAnimationState);
+      if (m_animationStatesQueue.size() >= NUM_FRAMES_TO_SAVE)
       {
-         m_statesQueue.pop_front();
+         m_animationStatesQueue.pop_front();
       }
    }
 }

@@ -49,7 +49,7 @@ class Game : public Application
    RegisterForKeyInput(InputListener* listener);
 
    void
-   LoadLevel(const std::string& levelName);
+   LoadLevel(const std::string& pathToLevel);
 
    glm::vec2
    GetWindowSize() const override;

@@ -47,13 +47,13 @@ class Level
    void
    Create(Application* context, const glm::ivec2& size);
 
-   // pathToFile - global path to level file (.dgl)
+   // pathToLevel - global path to level file (.dgl)
    void
-   Load(Application* context, const std::string& pathToFile);
+   Load(Application* context, const std::string& pathToLevel);
 
-   // pathToFile - global path to level file (.dgl)
+   // pathToLevel - global path to level file (.dgl)
    void
-   Save(const std::string& pathToFile);
+   Save(const std::string& pathToLevel);
 
    void
    Quit();
@@ -168,7 +168,7 @@ class Level
    }
 
    const std::vector< std::shared_ptr< GameObject > >&
-   GetObjects(bool includePlayer = false);
+   GetObjects(bool includePlayer = false) const;
 
    std::string
    GetShader() const

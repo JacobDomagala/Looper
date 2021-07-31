@@ -19,7 +19,7 @@ class GameObject : public Object
 {
  public:
    // Constructors and destructors
-   GameObject(Application& game, const glm::vec2& position, const glm::ivec2& size,
+   GameObject(Application& application, const glm::vec2& position, const glm::ivec2& size,
               const std::string& sprite, Object::TYPE type);
    ~GameObject() override = default;
 

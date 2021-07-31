@@ -619,7 +619,7 @@ Level::MoveObjs(const glm::vec2& moveBy)
 }
 
 const std::vector< std::shared_ptr< GameObject > >&
-Level::GetObjects(bool)
+Level::GetObjects(bool) const
 {
    return m_objects;
 }

@@ -107,7 +107,8 @@ class BufferLayout
    {
    }
 
-   BufferLayout(const std::initializer_list< BufferElement >& elements) : m_Elements(elements)
+   explicit BufferLayout(const std::initializer_list< BufferElement >& elements)
+      : m_Elements(elements)
    {
       CalculateOffsetsAndStride();
    }
@@ -166,7 +167,7 @@ class BufferLayout
 class VertexBuffer
 {
  public:
-   VertexBuffer(uint32_t size);
+   explicit VertexBuffer(uint32_t size);
    VertexBuffer(float* vertices, uint32_t size);
    ~VertexBuffer();
 

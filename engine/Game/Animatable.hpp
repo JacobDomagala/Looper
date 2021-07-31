@@ -13,7 +13,7 @@ namespace dgame {
 
 struct AnimationPoint : public Object
 {
-   AnimationPoint(ID parentID) : Object(Object::TYPE::ANIMATION_POINT), m_parent(parentID)
+   explicit AnimationPoint(ID parentID) : Object(Object::TYPE::ANIMATION_POINT), m_parent(parentID)
    {
    }
 
@@ -72,10 +72,10 @@ class Animatable
    CreateAnimationNode(Object::ID parentID);
 
    void
-   AddAnimationNode(const AnimationPoint& pathNodeMapPosition);
+   AddAnimationNode(const AnimationPoint& newAnimationPoint);
 
    void
-   UpdateAnimationNode(const AnimationPoint& pathNodeMapPosition);
+   UpdateAnimationNode(const AnimationPoint& updatedAnimationPoint);
 
    void
    DeleteAnimationNode(Object::ID animationID);
@@ -141,7 +141,7 @@ class Animatable
       Timer::milliseconds m_totalTimeElapsed = Timer::milliseconds(0);
    };
 
-   std::deque< AnimationState > m_statesQueue;
+   std::deque< AnimationState > m_animationStatesQueue;
    AnimationState m_currentAnimationState;
 
    std::vector< AnimationPoint > m_animationPoints;

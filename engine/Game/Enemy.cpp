@@ -8,13 +8,15 @@
 namespace dgame {
 
 Enemy::Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size,
-             const std::string& sprite, const std::vector< AnimationPoint >& keypoints,
+             const std::string& textureName, const std::vector< AnimationPoint >& keypoints,
              Animatable::ANIMATION_TYPE animationType)
-   : GameObject(context, pos, size, sprite, TYPE::ENEMY), Animatable(animationType)
+   : GameObject(context, pos, size, textureName, TYPE::ENEMY),
+     Animatable(animationType),
+     m_weapon(std::make_unique< Glock >())
 {
    m_currentState.m_currentHP = m_maxHP;
    m_currentState.m_visionRange = 1000.0f;
-   m_weapon = std::make_unique< Glock >();
+
    m_currentState.m_combatStarted = false;
    m_animationPoints = keypoints;
 
@@ -118,7 +120,7 @@ Enemy::Visible() const
 }
 
 void
-Enemy::SetTargetShootPosition(const glm::vec2& playerPos)
+Enemy::SetTargetShootPosition(const glm::vec2& targetPosition)
 {
    auto playerSize = m_appHandle.GetPlayer()->GetSize();
 
@@ -126,7 +128,7 @@ Enemy::SetTargetShootPosition(const glm::vec2& playerPos)
    auto xOffset = fmod(rand(), playerSize.x) + (-playerSize.x / 2);
    auto yOffset = fmod(rand(), playerSize.y) + (-playerSize.y / 2);
 
-   m_currentState.m_targetShootPosition = (playerPos + glm::vec2(xOffset, yOffset));
+   m_currentState.m_targetShootPosition = (targetPosition + glm::vec2(xOffset, yOffset));
    m_currentState.m_combatStarted = true;
 }
 
@@ -178,8 +180,7 @@ Enemy::MoveToPosition(const glm::vec2& targetPosition, bool exactPosition)
       Move(moveVal);
 
       constexpr auto errorTreshold = 3.0f;
-      const auto distanceToDest =
-         targetPosition - m_currentGameObjectState.m_centeredPosition;
+      const auto distanceToDest = targetPosition - m_currentGameObjectState.m_centeredPosition;
 
       // If Enemy is really close to target destination, just put it there
       if (glm::length(distanceToDest) < errorTreshold)

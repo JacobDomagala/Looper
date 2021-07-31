@@ -77,7 +77,7 @@ class Enemy : public GameObject, public Animatable
    ClearPositions();
 
    void
-   SetTargetShootPosition(const glm::vec2& pos);
+   SetTargetShootPosition(const glm::vec2& targetPosition);
 
  private:
    struct EnemyState
