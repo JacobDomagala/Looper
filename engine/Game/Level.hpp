@@ -171,7 +171,7 @@ class Level
    GetObjects(bool includePlayer = false);
 
    std::string
-   GetShader()
+   GetShader() const
    {
       return m_shaderName;
    }

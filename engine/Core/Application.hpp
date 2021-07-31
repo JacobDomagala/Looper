@@ -35,10 +35,10 @@ class Application : public InputListener
    GetCamera();
 
    Timer::milliseconds
-   GetDeltaTime();
+   GetDeltaTime() const;
 
    bool
-   IsGame();
+   IsGame() const;
 
    void
    Log(Logger::TYPE t, const std::string& log);
@@ -53,7 +53,7 @@ class Application : public InputListener
 
    // convert from screen position (in pixels) to global position (OpenGL)
    glm::vec2
-   ScreenToGlobal(const glm::vec2& screenPos);
+   ScreenToGlobal(const glm::vec2& screenPos) const;
 
    void
    CenterCameraOnPlayer();
@@ -71,11 +71,11 @@ class Application : public InputListener
    GetViewMatrix() const = 0;
 
    virtual float
-   GetZoomLevel() = 0;
+   GetZoomLevel() const = 0;
 
  protected:
    virtual bool
-   IsRunning() = 0;
+   IsRunning() const = 0;
 
    Logger m_logger;
    bool m_isGame = false;

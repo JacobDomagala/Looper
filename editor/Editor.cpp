@@ -857,13 +857,13 @@ Editor::GetViewMatrix() const
 }
 
 float
-Editor::GetZoomLevel()
+Editor::GetZoomLevel() const
 {
    return m_camera.GetZoomLevel();
 }
 
 bool
-Editor::IsRunning()
+Editor::IsRunning() const
 {
    return m_isRunning;
 }

@@ -36,13 +36,13 @@ Application::GetCamera()
 }
 
 Timer::milliseconds
-Application::GetDeltaTime()
+Application::GetDeltaTime() const
 {
    return m_deltaTime;
 }
 
 bool
-Application::IsGame()
+Application::IsGame() const
 {
    return m_isGame;
 }
@@ -86,7 +86,7 @@ Application::GlobalToScreen(const glm::vec2& globalPos) const
 }
 
 glm::vec2
-Application::ScreenToGlobal(const glm::vec2& screenPos)
+Application::ScreenToGlobal(const glm::vec2& screenPos) const
 {
    const auto windowCenterScreen = GetWindowSize() / 2.0f;
    const auto zoomRatio = (GetWindowSize() / (2.0f + GetZoomLevel())) / windowCenterScreen;

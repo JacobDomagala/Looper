@@ -313,7 +313,7 @@ Game::GetViewMatrix() const
 }
 
 float
-Game::GetZoomLevel()
+Game::GetZoomLevel() const
 {
    return m_camera.GetZoomLevel();
 }
@@ -337,7 +337,7 @@ Game::SwapBuffers()
 }
 
 bool
-Game::IsRunning()
+Game::IsRunning() const
 {
    return m_window->IsRunning();
 }

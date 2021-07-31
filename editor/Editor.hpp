@@ -38,7 +38,7 @@ class Editor : public Application
    GetViewMatrix() const override;
 
    float
-   GetZoomLevel() override;
+   GetZoomLevel() const override;
 
    void
    KeyCallback(const KeyEvent& event) override;
@@ -148,7 +148,7 @@ class Editor : public Application
    DrawBoundingBoxes();
 
    bool
-   IsRunning() override;
+   IsRunning() const override;
 
    void
    HandleCamera();

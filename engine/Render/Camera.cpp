@@ -128,7 +128,7 @@ Camera::GetPosition() const
 }
 
 float
-Camera::GetRotation()
+Camera::GetRotation() const
 {
    return m_rotationValue;
 }

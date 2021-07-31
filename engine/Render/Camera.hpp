@@ -60,7 +60,7 @@ class Camera
    GetPosition() const;
 
    float
-   GetRotation();
+   GetRotation() const;
 
    // Convert 'conventionalVector' to camera state related vector
    // Example:
