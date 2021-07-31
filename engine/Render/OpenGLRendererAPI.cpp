@@ -14,13 +14,13 @@ OpenGLRendererAPI::Init()
 
    if (status != 1)
    {
-      m_logger.Log(Logger::TYPE::FATAL, "gladLoadGLLoader() != OK");
+      m_logger.Log(Logger::Type::FATAL, "gladLoadGLLoader() != OK");
    }
 
    int major, minor;
    glGetIntegerv(GL_MAJOR_VERSION, &major);
    glGetIntegerv(GL_MINOR_VERSION, &minor);
-   m_logger.Log(Logger::TYPE::DEBUG, "OpenGL Version - {}.{}", major, minor);
+   m_logger.Log(Logger::Type::DEBUG, "OpenGL Version - {}.{}", major, minor);
 
    glEnable(GL_DEBUG_OUTPUT);
    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -36,16 +36,16 @@ OpenGLRendererAPI::Init()
          switch (severity)
          {
             case GL_DEBUG_SEVERITY_HIGH:
-               logg->Log(Logger::TYPE::FATAL, buffer);
+               logg->Log(Logger::Type::FATAL, buffer);
                return;
             case GL_DEBUG_SEVERITY_MEDIUM:
-               logg->Log(Logger::TYPE::WARNING, buffer);
+               logg->Log(Logger::Type::WARNING, buffer);
                return;
             case GL_DEBUG_SEVERITY_LOW:
-               logg->Log(Logger::TYPE::INFO, buffer);
+               logg->Log(Logger::Type::INFO, buffer);
                return;
             case GL_DEBUG_SEVERITY_NOTIFICATION:
-               logg->Log(Logger::TYPE::DEBUG, buffer);
+               logg->Log(Logger::Type::DEBUG, buffer);
                return;
          }
       },

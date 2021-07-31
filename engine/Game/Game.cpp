@@ -14,7 +14,7 @@ namespace dgame {
 void
 Game::MainLoop()
 {
-   Logger::SetLogType(Logger::TYPE::DEBUG);
+   Logger::SetLogType(Logger::Type::DEBUG);
 
    auto singleFrameTimer = 0.0f;
 
@@ -64,7 +64,7 @@ Game::Init(const std::string configFile)
 
    if (!initFile)
    {
-      m_logger.Log(Logger::TYPE::FATAL, "Can't open" + (ASSETS_DIR / configFile).string());
+      m_logger.Log(Logger::Type::FATAL, "Can't open" + (ASSETS_DIR / configFile).string());
    }
 
    m_window = std::make_unique< Window >(WIDTH, HEIGHT, "WindowTitle");

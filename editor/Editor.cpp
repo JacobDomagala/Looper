@@ -16,7 +16,7 @@ namespace dgame {
 
 Editor::Editor(const glm::ivec2& screenSize) : m_gui(*this)
 {
-   Logger::SetLogType(Logger::TYPE::DEBUG);
+   Logger::SetLogType(Logger::Type::DEBUG);
    m_logger.Init("Editor");
    m_window = std::make_unique< Window >(screenSize.x, screenSize.y, "Editor");
 
@@ -655,7 +655,7 @@ Editor::AddObject(Object::TYPE objectType)
       case Object::TYPE::ANIMATION_POINT: {
          if (!m_currentSelectedGameObject)
          {
-            m_logger.Log(Logger::TYPE::WARNING,
+            m_logger.Log(Logger::Type::WARNING,
                          "Added new Animation point without currently selected object!");
          }
          auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);

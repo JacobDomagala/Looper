@@ -16,7 +16,7 @@ FileManager::ReadFile(const std::string& fileName, FileType)
 
    if (!fileHandle.is_open())
    {
-      m_logger.Log(Logger::TYPE::FATAL,
+      m_logger.Log(Logger::Type::FATAL,
                    "FileManager::ReadFile -> " + fileName + " can't be opened!");
    }
 
@@ -26,16 +26,16 @@ FileManager::ReadFile(const std::string& fileName, FileType)
 
    if (returnVal.empty())
    {
-      m_logger.Log(Logger::TYPE::FATAL, "FileManager::ReadFile -> " + fileName + " is empty!");
+      m_logger.Log(Logger::Type::FATAL, "FileManager::ReadFile -> " + fileName + " is empty!");
    }
 
    return returnVal;
 }
 
 FileManager::ImageSmart
-FileManager::LoadImageData(const std::string& imageName)
+FileManager::LoadImageData(const std::string& fileName)
 {
-   const auto pathToImage = std::filesystem::path(IMAGES_DIR / imageName).string();
+   const auto pathToImage = std::filesystem::path(IMAGES_DIR / fileName).string();
    int force_channels = 0;
    int w, h, n;
 
@@ -44,7 +44,7 @@ FileManager::LoadImageData(const std::string& imageName)
 
    if (!textureData)
    {
-      m_logger.Log(Logger::TYPE::FATAL,
+      m_logger.Log(Logger::Type::FATAL,
                    fmt::format("FileManager::LoadImage -> {} can't be opened!", pathToImage));
    }
 
@@ -62,7 +62,7 @@ FileManager::LoadImageRawBytes(const std::string& fileName)
 
    if (!textureData)
    {
-      m_logger.Log(Logger::TYPE::FATAL,
+      m_logger.Log(Logger::Type::FATAL,
                    "FileManager::LoadImageRawBytes -> " + pathToImage + " can't be opened!");
    }
 
@@ -80,7 +80,7 @@ FileManager::LoadImageRawData(const std::string& fileName)
 
    if (!textureData)
    {
-      m_logger.Log(Logger::TYPE::FATAL,
+      m_logger.Log(Logger::Type::FATAL,
                    "FileManager::LoadImageRawData -> " + pathToImage + " can't be opened!");
    }
 
@@ -94,7 +94,7 @@ FileManager::LoadJsonFile(const std::string& pathToFile)
 
    if (!jsonFile.is_open())
    {
-      m_logger.Log(Logger::TYPE::FATAL,
+      m_logger.Log(Logger::Type::FATAL,
                    "FileManager::LoadJsonFile -> " + pathToFile + " can't be opened!");
    }
 
@@ -103,7 +103,7 @@ FileManager::LoadJsonFile(const std::string& pathToFile)
 
    if (json.is_null())
    {
-      m_logger.Log(Logger::TYPE::FATAL,
+      m_logger.Log(Logger::Type::FATAL,
                    "FileManager::LoadJsonFile -> " + pathToFile + " is empty!");
    }
 

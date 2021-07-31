@@ -13,7 +13,6 @@ GameObject::GameObject(Application& contextHandle, const glm::vec2& positionOnMa
    m_currentGameObjectState.m_visible = true;
    m_collision = m_sprite.SetSpriteTextured(m_currentGameObjectState.m_position, size, sprite);
    m_currentGameObjectState.m_centeredPosition = m_sprite.GetPosition();
-   m_type = type;
 
    UpdateCollision();
 }
@@ -248,7 +247,7 @@ GameObject::ConvertToGameHandle()
    auto gameHandle = static_cast< Game* >(&m_appHandle);
    if (gameHandle == nullptr)
    {
-      m_appHandle.Log(Logger::TYPE::FATAL, "Game logic called not from Game class");
+      m_appHandle.Log(Logger::Type::FATAL, "Game logic called not from Game class");
    }
 
    return gameHandle;

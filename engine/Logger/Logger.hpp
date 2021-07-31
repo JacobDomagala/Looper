@@ -10,7 +10,7 @@ namespace dgame {
 class Logger
 {
  public:
-   enum class TYPE
+   enum class Type
    {
       TRACE = 0,
       DEBUG,
@@ -19,7 +19,7 @@ class Logger
       FATAL
    };
 
-   Logger(const std::string& name);
+   explicit Logger(const std::string& name);
    Logger() = default;
    ~Logger() = default;
 
@@ -28,7 +28,7 @@ class Logger
 
    template < typename... Args >
    void
-   Log(TYPE type, const std::string& buffer, Args&&... args) const
+   Log(Type type, const std::string& buffer, Args&&... args) const
    {
       if (type >= m_currentLogType)
       {
@@ -37,14 +37,14 @@ class Logger
       }
    }
 
-   static void SetLogType(TYPE);
+   static void SetLogType(Type);
 
    std::string
-   ToString(const Logger::TYPE& type) const;
+   ToString(const Logger::Type& type) const;
 
  private:
    std::string m_moduleName;
-   static inline TYPE m_currentLogType = Logger::TYPE::DEBUG;
+   static inline Type m_currentLogType = Logger::Type::DEBUG;
 };
 
 } // namespace dgame

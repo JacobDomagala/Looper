@@ -153,8 +153,6 @@ class GameObject : public Object
 
    Application& m_appHandle;
 
-   TYPE m_type;
-
    bool m_hasCollision = false;
 
    // object's sprite

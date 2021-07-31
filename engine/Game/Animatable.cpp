@@ -20,7 +20,7 @@ Animatable::SetAnimationType(ANIMATION_TYPE type)
 }
 
 Animatable::ANIMATION_TYPE
-Animatable::GetAnimationType()
+Animatable::GetAnimationType() const
 {
    return m_type;
 }
@@ -250,7 +250,7 @@ Animatable::DeleteAnimationNode(Object::ID animationID)
    }
    else
    {
-      m_logger.Log(Logger::TYPE::WARNING, "Attempting to remove non existing node with ID={}",
+      m_logger.Log(Logger::Type::WARNING, "Attempting to remove non existing node with ID={}",
                    animationID);
    }
 }
@@ -371,7 +371,7 @@ Animatable::RenderAnimationSteps(bool choice)
 }
 
 bool
-Animatable::GetRenderAnimationSteps()
+Animatable::GetRenderAnimationSteps() const
 {
    return m_renderAnimationSteps;
 }
@@ -383,7 +383,7 @@ Animatable::LockAnimationSteps(bool lock)
 }
 
 bool
-Animatable::GetLockAnimationSteps()
+Animatable::GetLockAnimationSteps() const
 {
    return m_lockAnimationSteps;
 }

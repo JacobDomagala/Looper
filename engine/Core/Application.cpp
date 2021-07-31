@@ -48,7 +48,7 @@ Application::IsGame() const
 }
 
 void
-Application::Log(Logger::TYPE t, const std::string& log)
+Application::Log(Logger::Type t, const std::string& log) const
 {
    m_logger.Log(t, log);
 }

@@ -14,7 +14,7 @@ class Texture
 {
  public:
    Texture();
-   Texture(const std::string& textureName);
+   explicit Texture(const std::string& textureName);
    ~Texture();
 
    // Create new texture which is filled with 'color'

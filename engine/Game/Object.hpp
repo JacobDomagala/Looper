@@ -38,7 +38,7 @@ class Object
    static std::string
    GetTypeString(ID id);
 
-   Object(TYPE type);
+   explicit Object(TYPE type);
    virtual ~Object() = default;
 
    void SetType(TYPE);

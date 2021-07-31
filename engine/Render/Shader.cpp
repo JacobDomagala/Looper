@@ -30,7 +30,7 @@ Shader::GetProgram() const
 void
 Shader::UseProgram() const
 {
-   m_logger.Log(Logger::TYPE::TRACE, "Binding Shader program {}", m_programID);
+   m_logger.Log(Logger::Type::TRACE, "Binding Shader program {}", m_programID);
    glUseProgram(m_programID);
 }
 
@@ -78,7 +78,7 @@ Shader::LoadShaders(const std::string& shaderName)
    glDeleteShader(vertexShaderID);
    glDeleteShader(fragmentShaderID);
 
-   m_logger.Log(Logger::TYPE::DEBUG, "Loaded shader {} bound to ID = {}", shaderName, m_programID);
+   m_logger.Log(Logger::Type::DEBUG, "Loaded shader {} bound to ID = {}", shaderName, m_programID);
 }
 
 void
@@ -94,7 +94,7 @@ Shader::CheckCompileStatus(GLuint shaderID)
       std::string log(static_cast< std::string::size_type >(maxLength), '\0');
       glGetShaderInfoLog(shaderID, maxLength, &maxLength, &log[0]);
 
-      m_logger.Log(Logger::TYPE::FATAL, log);
+      m_logger.Log(Logger::Type::FATAL, log);
    }
 }
 
@@ -111,7 +111,7 @@ Shader::CheckLinkStatus(GLuint programID)
       std::string log(static_cast< std::string::size_type >(maxLength), '\0');
       glGetProgramInfoLog(programID, maxLength, &maxLength, &log[0]);
 
-      m_logger.Log(Logger::TYPE::FATAL, log);
+      m_logger.Log(Logger::Type::FATAL, log);
    }
 }
 
@@ -121,7 +121,7 @@ Shader::GetUniformLocation(const std::string& uniformName)
    GLint location = glGetUniformLocation(m_programID, uniformName.c_str());
    if (!location)
    {
-      m_logger.Log(Logger::TYPE::WARNING, "Uniform location not found. Uniform name: {}",
+      m_logger.Log(Logger::Type::WARNING, "Uniform location not found. Uniform name: {}",
                    uniformName);
    }
 

@@ -133,7 +133,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
       }
       else
       {
-         m_logger.Log(Logger::TYPE::FATAL,
+         m_logger.Log(Logger::Type::FATAL,
                       "Level::Load -> Unspecified type " + key + " during level loading");
       }
    }
@@ -244,7 +244,7 @@ Level::Save(const std::string& pathToLevel)
          break;
 
          default: {
-            m_logger.Log(Logger::TYPE::WARNING,
+            m_logger.Log(Logger::Type::WARNING,
                          "Unhandled Object type {} present in game level file!",
                          object->GetTypeString());
          }
@@ -492,7 +492,7 @@ Level::DeleteObject(Object::ID deletedObject)
 
    if (objectIter == m_objects.end())
    {
-      m_logger.Log(Logger::TYPE::FATAL,
+      m_logger.Log(Logger::Type::FATAL,
                    "Trying to delete an object that doesn't exist! Object type: {}",
                    Object::GetTypeString(deletedObject));
    }
@@ -561,7 +561,7 @@ Level::GetObjectRef(Object::ID objectID)
       break;
 
       default: {
-         m_logger.Log(Logger::TYPE::FATAL, "Trying to get Object on unknown type!");
+         m_logger.Log(Logger::Type::FATAL, "Trying to get Object on unknown type!");
       }
    }
 

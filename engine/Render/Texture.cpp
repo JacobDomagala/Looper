@@ -67,7 +67,7 @@ Texture::LoadTextureFromMemory(const glm::ivec2& size, uint8_t* /*data*/, const 
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
    glGenerateMipmap(GL_TEXTURE_2D);
 
-   m_logger.Log(Logger::TYPE::DEBUG, "Created new texture {} and bound it to ID {}", m_name,
+   m_logger.Log(Logger::Type::DEBUG, "Created new texture {} and bound it to ID {}", m_name,
                 m_textureID);
 }
 

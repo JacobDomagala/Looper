@@ -11,7 +11,7 @@ namespace dgame {
 class Shader
 {
  public:
-   Shader(const std::string& shaderName);
+   explicit Shader(const std::string& shaderName);
    Shader() = default;
    ~Shader();
 

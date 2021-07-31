@@ -16,27 +16,27 @@ Logger::Init(const std::string& name)
 }
 
 std::string
-Logger::ToString(const Logger::TYPE& type) const
+Logger::ToString(const Logger::Type& type) const
 {
    std::string returnValue;
 
-   if (type == Logger::TYPE::TRACE)
+   if (type == Logger::Type::TRACE)
    {
       returnValue = "  [TRACE]  ";
    }
-   else if (type == Logger::TYPE::DEBUG)
+   else if (type == Logger::Type::DEBUG)
    {
       returnValue = "  [DEBUG]  ";
    }
-   else if (type == Logger::TYPE::INFO)
+   else if (type == Logger::Type::INFO)
    {
       returnValue = "  [INFO]   ";
    }
-   else if (type == Logger::TYPE::WARNING)
+   else if (type == Logger::Type::WARNING)
    {
       returnValue = " [WARNING] ";
    }
-   else if (type == Logger::TYPE::FATAL)
+   else if (type == Logger::Type::FATAL)
    {
       returnValue = "  [FATAL]  ";
    }
@@ -49,7 +49,7 @@ Logger::ToString(const Logger::TYPE& type) const
 }
 
 void
-Logger::SetLogType(Logger::TYPE type)
+Logger::SetLogType(Logger::Type type)
 {
    m_currentLogType = type;
 }

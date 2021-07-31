@@ -53,7 +53,7 @@ class Animatable
    void SetAnimationType(ANIMATION_TYPE);
 
    ANIMATION_TYPE
-   GetAnimationType();
+   GetAnimationType() const;
 
    glm::vec2
    SetAnimation(Timer::milliseconds updateTime);
@@ -96,13 +96,13 @@ class Animatable
    RenderAnimationSteps(bool choice);
 
    bool
-   GetRenderAnimationSteps();
+   GetRenderAnimationSteps() const;
 
    void
    LockAnimationSteps(bool lock);
 
    bool
-   GetLockAnimationSteps();
+   GetLockAnimationSteps() const;
 
    void
    SetAnimationStartLocation(const glm::vec2& position);

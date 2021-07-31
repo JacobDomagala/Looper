@@ -19,13 +19,13 @@ Font::SetFont(const std::string& fontName)
    FT_Library ft;
 
    if (FT_Init_FreeType(&ft))
-      m_logger.Log(Logger::TYPE::FATAL, "Error initializing FreeType!");
+      m_logger.Log(Logger::Type::FATAL, "Error initializing FreeType!");
 
    FT_Face face;
    std::string filePath = fmt::format("{}.ttf", (FONTS_DIR / fontName).string());
 
    if (FT_New_Face(ft, filePath.c_str(), 0, &face))
-      m_logger.Log(Logger::TYPE::FATAL, "Error loading font " + filePath);
+      m_logger.Log(Logger::Type::FATAL, "Error loading font " + filePath);
 
    FT_New_Face(ft, filePath.c_str(), 0, &face);
    // Set size to load glyphs as
@@ -39,7 +39,7 @@ Font::SetFont(const std::string& fontName)
    {
       // Load character glyph
       if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-         m_logger.Log(Logger::TYPE::FATAL, "Error loading font face for character {} for font {}",
+         m_logger.Log(Logger::Type::FATAL, "Error loading font face for character {} for font {}",
                       c, filePath);
 
       // FT_Load_Char(face, c, FT_LOAD_RENDER);
@@ -81,7 +81,7 @@ Font::SetFont(const std::string& fontName)
    glBindVertexArray(0);
    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
-   m_logger.Log(Logger::TYPE::INFO, fmt::format("Loaded font: {}", fontName));
+   m_logger.Log(Logger::Type::INFO, fmt::format("Loaded font: {}", fontName));
 }
 
 void

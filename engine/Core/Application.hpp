@@ -41,7 +41,7 @@ class Application : public InputListener
    IsGame() const;
 
    void
-   Log(Logger::TYPE t, const std::string& log);
+   Log(Logger::Type t, const std::string& log) const;
 
    void
    RenderText(std::string text, const glm::vec2& position, float scale,

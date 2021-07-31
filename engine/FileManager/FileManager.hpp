@@ -58,10 +58,10 @@ class FileManager
    LoadImageRawData(const std::string& fileName);
 
    static nlohmann::json
-   LoadJsonFile(const std::string& fileName);
+   LoadJsonFile(const std::string& pathToFile);
 
    static void
-   SaveJsonFile(const std::string& fileName, nlohmann::json json);
+   SaveJsonFile(const std::string& pathToFile, nlohmann::json json);
 
  private:
    static inline Logger m_logger = Logger("FileManager");

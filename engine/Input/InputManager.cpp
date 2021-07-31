@@ -10,7 +10,7 @@ void
 InputManager::InternalKeyCallback(GLFWwindow*, int32_t key, int32_t scancode, int32_t action,
                                   int32_t mods)
 {
-   s_logger.Log(Logger::TYPE::TRACE, "GLFW key {} {} scan code - {}", action, key, scancode);
+   s_logger.Log(Logger::Type::TRACE, "GLFW key {} {} scan code - {}", action, key, scancode);
 
    s_keyMap[key] = action;
 
@@ -20,7 +20,7 @@ InputManager::InternalKeyCallback(GLFWwindow*, int32_t key, int32_t scancode, in
 void
 InputManager::InternalMouseButtonCallback(GLFWwindow*, int32_t button, int32_t action, int32_t mods)
 {
-   s_logger.Log(Logger::TYPE::TRACE, "GLFW mouse button {} {} {}", button, action, mods);
+   s_logger.Log(Logger::Type::TRACE, "GLFW mouse button {} {} {}", button, action, mods);
 
    BroadcastEvent(MouseButtonEvent{button, action, mods});
 }
@@ -28,7 +28,7 @@ InputManager::InternalMouseButtonCallback(GLFWwindow*, int32_t button, int32_t a
 void
 InputManager::InternalCursorPositionCallback(GLFWwindow*, double x, double y)
 {
-   s_logger.Log(Logger::TYPE::TRACE, "GLFW cursor pos {} {}", x, y);
+   s_logger.Log(Logger::Type::TRACE, "GLFW cursor pos {} {}", x, y);
 
    s_mousePosition = glm::vec2(x, y);
 
@@ -38,7 +38,7 @@ InputManager::InternalCursorPositionCallback(GLFWwindow*, double x, double y)
 void
 InputManager::InternalMouseScrollCallback(GLFWwindow*, double xoffset, double yoffset)
 {
-   s_logger.Log(Logger::TYPE::TRACE, "GLFW scroll {} {}", xoffset, yoffset);
+   s_logger.Log(Logger::Type::TRACE, "GLFW scroll {} {}", xoffset, yoffset);
 
    BroadcastEvent(MouseScrollEvent{xoffset, yoffset});
 }
