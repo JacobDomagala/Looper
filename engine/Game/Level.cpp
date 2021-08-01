@@ -52,7 +52,9 @@ Level::Load(Application* context, const std::string& pathToLevel)
                                       nodeJson["id"],
                                       std::vector< Node::NodeID >(nodeJson["connected to"].begin(),
                                                                   nodeJson["connected to"].end()),
-                                      nodeJson["occupied"]));
+                                      nodeJson["occupied"],
+                                      std::vector< Object::ID >(nodeJson["nodesOccupying"].begin(),
+                                                                nodeJson["nodesOccupying"].end())));
          }
 
          m_pathFinder.SetInitialized();
@@ -153,6 +155,7 @@ Level::Save(const std::string& pathToLevel)
       nodeJson["position"] = {node.m_position.x, node.m_position.y};
       nodeJson["connected to"] = node.m_connectedNodes;
       nodeJson["occupied"] = node.m_occupied;
+      nodeJson["nodesOccupying"] = node.m_objectsOccupyingThisNode;
 
       json["PATHFINDER"]["nodes"].emplace_back(nodeJson);
    }
@@ -311,7 +314,7 @@ Level::AddGameObject(GameObject::TYPE objectType)
 
 std::vector< Tile_t >
 Level::GameObjectMoved(const std::array< glm::vec2, 4 >& box,
-                       const std::vector< Tile_t >& currentTiles)
+                       const std::vector< Tile_t >& currentTiles, Object::ID objectID)
 {
    auto new_tiles = GetTilesFromBoundingBox(box);
 
@@ -319,12 +322,12 @@ Level::GameObjectMoved(const std::array< glm::vec2, 4 >& box,
    {
       for (auto tileID : currentTiles)
       {
-         m_pathFinder.SetNodeFreed(tileID);
+         m_pathFinder.SetNodeFreed(tileID, objectID);
       }
 
       for (auto tileID : new_tiles)
       {
-         m_pathFinder.SetNodeOccupied(tileID);
+         m_pathFinder.SetNodeOccupied(tileID, objectID);
       }
    }
 

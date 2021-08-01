@@ -32,9 +32,19 @@ class Level
    void
    MoveObjs(const glm::vec2& moveBy);
 
+   /**
+    * \brief Called whenever an ombject with collision is moved. Generates the vector of
+    * occupied tiles/nodes, based on \c box
+    *
+    * \param[in] box Object's bounding box, needed to calculate collision
+    * \param[in] currentTiles Tiles occupied by the object, up to this point
+    * \param[in] objectID ID of the object that was moved
+    *
+    * \return Vector of tiles/nodes occupied by given object
+    */
    std::vector< Tile_t >
-   GameObjectMoved(const std::array< glm::vec2, 4 >& box,
-                   const std::vector< Tile_t >& currentTiles);
+   GameObjectMoved(const std::array< glm::vec2, 4 >& box, const std::vector< Tile_t >& currentTiles,
+                   Object::ID objectID);
 
    void
    Create(Application* context, const glm::ivec2& size);

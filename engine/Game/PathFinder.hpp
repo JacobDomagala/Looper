@@ -18,14 +18,16 @@ struct Node : public Object
    }
 
    Node(const glm::ivec2& coords, const glm::vec2& posOnMap, NodeID ID,
-        const std::vector< NodeID >& connectedTo, bool occupied = false)
+        const std::vector< NodeID >& connectedTo = {}, bool occupied = false,
+        const std::vector< Object::ID >& objectOccupying = {})
       : Object(Object::TYPE::PATHFINDER_NODE),
         m_xPos(coords.x),
         m_yPos(coords.y),
         m_position(posOnMap),
         m_occupied(occupied),
         m_ID(ID),
-        m_connectedNodes(connectedTo)
+        m_connectedNodes(connectedTo),
+        m_objectsOccupyingThisNode(objectOccupying)
    {
    }
 
@@ -43,6 +45,7 @@ struct Node : public Object
    NodeID m_parentNode = -1;
 
    std::vector< NodeID > m_connectedNodes = {};
+   std::vector< Object::ID > m_objectsOccupyingThisNode = {};
 
    bool m_visited = false;
    int32_t m_localCost = std::numeric_limits< int32_t >::max();
@@ -180,17 +183,19 @@ class PathFinder
     * \brief Set node (on the given tile) occupied
     *
     * \param[in] nodeCoords Tile on the map
+    * \param[in] objectID Object that occupies this node/tile
     */
    void
-   SetNodeOccupied(const Tile_t& nodeCoords);
+   SetNodeOccupied(const Tile_t& nodeCoords, Object::ID objectID);
 
    /**
     * \brief Set node (on the given tile) freed
     *
     * \param[in] nodeCoords Tile on the map
+    * \param[in] objectID Object that no longer occupies this node/tile
     */
    void
-   SetNodeFreed(const Tile_t& nodeCoords);
+   SetNodeFreed(const Tile_t& nodeCoords, Object::ID objectID);
 
  private:
    bool m_initialized = false;

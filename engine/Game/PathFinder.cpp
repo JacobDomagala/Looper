@@ -257,7 +257,7 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
 }
 
 void
-PathFinder::SetNodeOccupied(const Tile_t& nodeCoords)
+PathFinder::SetNodeOccupied(const Tile_t& nodeCoords, Object::ID objectID)
 {
    if (nodeCoords != Tile_t{-1, -1})
    {
@@ -268,11 +268,12 @@ PathFinder::SetNodeOccupied(const Tile_t& nodeCoords)
       assert(node != m_nodes.end());
 
       node->m_occupied = true;
+      node->m_objectsOccupyingThisNode.push_back(objectID);
    }
 }
 
 void
-PathFinder::SetNodeFreed(const Tile_t& nodeCoords)
+PathFinder::SetNodeFreed(const Tile_t& nodeCoords, Object::ID objectID)
 {
    if (nodeCoords != Tile_t{-1, -1})
    {
@@ -282,7 +283,14 @@ PathFinder::SetNodeFreed(const Tile_t& nodeCoords)
 
       assert(node != m_nodes.end());
 
-      node->m_occupied = false;
+      node->m_objectsOccupyingThisNode.erase(std::find(node->m_objectsOccupyingThisNode.begin(),
+                                                       node->m_objectsOccupyingThisNode.end(),
+                                                       objectID));
+
+      if (node->m_objectsOccupyingThisNode.empty())
+      {
+         node->m_occupied = false;
+      }
    }
 }
 
