@@ -7,6 +7,7 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <fmt/format.h>
 #include <imgui.h>
+#include <imgui_internal.h>
 
 namespace dgame {
 
@@ -158,7 +159,9 @@ EditorGUI::Render()
    ImGui::SetNextWindowPos({0, 0});
    ImGui::SetNextWindowSize(ImVec2(m_windowWidth, toolsWindowHeight));
    ImGui::Begin("Tools");
-   ImGui::PushStyleColor(ImGuiCol_Button, {0.45f, 0.0f, 0.2f, 0.8f});
+   ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.45f, 0.0f, 0.2f, 0.8f});
+   ImGui::PushDisabled(m_currentLevel == nullptr);
+
    if (ImGui::Button("Play"))
    {
       m_parent.PlayLevel();
@@ -174,6 +177,8 @@ EditorGUI::Render()
          m_parent.SaveLevel(levelName);
       }
    }
+   ImGui::PopDisabled();
+
    ImGui::SameLine();
    if (ImGui::Button("Load"))
    {

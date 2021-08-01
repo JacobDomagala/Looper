@@ -241,11 +241,15 @@ FileManager::FileDialog(const std::vector< std::pair< std::string, std::string >
    assert(output);
 
    std::string buffer(FILE_DIALOG_MAX_BUFFER, 0);
-   fgets(buffer.data(), FILE_DIALOG_MAX_BUFFER, output);
-
-   // fgets includes \n character at the end, remove it
-   // buffer.back() = '\0';
-   buffer[strcspn(buffer.c_str(), "\n")] = 0;
+   if (fgets(buffer.data(), FILE_DIALOG_MAX_BUFFER, output))
+   {
+      // fgets includes \n character at the end, remove it
+      buffer[strcspn(buffer.c_str(), "\n")] = 0;
+   }
+   else
+   {
+      buffer = "";
+   }
 
    pclose(output);
 
