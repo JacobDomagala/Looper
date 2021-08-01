@@ -10,11 +10,11 @@
 namespace dgame {
 
 const std::filesystem::path ROOT_DIR = std::filesystem::path(std::string(CMAKE_ROOT_DIR));
-const std::filesystem::path ASSETS_DIR = ROOT_DIR / "Assets";
-const std::filesystem::path LEVELS_DIR = ASSETS_DIR / "Levels";
-const std::filesystem::path FONTS_DIR = ASSETS_DIR / "Fonts";
-const std::filesystem::path SHADERS_DIR = ASSETS_DIR / "Shaders";
-const std::filesystem::path IMAGES_DIR = ASSETS_DIR / "Images";
+const std::filesystem::path ASSETS_DIR = ROOT_DIR / "assets";
+const std::filesystem::path LEVELS_DIR = ASSETS_DIR / "levels";
+const std::filesystem::path FONTS_DIR = ASSETS_DIR / "fonts";
+const std::filesystem::path SHADERS_DIR = ASSETS_DIR / "shaders";
+const std::filesystem::path IMAGES_DIR = ASSETS_DIR / "images";
 
 class FileManager
 {
@@ -63,7 +63,7 @@ class FileManager
    static void
    SaveJsonFile(const std::string& pathToFile, nlohmann::json json);
 
-   	/**
+   /**
     * \brief Return file path to selected file
     *
     * \param[in] fileTypes List of file types that we're looking for
