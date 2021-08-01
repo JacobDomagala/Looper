@@ -222,47 +222,34 @@ FileManager::FileDialog(const std::vector< std::pair< std::string, std::string >
 
    return result;
 #else
-   char buffer[FILE_DIALOG_MAX_BUFFER];
-   buffer[0] = '\0';
-
    std::string cmd = "zenity --file-selection ";
-   // The safest separator for multiple selected paths is /, since / can never occur
-   // in file names. Only where two paths are concatenated will there be two / following
-   // each other.
-   if (multiple)
-      cmd += "--multiple --separator=\"/\" ";
-   if (save)
-      cmd += "--save ";
-   cmd += "--file-filter=\"";
-   for (auto pair : filetypes)
-      cmd += "\"*." + pair.first + "\" ";
-   cmd += "\"";
-   FILE* output = popen(cmd.c_str(), "r");
-   if (output == nullptr)
-      throw std::runtime_error("popen() failed -- could not launch zenity!");
-   while (fgets(buffer, FILE_DIALOG_MAX_BUFFER, output) != NULL)
-      ;
-   pclose(output);
-   std::string paths(buffer);
-   paths.erase(std::remove(paths.begin(), paths.end(), '\n'), paths.end());
 
-   std::vector< std::string > result;
-   while (!paths.empty())
+   if (save)
    {
-      size_t end = paths.find("//");
-      if (end == std::string::npos)
-      {
-         result.emplace_back(paths);
-         paths = "";
-      }
-      else
-      {
-         result.emplace_back(paths.substr(0, end));
-         paths = paths.substr(end + 1);
-      }
+      cmd.append("--save ");
    }
 
-   return result;
+   cmd.append("--file-filter=\"");
+   for (const auto& [description, extension] : fileTypes)
+   {
+      cmd.append(fmt::format("\"*.{}\" ", extension));
+   }
+
+   cmd.append("\"");
+
+   auto* output = popen(cmd.c_str(), "r");
+   assert(output);
+
+   std::string buffer(FILE_DIALOG_MAX_BUFFER, 0);
+   fgets(buffer.data(), FILE_DIALOG_MAX_BUFFER, output);
+
+   // fgets includes \n character at the end, remove it
+   // buffer.back() = '\0';
+   buffer[strcspn(buffer.c_str(), "\n")] = 0;
+
+   pclose(output);
+
+   return buffer;
 #endif
 }
 
