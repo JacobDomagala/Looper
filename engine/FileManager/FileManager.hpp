@@ -10,11 +10,11 @@
 namespace dgame {
 
 const std::filesystem::path ROOT_DIR = std::filesystem::path(std::string(CMAKE_ROOT_DIR));
-const std::filesystem::path ASSETS_DIR = ROOT_DIR / "assets";
-const std::filesystem::path LEVELS_DIR = ASSETS_DIR / "levels";
-const std::filesystem::path FONTS_DIR = ASSETS_DIR / "fonts";
-const std::filesystem::path SHADERS_DIR = ASSETS_DIR / "shaders";
-const std::filesystem::path IMAGES_DIR = ASSETS_DIR / "images";
+const std::filesystem::path ASSETS_DIR = ROOT_DIR / "assets" / "";
+const std::filesystem::path LEVELS_DIR = ASSETS_DIR / "levels" / "";
+const std::filesystem::path FONTS_DIR = ASSETS_DIR / "fonts" / "";
+const std::filesystem::path SHADERS_DIR = ASSETS_DIR / "shaders" / "";
+const std::filesystem::path IMAGES_DIR = ASSETS_DIR / "images" / "";
 
 class FileManager
 {
@@ -66,6 +66,7 @@ class FileManager
    /**
     * \brief Return file path to selected file
     *
+    * \param[in] defaultPath Where to open FileDialog
     * \param[in] fileTypes List of file types that we're looking for
     * Example: {{"PNG texture", ".png"}, {"PNG texture", ".jpg"}}
     *
@@ -74,7 +75,8 @@ class FileManager
     * \return Path to selected file
     */
    static std::string
-   FileDialog(const std::vector< std::pair< std::string, std::string > >& fileTypes, bool save);
+   FileDialog(const std::filesystem::path& defaultPath,
+              const std::vector< std::pair< std::string, std::string > >& fileTypes, bool save);
 
  private:
    static inline Logger m_logger = Logger("FileManager");

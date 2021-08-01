@@ -171,7 +171,7 @@ EditorGUI::Render()
    ImGui::SameLine();
    if (ImGui::Button("Save"))
    {
-      auto levelName = FileManager::FileDialog({{"DGame Level file", "dgl"}}, true);
+      auto levelName = FileManager::FileDialog(LEVELS_DIR, {{"DGame Level file", "dgl"}}, true);
       if (!levelName.empty())
       {
          m_parent.SaveLevel(levelName);
@@ -182,7 +182,7 @@ EditorGUI::Render()
    ImGui::SameLine();
    if (ImGui::Button("Load"))
    {
-      auto levelName = FileManager::FileDialog({{"DGame Level file", "dgl"}}, false);
+      auto levelName = FileManager::FileDialog(LEVELS_DIR, {{"DGame Level file", "dgl"}}, false);
       if (!levelName.empty())
       {
          m_parent.LoadLevel(levelName);
@@ -367,8 +367,8 @@ EditorGUI::Render()
                              sprite.GetTextureName().size(), ImGuiInputTextFlags_ReadOnly);
             if (ImGui::Button("Change Texture"))
             {
-               auto textureName =
-                  FileManager::FileDialog({{"PNG texture", "png"}, {"JPEG texture", "jpg"}}, false);
+               auto textureName = FileManager::FileDialog(
+                  IMAGES_DIR, {{"PNG texture", "png"}, {"JPEG texture", "jpg"}}, false);
                if (!textureName.empty())
                {
                   sprite.SetTextureFromFile(textureName);

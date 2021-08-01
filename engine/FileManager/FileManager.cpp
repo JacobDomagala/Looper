@@ -123,7 +123,8 @@ FileManager::SaveJsonFile(const std::string& pathToFile, nlohmann::json json)
 }
 
 std::string
-FileManager::FileDialog(const std::vector< std::pair< std::string, std::string > >& fileTypes,
+FileManager::FileDialog(const std::filesystem::path& defaultPath,
+                        const std::vector< std::pair< std::string, std::string > >& fileTypes,
                         bool save)
 {
    constexpr auto FILE_DIALOG_MAX_BUFFER = 16384;
@@ -222,14 +223,11 @@ FileManager::FileDialog(const std::vector< std::pair< std::string, std::string >
 
    return result;
 #else
-   std::string cmd = "zenity --file-selection ";
 
-   if (save)
-   {
-      cmd.append("--save ");
-   }
 
-   cmd.append("--file-filter=\"");
+   auto cmd = fmt::format("zenity --file-selection --filename={} {} --file-filter=\"",
+                          defaultPath.string(), save ? "--save " : "");
+
    for (const auto& [description, extension] : fileTypes)
    {
       cmd.append(fmt::format("\"*.{}\" ", extension));
