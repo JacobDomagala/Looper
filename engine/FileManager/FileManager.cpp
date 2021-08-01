@@ -6,6 +6,10 @@
 #include <fstream>
 #include <stb_image.h>
 
+#if defined(_WIN32)
+#include <Windows.h>
+#endif //  WIN
+
 namespace dgame {
 
 std::string
@@ -116,6 +120,150 @@ FileManager::SaveJsonFile(const std::string& pathToFile, nlohmann::json json)
    std::ofstream jsonFile(pathToFile);
 
    jsonFile << json;
+}
+
+std::string
+FileManager::FileDialog(const std::vector< std::pair< std::string, std::string > >& fileTypes,
+                        bool save)
+{
+   constexpr auto FILE_DIALOG_MAX_BUFFER = 16384;
+
+#if defined(_WIN32)
+   //////////////////////////////////////////////
+   ///////     Generate file filter       ///////
+   //////////////////////////////////////////////
+   std::string filter;
+
+   if (!save && fileTypes.size() > 1)
+   {
+      auto generateFormats = [](const auto& filterTypes) {
+         std::string buffer;
+         for (size_t i = 0; i < filterTypes.size(); ++i)
+         {
+            buffer.append(
+               fmt::format("*.{}{}", filterTypes[i].second, i < filterTypes.size() - 1 ? ";" : ""));
+         }
+
+         return buffer;
+      };
+
+      // There could be a simpler way to insert \0 mid string
+      // Doesn't seem to work with fmt::format sadly
+      const auto formats = generateFormats(fileTypes);
+      filter.append(fmt::format("Supported file types ({})", formats));
+      filter.push_back('\0');
+      filter.append(fmt::format("{}", formats));
+      filter.push_back('\0');
+   }
+
+   for (const auto& [description, extension] : fileTypes)
+   {
+      // Same as above, need to explicitly push_back \0
+      filter.append(fmt::format("{} (*.{})", description, extension));
+      filter.push_back('\0');
+      filter.append(fmt::format("*.{}", extension));
+      filter.push_back('\0');
+   }
+
+
+   filter.push_back('\0');
+
+   const auto size =
+      MultiByteToWideChar(CP_UTF8, 0, filter.c_str(), static_cast< int >(filter.size()), NULL, 0);
+   std::wstring wfilter(size, 0);
+   MultiByteToWideChar(CP_UTF8, 0, filter.c_str(), static_cast< int >(filter.size()),
+                       wfilter.data(), size);
+
+
+   //////////////////////////////////////////////
+   ///////      Open file dialog          ///////
+   //////////////////////////////////////////////
+   OPENFILENAMEW ofn;
+   ZeroMemory(&ofn, sizeof(OPENFILENAMEW));
+   ofn.lStructSize = sizeof(OPENFILENAMEW);
+
+   std::wstring fileDialogBuffer(FILE_DIALOG_MAX_BUFFER, 0);
+
+   ofn.lpstrFile = fileDialogBuffer.data();
+   ofn.nMaxFile = FILE_DIALOG_MAX_BUFFER;
+   ofn.nFilterIndex = 1;
+   ofn.lpstrFilter = wfilter.c_str();
+
+   if (save)
+   {
+      ofn.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
+
+      if (GetSaveFileNameW(&ofn) == FALSE)
+      {
+         return {};
+      }
+   }
+   else
+   {
+      ofn.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+      if (GetOpenFileNameW(&ofn) == FALSE)
+      {
+         return {};
+      }
+   }
+
+   std::string result;
+
+   const auto tmpSize = static_cast< int >(wcslen(fileDialogBuffer.c_str()));
+   assert(tmpSize > 0);
+
+   auto filenameSize =
+      WideCharToMultiByte(CP_UTF8, 0, fileDialogBuffer.c_str(), tmpSize, NULL, 0, NULL, NULL);
+   result.resize(filenameSize, 0);
+
+   WideCharToMultiByte(CP_UTF8, 0, fileDialogBuffer.c_str(), tmpSize, result.data(), filenameSize,
+                       NULL, NULL);
+
+   return result;
+#else
+   char buffer[FILE_DIALOG_MAX_BUFFER];
+   buffer[0] = '\0';
+
+   std::string cmd = "zenity --file-selection ";
+   // The safest separator for multiple selected paths is /, since / can never occur
+   // in file names. Only where two paths are concatenated will there be two / following
+   // each other.
+   if (multiple)
+      cmd += "--multiple --separator=\"/\" ";
+   if (save)
+      cmd += "--save ";
+   cmd += "--file-filter=\"";
+   for (auto pair : filetypes)
+      cmd += "\"*." + pair.first + "\" ";
+   cmd += "\"";
+   FILE* output = popen(cmd.c_str(), "r");
+   if (output == nullptr)
+      throw std::runtime_error("popen() failed -- could not launch zenity!");
+   while (fgets(buffer, FILE_DIALOG_MAX_BUFFER, output) != NULL)
+      ;
+   pclose(output);
+   std::string paths(buffer);
+   paths.erase(std::remove(paths.begin(), paths.end(), '\n'), paths.end());
+
+   std::vector< std::string > result;
+   while (!paths.empty())
+   {
+      size_t end = paths.find("//");
+      if (end == std::string::npos)
+      {
+         result.emplace_back(paths);
+         paths = "";
+      }
+      else
+      {
+         result.emplace_back(paths.substr(0, end));
+         paths = paths.substr(end + 1);
+      }
+   }
+
+   return result;
+#endif
 }
 
 } // namespace dgame

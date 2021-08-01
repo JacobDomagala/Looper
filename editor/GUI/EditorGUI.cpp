@@ -2,7 +2,6 @@
 #include "Animatable.hpp"
 #include "Editor.hpp"
 #include "GameObject.hpp"
-#include "Utils.hpp"
 
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
@@ -169,7 +168,7 @@ EditorGUI::Render()
    ImGui::SameLine();
    if (ImGui::Button("Save"))
    {
-      auto levelName = file_dialog({{"dgl", "DGame Level"}}, true);
+      auto levelName = FileManager::FileDialog({{"DGame Level file", "dgl"}}, true);
       if (!levelName.empty())
       {
          m_parent.SaveLevel(levelName);
@@ -178,7 +177,7 @@ EditorGUI::Render()
    ImGui::SameLine();
    if (ImGui::Button("Load"))
    {
-      auto levelName = file_dialog({{"dgl", "DGame Level"}}, false);
+      auto levelName = FileManager::FileDialog({{"DGame Level file", "dgl"}}, false);
       if (!levelName.empty())
       {
          m_parent.LoadLevel(levelName);
@@ -363,7 +362,8 @@ EditorGUI::Render()
                              sprite.GetTextureName().size(), ImGuiInputTextFlags_ReadOnly);
             if (ImGui::Button("Change Texture"))
             {
-               auto textureName = file_dialog({{"png", "jpg"}}, false);
+               auto textureName =
+                  FileManager::FileDialog({{"PNG texture", "png"}, {"JPEG texture", "jpg"}}, false);
                if (!textureName.empty())
                {
                   sprite.SetTextureFromFile(textureName);

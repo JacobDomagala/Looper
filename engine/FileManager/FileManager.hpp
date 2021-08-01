@@ -63,6 +63,19 @@ class FileManager
    static void
    SaveJsonFile(const std::string& pathToFile, nlohmann::json json);
 
+   	/**
+    * \brief Return file path to selected file
+    *
+    * \param[in] fileTypes List of file types that we're looking for
+    * Example: {{"PNG texture", ".png"}, {"PNG texture", ".jpg"}}
+    *
+    * \param[in] save Whether to save given file
+    *
+    * \return Path to selected file
+    */
+   static std::string
+   FileDialog(const std::vector< std::pair< std::string, std::string > >& fileTypes, bool save);
+
  private:
    static inline Logger m_logger = Logger("FileManager");
 };
