@@ -55,42 +55,6 @@ FileManager::LoadImageData(const std::string& fileName)
    return {std::move(textureData), {w, h}, n};
 }
 
-uint8_t*
-FileManager::LoadImageRawBytes(const std::string& fileName)
-{
-   const auto pathToImage = std::filesystem::path(IMAGES_DIR / fileName).string();
-   int force_channels = 0;
-   int w, h, n;
-
-   uint8_t* textureData = stbi_load(pathToImage.c_str(), &w, &h, &n, force_channels);
-
-   if (!textureData)
-   {
-      m_logger.Log(Logger::Type::FATAL,
-                   "FileManager::LoadImageRawBytes -> " + pathToImage + " can't be opened!");
-   }
-
-   return textureData;
-}
-
-FileManager::ImageRaw
-FileManager::LoadImageRawData(const std::string& fileName)
-{
-   const auto pathToImage = std::filesystem::path(IMAGES_DIR / fileName).string();
-   int force_channels = 0;
-   int w, h, n;
-
-   uint8_t* textureData = stbi_load(pathToImage.c_str(), &w, &h, &n, force_channels);
-
-   if (!textureData)
-   {
-      m_logger.Log(Logger::Type::FATAL,
-                   "FileManager::LoadImageRawData -> " + pathToImage + " can't be opened!");
-   }
-
-   return {textureData, {w, h}, n};
-}
-
 nlohmann::json
 FileManager::LoadJsonFile(const std::string& pathToFile)
 {

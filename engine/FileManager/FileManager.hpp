@@ -28,7 +28,6 @@ class FileManager
 
    using ImageHandleType = std::unique_ptr< uint8_t[], std::function< void(uint8_t*) > >;
    using ImageSmart = ImageData< ImageHandleType >;
-   using ImageRaw = ImageData< uint8_t* >;
 
    enum class FileType
    {
@@ -39,23 +38,8 @@ class FileManager
    static std::string
    ReadFile(const std::string& fileName, FileType type = FileType::TEXT);
 
-   static void
-   WriteToFile(const std::string& fileName, FileType type = FileType::TEXT);
-
-   // NOTE!
-   // image data is not freed
-   // TODO: Handle freeing the data
-   static uint8_t*
-   LoadImageRawBytes(const std::string& fileName);
-
    static ImageSmart
    LoadImageData(const std::string& fileName);
-
-   // NOTE!
-   // image data is not freed
-   // TODO: Handle freeing the data
-   static ImageRaw
-   LoadImageRawData(const std::string& fileName);
 
    static nlohmann::json
    LoadJsonFile(const std::string& pathToFile);

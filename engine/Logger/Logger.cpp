@@ -1,7 +1,5 @@
 #include "Logger.hpp"
 
-#include <iostream>
-
 namespace dgame {
 
 Logger::Logger(const std::string& name) : m_moduleName(name)
@@ -15,7 +13,7 @@ Logger::Init(const std::string& name)
 }
 
 std::string
-Logger::ToString(const Logger::Type& type) const
+Logger::ToString(Logger::Type type) const
 {
    std::string returnValue;
 

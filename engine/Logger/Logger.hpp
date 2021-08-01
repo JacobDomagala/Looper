@@ -21,7 +21,6 @@ class Logger
 
    explicit Logger(const std::string& name);
    Logger() = default;
-   ~Logger() = default;
 
    void
    Init(const std::string& name);
@@ -37,14 +36,15 @@ class Logger
       }
    }
 
-   static void SetLogType(Type);
+   static void
+   SetLogType(Type type);
 
    std::string
-   ToString(const Logger::Type& type) const;
+   ToString(Type type) const;
 
  private:
    std::string m_moduleName;
-   static inline Type m_currentLogType = Logger::Type::DEBUG;
+   static inline Type m_currentLogType = Type::DEBUG;
 };
 
 } // namespace dgame
