@@ -30,7 +30,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
 {
    const auto json = FileManager::LoadJsonFile(pathToLevel);
 
-   for (auto& [key, value] : json.items())
+   for (const auto& [key, value] : json.items())
    {
       if (key == "BACKGROUND")
       {
@@ -174,8 +174,7 @@ Level::Save(const std::string& pathToLevel)
       {
          case Object::TYPE::PLAYER: {
             json["PLAYER"]["name"] = m_player->GetName();
-            json["PLAYER"]["position"] = {m_player->GetPosition().x,
-                                          m_player->GetPosition().y};
+            json["PLAYER"]["position"] = {m_player->GetPosition().x, m_player->GetPosition().y};
             json["PLAYER"]["scale"] = {m_player->GetSprite().GetScale().x,
                                        m_player->GetSprite().GetScale().y};
             json["PLAYER"]["rotation"] = m_player->GetSprite().GetRotation();

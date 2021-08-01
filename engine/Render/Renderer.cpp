@@ -5,9 +5,9 @@
 #include "TextureLibrary.hpp"
 #include "VertexArray.hpp"
 
+#include <array>
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
-#include <array>
 
 namespace dgame {
 
@@ -28,10 +28,10 @@ struct LineVertex
 
 struct RendererData
 {
-   static inline const uint32_t MaxQuads = 20000;
-   static inline const uint32_t MaxVertices = MaxQuads * 4;
-   static inline const uint32_t MaxIndices = MaxQuads * 6;
-   static inline const uint32_t MaxTextureSlots = 32; // TODO: RenderCaps
+   static constexpr uint32_t MaxQuads = 20000;
+   static constexpr uint32_t MaxVertices = MaxQuads * 4;
+   static constexpr uint32_t MaxIndices = MaxQuads * 6;
+   static constexpr uint32_t MaxTextureSlots = 32; // TODO: RenderCaps
 
    std::shared_ptr< VertexArray > QuadVertexArray;
    std::shared_ptr< VertexBuffer > QuadVertexBuffer;
@@ -48,8 +48,8 @@ struct RendererData
 
 struct LineRendererData
 {
-   static inline const uint32_t MaxLines = 200000;
-   static inline const uint32_t MaxVertices = MaxLines * 2;
+   static constexpr uint32_t MaxLines = 200000;
+   static constexpr uint32_t MaxVertices = MaxLines * 2;
    uint32_t NumLines = 0;
 
    std::shared_ptr< VertexArray > LineVertexArray;
@@ -70,11 +70,11 @@ Renderer::Init()
 
    s_Data.QuadVertexBuffer = std::make_shared< VertexBuffer >(
       static_cast< uint32_t >(s_Data.MaxVertices * sizeof(QuadVertex)));
-   s_Data.QuadVertexBuffer->SetLayout({{ShaderDataType::Float3, "a_Position"},
-                                       {ShaderDataType::Float4, "a_Color"},
-                                       {ShaderDataType::Float2, "a_TexCoord"},
-                                       {ShaderDataType::Float, "a_TexIndex"},
-                                       {ShaderDataType::Float, "a_TilingFactor"}});
+   s_Data.QuadVertexBuffer->SetLayout(BufferLayout{{ShaderDataType::Float3, "a_Position"},
+                                                   {ShaderDataType::Float4, "a_Color"},
+                                                   {ShaderDataType::Float2, "a_TexCoord"},
+                                                   {ShaderDataType::Float, "a_TexIndex"},
+                                                   {ShaderDataType::Float, "a_TilingFactor"}});
    s_Data.QuadVertexArray->AddVertexBuffer(s_Data.QuadVertexBuffer);
 
    s_Data.QuadVertexBufferBase = new QuadVertex[s_Data.MaxVertices];
@@ -119,7 +119,7 @@ Renderer::Init()
    s_LineData.LineVertexBuffer = std::make_shared< VertexBuffer >(
       static_cast< uint32_t >(s_LineData.MaxVertices * sizeof(LineVertex)));
    s_LineData.LineVertexBuffer->SetLayout(
-      {{ShaderDataType::Float3, "a_Position"}, {ShaderDataType::Float4, "a_Color"}});
+      BufferLayout{{ShaderDataType::Float3, "a_Position"}, {ShaderDataType::Float4, "a_Color"}});
    s_LineData.LineVertexArray->AddVertexBuffer(s_LineData.LineVertexBuffer);
 
    s_LineData.LineVertexBufferBase = new LineVertex[s_LineData.MaxVertices];
@@ -279,9 +279,9 @@ Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, float radia
       s_Data.TextureSlotIndex++;
    }
 
-   constexpr auto positions = std::to_array({
-      glm::vec4(0.5f, 0.5f, 0.0f, 1.0f), glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f),
-      glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f), glm::vec4(0.5f, -0.5f, 0.0f, 1.0f)});
+   constexpr auto positions =
+      std::to_array({glm::vec4(0.5f, 0.5f, 0.0f, 1.0f), glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f),
+                     glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f), glm::vec4(0.5f, -0.5f, 0.0f, 1.0f)});
 
    glm::mat4 transformMat = glm::translate(glm::mat4(1.0f), glm::vec3(position, 0.0f))
                             * glm::rotate(glm::mat4(1.0f), radiansRotation, {0.0f, 0.0f, 1.0f})

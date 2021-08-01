@@ -225,15 +225,15 @@ FileManager::FileDialog(const std::filesystem::path& defaultPath,
 #else
 
 
-   auto cmd = fmt::format("zenity --file-selection --filename={} {} --file-filter=\"",
-                          defaultPath.string(), save ? "--save " : "");
-
-   for (const auto& [description, extension] : fileTypes)
-   {
-      cmd.append(fmt::format("\"*.{}\" ", extension));
-   }
-
-   cmd.append("\"");
+   const auto cmd = fmt::format("zenity --file-selection --filename={} {} --file-filter=\"{}\"",
+                                defaultPath.string(), save ? "--save " : "", [&fileTypes] {
+                                   std::string types;
+                                   for ([[maybe_unused]] const auto& [_, extension] : fileTypes)
+                                   {
+                                      types.append(fmt::format("\"*.{}\" ", extension));
+                                   }
+                                   return types;
+                                }());
 
    auto* output = popen(cmd.c_str(), "r");
    assert(output);

@@ -63,9 +63,8 @@ Player::CheckCollision(const glm::vec2& bulletPosition, Enemy const* enemy, bool
 glm::vec2
 Player::GetScreenPosition() const
 {
-   glm::vec4 screenPosition =
-      m_appHandle.GetProjection()
-      * glm::vec4(m_currentGameObjectState.m_centeredPosition, 0.0f, 1.0f);
+   glm::vec4 screenPosition = m_appHandle.GetProjection()
+                              * glm::vec4(m_currentGameObjectState.m_centeredPosition, 0.0f, 1.0f);
    return glm::vec2(screenPosition.x, screenPosition.y);
 }
 
@@ -81,15 +80,12 @@ Player::UpdateInternal(bool isReverse)
    {
       if (m_appHandle.IsGame())
       {
-         if (!isReverse)
-         {
-            const auto gameHandle = ConvertToGameHandle();
-            const auto cursorPos = gameHandle->ScreenToGlobal(gameHandle->GetCursor());
-            const auto spritePosition = m_currentGameObjectState.m_position;
+         const auto gameHandle = ConvertToGameHandle();
+         const auto cursorPos = gameHandle->ScreenToGlobal(gameHandle->GetCursor());
+         const auto spritePosition = m_currentGameObjectState.m_position;
 
-            m_currentState.m_viewAngle =
-               glm::atan(spritePosition.y - cursorPos.y, spritePosition.x - cursorPos.x);
-         }
+         m_currentState.m_viewAngle =
+            glm::atan(spritePosition.y - cursorPos.y, spritePosition.x - cursorPos.x);
       }
 
       m_sprite.Rotate(m_currentState.m_viewAngle);
