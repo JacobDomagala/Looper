@@ -179,12 +179,13 @@ FileManager::FileDialog(const std::filesystem::path& defaultPath,
    //////////////////////////////////////////////
    ///////      Open file dialog          ///////
    //////////////////////////////////////////////
-   OPENFILENAMEW ofn;
-   ZeroMemory(&ofn, sizeof(OPENFILENAMEW));
-   ofn.lStructSize = sizeof(OPENFILENAMEW);
 
    std::wstring fileDialogBuffer(FILE_DIALOG_MAX_BUFFER, 0);
+   const auto directoryWstring = defaultPath.wstring();
 
+   OPENFILENAMEW ofn = {0};
+   ofn.lStructSize = sizeof(OPENFILENAMEW);
+   ofn.lpstrInitialDir = directoryWstring.c_str();
    ofn.lpstrFile = fileDialogBuffer.data();
    ofn.nMaxFile = FILE_DIALOG_MAX_BUFFER;
    ofn.nFilterIndex = 1;
@@ -194,7 +195,7 @@ FileManager::FileDialog(const std::filesystem::path& defaultPath,
    {
       ofn.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
 
-      if (GetSaveFileNameW(&ofn) == FALSE)
+      if (!GetSaveFileNameW(&ofn))
       {
          return {};
       }
@@ -203,7 +204,7 @@ FileManager::FileDialog(const std::filesystem::path& defaultPath,
    {
       ofn.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 
-      if (GetOpenFileNameW(&ofn) == FALSE)
+      if (!GetOpenFileNameW(&ofn))
       {
          return {};
       }
