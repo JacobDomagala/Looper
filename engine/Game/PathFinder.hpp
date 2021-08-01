@@ -17,7 +17,7 @@ struct Node : public Object
    {
    }
 
-   Node(const glm::ivec2& coords, const glm::vec2& posOnMap, NodeID ID,
+   Node(const glm::ivec2& coords, const glm::vec2& posOnMap, NodeID nodeID,
         const std::vector< NodeID >& connectedTo = {}, bool occupied = false,
         const std::vector< Object::ID >& objectOccupying = {})
       : Object(Object::TYPE::PATHFINDER_NODE),
@@ -25,7 +25,7 @@ struct Node : public Object
         m_yPos(coords.y),
         m_position(posOnMap),
         m_occupied(occupied),
-        m_ID(ID),
+        m_ID(nodeID),
         m_connectedNodes(connectedTo),
         m_objectsOccupyingThisNode(objectOccupying)
    {

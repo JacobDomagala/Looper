@@ -25,8 +25,8 @@ PathFinder::Initialize(const glm::ivec2& levelSize, const uint32_t tileSize)
 
    const auto grad = static_cast< int32_t >(tileSize);
 
-   const auto w = static_cast< int32_t >(levelSize.x / grad);
-   const auto h = static_cast< int32_t >(levelSize.y / grad);
+   const auto w = levelSize.x / grad;
+   const auto h = levelSize.y / grad;
    const auto offset =
       glm::vec2(static_cast< float >(grad) / 2.0f, static_cast< float >(grad) / 2.0f);
 
@@ -113,13 +113,13 @@ PathFinder::GetNodeIDFromPosition(const glm::vec2& position) const
    const auto w = static_cast< int32_t >(glm::floor(position.x / static_cast< float >(m_tileSize)));
    const auto h = static_cast< int32_t >(glm::floor(position.y / static_cast< float >(m_tileSize)));
 
-   const auto node = std::find_if(m_nodes.begin(), m_nodes.end(), [w, h](const auto& node) {
+   const auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(), [w, h](const auto& node) {
       return node.m_xPos == w and node.m_yPos == h;
    });
 
-   assert(node != m_nodes.end());
+   assert(nodeFound != m_nodes.end());
 
-   return node->m_ID;
+   return nodeFound->m_ID;
 }
 
 Node&
@@ -131,24 +131,24 @@ PathFinder::GetNodeFromPosition(const glm::vec2& position)
 Node&
 PathFinder::GetNodeFromID(Node::NodeID ID)
 {
-   const auto node = std::find_if(m_nodes.begin(), m_nodes.end(),
-                                  [ID](const auto& node) { return node.m_ID == ID; });
+   const auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(),
+                                       [ID](const auto& node) { return node.m_ID == ID; });
 
-   assert(node != m_nodes.end());
+   assert(nodeFound != m_nodes.end());
 
-   return *node;
+   return *nodeFound;
 }
 
 Node::NodeID
 PathFinder::GetNodeIDFromTile(const glm::ivec2& tile) const
 {
-   const auto node = std::find_if(m_nodes.begin(), m_nodes.end(), [tile](const auto& node) {
+   const auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(), [tile](const auto& node) {
       return node.m_xPos == tile.x and node.m_yPos == tile.y;
    });
 
-   assert(node != m_nodes.end());
+   assert(nodeFound != m_nodes.end());
 
-   return node->m_ID;
+   return nodeFound->m_ID;
 }
 
 std::vector< Node::NodeID >

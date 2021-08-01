@@ -137,9 +137,9 @@ Enemy::Shoot()
 {
    m_currentState.m_timeSinceLastShot += m_timer.GetFloatDeltaTime();
 
-   if (glm::length(static_cast< glm::vec2 >(m_appHandle.GetPlayer()->GetCenteredPosition()
-                                            - m_currentGameObjectState.m_centeredPosition))
-       <= static_cast< float >(m_weapon->GetRange()))
+   if (glm::length(m_appHandle.GetPlayer()->GetCenteredPosition()
+                   - m_currentGameObjectState.m_centeredPosition)
+       <= (m_weapon->GetRange()))
    {
       if (m_currentState.m_timeSinceLastShot >= m_weapon->GetReloadTime())
       {
