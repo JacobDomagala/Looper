@@ -128,8 +128,8 @@ EditorGUI::Init()
 void
 EditorGUI::Shutdown()
 {
-   ImGui_ImplOpenGL3_Shutdown();
    ImGui_ImplGlfw_Shutdown();
+   ImGui_ImplOpenGL3_Shutdown();
    ImGui::DestroyContext();
 }
 
@@ -160,7 +160,7 @@ EditorGUI::Render()
    ImGui::SetNextWindowSize(ImVec2(m_windowWidth, toolsWindowHeight));
    ImGui::Begin("Tools");
    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.45f, 0.0f, 0.2f, 0.8f});
-   ImGui::PushDisabled(m_currentLevel == nullptr);
+   ImGui::BeginDisabled(m_currentLevel == nullptr);
 
    if (ImGui::Button("Play"))
    {
@@ -177,7 +177,7 @@ EditorGUI::Render()
          m_parent.SaveLevel(levelName);
       }
    }
-   ImGui::PopDisabled();
+   ImGui::EndDisabled();
 
    ImGui::SameLine();
    if (ImGui::Button("Load"))
