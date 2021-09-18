@@ -69,7 +69,7 @@ class Animatable
    SingleAnimate(Timer::milliseconds updateTime);
 
    AnimationPoint
-   CreateAnimationNode(Object::ID parentID);
+   CreateAnimationNode(Object::ID parentID, const glm::vec2& position = glm::vec2{});
 
    void
    AddAnimationNode(const AnimationPoint& newAnimationPoint);

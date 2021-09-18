@@ -674,7 +674,10 @@ Editor::AddObject(Object::TYPE objectType)
                          "Added new Animation point without currently selected object!");
          }
          auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
-         auto newNode = animatablePtr->CreateAnimationNode(m_currentSelectedGameObject->GetID());
+         auto newNode = animatablePtr->CreateAnimationNode(
+            m_currentSelectedGameObject->GetID(),
+            m_currentSelectedGameObject->GetPosition()
+               + static_cast< glm::vec2 >(m_currentSelectedGameObject->GetSize()));
          newObject = std::make_shared< EditorObject >(*this, newNode.m_end, glm::ivec2(20, 20),
                                                       "Default128.png", newNode.GetID());
 

@@ -200,12 +200,12 @@ Animatable::SingleAnimate(Timer::milliseconds updateTime)
 }
 
 AnimationPoint
-Animatable::CreateAnimationNode(Object::ID parentID)
+Animatable::CreateAnimationNode(Object::ID parentID, const glm::vec2& position)
 {
-   const auto position = m_animationPoints.empty()
-                            ? glm::vec2(0.0f, 0.0f)
-                            : m_animationPoints.back().m_end + glm::vec2(10.0f, 10.0f);
-   auto newNode = AnimationPoint(parentID, position, Timer::seconds(2));
+   const auto nodePosition = m_animationPoints.empty()
+                            ? position
+                            : m_animationPoints.back().m_end + glm::vec2(20.0f, 20.0f);
+   auto newNode = AnimationPoint(parentID, nodePosition, Timer::seconds(2));
    AddAnimationNode(newNode);
 
    return newNode;
