@@ -68,6 +68,8 @@ PathFinder::Initialize(const glm::ivec2& levelSize, const uint32_t tileSize)
          AddNode(std::move(node));
       }
    }
+
+   m_initialized = true;
 }
 
 void
