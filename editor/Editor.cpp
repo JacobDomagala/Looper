@@ -214,8 +214,7 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
             auto animatable = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
             if (animatable)
             {
-               animatable->SetAnimationStartLocation(
-                  m_currentSelectedGameObject->GetPosition());
+               animatable->SetAnimationStartLocation(m_currentSelectedGameObject->GetPosition());
                UpdateAnimationData();
             }
          }
@@ -476,8 +475,7 @@ Editor::DrawAnimationPoints()
                                    object->GetLinkedObjectID());
                if (it != animaltionPointIDs.end())
                {
-                  Renderer::DrawLine(lineStart, object->GetPosition(),
-                                     {1.0f, 0.0f, 1.0f, 1.0f});
+                  Renderer::DrawLine(lineStart, object->GetPosition(), {1.0f, 0.0f, 1.0f, 1.0f});
                   lineStart = object->GetCenteredPosition();
 
                   object->Render();
@@ -565,6 +563,23 @@ Editor::CreateLevel(const glm::ivec2& size)
    m_currentLevel = std::make_shared< Level >();
    m_currentLevel->Create(this, size);
    m_currentLevel->LoadShaders("Editor");
+
+   // Populate editor objects
+   const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
+   std::transform(pathfinderNodes.begin(), pathfinderNodes.end(),
+                  std::back_inserter(m_editorObjects), [this](const auto& node) {
+                     const auto tileSize = m_currentLevel->GetTileSize();
+
+                     auto pathfinderNode = std::make_shared< EditorObject >(
+                        *this, node.m_position, glm::ivec2(tileSize, tileSize), "white.png",
+                        node.GetID());
+
+                     pathfinderNode->SetIsBackground(true);
+                     pathfinderNode->SetVisible(m_renderPathfinderNodes);
+                     pathfinderNode->SetColor(glm::vec3{1.0f, 1.0f, 1.0f});
+
+                     return pathfinderNode;
+                  });
 
    m_camera.Create(glm::vec3(m_currentLevel->GetLevelPosition(), 0.0f), m_window->GetSize());
    m_camera.SetLevelSize(m_currentLevel->GetSize());
