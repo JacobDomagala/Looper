@@ -287,6 +287,11 @@ EditorObject::Render()
          }
          break;
 
+         case Object::TYPE::ANIMATION_POINT: {
+            m_sprite.Render();
+         }
+         break;
+
          default: {
          }
       }

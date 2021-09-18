@@ -632,7 +632,7 @@ Editor::LoadLevel(const std::string& levelPath)
          for (const auto& point : animationPoints)
          {
             auto editorObject = std::make_shared< EditorObject >(
-               *this, point.m_end, glm::ivec2(20, 20), "Default128.png", point.GetID());
+               *this, point.m_end, glm::ivec2(20, 20), "NodeSprite.png", point.GetID());
             editorObject->SetName("Animationpoint" + object->GetName());
 
             m_editorObjects.push_back(editorObject);
@@ -679,7 +679,7 @@ Editor::AddObject(Object::TYPE objectType)
             m_currentSelectedGameObject->GetPosition()
                + static_cast< glm::vec2 >(m_currentSelectedGameObject->GetSize()));
          newObject = std::make_shared< EditorObject >(*this, newNode.m_end, glm::ivec2(20, 20),
-                                                      "Default128.png", newNode.GetID());
+                                                      "NodeSprite.png", newNode.GetID());
 
          m_editorObjects.push_back(newObject);
          animatablePtr->ResetAnimation();
