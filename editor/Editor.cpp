@@ -90,6 +90,20 @@ Editor::KeyCallback(const KeyEvent& event)
          ActionOnObject(ACTION::REMOVE);
       }
    }
+   else if (event.m_action == GLFW_RELEASE)
+   {
+
+      if (m_gameObjectSelected && event.m_key == GLFW_KEY_C)
+      {
+         m_logger.Log(Logger::Type::INFO, "Copy object!");
+         m_copiedGameObject = m_currentSelectedGameObject;
+      }
+      if (m_copiedGameObject && event.m_key == GLFW_KEY_V)
+      {
+         m_logger.Log(Logger::Type::INFO, "Paste object!");
+         CopyGameObject(m_copiedGameObject);
+      }
+   }
 }
 
 void
@@ -659,6 +673,13 @@ void
 Editor::AddGameObject(GameObject::TYPE objectType)
 {
    HandleGameObjectSelected(m_currentLevel->AddGameObject(objectType));
+}
+
+void
+Editor::CopyGameObject(const std::shared_ptr<GameObject>& objectToCopy)
+{
+   auto newObject = m_currentLevel->AddGameObject(objectToCopy->GetType());
+   HandleGameObjectSelected(newObject);
 }
 
 void

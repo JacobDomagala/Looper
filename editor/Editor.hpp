@@ -69,6 +69,9 @@ class Editor : public Application
    AddGameObject(GameObject::TYPE objectType);
 
    void
+   CopyGameObject(const std::shared_ptr<GameObject>& objectToCopy);
+
+   void
    AddObject(Object::TYPE objectType);
 
    void
@@ -193,6 +196,8 @@ class Editor : public Application
    bool m_movementOnGameObject = false;
    bool m_gameObjectSelected = false;
    std::shared_ptr< GameObject > m_currentSelectedGameObject;
+
+   std::shared_ptr< GameObject > m_copiedGameObject;
 
    // Handling of editor objects (drawable objects linked to object in game)
    bool m_movementOnEditorObject = false;
