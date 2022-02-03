@@ -678,7 +678,13 @@ Editor::AddGameObject(GameObject::TYPE objectType)
 void
 Editor::CopyGameObject(const std::shared_ptr<GameObject>& objectToCopy)
 {
+   // For now we only copy type/size/collision/sprite
+
    auto newObject = m_currentLevel->AddGameObject(objectToCopy->GetType());
+   newObject->SetSize(objectToCopy->GetSize());
+   newObject->SetHasCollision(objectToCopy->GetHasCollision());
+   newObject->GetSprite().SetTextureFromFile(objectToCopy->GetSprite().GetTextureName());
+
    HandleGameObjectSelected(newObject);
 }
 
