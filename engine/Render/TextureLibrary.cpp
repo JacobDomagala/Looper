@@ -10,6 +10,9 @@ TextureLibrary::GetTexture(const std::string& textureName)
       s_logger.Log(Logger::Type::INFO, "Texture: {} not found in library. Loading it", textureName);
       LoadTexture(textureName);
    }
+   else {
+      s_logger.Log(Logger::Type::INFO, "Texture: {} found in library!", textureName);
+   }
 
    return s_loadedTextures[textureName];
 }
