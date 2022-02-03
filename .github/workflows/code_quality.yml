@@ -17,5 +17,6 @@ jobs:
       with:
         exclude_dir: dependencies
         apt_pckgs: xorg-dev
+        verbose: true
         cppcheck_args: |
             --enable=all --suppress=functionStatic --suppress=unusedFunction --inline-suppr --inconclusive
