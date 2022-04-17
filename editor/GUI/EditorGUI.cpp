@@ -201,7 +201,7 @@ EditorGUI::Render()
       ImGui::SetNextWindowSize(ImVec2(m_windowWidth, levelWindowHeight));
       ImGui::Begin("Level");
 
-      ImGui::SetNextTreeNodeOpen(true);
+      ImGui::SetNextItemOpen(true);
       if (ImGui::CollapsingHeader("General"))
       {
          auto sprite_size = m_currentLevel->GetSprite().GetSize();
@@ -217,7 +217,7 @@ EditorGUI::Render()
          }
       }
 
-      ImGui::SetNextTreeNodeOpen(true);
+      ImGui::SetNextItemOpen(true);
       if (ImGui::CollapsingHeader("Pathfinder"))
       {
          static bool renderPathfinderNodes = m_parent.GetRenderNodes();
@@ -227,12 +227,12 @@ EditorGUI::Render()
          }
       }
 
-      ImGui::SetNextTreeNodeOpen(true);
+      ImGui::SetNextItemOpen(true);
       if (ImGui::CollapsingHeader("Shader"))
       {
       }
 
-      ImGui::SetNextTreeNodeOpen(true);
+      ImGui::SetNextItemOpen(true);
       if (ImGui::CollapsingHeader("Objects"))
       {
          const auto& gameObjects = m_currentLevel->GetObjects();
@@ -308,7 +308,7 @@ EditorGUI::Render()
       ImGui::SetNextWindowPos({size.x - m_windowWidth, 0});
       ImGui::SetNextWindowSize(ImVec2(m_windowWidth, gameObjectWindowHeight));
       ImGui::Begin("Game Object");
-      ImGui::SetNextTreeNodeOpen(true);
+      ImGui::SetNextItemOpen(true);
 
       if (ImGui::CollapsingHeader("General"))
       {
@@ -332,7 +332,7 @@ EditorGUI::Render()
          }
       }
 
-      ImGui::SetNextTreeNodeOpen(true);
+      ImGui::SetNextItemOpen(true);
       if (ImGui::CollapsingHeader("Transform"))
       {
          auto objectPosition = m_currentlySelectedGameObject->GetPosition();
@@ -354,7 +354,7 @@ EditorGUI::Render()
          }
       }
 
-      ImGui::SetNextTreeNodeOpen(true);
+      ImGui::SetNextItemOpen(true);
       if (ImGui::CollapsingHeader("Shader"))
       {
          if (m_currentLevel)
@@ -382,7 +382,7 @@ EditorGUI::Render()
          const auto animatablePtr =
             std::dynamic_pointer_cast< Animatable >(m_currentlySelectedGameObject);
 
-         ImGui::SetNextTreeNodeOpen(true);
+         ImGui::SetNextItemOpen(true);
          if (ImGui::CollapsingHeader("Animation"))
          {
             ImGui::Text("Type");
