@@ -201,13 +201,6 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
    // Move camera (or currently selected Object)
    else
    {
-      auto mouseMovementLength = glm::length(axis);
-
-      constexpr auto minCameraMovement = 1.0f;
-      constexpr auto maxCameraMovement = 2.0f;
-
-      mouseMovementLength = glm::clamp(mouseMovementLength, minCameraMovement, maxCameraMovement);
-
       const auto& moveBy = glm::vec3(axis.x, axis.y, 0.0f);
 
       if (m_movementOnEditorObject || m_movementOnGameObject)
@@ -259,7 +252,7 @@ Editor::SetMouseOnObject()
 }
 
 void
-Editor::HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameObject, bool fromGUI)
+Editor::HandleGameObjectSelected(const std::shared_ptr< GameObject >& newSelectedGameObject, bool fromGUI)
 {
    if (m_currentSelectedGameObject != newSelectedGameObject)
    {
@@ -320,7 +313,7 @@ Editor::UnselectGameObject()
 }
 
 void
-Editor::HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedEditorObject,
+Editor::HandleEditorObjectSelected(const std::shared_ptr< EditorObject >& newSelectedEditorObject,
                                    bool fromGUI)
 {
    if (m_editorObjectSelected && (newSelectedEditorObject != m_currentEditorObjectSelected))
@@ -692,29 +685,23 @@ void
 Editor::AddObject(Object::TYPE objectType)
 {
    std::shared_ptr< EditorObject > newObject;
-   switch (objectType)
+   if (objectType == Object::TYPE::ANIMATION_POINT)
    {
-      case Object::TYPE::ANIMATION_POINT: {
-         if (!m_currentSelectedGameObject)
-         {
-            m_logger.Log(Logger::Type::WARNING,
-                         "Added new Animation point without currently selected object!");
-         }
-         auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
-         auto newNode = animatablePtr->CreateAnimationNode(
-            m_currentSelectedGameObject->GetID(),
-            m_currentSelectedGameObject->GetPosition()
-               + static_cast< glm::vec2 >(m_currentSelectedGameObject->GetSize()));
-         newObject = std::make_shared< EditorObject >(*this, newNode.m_end, glm::ivec2(20, 20),
-                                                      "NodeSprite.png", newNode.GetID());
-
-         m_editorObjects.push_back(newObject);
-         animatablePtr->ResetAnimation();
+      if (!m_currentSelectedGameObject)
+      {
+         m_logger.Log(Logger::Type::WARNING,
+                      "Added new Animation point without currently selected object!");
       }
-      break;
+      auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
+      auto newNode = animatablePtr->CreateAnimationNode(
+         m_currentSelectedGameObject->GetID(),
+         m_currentSelectedGameObject->GetPosition()
+            + static_cast< glm::vec2 >(m_currentSelectedGameObject->GetSize()));
+      newObject = std::make_shared< EditorObject >(*this, newNode.m_end, glm::ivec2(20, 20),
+                                                   "NodeSprite.png", newNode.GetID());
 
-      default:
-         break;
+      m_editorObjects.push_back(newObject);
+      animatablePtr->ResetAnimation();
    }
 
    HandleEditorObjectSelected(newObject);
@@ -774,11 +761,11 @@ std::shared_ptr< EditorObject >
 Editor::GetEditorObjectByID(Object::ID ID)
 {
    auto editorObject =
-      std::find_if(m_editorObjects.begin(), m_editorObjects.end(), [ID](const auto& editorObject) {
-         return editorObject->GetLinkedObjectID() == ID;
+      std::find_if(m_editorObjects.begin(), m_editorObjects.end(), [ID](const auto& object) {
+         return object->GetLinkedObjectID() == ID;
       });
 
-   assert(editorObject != m_editorObjects.end());
+   assert(editorObject != m_editorObjects.end()); // NOLINT
 
    return *editorObject;
 }

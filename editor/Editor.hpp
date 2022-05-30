@@ -22,7 +22,6 @@ class Editor : public Application
 {
  public:
    explicit Editor(const glm::ivec2& screenSize);
-   ~Editor() override = default;
 
    // APPLICATION OVERRIDES
    void
@@ -114,14 +113,14 @@ class Editor : public Application
    GetGridData() const;
 
    void
-   HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameObject,
+   HandleGameObjectSelected(const std::shared_ptr< GameObject >& newSelectedGameObject,
                             bool fromGUI = false);
 
    void
    HandleObjectSelected(Object::ID objectID, bool fromGUI);
 
    void
-   HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedEditorObject,
+   HandleEditorObjectSelected(const std::shared_ptr< EditorObject >& newSelectedEditorObject,
                               bool fromGUI = false);
 
  private:
@@ -131,7 +130,6 @@ class Editor : public Application
       REMOVE
    };
 
- private:
    std::shared_ptr< EditorObject >
    GetEditorObjectByID(Object::ID ID);
 
@@ -187,7 +185,7 @@ class Editor : public Application
    bool m_mousePressedLastUpdate = false;
    bool m_mouseDrag = false;
 
-   glm::vec2 m_lastCursorPosition;
+   glm::vec2 m_lastCursorPosition = {};
 
    std::unique_ptr< byte_vec4 > m_collision = nullptr;
 
