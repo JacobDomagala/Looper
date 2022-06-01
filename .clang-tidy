@@ -1,5 +1,5 @@
 ---
-Checks:          '*,-fuchsia-*,-google-*,-zircon-*,-abseil-*,-modernize-use-trailing-return-type,-llvm*,-hicpp-uppercase-literal-suffix, -readability-uppercase-literal-suffix, -readability-implicit-bool-conversion,-cppcoreguidelines-avoid-magic-numbers, -readability-magic-numbers, -cppcoreguidelines-pro-type-union-access,-cppcoreguidelines-pro-bounds-pointer-arithmetic, -cppcoreguidelines-pro-type-reinterpret-cast-cppcoreguidelines-pro-type-vararg, -cppcoreguidelines-pro-type-vararg, -hicpp-vararg'
+Checks:          '*,-fuchsia-*,-google-*,-zircon-*,-abseil-*,-modernize-use-trailing-return-type,-llvm*,-hicpp-uppercase-literal-suffix, -readability-uppercase-literal-suffix, -readability-implicit-bool-conversion,-cppcoreguidelines-avoid-magic-numbers, -readability-magic-numbers, -cppcoreguidelines-pro-type-union-access,-cppcoreguidelines-pro-bounds-pointer-arithmetic, -cppcoreguidelines-pro-type-reinterpret-cast-cppcoreguidelines-pro-type-vararg, -cppcoreguidelines-pro-type-vararg, -hicpp-vararg, -altera-id-dependent-backward-branch, -bugprone-easily-swappable-parameters, -readability-identifier-length, -altera-unroll-loops'
 WarningsAsErrors: '*'
 HeaderFilterRegex: ''
 FormatStyle:     none
