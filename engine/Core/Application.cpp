@@ -54,7 +54,8 @@ Application::Log(Logger::Type t, const std::string& log) const
 }
 
 void
-Application::RenderText(std::string, const glm::vec2&, float, const glm::vec3&)
+Application::RenderText(const std::string& /*text*/, const glm::vec2& /*position*/, float /*scale*/,
+                        const glm::vec3& /*color*/)
 {
    // m_font.RenderText(GetProjection(), text, position, scale, color);
 }

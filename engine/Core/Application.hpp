@@ -20,7 +20,14 @@ class Application : public InputListener
 {
  public:
    Application() = default;
-   virtual ~Application();
+   ~Application() override;
+   Application&
+   operator=(Application&) = delete;
+   Application&
+   operator=(Application&&) = delete;
+   Application(Application&) = delete;
+   Application(Application&&) = delete;
+
 
    std::shared_ptr< Player >
    GetPlayer();
@@ -44,7 +51,7 @@ class Application : public InputListener
    Log(Logger::Type t, const std::string& log) const;
 
    void
-   RenderText(std::string text, const glm::vec2& position, float scale,
+   RenderText(const std::string& text, const glm::vec2& position, float scale,
               const glm::vec3& color = glm::vec3(1.0f, 1.0f, 1.0f));
 
    // convert from global position (OpenGL) to screen position (in pixels)
@@ -77,6 +84,7 @@ class Application : public InputListener
    virtual bool
    IsRunning() const = 0;
 
+   // NOLINTBEGIN (cppcoreguidelines-non-private-member-variables-in-classes)
    Logger m_logger;
    bool m_isGame = false;
    std::shared_ptr< Player > m_player = nullptr;
@@ -86,7 +94,8 @@ class Application : public InputListener
    std::unique_ptr< Window > m_window;
    Camera m_camera;
    Timer m_timer;
-   Timer::milliseconds m_deltaTime;
+   Timer::milliseconds m_deltaTime = {};
+   // NOLINTEND
 };
 
 
