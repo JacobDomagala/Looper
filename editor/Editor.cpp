@@ -1,4 +1,5 @@
 #include "Editor.hpp"
+#include "EditorGUI.hpp"
 #include "Enemy.hpp"
 #include "Game.hpp"
 #include "InputManager.hpp"
@@ -48,7 +49,7 @@ Editor::HandleCamera()
 
    auto cameraMoveBy = glm::vec2();
 
-   if (!m_gui.IsBlockingEvents() && m_levelLoaded)
+   if (!EditorGUI::IsBlockingEvents() && m_levelLoaded)
    {
       if (InputManager::CheckKeyPressed(GLFW_KEY_W))
       {
@@ -109,7 +110,7 @@ Editor::KeyCallback(const KeyEvent& event)
 void
 Editor::MouseScrollCallback(const MouseScrollEvent& event)
 {
-   if (!m_playGame && !m_gui.IsBlockingEvents() && m_levelLoaded)
+   if (!m_playGame && !EditorGUI::IsBlockingEvents() && m_levelLoaded)
    {
       m_camera.Zoom(static_cast< float >(event.m_xOffset + event.m_yOffset));
    }
@@ -118,7 +119,7 @@ Editor::MouseScrollCallback(const MouseScrollEvent& event)
 void
 Editor::MouseButtonCallback(const MouseButtonEvent& event)
 {
-   if (!m_playGame && !m_gui.IsBlockingEvents() && m_levelLoaded)
+   if (!m_playGame && !EditorGUI::IsBlockingEvents() && m_levelLoaded)
    {
       const auto mousePressed = event.m_action == GLFW_PRESS;
       m_mousePressedLastUpdate = mousePressed;
@@ -143,7 +144,7 @@ Editor::MouseButtonCallback(const MouseButtonEvent& event)
 void
 Editor::CursorPositionCallback(const CursorPositionEvent& event)
 {
-   if (!m_playGame && !m_gui.IsBlockingEvents() && m_levelLoaded)
+   if (!m_playGame && !EditorGUI::IsBlockingEvents() && m_levelLoaded)
    {
       const auto currentCursorPosition = glm::vec2(event.m_xPos, event.m_yPos);
 
@@ -739,7 +740,7 @@ Editor::LaunchGameLoop()
 {
    // Clear rednerer data
    Renderer::Shutdown();
-   m_gui.Shutdown();
+   EditorGUI::Shutdown();
 
    m_game = std::make_unique< Game >();
    m_game->Init("GameInit.txt");
