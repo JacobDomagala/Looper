@@ -20,9 +20,8 @@ class Enemy : public GameObject, public Animatable
    Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size,
          const std::string& textureName, const std::vector< AnimationPoint >& keypoints = {},
          Animatable::ANIMATION_TYPE animationType = Animatable::ANIMATION_TYPE::REVERSABLE);
-   ~Enemy() override = default;
 
-   bool
+   [[nodiscard]] bool
    Visible() const override;
 
    void
@@ -31,13 +30,13 @@ class Enemy : public GameObject, public Animatable
    void
    DealWithPlayer();
 
-   std::string
+   [[nodiscard]] std::string
    GetWeapon() const;
 
-   int32_t
+   [[nodiscard]] int32_t
    GetDmg() const;
 
-   glm::ivec2
+   [[nodiscard]] glm::ivec2
    GetInitialPosition() const;
 
  private:
@@ -49,7 +48,6 @@ class Enemy : public GameObject, public Animatable
       RETURNING
    };
 
- private:
    void
    UpdateInternal(bool isReverse) override;
 
@@ -79,7 +77,6 @@ class Enemy : public GameObject, public Animatable
    void
    SetTargetShootPosition(const glm::vec2& targetPosition);
 
- private:
    struct EnemyState
    {
       ACTION m_action = ACTION::IDLE;
@@ -114,7 +111,7 @@ class Enemy : public GameObject, public Animatable
    // current weapon
    std::unique_ptr< Weapon > m_weapon;
 
-   glm::vec2 m_initialPosition;
+   glm::vec2 m_initialPosition = {};
 };
 
 } // namespace dgame

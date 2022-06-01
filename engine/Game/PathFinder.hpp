@@ -18,16 +18,16 @@ struct Node : public Object
    }
 
    Node(const glm::ivec2& coords, const glm::vec2& posOnMap, NodeID nodeID,
-        const std::vector< NodeID >& connectedTo = {}, bool occupied = false,
-        const std::vector< Object::ID >& objectOccupying = {})
+        std::vector< NodeID > connectedTo = {}, bool occupied = false,
+        std::vector< Object::ID > objectOccupying = {})
       : Object(Object::TYPE::PATHFINDER_NODE),
         m_xPos(coords.x),
         m_yPos(coords.y),
         m_position(posOnMap),
         m_occupied(occupied),
         m_ID(nodeID),
-        m_connectedNodes(connectedTo),
-        m_objectsOccupyingThisNode(objectOccupying)
+        m_connectedNodes(std::move(connectedTo)),
+        m_objectsOccupyingThisNode(std::move(objectOccupying))
    {
    }
 
@@ -62,7 +62,7 @@ class PathFinder
 {
  public:
    PathFinder() = default;
-   PathFinder(const glm::ivec2& levelSize, const uint32_t tileSize, std::vector< Node >&& nodes);
+   PathFinder(const glm::ivec2& levelSize, uint32_t tileSize, std::vector< Node >&& nodes);
 
    /**
     * \brief Initialize Pathfinder. This will create nodes for entire Level.
@@ -71,7 +71,7 @@ class PathFinder
     * \param[in] tileSize Size of tile
     */
    void
-   Initialize(const glm::ivec2& levelSize, const uint32_t tileSize);
+   Initialize(const glm::ivec2& levelSize, uint32_t tileSize);
 
    /**
     * \brief Initialize Pathfinder. This will not create nodes.
@@ -80,7 +80,7 @@ class PathFinder
     * \param[in] tileSize Size of tile
     */
    void
-   InitializeEmpty(const glm::ivec2& levelSize, const uint32_t tileSize);
+   InitializeEmpty(const glm::ivec2& levelSize, uint32_t tileSize);
 
    /**
     * \brief Mark Pathfinder as initialized
@@ -93,7 +93,7 @@ class PathFinder
     *
     * \return Whether it's initialized
     */
-   bool
+   [[nodiscard]] bool
    IsInitialized() const;
 
    /**
@@ -117,7 +117,7 @@ class PathFinder
     *
     * \return Nodes vector
     */
-   const std::vector< Node >&
+   [[nodiscard]] const std::vector< Node >&
    GetAllNodes() const;
 
    /**
@@ -135,7 +135,7 @@ class PathFinder
     *
     * \return NodeID
     */
-   Node::NodeID
+   [[nodiscard]] Node::NodeID
    GetNodeIDFromPosition(const glm::vec2& position) const;
 
    /**
@@ -155,7 +155,7 @@ class PathFinder
     *
     * \return NodeID
     */
-   Node::NodeID
+   [[nodiscard]] Node::NodeID
    GetNodeIDFromTile(const glm::ivec2& tile) const;
 
    /**

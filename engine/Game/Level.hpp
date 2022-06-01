@@ -19,14 +19,13 @@ class Level
  public:
    static constexpr Tile_t invalidTile = Tile_t{-1, -1};
 
- public:
    std::shared_ptr< GameObject >
    AddGameObject(GameObject::TYPE objectType);
 
-   std::vector< Tile_t >
+   [[nodiscard]] std::vector< Tile_t >
    GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const;
 
-   Tile_t
+   [[nodiscard]] Tile_t
    GetTileFromPosition(const glm::vec2& local) const;
 
    void
@@ -91,7 +90,7 @@ class Level
     *
     * \return True if it's on the map, false otherwise
     */
-   bool
+   [[nodiscard]] bool
    IsInLevelBoundaries(const glm::vec2& position) const;
 
    /**
@@ -121,7 +120,7 @@ class Level
     *
     * \return Vector of tiles
     */
-   std::vector< Tile_t >
+   [[nodiscard]] std::vector< Tile_t >
    GetTilesAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos) const;
 
    void
@@ -136,19 +135,19 @@ class Level
       m_locked = false;
    }
 
-   bool
+   [[nodiscard]] bool
    IsCameraLocked() const
    {
       return m_locked;
    }
 
-   glm::vec2
+   [[nodiscard]] glm::vec2
    GetLevelPosition() const
    {
       return m_background.GetPosition();
    }
 
-   glm::ivec2
+   [[nodiscard]] glm::ivec2
    GetSize() const
    {
       return m_levelSize;
@@ -169,10 +168,10 @@ class Level
       return m_player;
    }
 
-   const std::vector< std::shared_ptr< GameObject > >&
-   GetObjects(bool includePlayer = false) const;
+   [[nodiscard]] const std::vector< std::shared_ptr< GameObject > >&
+   GetObjects() const;
 
-   std::string
+   [[nodiscard]] std::string
    GetShader() const
    {
       return m_shaderName;
@@ -187,7 +186,7 @@ class Level
    std::shared_ptr< GameObject >
    GetGameObjectOnLocation(const glm::vec2& screenPosition);
 
-   uint32_t
+   [[nodiscard]] uint32_t
    GetTileSize() const
    {
       return m_tileWidth;

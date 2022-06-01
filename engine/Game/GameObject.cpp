@@ -5,13 +5,14 @@
 
 namespace dgame {
 
-GameObject::GameObject(Application& application, const glm::vec2& position,
-                       const glm::ivec2& size, const std::string& sprite, Object::TYPE type)
-   : Object(type), m_appHandle(application)
+GameObject::GameObject(Application& application, const glm::vec2& position, const glm::ivec2& size,
+                       const std::string& sprite, Object::TYPE type)
+   : Object(type),
+     m_appHandle(application),
+     m_collision(m_sprite.SetSpriteTextured(m_currentGameObjectState.m_position, size, sprite))
 {
    m_currentGameObjectState.m_position = position;
    m_currentGameObjectState.m_visible = true;
-   m_collision = m_sprite.SetSpriteTextured(m_currentGameObjectState.m_position, size, sprite);
    m_currentGameObjectState.m_centeredPosition = m_sprite.GetPosition();
 
    UpdateCollision();
@@ -244,7 +245,7 @@ GameObject::Render()
 Game*
 GameObject::ConvertToGameHandle()
 {
-   auto gameHandle = static_cast< Game* >(&m_appHandle);
+   auto* gameHandle = dynamic_cast< Game* >(&m_appHandle);
    if (gameHandle == nullptr)
    {
       m_appHandle.Log(Logger::Type::FATAL, "Game logic called not from Game class");

@@ -8,46 +8,51 @@ namespace dgame {
 
 class Weapon
 {
-public:
-   Weapon(float range, int32_t dmg, int32_t ammoNum, bool hasAmmo, const std::string& name,
+ public:
+   Weapon(float range, int32_t dmg, int32_t ammoNum, bool hasAmmo, std::string&& name,
           float reloadTime)
       : m_range(range),
         m_dmg(dmg),
         m_ammoNum(ammoNum),
         m_hasAmmo(hasAmmo),
-        m_name(name),
+        m_name(std::move(name)),
         m_reloadTime(reloadTime)
    {
    }
 
- public:
    virtual ~Weapon() = default;
+   Weapon&
+   operator=(Weapon const&) = default;
+   Weapon&
+   operator=(Weapon&&) = default;
+   Weapon(Weapon&) = default;
+   Weapon(Weapon&&) = default;
 
-   std::string
+   [[nodiscard]] std::string
    GetName() const
    {
       return m_name;
    }
 
-   int32_t
+   [[nodiscard]] int32_t
    GetAmmoNum() const
    {
       return m_ammoNum;
    }
 
-   float
+   [[nodiscard]] float
    GetReloadTime() const
    {
       return m_reloadTime;
    }
 
-   float
+   [[nodiscard]] float
    GetRange() const
    {
       return m_range;
    }
 
-   int32_t
+   [[nodiscard]] int32_t
    GetDamage() const
    {
       return m_dmg;
@@ -71,7 +76,6 @@ class SniperRifle : public Weapon
    SniperRifle() : Weapon(1000.0f, 80, 10, true, {"sniper rifle"}, 1.0f)
    {
    }
-   ~SniperRifle() override = default;
 
    void
    Shoot(const glm::vec2& /*direction*/) override
@@ -85,7 +89,6 @@ class Glock : public Weapon
    Glock() : Weapon(300.0f, 10, 20, true, {"glock"}, 0.3f)
    {
    }
-   ~Glock() override = default;
 
    void
    Shoot(const glm::vec2& /*direction*/) override

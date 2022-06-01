@@ -9,16 +9,17 @@ namespace dgame {
 
 // Base class for all objects located in the game (player, enemy, light source, particle emitter
 // etc.
+// NOLINTNEXTLINE
 class Object
 {
  public:
    using ID = uint64_t;
    using VectorPtr = std::vector< std::shared_ptr< Object > >;
 
+   // NOLINTNEXTLINE
    static constexpr ID INVALID_ID = static_cast< ID >(~0);
-   static constexpr auto TYPE_NUM_BITS = 32;
+   static constexpr uint32_t TYPE_NUM_BITS = 32;
 
- public:
    enum class TYPE
    {
       NONE = 0,
@@ -29,6 +30,9 @@ class Object
       PATHFINDER_NODE = 8
    };
 
+   explicit Object(TYPE type);
+   virtual ~Object() = default;
+
    static TYPE
    GetTypeFromString(const std::string& stringType);
 
@@ -38,18 +42,15 @@ class Object
    static std::string
    GetTypeString(ID id);
 
-   explicit Object(TYPE type);
-   virtual ~Object() = default;
-
    void SetType(TYPE);
 
-   TYPE
+   [[nodiscard]] TYPE
    GetType() const;
 
-   std::string
+   [[nodiscard]] std::string
    GetTypeString() const;
 
-   ID
+   [[nodiscard]] ID
    GetID() const;
 
  protected:
@@ -57,13 +58,14 @@ class Object
 
    ID m_id;
 
+   // NOLINTNEXTLINE
    static inline std::unordered_map< std::string, TYPE > s_map = {
       {"Enemy", Object::TYPE::ENEMY},
       {"Player", Object::TYPE::PLAYER},
       {"Object", Object::TYPE::OBJECT},
       {"Animation Point", Object::TYPE::ANIMATION_POINT},
       {"Pathfinder Node", Object::TYPE::PATHFINDER_NODE}};
-   static inline ID s_currentID = 0;
+   static inline ID s_currentID = 0; // NOLINT
 };
 
 inline bool

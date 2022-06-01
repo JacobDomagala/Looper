@@ -19,7 +19,7 @@ class Logger
       FATAL
    };
 
-   explicit Logger(const std::string& name);
+   explicit Logger(std::string name);
    Logger() = default;
 
    void
@@ -39,11 +39,12 @@ class Logger
    static void
    SetLogType(Type type);
 
-   std::string
-   ToString(Type type) const;
+   static std::string
+   ToString(Type type);
 
  private:
    std::string m_moduleName;
+   // NOLINTNEXTLINE
    static inline Type m_currentLogType = Type::DEBUG;
 };
 

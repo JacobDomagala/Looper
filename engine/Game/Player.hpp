@@ -39,11 +39,11 @@ class Player : public GameObject
 
    // get centered (center of player's sprite) position on screen
    // using projection matrix from OpenGL
-   glm::vec2
+   [[nodiscard]] glm::vec2
    GetScreenPosition() const;
 
    // get reload time of player's current weapon
-   float
+   [[nodiscard]] float
    GetReloadTime() const;
 
    // change player's current weapon
@@ -51,14 +51,14 @@ class Player : public GameObject
    ChangeWepon(int32_t idx);
 
    // get player's current weapon range
-   float
+   [[nodiscard]] float
    GetWeaponRange() const;
 
    // get player's current weapon's damage
-   int32_t
+   [[nodiscard]] int32_t
    GetWeaponDmg() const;
 
-   std::vector< std::string >
+   [[nodiscard]] std::vector< std::string >
    GetWeapons() const;
 
    // shoot with current weapon
@@ -68,7 +68,7 @@ class Player : public GameObject
    /*void
    CreateSprite(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName);*/
 
-   void Hit(int32_t) override
+   void Hit(int32_t /*dmg*/) override
    {
    }
 
@@ -93,7 +93,7 @@ class Player : public GameObject
    };
 
    std::deque< State > m_statesQueue;
-   State m_currentState;
+   State m_currentState = {};
 
    // array of player's weapons
    std::array< std::unique_ptr< Weapon >, 3 > m_weapons;

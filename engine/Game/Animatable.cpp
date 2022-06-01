@@ -218,7 +218,7 @@ Animatable::UpdateAnimationNode(const AnimationPoint& updatedAnimationPoint)
 {
    auto updatedPointIt =
       std::find_if(m_animationPoints.begin(), m_animationPoints.end(),
-                   [updatedAnimationPoint](const auto animationPoint) {
+                   [&updatedAnimationPoint](const auto animationPoint) {
                       return animationPoint.GetID() == updatedAnimationPoint.GetID();
                    });
 
@@ -251,9 +251,9 @@ Animatable::DeleteAnimationNode(Object::ID animationID)
 }
 
 void
-Animatable::SetAnimationKeypoints(const std::vector< AnimationPoint >& keypoints)
+Animatable::SetAnimationKeypoints(std::vector< AnimationPoint >&& keypoints)
 {
-   m_animationPoints = keypoints;
+   m_animationPoints = std::move(keypoints);
    ResetAnimation();
 }
 

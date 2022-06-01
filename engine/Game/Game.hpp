@@ -25,7 +25,7 @@ class Game : public Application
 
    // Initialize Game using 'configFile'
    void
-   Init(std::string configFile);
+   Init(const std::string& configFile);
 
    bool
    IsReverse() const;
@@ -45,7 +45,7 @@ class Game : public Application
    void
    SwapBuffers();
 
-   void
+   static void
    RegisterForKeyInput(InputListener* listener);
 
    void
@@ -112,7 +112,6 @@ class Game : public Application
    bool
    IsRunning() const override;
 
- private:
    bool m_initialized = false;
 
    int32_t m_frames = 0;

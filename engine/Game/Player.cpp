@@ -15,12 +15,13 @@ Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& s
    m_name = name;
    m_currentState.m_velocity = {0.0f, 0.0f};
    m_currentState.m_speed = 0.0005f;
-   m_maxHP = 100;
+
    m_currentState.m_currentHP = m_maxHP;
    // m_currentGameObjectState.m_position = position;
    m_weapons[0] = std::make_unique< SniperRifle >();
    m_weapons[1] = std::make_unique< Glock >();
 
+   // NOLINTNEXTLINE
    m_currentWeapon = m_weapons.at(0).get();
 }
 
@@ -34,12 +35,12 @@ Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& s
 //}
 
 void
-Player::LoadShaders(const std::string&)
+Player::LoadShaders(const std::string& /*shaderName*/)
 {
 }
 
 void
-Player::LoadShaders(const Shader&)
+Player::LoadShaders(const Shader& /*shaderName*/)
 {
 }
 
@@ -65,7 +66,7 @@ Player::GetScreenPosition() const
 {
    glm::vec4 screenPosition = m_appHandle.GetProjection()
                               * glm::vec4(m_currentGameObjectState.m_centeredPosition, 0.0f, 1.0f);
-   return glm::vec2(screenPosition.x, screenPosition.y);
+   return {screenPosition.x, screenPosition.y};
 }
 
 void
@@ -80,7 +81,7 @@ Player::UpdateInternal(bool isReverse)
    {
       if (m_appHandle.IsGame())
       {
-         const auto gameHandle = ConvertToGameHandle();
+         auto* const gameHandle = ConvertToGameHandle();
          const auto cursorPos = gameHandle->ScreenToGlobal(gameHandle->GetCursor());
          const auto spritePosition = m_currentGameObjectState.m_position;
 
@@ -103,7 +104,7 @@ Player::UpdateInternal(bool isReverse)
 void
 Player::Shoot()
 {
-   auto gameHandle = ConvertToGameHandle();
+   auto* gameHandle = ConvertToGameHandle();
 
    const auto direction = gameHandle->GetCursor() - m_currentGameObjectState.m_position;
    m_currentWeapon->Shoot(direction);

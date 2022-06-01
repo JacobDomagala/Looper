@@ -67,7 +67,7 @@ class InputManager
    static void
    BroadcastEvent(const Event& event);
 
- private:
+   // NOLINTBEGIN
    static inline std::vector< InputListener* > s_keyListeners = {};
    static inline std::vector< InputListener* > s_mouseButtonListeners = {};
    static inline std::vector< InputListener* > s_mouseMovementListeners = {};
@@ -79,6 +79,7 @@ class InputManager
    static inline glm::vec2 s_mousePosition = {};
    static inline std::unordered_map< int32_t, bool > s_keyMap = {};
    static inline Logger s_logger = Logger("InputManager");
+   // NOLINTEND
 };
 
 } // namespace dgame

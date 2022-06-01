@@ -2,7 +2,7 @@
 
 namespace dgame {
 
-Logger::Logger(const std::string& name) : m_moduleName(name)
+Logger::Logger(std::string name) : m_moduleName(std::move((name)))
 {
 }
 
@@ -13,7 +13,7 @@ Logger::Init(const std::string& name)
 }
 
 std::string
-Logger::ToString(Logger::Type type) const
+Logger::ToString(Logger::Type type)
 {
    std::string returnValue;
 

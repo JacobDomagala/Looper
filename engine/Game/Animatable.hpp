@@ -80,7 +80,7 @@ class Animatable
    DeleteAnimationNode(Object::ID animationID);
 
    void
-   SetAnimationKeypoints(const std::vector< AnimationPoint >& keypoints);
+   SetAnimationKeypoints(std::vector< AnimationPoint >&& keypoints);
 
    std::vector< AnimationPoint >&
    GetAnimationKeypoints();

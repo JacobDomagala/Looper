@@ -7,7 +7,7 @@ namespace dgame {
 
 PathFinder::PathFinder(const glm::ivec2& levelSize, const uint32_t tileSize,
                        std::vector< Node >&& nodes)
-   : m_initialized(false), m_nodes(nodes), m_levelSize(levelSize), m_tileSize(tileSize)
+   : m_nodes(std::move(nodes)), m_levelSize(levelSize), m_tileSize(tileSize)
 {
 }
 
@@ -119,6 +119,7 @@ PathFinder::GetNodeIDFromPosition(const glm::vec2& position) const
       return node.m_xPos == w and node.m_yPos == h;
    });
 
+   // NOLINTNEXTLINE
    assert(nodeFound != m_nodes.end());
 
    return nodeFound->m_ID;
@@ -136,6 +137,7 @@ PathFinder::GetNodeFromID(Node::NodeID ID)
    const auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(),
                                        [ID](const auto& node) { return node.m_ID == ID; });
 
+   // NOLINTNEXTLINE
    assert(nodeFound != m_nodes.end());
 
    return *nodeFound;
@@ -148,6 +150,7 @@ PathFinder::GetNodeIDFromTile(const glm::ivec2& tile) const
       return node.m_xPos == tile.x and node.m_yPos == tile.y;
    });
 
+   // NOLINTNEXTLINE
    assert(nodeFound != m_nodes.end());
 
    return nodeFound->m_ID;
@@ -193,11 +196,15 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
       // Front of listNotTestedNodes is potentially the lowest distance node. Our
       // list may also contain nodes that have been visited, so ditch these...
       while (!listNotTestedNodes.empty() && listNotTestedNodes.front()->m_visited)
+      {
          listNotTestedNodes.pop_front();
+      }
 
       // ...or abort because there are no valid nodes left to test
       if (listNotTestedNodes.empty())
+      {
          break;
+      }
 
       nodeCurrent = listNotTestedNodes.front();
       nodeCurrent->m_visited = true; // We only explore a node once
@@ -211,7 +218,9 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
          // ... and only if the neighbour is not visited and is
          // not an obstacle, add it to NotTested List
          if (!nodeNeighbour.m_visited && !nodeNeighbour.m_occupied)
+         {
             listNotTestedNodes.push_back(&nodeNeighbour);
+         }
 
          // Calculate the neighbours potential lowest parent distance
          float fPossiblyLowerGoal =
@@ -267,6 +276,7 @@ PathFinder::SetNodeOccupied(const Tile_t& nodeCoords, Object::ID objectID)
          return (node.m_xPos == nodeCoords.first) and (node.m_yPos == nodeCoords.second);
       });
 
+      // NOLINTNEXTLINE
       assert(node != m_nodes.end());
 
       node->m_occupied = true;
@@ -283,6 +293,7 @@ PathFinder::SetNodeFreed(const Tile_t& nodeCoords, Object::ID objectID)
          return (node.m_xPos == nodeCoords.first) and (node.m_yPos == nodeCoords.second);
       });
 
+      // NOLINTNEXTLINE
       assert(node != m_nodes.end());
 
       node->m_objectsOccupyingThisNode.erase(std::find(node->m_objectsOccupyingThisNode.begin(),
