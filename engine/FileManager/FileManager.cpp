@@ -41,7 +41,9 @@ FileManager::LoadImageData(const std::string& fileName)
 {
    const auto pathToImage = std::filesystem::path(IMAGES_DIR / fileName).string();
    int force_channels = 0;
-   int w, h, n;
+   int w = 0;
+   int h = 0;
+   int n = 0;
 
    ImageHandleType textureData(stbi_load(pathToImage.c_str(), &w, &h, &n, force_channels),
                                stbi_image_free);
@@ -79,7 +81,7 @@ FileManager::LoadJsonFile(const std::string& pathToFile)
 }
 
 void
-FileManager::SaveJsonFile(const std::string& pathToFile, nlohmann::json json)
+FileManager::SaveJsonFile(const std::string& pathToFile, const nlohmann::json& json)
 {
    std::ofstream jsonFile(pathToFile);
 
@@ -200,8 +202,9 @@ FileManager::FileDialog(const std::filesystem::path& defaultPath,
                                    return types;
                                 }());
 
+   // NOLINTNEXTLINE
    auto* output = popen(cmd.c_str(), "r");
-   assert(output);
+   assert(output); // NOLINT
 
    std::string buffer(FILE_DIALOG_MAX_BUFFER, 0);
    if (fgets(buffer.data(), FILE_DIALOG_MAX_BUFFER, output))

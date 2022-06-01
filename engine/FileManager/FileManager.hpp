@@ -9,13 +9,14 @@
 
 namespace dgame {
 
+// NOLINTBEGIN
 const std::filesystem::path ROOT_DIR = std::filesystem::path(std::string(CMAKE_ROOT_DIR));
 const std::filesystem::path ASSETS_DIR = ROOT_DIR / "assets" / "";
 const std::filesystem::path LEVELS_DIR = ASSETS_DIR / "levels" / "";
 const std::filesystem::path FONTS_DIR = ASSETS_DIR / "fonts" / "";
 const std::filesystem::path SHADERS_DIR = ASSETS_DIR / "shaders" / "";
 const std::filesystem::path IMAGES_DIR = ASSETS_DIR / "images" / "";
-
+// NOLINTEND
 class FileManager
 {
  public:
@@ -26,6 +27,7 @@ class FileManager
       int32_t m_format;
    };
 
+   // NOLINTNEXTLINE
    using ImageHandleType = std::unique_ptr< uint8_t[], std::function< void(uint8_t*) > >;
    using ImageSmart = ImageData< ImageHandleType >;
 
@@ -45,7 +47,7 @@ class FileManager
    LoadJsonFile(const std::string& pathToFile);
 
    static void
-   SaveJsonFile(const std::string& pathToFile, nlohmann::json json);
+   SaveJsonFile(const std::string& pathToFile, const nlohmann::json& json);
 
    /**
     * \brief Return file path to selected file
@@ -63,7 +65,8 @@ class FileManager
               const std::vector< std::pair< std::string, std::string > >& fileTypes, bool save);
 
  private:
-   static inline Logger m_logger = Logger("FileManager");
+   // NOLINTNEXTLINE
+   static inline const Logger m_logger = Logger("FileManager");
 };
 
 } // namespace dgame

@@ -303,9 +303,9 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
 
       auto type = m_currentlySelectedGameObject->GetTypeString();
 
-      ImGui::InputText("Type", &type[0], type.size(), ImGuiInputTextFlags_ReadOnly);
+      ImGui::InputText("Type", type.data(), type.size(), ImGuiInputTextFlags_ReadOnly);
 
-      if (ImGui::InputText("Name", &name[0], nameLength))
+      if (ImGui::InputText("Name", name.data(), nameLength))
       {
          m_currentlySelectedGameObject->SetName(name);
       }
@@ -348,7 +348,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          ImGui::Image(reinterpret_cast< void* >( // NOLINT
                          static_cast< size_t >(sprite.GetTexture().GetTextureHandle())),
                       {150, 150});
-         ImGui::InputText("FileName", &sprite.GetTextureName()[0], sprite.GetTextureName().size(),
+         ImGui::InputText("FileName", sprite.GetTextureName().data(), sprite.GetTextureName().size(),
                           ImGuiInputTextFlags_ReadOnly);
          if (ImGui::Button("Change Texture"))
          {

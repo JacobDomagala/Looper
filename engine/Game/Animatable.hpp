@@ -47,12 +47,11 @@ class Animatable
       REVERSABLE
    };
 
- public:
    explicit Animatable(ANIMATION_TYPE type);
 
    void SetAnimationType(ANIMATION_TYPE);
 
-   ANIMATION_TYPE
+   [[nodiscard]] ANIMATION_TYPE
    GetAnimationType() const;
 
    glm::vec2
@@ -86,28 +85,28 @@ class Animatable
    std::vector< AnimationPoint >&
    GetAnimationKeypoints();
 
-   const std::vector< AnimationPoint >&
+   [[nodiscard]] const std::vector< AnimationPoint >&
    GetAnimationKeypoints() const;
 
-   Timer::seconds
+   [[nodiscard]] Timer::seconds
    GetAnimationDuration() const;
 
    void
    RenderAnimationSteps(bool choice);
 
-   bool
+   [[nodiscard]] bool
    GetRenderAnimationSteps() const;
 
    void
    LockAnimationSteps(bool lock);
 
-   bool
+   [[nodiscard]] bool
    GetLockAnimationSteps() const;
 
    void
    SetAnimationStartLocation(const glm::vec2& position);
 
-   glm::vec2
+   [[nodiscard]] glm::vec2
    GetAnimationStartLocation() const;
 
    void
@@ -146,7 +145,7 @@ class Animatable
 
    std::vector< AnimationPoint > m_animationPoints;
    ANIMATION_TYPE m_type = ANIMATION_TYPE::LOOP;
-   glm::vec2 m_animationStartPosition;
+   glm::vec2 m_animationStartPosition = {};
 
    bool m_renderAnimationSteps = false;
    bool m_lockAnimationSteps = false;
@@ -183,10 +182,9 @@ class Animatable
    UpdateAnimationPoint();
 
    // Calculate next animation step based on current animation point and 'updateTime'
-   glm::vec2
-   CalculateNextStep(Timer::milliseconds updateTime);
+   [[nodiscard]] glm::vec2
+   CalculateNextStep(Timer::milliseconds updateTime) const;
 
- private:
    Logger m_logger = Logger("Animatable");
 };
 

@@ -5,10 +5,8 @@
 
 namespace dgame {
 
-Animatable::Animatable(ANIMATION_TYPE type)
+Animatable::Animatable(ANIMATION_TYPE type) : m_type(type)
 {
-   m_type = type;
-
    ResetAnimation();
 }
 
@@ -108,7 +106,7 @@ Animatable::SetCorrectAnimationPoint(Timer::milliseconds& updateTime)
 }
 
 glm::vec2
-Animatable::CalculateNextStep(Timer::milliseconds updateTime)
+Animatable::CalculateNextStep(Timer::milliseconds updateTime) const
 {
    const auto startPosition = m_currentAnimationState.m_currentAnimationBegin;
    const auto destination = m_currentAnimationState.m_currentAnimationEnd;
@@ -193,10 +191,8 @@ Animatable::SingleAnimate(Timer::milliseconds updateTime)
       m_currentAnimationState.m_animationFinished = false;
       return glm::vec2{};
    }
-   else
-   {
-      return Animate(updateTime);
-   }
+
+   return Animate(updateTime);
 }
 
 AnimationPoint
@@ -278,7 +274,7 @@ Animatable::GetAnimationDuration() const
 {
    auto totalDuration = Timer::seconds(0);
 
-   for (auto& animationPoint : m_animationPoints)
+   for (const auto& animationPoint : m_animationPoints)
    {
       totalDuration += animationPoint.m_timeDuration;
       totalDuration += animationPoint.m_pauseDuration;
