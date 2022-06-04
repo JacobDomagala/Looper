@@ -48,6 +48,7 @@ class RenderCommand
    }
 
  private:
+   // NOLINTNEXTLINE
    static inline std::unique_ptr< RendererAPI > s_RendererAPI = RendererAPI::Create();
 };
 

@@ -8,21 +8,22 @@ namespace dgame {
 class OpenGLRendererAPI : public RendererAPI
 {
  public:
-   ~OpenGLRendererAPI() override = default;
-
-   virtual void
+   void
    Init() override;
-   virtual void
+
+   void
    SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) override;
 
-   virtual void
+   void
    SetClearColor(const glm::vec4& color) override;
-   virtual void
+
+   void
    Clear() override;
 
-   virtual void
+   void
    DrawIndexed(const std::shared_ptr< VertexArray >& vertexArray, uint32_t indexCount = 0) override;
-   virtual void
+
+   void
    DrawLines(uint32_t indexCount) override;
 
  private:

@@ -60,8 +60,18 @@ struct LineRendererData
    LineVertex* LineVertexBufferPtr = nullptr;
 };
 
+// NOLINTBEGIN
 static RendererData s_Data;
 static LineRendererData s_LineData;
+
+template < typename Type >
+static uint32_t
+ComputeDataSize(Type* begin, Type* end)
+{
+   return static_cast< uint32_t >(reinterpret_cast< uint8_t* >(end)
+                                  - reinterpret_cast< uint8_t* >(begin));
+}
+// NOLINTEND
 
 void
 Renderer::Init()
@@ -69,7 +79,7 @@ Renderer::Init()
    s_Data.QuadVertexArray = std::make_shared< VertexArray >();
 
    s_Data.QuadVertexBuffer = std::make_shared< VertexBuffer >(
-      static_cast< uint32_t >(s_Data.MaxVertices * sizeof(QuadVertex)));
+      static_cast< uint32_t >(dgame::RendererData::MaxVertices * sizeof(QuadVertex)));
    s_Data.QuadVertexBuffer->SetLayout(BufferLayout{{ShaderDataType::Float3, "a_Position"},
                                                    {ShaderDataType::Float4, "a_Color"},
                                                    {ShaderDataType::Float2, "a_TexCoord"},
@@ -77,12 +87,12 @@ Renderer::Init()
                                                    {ShaderDataType::Float, "a_TilingFactor"}});
    s_Data.QuadVertexArray->AddVertexBuffer(s_Data.QuadVertexBuffer);
 
-   s_Data.QuadVertexBufferBase = new QuadVertex[s_Data.MaxVertices];
+   s_Data.QuadVertexBufferBase = new QuadVertex[dgame::RendererData::MaxVertices];
 
-   uint32_t* quadIndices = new uint32_t[s_Data.MaxIndices];
+   auto* quadIndices = new uint32_t[dgame::RendererData::MaxIndices];
 
    uint32_t offset = 0;
-   for (uint32_t i = 0; i < s_Data.MaxIndices; i += 6)
+   for (uint32_t i = 0; i < dgame::RendererData::MaxIndices; i += 6)
    {
       quadIndices[i + 0] = offset + 0;
       quadIndices[i + 1] = offset + 1;
@@ -95,20 +105,22 @@ Renderer::Init()
       offset += 4;
    }
 
-   auto quadIB = std::make_shared< IndexBuffer >(quadIndices, s_Data.MaxIndices);
+   auto quadIB = std::make_shared< IndexBuffer >(quadIndices, dgame::RendererData::MaxIndices);
    s_Data.QuadVertexArray->SetIndexBuffer(quadIB);
    delete[] quadIndices;
 
    s_Data.WhiteTexture = std::make_shared< Texture >();
    s_Data.WhiteTexture->CreateColorTexture({1, 1}, {1.0f, 1.0f, 1.0f});
 
-   int32_t samplers[s_Data.MaxTextureSlots];
-   for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
-      samplers[i] = static_cast< int32_t >(i);
+   std::array<int32_t, dgame::RendererData::MaxTextureSlots> samplers = {};
+   for (uint32_t i = 0; i < dgame::RendererData::MaxTextureSlots; i++){
+      samplers.at(i) = static_cast< int32_t >(i);
+   }
+
 
    s_Data.TextureShader = ShaderLibrary::GetShader("DefaultShader");
    s_Data.TextureShader->UseProgram();
-   s_Data.TextureShader->SetUniformIntArray(samplers, s_Data.MaxTextureSlots, "u_Textures");
+   s_Data.TextureShader->SetUniformIntArray(samplers.data(), dgame::RendererData::MaxTextureSlots, "u_Textures");
 
    // Set all texture slots to 0
    s_Data.TextureSlots[0] = s_Data.WhiteTexture;
@@ -117,12 +129,12 @@ Renderer::Init()
    s_LineData.LineVertexArray = std::make_shared< VertexArray >();
 
    s_LineData.LineVertexBuffer = std::make_shared< VertexBuffer >(
-      static_cast< uint32_t >(s_LineData.MaxVertices * sizeof(LineVertex)));
+      static_cast< uint32_t >(dgame::LineRendererData::MaxVertices * sizeof(LineVertex)));
    s_LineData.LineVertexBuffer->SetLayout(
       BufferLayout{{ShaderDataType::Float3, "a_Position"}, {ShaderDataType::Float4, "a_Color"}});
    s_LineData.LineVertexArray->AddVertexBuffer(s_LineData.LineVertexBuffer);
 
-   s_LineData.LineVertexBufferBase = new LineVertex[s_LineData.MaxVertices];
+   s_LineData.LineVertexBufferBase = new LineVertex[dgame::LineRendererData::MaxVertices];
 
    s_LineData.LineShader = ShaderLibrary::GetShader("LineShader");
 }
@@ -181,17 +193,13 @@ Renderer::SendData(PrimitiveType type)
 {
    if (type == PrimitiveType::QUAD)
    {
-      auto dataSize =
-         static_cast< uint32_t >(reinterpret_cast< uint8_t* >(s_Data.QuadVertexBufferPtr)
-                                 - reinterpret_cast< uint8_t* >(s_Data.QuadVertexBufferBase));
+      auto dataSize = ComputeDataSize(s_Data.QuadVertexBufferBase, s_Data.QuadVertexBufferPtr);
       s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, dataSize);
       Flush(PrimitiveType::QUAD);
    }
    else
    {
-      auto dataSize =
-         static_cast< uint32_t >(reinterpret_cast< uint8_t* >(s_LineData.LineVertexBufferPtr)
-                                 - reinterpret_cast< uint8_t* >(s_LineData.LineVertexBufferBase));
+      auto dataSize = ComputeDataSize(s_LineData.LineVertexBufferBase, s_LineData.LineVertexBufferPtr);
       s_LineData.LineVertexBuffer->SetData(s_LineData.LineVertexBufferBase, dataSize);
       Flush(PrimitiveType::LINE);
    }
@@ -202,16 +210,18 @@ Renderer::Flush(PrimitiveType type)
 {
    if (type == PrimitiveType::QUAD)
    {
-      if (s_Data.QuadIndexCount == 0)
+      if (s_Data.QuadIndexCount == 0){
          return; // Nothing to draw
+      }
 
       s_Data.QuadVertexArray->Bind();
       s_Data.QuadVertexBuffer->Bind();
       s_Data.TextureShader->UseProgram();
 
       // Bind textures
-      for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
-         s_Data.TextureSlots[i]->Use(i);
+      for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++){
+         s_Data.TextureSlots.at(i)->Use(i);
+      }
 
       RenderCommand::DrawIndexed(s_Data.QuadVertexArray, s_Data.QuadIndexCount);
    }
@@ -250,7 +260,8 @@ Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, float radia
                    const glm::vec4& tintColor)
 {
    constexpr size_t quadVertexCount = 4;
-   constexpr glm::vec2 textureCoords[] = {{1.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f}};
+   const std::array< glm::vec2, 4 > textureCoords = {glm::vec2{1.0f, 1.0f}, glm::vec2{0.0f, 1.0f},
+                                                     glm::vec2{0.0f, 0.0f}, glm::vec2{1.0f, 0.0f}};
 
    if (s_Data.QuadIndexCount >= RendererData::MaxIndices)
    {
@@ -260,7 +271,7 @@ Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, float radia
    float textureIndex = 0.0f;
    for (uint32_t i = 1; i < s_Data.TextureSlotIndex; i++)
    {
-      if (*s_Data.TextureSlots[i] == *texture)
+      if (*s_Data.TextureSlots.at(i) == *texture)
       {
          textureIndex = static_cast< float >(i);
          break;
@@ -289,9 +300,9 @@ Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, float radia
 
    for (size_t i = 0; i < quadVertexCount; i++)
    {
-      s_Data.QuadVertexBufferPtr->Position = transformMat * positions[i];
+      s_Data.QuadVertexBufferPtr->Position = transformMat * positions.at(i);
       s_Data.QuadVertexBufferPtr->Color = tintColor;
-      s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[i];
+      s_Data.QuadVertexBufferPtr->TexCoord = textureCoords.at(i);
       s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
       s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
       s_Data.QuadVertexBufferPtr++;
@@ -306,7 +317,7 @@ Renderer::DrawLine(const glm::vec2& startPosition, const glm::vec2& endPosition,
 {
    constexpr size_t LineVertexCount = 2;
 
-   if (s_LineData.NumLines == s_LineData.MaxLines)
+   if (s_LineData.NumLines == dgame::LineRendererData::MaxLines)
    {
       FlushAndReset(PrimitiveType::LINE);
    }

@@ -13,8 +13,6 @@ namespace dgame {
 class ShaderLibrary
 {
  public:
-   ShaderLibrary() = default;
-   ~ShaderLibrary() = default;
 
    static std::shared_ptr< Shader >
    GetShader(const std::string& shaderName);
@@ -26,9 +24,10 @@ class ShaderLibrary
    static void
    LoadShader(const std::string& shaderName);
 
- private:
+   // NOLINTBEGIN
    static inline std::unordered_map< std::string, std::shared_ptr< Shader > > s_loadedShaders = {};
    static inline Logger s_logger = Logger("ShaderLibrary");
+   // NOLINTEND
 };
 
 } // namespace dgame

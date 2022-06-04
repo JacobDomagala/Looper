@@ -28,6 +28,7 @@ Texture::CreateColorTexture(const glm::ivec2& size, const glm::vec3& /*color*/)
 
    const auto sizeArray = static_cast< size_t >(m_width * m_height) * sizeof(byte_vec4);
 
+   // NOLINTNEXTLINE
    m_data = std::make_unique< uint8_t[] >(sizeArray);
    std::memset(m_data.get(), 0xFF, sizeArray);
 
@@ -61,10 +62,10 @@ Texture::LoadTextureFromMemory(const glm::ivec2& size, uint8_t* /*data*/, const 
    glTexImage2D(GL_TEXTURE_2D, 0, format, size.x, size.y, 0, format, GL_UNSIGNED_BYTE,
                 m_data.get());
 
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapModeS);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapModeT);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, static_cast<GLint>(wrapModeS));
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, static_cast<GLint>(wrapModeT));
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<GLint>(magFilter));
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<GLint>(minFilter));
    glGenerateMipmap(GL_TEXTURE_2D);
 
    m_logger.Log(Logger::Type::DEBUG, "Created new texture {} and bound it to ID {}", m_name,
@@ -72,7 +73,7 @@ Texture::LoadTextureFromMemory(const glm::ivec2& size, uint8_t* /*data*/, const 
 }
 
 void
-Texture::Use(GLuint slot)
+Texture::Use(GLuint slot) const
 {
    glBindTextureUnit(slot, m_textureID);
 }
@@ -98,6 +99,7 @@ Texture::Create()
 byte_vec4*
 Texture::GetVec4Data() const
 {
+   // NOLINTNEXTLINE
    return reinterpret_cast< byte_vec4* >(GetData());
 }
 

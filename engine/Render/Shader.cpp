@@ -56,11 +56,11 @@ Shader::LoadShaders(const std::string& shaderName)
 
    std::string tmp = ReadShaderFile(shaderName + "_vs.glsl");
    const GLchar* shaderSource = tmp.c_str();
-   glShaderSource(vertexShaderID, 1, &shaderSource, NULL);
+   glShaderSource(vertexShaderID, 1, &shaderSource, nullptr);
 
    tmp = ReadShaderFile(shaderName + "_fs.glsl");
    shaderSource = tmp.c_str();
-   glShaderSource(fragmentShaderID, 1, &shaderSource, NULL);
+   glShaderSource(fragmentShaderID, 1, &shaderSource, nullptr);
 
    glCompileShader(vertexShaderID);
    CheckCompileStatus(vertexShaderID);
@@ -129,14 +129,14 @@ Shader::GetUniformLocation(const std::string& uniformName)
 }
 
 void
-Shader::SetUniformBool(bool value, const std::string& name)
+Shader::SetUniformBool(bool value, const std::string& name) const
 {
    GLint location = glGetUniformLocation(m_programID, name.c_str());
    glUniform1i(location, value);
 }
 
 void
-Shader::SetUniformFloat(float value, const std::string& name)
+Shader::SetUniformFloat(float value, const std::string& name) const
 {
    GLint location = glGetUniformLocation(m_programID, name.c_str());
    glUniform1f(location, value);
@@ -153,21 +153,21 @@ Shader::SetUniformFloatVec2(const glm::vec2& value, const std::string& name)
 }
 
 void
-Shader::SetUniformFloatVec4(const glm::vec4& value, const std::string& name)
+Shader::SetUniformFloatVec4(const glm::vec4& value, const std::string& name) const
 {
    GLint location = glGetUniformLocation(m_programID, name.c_str());
    glUniform4fv(location, 1, glm::value_ptr(value));
 }
 
 void
-Shader::SetUniformFloatMat4(const glm::mat4& value, const std::string& name)
+Shader::SetUniformFloatMat4(const glm::mat4& value, const std::string& name) const
 {
    GLint location = glGetUniformLocation(m_programID, name.c_str());
    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 }
 
 void
-Shader::SetUniformIntArray(const int* value, int count, const std::string& name)
+Shader::SetUniformIntArray(const int* value, int count, const std::string& name) const
 {
    GLint location = glGetUniformLocation(m_programID, name.c_str());
    glUniform1iv(location, count, value);

@@ -10,23 +10,15 @@ ShaderDataTypeToOpenGLBaseType(ShaderDataType type)
    switch (type)
    {
       case ShaderDataType::Float:
-         return GL_FLOAT;
       case ShaderDataType::Float2:
-         return GL_FLOAT;
       case ShaderDataType::Float3:
-         return GL_FLOAT;
       case ShaderDataType::Float4:
-         return GL_FLOAT;
       case ShaderDataType::Mat3:
-         return GL_FLOAT;
       case ShaderDataType::Mat4:
          return GL_FLOAT;
       case ShaderDataType::Int:
-         return GL_INT;
       case ShaderDataType::Int2:
-         return GL_INT;
       case ShaderDataType::Int3:
-         return GL_INT;
       case ShaderDataType::Int4:
          return GL_INT;
       case ShaderDataType::Bool:
@@ -79,10 +71,10 @@ VertexArray::AddVertexBuffer(const std::shared_ptr< VertexBuffer >& vertexBuffer
          case ShaderDataType::Int4:
          case ShaderDataType::Bool: {
             glEnableVertexAttribArray(m_VertexBufferIndex);
-            glVertexAttribPointer(m_VertexBufferIndex, element.GetComponentCount(),
+            glVertexAttribPointer(m_VertexBufferIndex, static_cast<GLint>(element.GetComponentCount()),
                                   ShaderDataTypeToOpenGLBaseType(element.Type),
-                                  element.Normalized ? GL_TRUE : GL_FALSE, layout.GetStride(),
-                                  reinterpret_cast< const void* >(element.Offset));
+                                  element.Normalized ? GL_TRUE : GL_FALSE, static_cast<GLsizei>(layout.GetStride()),
+                                  reinterpret_cast< const void* >(element.Offset)); //NOLINT
             m_VertexBufferIndex++;
             break;
          }
@@ -92,10 +84,10 @@ VertexArray::AddVertexBuffer(const std::shared_ptr< VertexBuffer >& vertexBuffer
             for (uint32_t i = 0; i < count; i++)
             {
                glEnableVertexAttribArray(m_VertexBufferIndex);
-               glVertexAttribPointer(m_VertexBufferIndex, count,
+               glVertexAttribPointer(m_VertexBufferIndex, static_cast<GLint>(count),
                                      ShaderDataTypeToOpenGLBaseType(element.Type),
-                                     element.Normalized ? GL_TRUE : GL_FALSE, layout.GetStride(),
-                                     reinterpret_cast< const void* >(sizeof(float) * count * i));
+                                     element.Normalized ? GL_TRUE : GL_FALSE, static_cast<GLsizei>(layout.GetStride()),
+                                     reinterpret_cast< const void* >(sizeof(float) * count * i)); //NOLINT
                glVertexAttribDivisor(m_VertexBufferIndex, 1);
                m_VertexBufferIndex++;
             }

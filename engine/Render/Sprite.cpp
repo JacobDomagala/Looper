@@ -27,8 +27,7 @@ Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size,
                           const std::string& fileName)
 {
    m_texture = TextureLibrary::GetTexture(fileName);
-   auto returnPtr = reinterpret_cast< byte_vec4* >(
-      m_texture->GetData()); // m_texture->LoadTextureFromFile(fileName);
+   auto* returnPtr = m_texture->GetData(); // m_texture->LoadTextureFromFile(fileName);
 
    /*glGenVertexArrays(1, &m_vertexArrayBuffer);
    glGenBuffers(1, &m_vertexBuffer);
@@ -57,7 +56,8 @@ Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size,
    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
    glBindVertexArray(0);*/
 
-   return returnPtr;
+   // NOLINTNEXTLINE
+   return reinterpret_cast<byte_vec4*>(returnPtr);
 }
 
 void
