@@ -9,7 +9,7 @@ GameObject::GameObject(Application& application, const glm::vec2& position, cons
                        const std::string& sprite, Object::TYPE type)
    : Object(type),
      m_appHandle(application),
-     m_collision(m_sprite.SetSpriteTextured(m_currentGameObjectState.m_position, size, sprite))
+     m_collision(m_sprite.SetSpriteTextured(position, size, sprite))
 {
    m_currentGameObjectState.m_position = position;
    m_currentGameObjectState.m_visible = true;

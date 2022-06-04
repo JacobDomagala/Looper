@@ -144,6 +144,12 @@ EditorGUI::IsBlockingEvents()
 void
 EditorGUI::RenderMainPanel()
 {
+   ImGui::SetNextWindowPos({0, 0});
+   ImGui::SetNextWindowSize(ImVec2(m_windowWidth, m_toolsWindowHeight));
+   ImGui::Begin("Tools");
+   ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.45f, 0.0f, 0.2f, 0.8f});
+   ImGui::BeginDisabled(m_currentLevel == nullptr);
+
    if (ImGui::Button("Play"))
    {
       m_parent.PlayLevel();
@@ -259,7 +265,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
    ImGui::End();
 
    ImGui::SetNextWindowPos({m_windowWidth, m_windowSize.y - m_debugWindowHeight});
-   ImGui::SetNextWindowSize(ImVec2(m_debugWindowHeight, m_debugWindowHeight));
+   ImGui::SetNextWindowSize(ImVec2(m_debugWindowWidth, m_debugWindowHeight));
    ImGui::Begin("Debug");
    const auto cameraPos = m_parent.GetCamera().GetPosition();
    ImGui::Text("Camera Position %f, %f", static_cast< double >(cameraPos.x),
@@ -461,12 +467,6 @@ EditorGUI::Render()
    m_gameObjectWindowHeight = m_windowSize.y;
    m_debugWindowWidth = m_windowSize.x - 2 * m_windowWidth;
    m_debugWindowHeight = 100;
-
-   ImGui::SetNextWindowPos({0, 0});
-   ImGui::SetNextWindowSize(ImVec2(m_windowWidth, m_toolsWindowHeight));
-   ImGui::Begin("Tools");
-   ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.45f, 0.0f, 0.2f, 0.8f});
-   ImGui::BeginDisabled(m_currentLevel == nullptr);
 
    RenderMainPanel();
 
