@@ -11,19 +11,19 @@ struct GLFWwindow;
 
 namespace dgame {
 
+// NOLINTNEXTLINE
 class Window
 {
  public:
    Window(int32_t width, int32_t height, const std::string& title);
-   ~Window();
 
    void
    ShutDown();
 
-   glm::ivec2
+   [[nodiscard]] glm::ivec2
    GetSize() const
    {
-      return glm::ivec2(m_width, m_height);
+      return {m_width, m_height};
    }
 
    void
@@ -33,7 +33,7 @@ class Window
    }
 
    // return true if the window is active
-   bool
+   [[nodiscard]] bool
    IsRunning() const
    {
       return m_isRunning;
@@ -76,7 +76,7 @@ class Window
       return m_pWindow;
    }
 
-   operator std::string() const
+   explicit operator std::string() const
    {
       std::stringstream returnStr;
       returnStr << "Window title - " << m_title << "\nWindow dimensions - " << m_width << "x"
@@ -86,7 +86,7 @@ class Window
    }
 
    friend std::ostream&
-   operator<<(std::ostream& os, Window window)
+   operator<<(std::ostream& os, const Window& window)
    {
       os << "Window title - " << window.m_title << "\n Window dimensions - " << window.m_width
          << "x" << window.m_height;
@@ -95,19 +95,20 @@ class Window
    }
 
  private:
-   int32_t m_width;
-   int32_t m_height;
+   int32_t m_width = {};
+   int32_t m_height = {};
    GLFWwindow* m_pWindow = nullptr;
-   std::string m_title;
+   std::string m_title = {};
 
    // cursor position
    // glm::vec2 m_cursorPos;
 
    // is windows active
-   bool m_isRunning;
+   bool m_isRunning = {};
 
-   Logger m_logger;
+   Logger m_logger = {};
 
+   // NOLINTNEXTLINE
    static inline bool s_glfwInitalized = false;
 };
 

@@ -92,7 +92,7 @@ Shader::CheckCompileStatus(GLuint shaderID) const
       glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &maxLength);
 
       std::string log(static_cast< std::string::size_type >(maxLength), '\0');
-      glGetShaderInfoLog(shaderID, maxLength, &maxLength, &log[0]);
+      glGetShaderInfoLog(shaderID, maxLength, &maxLength, log.data());
 
       m_logger.Log(Logger::Type::FATAL, log);
    }
@@ -109,7 +109,7 @@ Shader::CheckLinkStatus(GLuint programID) const
       glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &maxLength);
 
       std::string log(static_cast< std::string::size_type >(maxLength), '\0');
-      glGetProgramInfoLog(programID, maxLength, &maxLength, &log[0]);
+      glGetProgramInfoLog(programID, maxLength, &maxLength, log.data());
 
       m_logger.Log(Logger::Type::FATAL, log);
    }

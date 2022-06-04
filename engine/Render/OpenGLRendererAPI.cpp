@@ -54,7 +54,7 @@ OpenGLRendererAPI::Init()
       },
       &m_logger);
 
-   glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL,
+   glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr,
                          GL_FALSE);
 
    glEnable(GL_BLEND);
