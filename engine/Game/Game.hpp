@@ -25,7 +25,7 @@ class Game : public Application
 
    // Initialize Game using 'configFile'
    void
-   Init(std::string configFile);
+   Init(const std::string& configFile);
 
    bool
    IsReverse() const;
@@ -45,11 +45,11 @@ class Game : public Application
    void
    SwapBuffers();
 
-   void
+   static void
    RegisterForKeyInput(InputListener* listener);
 
    void
-   LoadLevel(const std::string& levelName);
+   LoadLevel(const std::string& pathToLevel);
 
    glm::vec2
    GetWindowSize() const override;
@@ -61,7 +61,7 @@ class Game : public Application
    GetViewMatrix() const override;
 
    float
-   GetZoomLevel() override;
+   GetZoomLevel() const override;
 
  private:
    enum class GameState : uint8_t
@@ -69,9 +69,6 @@ class Game : public Application
       MENU = 0,
       GAME
    };
-
-   void
-   RenderLine(const glm::ivec2& collided, const glm::vec3& color);
 
    /**
     * \brief Check bullet collision along the line, starting from \c position
@@ -113,9 +110,8 @@ class Game : public Application
    HandleReverseLogic();
 
    bool
-   IsRunning() override;
+   IsRunning() const override;
 
- private:
    bool m_initialized = false;
 
    int32_t m_frames = 0;

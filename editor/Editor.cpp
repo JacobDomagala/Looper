@@ -1,4 +1,5 @@
 #include "Editor.hpp"
+#include "EditorGUI.hpp"
 #include "Enemy.hpp"
 #include "Game.hpp"
 #include "InputManager.hpp"
@@ -16,7 +17,7 @@ namespace dgame {
 
 Editor::Editor(const glm::ivec2& screenSize) : m_gui(*this)
 {
-   Logger::SetLogType(Logger::TYPE::DEBUG);
+   Logger::SetLogType(Logger::Type::DEBUG);
    m_logger.Init("Editor");
    m_window = std::make_unique< Window >(screenSize.x, screenSize.y, "Editor");
 
@@ -48,7 +49,7 @@ Editor::HandleCamera()
 
    auto cameraMoveBy = glm::vec2();
 
-   if (!m_gui.IsBlockingEvents() && m_levelLoaded)
+   if (!EditorGUI::IsBlockingEvents() && m_levelLoaded)
    {
       if (InputManager::CheckKeyPressed(GLFW_KEY_W))
       {
@@ -90,12 +91,26 @@ Editor::KeyCallback(const KeyEvent& event)
          ActionOnObject(ACTION::REMOVE);
       }
    }
+   else if (event.m_action == GLFW_RELEASE)
+   {
+
+      if (m_gameObjectSelected && event.m_key == GLFW_KEY_C)
+      {
+         m_logger.Log(Logger::Type::INFO, "Copy object!");
+         m_copiedGameObject = m_currentSelectedGameObject;
+      }
+      if (m_copiedGameObject && event.m_key == GLFW_KEY_V)
+      {
+         m_logger.Log(Logger::Type::INFO, "Paste object!");
+         CopyGameObject(m_copiedGameObject);
+      }
+   }
 }
 
 void
 Editor::MouseScrollCallback(const MouseScrollEvent& event)
 {
-   if (!m_playGame && !m_gui.IsBlockingEvents() && m_levelLoaded)
+   if (!m_playGame && !EditorGUI::IsBlockingEvents() && m_levelLoaded)
    {
       m_camera.Zoom(static_cast< float >(event.m_xOffset + event.m_yOffset));
    }
@@ -104,7 +119,7 @@ Editor::MouseScrollCallback(const MouseScrollEvent& event)
 void
 Editor::MouseButtonCallback(const MouseButtonEvent& event)
 {
-   if (!m_playGame && !m_gui.IsBlockingEvents() && m_levelLoaded)
+   if (!m_playGame && !EditorGUI::IsBlockingEvents() && m_levelLoaded)
    {
       const auto mousePressed = event.m_action == GLFW_PRESS;
       m_mousePressedLastUpdate = mousePressed;
@@ -129,7 +144,7 @@ Editor::MouseButtonCallback(const MouseButtonEvent& event)
 void
 Editor::CursorPositionCallback(const CursorPositionEvent& event)
 {
-   if (!m_playGame && !m_gui.IsBlockingEvents() && m_levelLoaded)
+   if (!m_playGame && !EditorGUI::IsBlockingEvents() && m_levelLoaded)
    {
       const auto currentCursorPosition = glm::vec2(event.m_xPos, event.m_yPos);
 
@@ -187,13 +202,6 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
    // Move camera (or currently selected Object)
    else
    {
-      auto mouseMovementLength = glm::length(axis);
-
-      constexpr auto minCameraMovement = 1.0f;
-      constexpr auto maxCameraMovement = 2.0f;
-
-      mouseMovementLength = glm::clamp(mouseMovementLength, minCameraMovement, maxCameraMovement);
-
       const auto& moveBy = glm::vec3(axis.x, axis.y, 0.0f);
 
       if (m_movementOnEditorObject || m_movementOnGameObject)
@@ -214,8 +222,7 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
             auto animatable = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
             if (animatable)
             {
-               animatable->SetAnimationStartLocation(
-                  m_currentSelectedGameObject->GetPosition());
+               animatable->SetAnimationStartLocation(m_currentSelectedGameObject->GetPosition());
                UpdateAnimationData();
             }
          }
@@ -246,7 +253,7 @@ Editor::SetMouseOnObject()
 }
 
 void
-Editor::HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameObject, bool fromGUI)
+Editor::HandleGameObjectSelected(const std::shared_ptr< GameObject >& newSelectedGameObject, bool fromGUI)
 {
    if (m_currentSelectedGameObject != newSelectedGameObject)
    {
@@ -307,7 +314,7 @@ Editor::UnselectGameObject()
 }
 
 void
-Editor::HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedEditorObject,
+Editor::HandleEditorObjectSelected(const std::shared_ptr< EditorObject >& newSelectedEditorObject,
                                    bool fromGUI)
 {
    if (m_editorObjectSelected && (newSelectedEditorObject != m_currentEditorObjectSelected))
@@ -476,8 +483,7 @@ Editor::DrawAnimationPoints()
                                    object->GetLinkedObjectID());
                if (it != animaltionPointIDs.end())
                {
-                  Renderer::DrawLine(lineStart, object->GetPosition(),
-                                     {1.0f, 0.0f, 1.0f, 1.0f});
+                  Renderer::DrawLine(lineStart, object->GetPosition(), {1.0f, 0.0f, 1.0f, 1.0f});
                   lineStart = object->GetCenteredPosition();
 
                   object->Render();
@@ -566,6 +572,23 @@ Editor::CreateLevel(const glm::ivec2& size)
    m_currentLevel->Create(this, size);
    m_currentLevel->LoadShaders("Editor");
 
+   // Populate editor objects
+   const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
+   std::transform(pathfinderNodes.begin(), pathfinderNodes.end(),
+                  std::back_inserter(m_editorObjects), [this](const auto& node) {
+                     const auto tileSize = m_currentLevel->GetTileSize();
+
+                     auto pathfinderNode = std::make_shared< EditorObject >(
+                        *this, node.m_position, glm::ivec2(tileSize, tileSize), "white.png",
+                        node.GetID());
+
+                     pathfinderNode->SetIsBackground(true);
+                     pathfinderNode->SetVisible(m_renderPathfinderNodes);
+                     pathfinderNode->SetColor(glm::vec3{1.0f, 1.0f, 1.0f});
+
+                     return pathfinderNode;
+                  });
+
    m_camera.Create(glm::vec3(m_currentLevel->GetLevelPosition(), 0.0f), m_window->GetSize());
    m_camera.SetLevelSize(m_currentLevel->GetSize());
 
@@ -617,7 +640,7 @@ Editor::LoadLevel(const std::string& levelPath)
          for (const auto& point : animationPoints)
          {
             auto editorObject = std::make_shared< EditorObject >(
-               *this, point.m_end, glm::ivec2(20, 20), "Default128.png", point.GetID());
+               *this, point.m_end, glm::ivec2(20, 20), "NodeSprite.png", point.GetID());
             editorObject->SetName("Animationpoint" + object->GetName());
 
             m_editorObjects.push_back(editorObject);
@@ -647,29 +670,39 @@ Editor::AddGameObject(GameObject::TYPE objectType)
 }
 
 void
+Editor::CopyGameObject(const std::shared_ptr<GameObject>& objectToCopy)
+{
+   // For now we only copy type/size/collision/sprite
+
+   auto newObject = m_currentLevel->AddGameObject(objectToCopy->GetType());
+   newObject->SetSize(objectToCopy->GetSize());
+   newObject->SetHasCollision(objectToCopy->GetHasCollision());
+   newObject->GetSprite().SetTextureFromFile(objectToCopy->GetSprite().GetTextureName());
+
+   HandleGameObjectSelected(newObject);
+}
+
+void
 Editor::AddObject(Object::TYPE objectType)
 {
    std::shared_ptr< EditorObject > newObject;
-   switch (objectType)
+   if (objectType == Object::TYPE::ANIMATION_POINT)
    {
-      case Object::TYPE::ANIMATION_POINT: {
-         if (!m_currentSelectedGameObject)
-         {
-            m_logger.Log(Logger::TYPE::WARNING,
-                         "Added new Animation point without currently selected object!");
-         }
-         auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
-         auto newNode = animatablePtr->CreateAnimationNode(m_currentSelectedGameObject->GetID());
-         newObject = std::make_shared< EditorObject >(*this, newNode.m_end, glm::ivec2(20, 20),
-                                                      "Default128.png", newNode.GetID());
-
-         m_editorObjects.push_back(newObject);
-         animatablePtr->ResetAnimation();
+      if (!m_currentSelectedGameObject)
+      {
+         m_logger.Log(Logger::Type::WARNING,
+                      "Added new Animation point without currently selected object!");
       }
-      break;
+      auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
+      auto newNode = animatablePtr->CreateAnimationNode(
+         m_currentSelectedGameObject->GetID(),
+         m_currentSelectedGameObject->GetPosition()
+            + static_cast< glm::vec2 >(m_currentSelectedGameObject->GetSize()));
+      newObject = std::make_shared< EditorObject >(*this, newNode.m_end, glm::ivec2(20, 20),
+                                                   "NodeSprite.png", newNode.GetID());
 
-      default:
-         break;
+      m_editorObjects.push_back(newObject);
+      animatablePtr->ResetAnimation();
    }
 
    HandleEditorObjectSelected(newObject);
@@ -691,7 +724,7 @@ Editor::ToggleAnimateObject()
 }
 
 bool
-Editor::IsObjectAnimated()
+Editor::IsObjectAnimated() const
 {
    return m_animateGameObject;
 }
@@ -707,7 +740,7 @@ Editor::LaunchGameLoop()
 {
    // Clear rednerer data
    Renderer::Shutdown();
-   m_gui.Shutdown();
+   EditorGUI::Shutdown();
 
    m_game = std::make_unique< Game >();
    m_game->Init("GameInit.txt");
@@ -729,11 +762,11 @@ std::shared_ptr< EditorObject >
 Editor::GetEditorObjectByID(Object::ID ID)
 {
    auto editorObject =
-      std::find_if(m_editorObjects.begin(), m_editorObjects.end(), [ID](const auto& editorObject) {
-         return editorObject->GetLinkedObjectID() == ID;
+      std::find_if(m_editorObjects.begin(), m_editorObjects.end(), [ID](const auto& object) {
+         return object->GetLinkedObjectID() == ID;
       });
 
-   assert(editorObject != m_editorObjects.end());
+   assert(editorObject != m_editorObjects.end()); // NOLINT
 
    return *editorObject;
 }
@@ -857,13 +890,13 @@ Editor::GetViewMatrix() const
 }
 
 float
-Editor::GetZoomLevel()
+Editor::GetZoomLevel() const
 {
    return m_camera.GetZoomLevel();
 }
 
 bool
-Editor::IsRunning()
+Editor::IsRunning() const
 {
    return m_isRunning;
 }

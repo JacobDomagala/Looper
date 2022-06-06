@@ -7,10 +7,10 @@
 namespace dgame {
 
 void
-InputManager::InternalKeyCallback(GLFWwindow*, int32_t key, int32_t scancode, int32_t action,
+InputManager::InternalKeyCallback(GLFWwindow* /*window*/, int32_t key, int32_t scancode, int32_t action,
                                   int32_t mods)
 {
-   s_logger.Log(Logger::TYPE::TRACE, "GLFW key {} {} scan code - {}", action, key, scancode);
+   s_logger.Log(Logger::Type::TRACE, "GLFW key {} {} scan code - {}", action, key, scancode);
 
    s_keyMap[key] = action;
 
@@ -18,29 +18,29 @@ InputManager::InternalKeyCallback(GLFWwindow*, int32_t key, int32_t scancode, in
 }
 
 void
-InputManager::InternalMouseButtonCallback(GLFWwindow*, int32_t button, int32_t action, int32_t mods)
+InputManager::InternalMouseButtonCallback(GLFWwindow* /*window*/, int32_t button, int32_t action, int32_t mods)
 {
-   s_logger.Log(Logger::TYPE::TRACE, "GLFW mouse button {} {} {}", button, action, mods);
+   s_logger.Log(Logger::Type::TRACE, "GLFW mouse button {} {} {}", button, action, mods);
 
    BroadcastEvent(MouseButtonEvent{button, action, mods});
 }
 
 void
-InputManager::InternalCursorPositionCallback(GLFWwindow*, double x, double y)
+InputManager::InternalCursorPositionCallback(GLFWwindow* /*window*/, double xPos, double yPos)
 {
-   s_logger.Log(Logger::TYPE::TRACE, "GLFW cursor pos {} {}", x, y);
+   s_logger.Log(Logger::Type::TRACE, "GLFW cursor pos {} {}", xPos, yPos);
 
-   s_mousePosition = glm::vec2(x, y);
+   s_mousePosition = glm::vec2(xPos, yPos);
 
-   BroadcastEvent(CursorPositionEvent{x, y});
+   BroadcastEvent(CursorPositionEvent{xPos, yPos});
 }
 
 void
-InputManager::InternalMouseScrollCallback(GLFWwindow*, double xoffset, double yoffset)
+InputManager::InternalMouseScrollCallback(GLFWwindow* /*window*/, double xOffset, double yOffset)
 {
-   s_logger.Log(Logger::TYPE::TRACE, "GLFW scroll {} {}", xoffset, yoffset);
+   s_logger.Log(Logger::Type::TRACE, "GLFW scroll {} {}", xOffset, yOffset);
 
-   BroadcastEvent(MouseScrollEvent{xoffset, yoffset});
+   BroadcastEvent(MouseScrollEvent{xOffset, yOffset});
 }
 
 void
@@ -49,7 +49,7 @@ InputManager::BroadcastEvent(const Event& event)
    switch (event.m_type)
    {
       case Event::EventType::KEY: {
-         for (auto listener : s_keyListeners)
+         for (auto* listener : s_keyListeners)
          {
             listener->KeyCallback(static_cast< const KeyEvent& >(event));
          }
@@ -57,7 +57,7 @@ InputManager::BroadcastEvent(const Event& event)
       break;
 
       case Event::EventType::MOUSE_BUTTON: {
-         for (auto listener : s_mouseButtonListeners)
+         for (auto* listener : s_mouseButtonListeners)
          {
             listener->MouseButtonCallback(static_cast< const MouseButtonEvent& >(event));
          }
@@ -65,7 +65,7 @@ InputManager::BroadcastEvent(const Event& event)
       break;
 
       case Event::EventType::MOUSE_CURSOR: {
-         for (auto listener : s_mouseMovementListeners)
+         for (auto* listener : s_mouseMovementListeners)
          {
             listener->CursorPositionCallback(static_cast< const CursorPositionEvent& >(event));
          }
@@ -73,7 +73,7 @@ InputManager::BroadcastEvent(const Event& event)
       break;
 
       case Event::EventType::MOUSE_SCROLL: {
-         for (auto listener : s_mouseScrollListeners)
+         for (auto* listener : s_mouseScrollListeners)
          {
             listener->MouseScrollCallback(static_cast< const MouseScrollEvent& >(event));
          }

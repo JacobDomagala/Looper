@@ -4,28 +4,29 @@
 
 namespace dgame {
 
+// NOLINTNEXTLINE
 class InputListener
 {
  public:
    virtual ~InputListener() = default;
 
    virtual void
-   KeyCallback(const KeyEvent&)
+   KeyCallback(const KeyEvent& /*event*/)
    {
    }
 
    virtual void
-   MouseButtonCallback(const MouseButtonEvent&)
+   MouseButtonCallback(const MouseButtonEvent& /*event*/)
    {
    }
 
    virtual void
-   CursorPositionCallback(const CursorPositionEvent&)
+   CursorPositionCallback(const CursorPositionEvent& /*event*/)
    {
    }
 
    virtual void
-   MouseScrollCallback(const MouseScrollEvent&)
+   MouseScrollCallback(const MouseScrollEvent& /*event*/)
    {
    }
 };

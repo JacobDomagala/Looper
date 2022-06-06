@@ -8,17 +8,18 @@
 
 namespace dgame {
 
+// NOLINTNEXTLINE
 class Shader
 {
  public:
-   Shader(const std::string& shaderName);
+   explicit Shader(const std::string& shaderName);
    Shader() = default;
    ~Shader();
 
-   std::string
+   [[nodiscard]] std::string
    GetName() const;
 
-   GLuint
+   [[nodiscard]] GLuint
    GetProgram() const;
 
    void
@@ -31,38 +32,38 @@ class Shader
    LoadShaders(const std::string& shaderName);
 
    void
-   SetUniformBool(bool value, const std::string& name);
+   SetUniformBool(bool value, const std::string& name) const;
 
    void
-   SetUniformFloat(float value, const std::string& name);
+   SetUniformFloat(float value, const std::string& name) const;
 
    void
    SetUniformFloatVec2(const glm::vec2& value, const std::string& name);
 
    void
-   SetUniformFloatVec4(const glm::vec4& value, const std::string& name);
+   SetUniformFloatVec4(const glm::vec4& value, const std::string& name) const;
 
    void
-   SetUniformFloatMat4(const glm::mat4& value, const std::string& name);
+   SetUniformFloatMat4(const glm::mat4& value, const std::string& name) const;
 
    void
-   SetUniformIntArray(const int* value, int count, const std::string& name);
+   SetUniformIntArray(const int* value, int count, const std::string& name) const;
 
  private:
    std::string
-   ReadShaderFile(std::string fileName);
+   ReadShaderFile(const std::string& fileName);
 
    void
-   CheckCompileStatus(GLuint shaderID);
+   CheckCompileStatus(GLuint shaderID) const;
 
    void
-   CheckLinkStatus(GLuint programID);
+   CheckLinkStatus(GLuint programID) const;
 
    GLint
    GetUniformLocation(const std::string& uniformName);
 
-   std::string m_name;
-   GLuint m_programID;
+   std::string m_name = {};
+   GLuint m_programID = {};
 
    Logger m_logger = Logger("Shader");
 };

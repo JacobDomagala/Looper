@@ -59,15 +59,15 @@ class InputManager
    static void
    InternalMouseButtonCallback(GLFWwindow* window, int32_t button, int32_t action, int32_t mods);
    static void
-   InternalCursorPositionCallback(GLFWwindow* window, double xpos, double ypos);
+   InternalCursorPositionCallback(GLFWwindow* window, double xPos, double yPos);
    static void
-   InternalMouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+   InternalMouseScrollCallback(GLFWwindow* window, double xOffset, double yOffset);
 
  private:
    static void
    BroadcastEvent(const Event& event);
 
- private:
+   // NOLINTBEGIN
    static inline std::vector< InputListener* > s_keyListeners = {};
    static inline std::vector< InputListener* > s_mouseButtonListeners = {};
    static inline std::vector< InputListener* > s_mouseMovementListeners = {};
@@ -79,6 +79,7 @@ class InputManager
    static inline glm::vec2 s_mousePosition = {};
    static inline std::unordered_map< int32_t, bool > s_keyMap = {};
    static inline Logger s_logger = Logger("InputManager");
+   // NOLINTEND
 };
 
 } // namespace dgame

@@ -6,6 +6,7 @@
 
 namespace dgame {
 
+// NOLINTNEXTLINE
 class RendererAPI
 {
  public:
@@ -15,7 +16,6 @@ class RendererAPI
       OpenGL = 1
    };
 
- public:
    virtual ~RendererAPI() = default;
 
    virtual void
@@ -41,9 +41,11 @@ class RendererAPI
    Create();
 
  protected:
+   // NOLINTNEXTLINE
    static inline bool s_initalized = false;
 
  private:
+   // NOLINTNEXTLINE
    static inline API s_API = RendererAPI::API::OpenGL;
 };
 

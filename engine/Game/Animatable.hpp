@@ -13,7 +13,7 @@ namespace dgame {
 
 struct AnimationPoint : public Object
 {
-   AnimationPoint(ID parentID) : Object(Object::TYPE::ANIMATION_POINT), m_parent(parentID)
+   explicit AnimationPoint(ID parentID) : Object(Object::TYPE::ANIMATION_POINT), m_parent(parentID)
    {
    }
 
@@ -47,13 +47,12 @@ class Animatable
       REVERSABLE
    };
 
- public:
-   Animatable(ANIMATION_TYPE type);
+   explicit Animatable(ANIMATION_TYPE type);
 
    void SetAnimationType(ANIMATION_TYPE);
 
-   ANIMATION_TYPE
-   GetAnimationType();
+   [[nodiscard]] ANIMATION_TYPE
+   GetAnimationType() const;
 
    glm::vec2
    SetAnimation(Timer::milliseconds updateTime);
@@ -69,45 +68,45 @@ class Animatable
    SingleAnimate(Timer::milliseconds updateTime);
 
    AnimationPoint
-   CreateAnimationNode(Object::ID parentID);
+   CreateAnimationNode(Object::ID parentID, const glm::vec2& position = glm::vec2{});
 
    void
-   AddAnimationNode(const AnimationPoint& pathNodeMapPosition);
+   AddAnimationNode(const AnimationPoint& newAnimationPoint);
 
    void
-   UpdateAnimationNode(const AnimationPoint& pathNodeMapPosition);
+   UpdateAnimationNode(const AnimationPoint& updatedAnimationPoint);
 
    void
    DeleteAnimationNode(Object::ID animationID);
 
    void
-   SetAnimationKeypoints(const std::vector< AnimationPoint >& keypoints);
+   SetAnimationKeypoints(std::vector< AnimationPoint >&& keypoints);
 
    std::vector< AnimationPoint >&
    GetAnimationKeypoints();
 
-   const std::vector< AnimationPoint >&
+   [[nodiscard]] const std::vector< AnimationPoint >&
    GetAnimationKeypoints() const;
 
-   Timer::seconds
+   [[nodiscard]] Timer::seconds
    GetAnimationDuration() const;
 
    void
    RenderAnimationSteps(bool choice);
 
-   bool
-   GetRenderAnimationSteps();
+   [[nodiscard]] bool
+   GetRenderAnimationSteps() const;
 
    void
    LockAnimationSteps(bool lock);
 
-   bool
-   GetLockAnimationSteps();
+   [[nodiscard]] bool
+   GetLockAnimationSteps() const;
 
    void
    SetAnimationStartLocation(const glm::vec2& position);
 
-   glm::vec2
+   [[nodiscard]] glm::vec2
    GetAnimationStartLocation() const;
 
    void
@@ -141,12 +140,12 @@ class Animatable
       Timer::milliseconds m_totalTimeElapsed = Timer::milliseconds(0);
    };
 
-   std::deque< AnimationState > m_statesQueue;
+   std::deque< AnimationState > m_animationStatesQueue;
    AnimationState m_currentAnimationState;
 
    std::vector< AnimationPoint > m_animationPoints;
    ANIMATION_TYPE m_type = ANIMATION_TYPE::LOOP;
-   glm::vec2 m_animationStartPosition;
+   glm::vec2 m_animationStartPosition = {};
 
    bool m_renderAnimationSteps = false;
    bool m_lockAnimationSteps = false;
@@ -183,10 +182,9 @@ class Animatable
    UpdateAnimationPoint();
 
    // Calculate next animation step based on current animation point and 'updateTime'
-   glm::vec2
-   CalculateNextStep(Timer::milliseconds updateTime);
+   [[nodiscard]] glm::vec2
+   CalculateNextStep(Timer::milliseconds updateTime) const;
 
- private:
    Logger m_logger = Logger("Animatable");
 };
 

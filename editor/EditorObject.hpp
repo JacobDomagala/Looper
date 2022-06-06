@@ -18,7 +18,7 @@ class EditorObject
    EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size,
                 const std::string& sprite, Object::ID linkedObject);
 
-   bool
+   [[nodiscard]] bool
    Visible() const;
 
    // SETERS
@@ -28,7 +28,7 @@ class EditorObject
    void
    SetIsBackground(bool isBackground);
 
-   bool
+   [[nodiscard]] bool
    GetIsBackground() const;
 
    void
@@ -43,39 +43,39 @@ class EditorObject
    void
    SetVisible(bool visible);
 
-   bool
-   IsVisible();
+   [[nodiscard]] bool
+   IsVisible() const;
 
    // Get size of object
-   glm::ivec2
+   [[nodiscard]] glm::ivec2
    GetSize() const;
 
    // Get centered position in global(OpenGL) coords
-   glm::vec2
+   [[nodiscard]] glm::vec2
    GetCenteredPosition() const;
 
    // Get position in global (OpenGL) coords
-   glm::vec2
+   [[nodiscard]] glm::vec2
    GetPosition() const;
 
-   bool
+   [[nodiscard]] bool
    CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const;
 
    // Get position in (0,0) to (WIDTH, HEIGHT) screen coords (0,0 BEING TOP LEFT CORNER)
-   glm::vec2
+   [[nodiscard]] glm::vec2
    GetScreenPositionPixels() const;
 
-   const Sprite&
+   [[nodiscard]] const Sprite&
    GetSprite() const;
 
    Sprite&
    GetSprite();
 
-   std::string
+   [[nodiscard]] std::string
    GetName() const;
 
-   Object::ID
-   GetLinkedObjectID();
+   [[nodiscard]] Object::ID
+   GetLinkedObjectID() const;
 
    void
    DeleteLinkedObject();
@@ -116,6 +116,8 @@ class EditorObject
    SetObjectUnselected();
 
  private:
+   Editor& m_editor;
+
    // global position (in OpenGL coords)
    glm::vec2 m_position;
 
@@ -130,7 +132,7 @@ class EditorObject
    // Linked object's ID
    Object::ID m_objectID = Object::INVALID_ID;
    bool m_hasLinkedObject = false;
-   Editor& m_editor;
+
 
    bool m_selected = false;
    bool m_isBackground = false;

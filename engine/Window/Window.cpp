@@ -15,12 +15,14 @@ Window::Window(int32_t width, int32_t height, const std::string& title)
 {
    m_logger.Init("Window");
 
-   glfwSetErrorCallback(
-      [](int, const char* description) { fprintf(stderr, "Error: %s\n", description); });
+   glfwSetErrorCallback([](int, const char* description) {
+      // Cast to void to avoid clang-tidy complaint
+      static_cast<void>(fprintf(stderr, "Error: %s\n", description));
+   });
 
    if (GLFW_TRUE != glfwInit())
    {
-      m_logger.Log(Logger::TYPE::FATAL, "GLFW_TRUE != glfwInit()");
+      m_logger.Log(Logger::Type::FATAL, "GLFW_TRUE != glfwInit()");
    }
 
    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -30,16 +32,11 @@ Window::Window(int32_t width, int32_t height, const std::string& title)
    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
    m_pWindow = glfwCreateWindow(m_width, m_height, title.c_str(), nullptr, nullptr);
-   m_logger.Log(Logger::TYPE::DEBUG, "GLFW Window created - \n" + std::string(*this));
+   m_logger.Log(Logger::Type::DEBUG, "GLFW Window created - \n" + std::string(*this));
 
    glfwMakeContextCurrent(m_pWindow);
 
    glfwSwapInterval(1);
-}
-
-Window::~Window()
-{
-   // glfwTerminate();
 }
 
 void
@@ -57,7 +54,7 @@ Window::SetIcon(const std::string& file)
    image.height = 16;
    image.pixels = TextureLibrary::GetTexture(file)->GetData();
 
-   auto cursor = glfwCreateCursor(&image, 0, 0);
+   auto* cursor = glfwCreateCursor(&image, 0, 0);
    glfwSetCursor(m_pWindow, cursor);
 }
 

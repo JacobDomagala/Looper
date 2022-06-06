@@ -15,12 +15,13 @@ Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& s
    m_name = name;
    m_currentState.m_velocity = {0.0f, 0.0f};
    m_currentState.m_speed = 0.0005f;
-   m_maxHP = 100;
+
    m_currentState.m_currentHP = m_maxHP;
-   // GameObject::m_currentState.m_position = position;
+   // m_currentGameObjectState.m_position = position;
    m_weapons[0] = std::make_unique< SniperRifle >();
    m_weapons[1] = std::make_unique< Glock >();
 
+   // NOLINTNEXTLINE
    m_currentWeapon = m_weapons.at(0).get();
 }
 
@@ -29,17 +30,17 @@ Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& s
 // fileName)
 //{
 //   m_collision = m_sprite.SetSpriteTextured(position, size, fileName);
-//   GameObject::m_currentState.m_centeredPosition = m_sprite.GetPosition();
-//   GameObject::m_currentState.m_position = glm::ivec2(position.x, -position.y);
+//   m_currentGameObjectState.m_centeredPosition = m_sprite.GetPosition();
+//   m_currentGameObjectState.m_position = glm::ivec2(position.x, -position.y);
 //}
 
 void
-Player::LoadShaders(const std::string&)
+Player::LoadShaders(const std::string& /*shaderName*/)
 {
 }
 
 void
-Player::LoadShaders(const Shader&)
+Player::LoadShaders(const Shader& /*shaderName*/)
 {
 }
 
@@ -47,7 +48,7 @@ bool
 Player::CheckCollision(const glm::vec2& bulletPosition, Enemy const* enemy, bool enemyShooting)
 {
    // if the bullet is inside collision zone then player got hit
-   if (glm::length(glm::vec2(bulletPosition - GameObject::m_currentState.m_centeredPosition))
+   if (glm::length(glm::vec2(bulletPosition - m_currentGameObjectState.m_centeredPosition))
        < (static_cast< float >(m_sprite.GetSize().x)) / 2.5f)
    {
       if (enemyShooting)
@@ -63,10 +64,9 @@ Player::CheckCollision(const glm::vec2& bulletPosition, Enemy const* enemy, bool
 glm::vec2
 Player::GetScreenPosition() const
 {
-   glm::vec4 screenPosition =
-      m_appHandle.GetProjection()
-      * glm::vec4(GameObject::m_currentState.m_centeredPosition, 0.0f, 1.0f);
-   return glm::vec2(screenPosition.x, screenPosition.y);
+   glm::vec4 screenPosition = m_appHandle.GetProjection()
+                              * glm::vec4(m_currentGameObjectState.m_centeredPosition, 0.0f, 1.0f);
+   return {screenPosition.x, screenPosition.y};
 }
 
 void
@@ -81,15 +81,12 @@ Player::UpdateInternal(bool isReverse)
    {
       if (m_appHandle.IsGame())
       {
-         if (!isReverse)
-         {
-            const auto gameHandle = ConvertToGameHandle();
-            const auto cursorPos = gameHandle->ScreenToGlobal(gameHandle->GetCursor());
-            const auto spritePosition = GameObject::m_currentState.m_position;
+         auto* const gameHandle = ConvertToGameHandle();
+         const auto cursorPos = gameHandle->ScreenToGlobal(gameHandle->GetCursor());
+         const auto spritePosition = m_currentGameObjectState.m_position;
 
-            m_currentState.m_viewAngle =
-               glm::atan(spritePosition.y - cursorPos.y, spritePosition.x - cursorPos.x);
-         }
+         m_currentState.m_viewAngle =
+            glm::atan(spritePosition.y - cursorPos.y, spritePosition.x - cursorPos.x);
       }
 
       m_sprite.Rotate(m_currentState.m_viewAngle);
@@ -107,16 +104,16 @@ Player::UpdateInternal(bool isReverse)
 void
 Player::Shoot()
 {
-   auto gameHandle = ConvertToGameHandle();
+   auto* gameHandle = ConvertToGameHandle();
 
-   const auto direction = gameHandle->GetCursor() - GameObject::m_currentState.m_position;
+   const auto direction = gameHandle->GetCursor() - m_currentGameObjectState.m_position;
    m_currentWeapon->Shoot(direction);
 }
 
 void
-Player::SetPosition(const glm::vec2& pos)
+Player::SetPosition(const glm::vec2& position)
 {
-   GameObject::m_currentState.m_position = pos;
+   m_currentGameObjectState.m_position = position;
 }
 
 float

@@ -5,21 +5,25 @@
 #include <Timer.hpp>
 #include <Weapon.hpp>
 
+#include <random>
+
 namespace dgame {
 
 Enemy::Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size,
-             const std::string& sprite, const std::vector< AnimationPoint >& keypoints,
+             const std::string& textureName, const std::vector< AnimationPoint >& keypoints,
              Animatable::ANIMATION_TYPE animationType)
-   : GameObject(context, pos, size, sprite, TYPE::ENEMY), Animatable(animationType)
+   : GameObject(context, pos, size, textureName, TYPE::ENEMY),
+     Animatable(animationType),
+     m_weapon(std::make_unique< Glock >()),
+     m_initialPosition(m_currentGameObjectState.m_position)
 {
    m_currentState.m_currentHP = m_maxHP;
    m_currentState.m_visionRange = 1000.0f;
-   m_weapon = std::make_unique< Glock >();
+
    m_currentState.m_combatStarted = false;
    m_animationPoints = keypoints;
 
    m_timer.ToggleTimer();
-   m_initialPosition = GameObject::m_currentState.m_position;
 
    m_animationStartPosition = m_initialPosition;
    ResetAnimation();
@@ -28,11 +32,11 @@ Enemy::Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size,
 void
 Enemy::DealWithPlayer()
 {
-   auto gameHandle = ConvertToGameHandle();
+   auto* gameHandle = ConvertToGameHandle();
 
    const auto playerPosition = gameHandle->GetPlayer()->GetCenteredPosition();
    const auto playerInVision = gameHandle->GetLevel().CheckCollisionAlongTheLine(
-      GameObject::m_currentState.m_centeredPosition, playerPosition);
+      m_currentGameObjectState.m_centeredPosition, playerPosition);
 
    m_timer.ToggleTimer();
 
@@ -87,7 +91,8 @@ Enemy::DealWithPlayer()
    }
 }
 
-void Enemy::Hit(int32_t /*dmg*/)
+void
+Enemy::Hit(int32_t /*dmg*/)
 {
    // currentHP -= dmg;
    SetColor({1.0f, 0.0f, 0.0f});
@@ -118,15 +123,19 @@ Enemy::Visible() const
 }
 
 void
-Enemy::SetTargetShootPosition(const glm::vec2& playerPos)
+Enemy::SetTargetShootPosition(const glm::vec2& targetPosition)
 {
    auto playerSize = m_appHandle.GetPlayer()->GetSize();
 
-   // compute small offset value which simulates the 'aim wiggle'
-   auto xOffset = fmod(rand(), playerSize.x) + (-playerSize.x / 2);
-   auto yOffset = fmod(rand(), playerSize.y) + (-playerSize.y / 2);
+   std::random_device rd;
+   std::mt19937 mt(rd());
+   std::uniform_real_distribution< double > dist(1.0, 10.0);
 
-   m_currentState.m_targetShootPosition = (playerPos + glm::vec2(xOffset, yOffset));
+   // compute small offset value which simulates the 'aim wiggle'
+   auto xOffset = fmod(dist(mt), playerSize.x) + (-playerSize.x / 2.0);
+   auto yOffset = fmod(dist(mt), playerSize.y) + (-playerSize.y / 2.0);
+
+   m_currentState.m_targetShootPosition = (targetPosition + glm::vec2(xOffset, yOffset));
    m_currentState.m_combatStarted = true;
 }
 
@@ -135,9 +144,9 @@ Enemy::Shoot()
 {
    m_currentState.m_timeSinceLastShot += m_timer.GetFloatDeltaTime();
 
-   if (glm::length(static_cast< glm::vec2 >(m_appHandle.GetPlayer()->GetCenteredPosition()
-                                            - GameObject::m_currentState.m_centeredPosition))
-       <= static_cast< float >(m_weapon->GetRange()))
+   if (glm::length(m_appHandle.GetPlayer()->GetCenteredPosition()
+                   - m_currentGameObjectState.m_centeredPosition)
+       <= (m_weapon->GetRange()))
    {
       if (m_currentState.m_timeSinceLastShot >= m_weapon->GetReloadTime())
       {
@@ -163,10 +172,10 @@ Enemy::MoveToPosition(const glm::vec2& targetPosition, bool exactPosition)
 
    auto& pathFinder = gameHandle->GetLevel().GetPathfinder();
 
-   const auto curPosition = GameObject::m_currentState.m_centeredPosition;
+   const auto curPosition = m_currentGameObjectState.m_centeredPosition;
    const auto tiles = pathFinder.GetPath(curPosition, targetPosition);
 
-   if (tiles.size() > 0)
+   if (!tiles.empty())
    {
       const auto moveVal =
          moveBy * glm::normalize(pathFinder.GetNodeFromID(tiles.back()).m_position - curPosition);
@@ -178,8 +187,7 @@ Enemy::MoveToPosition(const glm::vec2& targetPosition, bool exactPosition)
       Move(moveVal);
 
       constexpr auto errorTreshold = 3.0f;
-      const auto distanceToDest =
-         targetPosition - GameObject::m_currentState.m_centeredPosition;
+      const auto distanceToDest = targetPosition - m_currentGameObjectState.m_centeredPosition;
 
       // If Enemy is really close to target destination, just put it there
       if (glm::length(distanceToDest) < errorTreshold)

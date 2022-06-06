@@ -7,7 +7,7 @@ namespace dgame {
 
 PathFinder::PathFinder(const glm::ivec2& levelSize, const uint32_t tileSize,
                        std::vector< Node >&& nodes)
-   : m_initialized(false), m_nodes(nodes), m_levelSize(levelSize), m_tileSize(tileSize)
+   : m_nodes(std::move(nodes)), m_levelSize(levelSize), m_tileSize(tileSize)
 {
 }
 
@@ -25,8 +25,8 @@ PathFinder::Initialize(const glm::ivec2& levelSize, const uint32_t tileSize)
 
    const auto grad = static_cast< int32_t >(tileSize);
 
-   const auto w = static_cast< int32_t >(levelSize.x / grad);
-   const auto h = static_cast< int32_t >(levelSize.y / grad);
+   const auto w = levelSize.x / grad;
+   const auto h = levelSize.y / grad;
    const auto offset =
       glm::vec2(static_cast< float >(grad) / 2.0f, static_cast< float >(grad) / 2.0f);
 
@@ -68,6 +68,8 @@ PathFinder::Initialize(const glm::ivec2& levelSize, const uint32_t tileSize)
          AddNode(std::move(node));
       }
    }
+
+   m_initialized = true;
 }
 
 void
@@ -113,13 +115,14 @@ PathFinder::GetNodeIDFromPosition(const glm::vec2& position) const
    const auto w = static_cast< int32_t >(glm::floor(position.x / static_cast< float >(m_tileSize)));
    const auto h = static_cast< int32_t >(glm::floor(position.y / static_cast< float >(m_tileSize)));
 
-   const auto node = std::find_if(m_nodes.begin(), m_nodes.end(), [w, h](const auto& node) {
+   const auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(), [w, h](const auto& node) {
       return node.m_xPos == w and node.m_yPos == h;
    });
 
-   assert(node != m_nodes.end());
+   // NOLINTNEXTLINE
+   assert(nodeFound != m_nodes.end());
 
-   return node->m_ID;
+   return nodeFound->m_ID;
 }
 
 Node&
@@ -131,24 +134,26 @@ PathFinder::GetNodeFromPosition(const glm::vec2& position)
 Node&
 PathFinder::GetNodeFromID(Node::NodeID ID)
 {
-   const auto node = std::find_if(m_nodes.begin(), m_nodes.end(),
-                                  [ID](const auto& node) { return node.m_ID == ID; });
+   const auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(),
+                                       [ID](const auto& node) { return node.m_ID == ID; });
 
-   assert(node != m_nodes.end());
+   // NOLINTNEXTLINE
+   assert(nodeFound != m_nodes.end());
 
-   return *node;
+   return *nodeFound;
 }
 
 Node::NodeID
 PathFinder::GetNodeIDFromTile(const glm::ivec2& tile) const
 {
-   const auto node = std::find_if(m_nodes.begin(), m_nodes.end(), [tile](const auto& node) {
+   const auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(), [tile](const auto& node) {
       return node.m_xPos == tile.x and node.m_yPos == tile.y;
    });
 
-   assert(node != m_nodes.end());
+   // NOLINTNEXTLINE
+   assert(nodeFound != m_nodes.end());
 
-   return node->m_ID;
+   return nodeFound->m_ID;
 }
 
 std::vector< Node::NodeID >
@@ -191,11 +196,15 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
       // Front of listNotTestedNodes is potentially the lowest distance node. Our
       // list may also contain nodes that have been visited, so ditch these...
       while (!listNotTestedNodes.empty() && listNotTestedNodes.front()->m_visited)
+      {
          listNotTestedNodes.pop_front();
+      }
 
       // ...or abort because there are no valid nodes left to test
       if (listNotTestedNodes.empty())
+      {
          break;
+      }
 
       nodeCurrent = listNotTestedNodes.front();
       nodeCurrent->m_visited = true; // We only explore a node once
@@ -209,7 +218,9 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
          // ... and only if the neighbour is not visited and is
          // not an obstacle, add it to NotTested List
          if (!nodeNeighbour.m_visited && !nodeNeighbour.m_occupied)
+         {
             listNotTestedNodes.push_back(&nodeNeighbour);
+         }
 
          // Calculate the neighbours potential lowest parent distance
          float fPossiblyLowerGoal =
@@ -257,7 +268,7 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
 }
 
 void
-PathFinder::SetNodeOccupied(const Tile_t& nodeCoords)
+PathFinder::SetNodeOccupied(const Tile_t& nodeCoords, Object::ID objectID)
 {
    if (nodeCoords != Tile_t{-1, -1})
    {
@@ -265,14 +276,16 @@ PathFinder::SetNodeOccupied(const Tile_t& nodeCoords)
          return (node.m_xPos == nodeCoords.first) and (node.m_yPos == nodeCoords.second);
       });
 
+      // NOLINTNEXTLINE
       assert(node != m_nodes.end());
 
       node->m_occupied = true;
+      node->m_objectsOccupyingThisNode.push_back(objectID);
    }
 }
 
 void
-PathFinder::SetNodeFreed(const Tile_t& nodeCoords)
+PathFinder::SetNodeFreed(const Tile_t& nodeCoords, Object::ID objectID)
 {
    if (nodeCoords != Tile_t{-1, -1})
    {
@@ -280,9 +293,17 @@ PathFinder::SetNodeFreed(const Tile_t& nodeCoords)
          return (node.m_xPos == nodeCoords.first) and (node.m_yPos == nodeCoords.second);
       });
 
+      // NOLINTNEXTLINE
       assert(node != m_nodes.end());
 
-      node->m_occupied = false;
+      node->m_objectsOccupyingThisNode.erase(std::find(node->m_objectsOccupyingThisNode.begin(),
+                                                       node->m_objectsOccupyingThisNode.end(),
+                                                       objectID));
+
+      if (node->m_objectsOccupyingThisNode.empty())
+      {
+         node->m_occupied = false;
+      }
    }
 }
 

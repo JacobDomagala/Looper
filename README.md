@@ -2,22 +2,22 @@
 ![Windows](https://github.com/JacobDomagala/DGame/workflows/Windows%20Full%20Build/badge.svg)
 ![Ubuntu](https://github.com/JacobDomagala/DGame/workflows/Ubuntu%20Full%20Build/badge.svg)
 
-# DGame
+# Looper
+2D Top-down shooter game (and level editor) written in modern C++.
+
+## Build
+
+Looper is CMake based project working both on Linux (Ubuntu) and Windows. To build it, you will need at least C++17 compiler and CMake version 3.18. </br>
+
+Typical build process would look like this:
+```bash
+# Create build directory
+mkdir build && cd build
+
+# Generate build system for Windows/Linux
+cmake -G "Visual Studio 16 2019" ..
+cmake -G "Ninja" ..
 
 # Build
-**To build this project CMake version 3.5 is required!**
-
-**Windows:**
-- create build folder
-- inside build folder run cmake command, i.e.
-> cmake -G "Visual Studio 15 2017 Win64" ..
-- this command will generate Visual Studio solution file for x64 arch
-
-
-# TODO
-- Linux compatibility
-- Improve enemy AI
-- New assets
-- Multiplayer
-- Sound
-- Menu
+cmake --build .
+```

@@ -13,8 +13,6 @@ namespace dgame {
 class TextureLibrary
 {
  public:
-   TextureLibrary() = default;
-   ~TextureLibrary() = default;
 
    static std::shared_ptr< Texture >
    GetTexture(const std::string& textureName);
@@ -26,10 +24,11 @@ class TextureLibrary
    static void
    LoadTexture(const std::string& textureName);
 
- private:
+   // NOLINTBEGIN
    static inline std::unordered_map< std::string, std::shared_ptr< Texture > > s_loadedTextures =
       {};
    static inline Logger s_logger = Logger("TextureLibrary");
+   // NOLINTEND
 };
 
 } // namespace dgame

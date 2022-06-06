@@ -7,7 +7,7 @@ ShaderLibrary::GetShader(const std::string& shaderName)
 {
    if (s_loadedShaders.find(shaderName) == s_loadedShaders.end())
    {
-      s_logger.Log(Logger::TYPE::INFO, "Shader: {} not found in library. Loading it", shaderName);
+      s_logger.Log(Logger::Type::INFO, "Shader: {} not found in library. Loading it", shaderName);
       LoadShader(shaderName);
    }
 

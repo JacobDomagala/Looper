@@ -22,11 +22,6 @@ class Sprite
       RADIANS
    };
 
- public:
-   Sprite() = default;
-   ~Sprite() = default;
-   Sprite(Sprite&&) = default;
-
    // Create sprite without texture
    void
    SetSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
@@ -54,24 +49,24 @@ class Sprite
    void
    SetInitialPosition(const glm::vec2& globalPosition);
 
-   glm::vec2
+   [[nodiscard]] glm::vec2
    GetPosition() const;
 
-   glm::ivec2
+   [[nodiscard]] glm::ivec2
    GetSize() const;
 
    void SetSize(glm::vec2);
 
-   glm::vec2
+   [[nodiscard]] glm::vec2
    GetOriginalSize() const;
 
-   std::string
+   [[nodiscard]] std::string
    GetTextureName() const;
 
-   glm::vec2
+   [[nodiscard]] glm::vec2
    GetTranslation() const;
 
-   float
+   [[nodiscard]] float
    GetRotation(RotationType type = RotationType::RADIANS) const;
 
    glm::vec2&
@@ -98,11 +93,11 @@ class Sprite
    ScaleCumulative(const glm::vec2& scaleValue);
 
    void
-   ScaleUniformly(const float scaleValue);
+   ScaleUniformly(float scaleValue);
 
    //        0,       1,          2,           3
    // topRight, topLeft, bottomLeft, bottomRight
-   std::array< glm::vec2, 4 >
+   [[nodiscard]] std::array< glm::vec2, 4 >
    GetTransformedRectangle() const;
 
    void
@@ -114,10 +109,9 @@ class Sprite
    void
    Render();
 
- public:
-   static inline const std::pair< float, float > s_ROTATIONRANGE = {glm::radians(-360.0f),
-                                                                    glm::radians(360.0f)};
-   static inline const std::pair< float, float > s_SCALERANGE = {1.0f, 5.0f};
+   static constexpr std::pair< float, float > s_ROTATIONRANGE = {glm::radians(-360.0f),
+                                                                 glm::radians(360.0f)};
+   static constexpr std::pair< float, float > s_SCALERANGE = {1.0f, 5.0f};
 
  private:
    struct State

@@ -1,15 +1,12 @@
 #include "Animatable.hpp"
 #include "Common.hpp"
-#include "Utils.hpp"
 
 #include <algorithm>
 
 namespace dgame {
 
-Animatable::Animatable(ANIMATION_TYPE type)
+Animatable::Animatable(ANIMATION_TYPE type) : m_type(type)
 {
-   m_type = type;
-
    ResetAnimation();
 }
 
@@ -20,7 +17,7 @@ Animatable::SetAnimationType(ANIMATION_TYPE type)
 }
 
 Animatable::ANIMATION_TYPE
-Animatable::GetAnimationType()
+Animatable::GetAnimationType() const
 {
    return m_type;
 }
@@ -109,7 +106,7 @@ Animatable::SetCorrectAnimationPoint(Timer::milliseconds& updateTime)
 }
 
 glm::vec2
-Animatable::CalculateNextStep(Timer::milliseconds updateTime)
+Animatable::CalculateNextStep(Timer::milliseconds updateTime) const
 {
    const auto startPosition = m_currentAnimationState.m_currentAnimationBegin;
    const auto destination = m_currentAnimationState.m_currentAnimationEnd;
@@ -194,19 +191,17 @@ Animatable::SingleAnimate(Timer::milliseconds updateTime)
       m_currentAnimationState.m_animationFinished = false;
       return glm::vec2{};
    }
-   else
-   {
-      return Animate(updateTime);
-   }
+
+   return Animate(updateTime);
 }
 
 AnimationPoint
-Animatable::CreateAnimationNode(Object::ID parentID)
+Animatable::CreateAnimationNode(Object::ID parentID, const glm::vec2& position)
 {
-   const auto position = m_animationPoints.empty()
-                            ? glm::vec2(0.0f, 0.0f)
-                            : m_animationPoints.back().m_end + glm::vec2(10.0f, 10.0f);
-   auto newNode = AnimationPoint(parentID, position, Timer::seconds(2));
+   const auto nodePosition = m_animationPoints.empty()
+                            ? position
+                            : m_animationPoints.back().m_end + glm::vec2(20.0f, 20.0f);
+   auto newNode = AnimationPoint(parentID, nodePosition, Timer::seconds(2));
    AddAnimationNode(newNode);
 
    return newNode;
@@ -223,7 +218,7 @@ Animatable::UpdateAnimationNode(const AnimationPoint& updatedAnimationPoint)
 {
    auto updatedPointIt =
       std::find_if(m_animationPoints.begin(), m_animationPoints.end(),
-                   [updatedAnimationPoint](const auto animationPoint) {
+                   [&updatedAnimationPoint](const auto animationPoint) {
                       return animationPoint.GetID() == updatedAnimationPoint.GetID();
                    });
 
@@ -250,15 +245,15 @@ Animatable::DeleteAnimationNode(Object::ID animationID)
    }
    else
    {
-      m_logger.Log(Logger::TYPE::WARNING, "Attempting to remove non existing node with ID={}",
+      m_logger.Log(Logger::Type::WARNING, "Attempting to remove non existing node with ID={}",
                    animationID);
    }
 }
 
 void
-Animatable::SetAnimationKeypoints(const std::vector< AnimationPoint >& keypoints)
+Animatable::SetAnimationKeypoints(std::vector< AnimationPoint >&& keypoints)
 {
-   m_animationPoints = keypoints;
+   m_animationPoints = std::move(keypoints);
    ResetAnimation();
 }
 
@@ -279,7 +274,7 @@ Animatable::GetAnimationDuration() const
 {
    auto totalDuration = Timer::seconds(0);
 
-   for (auto& animationPoint : m_animationPoints)
+   for (const auto& animationPoint : m_animationPoints)
    {
       totalDuration += animationPoint.m_timeDuration;
       totalDuration += animationPoint.m_pauseDuration;
@@ -294,15 +289,15 @@ Animatable::Update(bool isReverse)
 {
    if (isReverse)
    {
-      m_currentAnimationState = m_statesQueue.back();
-      m_statesQueue.pop_back();
+      m_currentAnimationState = m_animationStatesQueue.back();
+      m_animationStatesQueue.pop_back();
    }
    else
    {
-      m_statesQueue.push_back(m_currentAnimationState);
-      if (m_statesQueue.size() >= NUM_FRAMES_TO_SAVE)
+      m_animationStatesQueue.push_back(m_currentAnimationState);
+      if (m_animationStatesQueue.size() >= NUM_FRAMES_TO_SAVE)
       {
-         m_statesQueue.pop_front();
+         m_animationStatesQueue.pop_front();
       }
    }
 }
@@ -371,7 +366,7 @@ Animatable::RenderAnimationSteps(bool choice)
 }
 
 bool
-Animatable::GetRenderAnimationSteps()
+Animatable::GetRenderAnimationSteps() const
 {
    return m_renderAnimationSteps;
 }
@@ -383,7 +378,7 @@ Animatable::LockAnimationSteps(bool lock)
 }
 
 bool
-Animatable::GetLockAnimationSteps()
+Animatable::GetLockAnimationSteps() const
 {
    return m_lockAnimationSteps;
 }

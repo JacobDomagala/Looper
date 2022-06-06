@@ -19,41 +19,42 @@ class Level
  public:
    static constexpr Tile_t invalidTile = Tile_t{-1, -1};
 
- public:
    std::shared_ptr< GameObject >
    AddGameObject(GameObject::TYPE objectType);
 
-   // Convert from OpenGL position to map position
-   glm::vec2
-   GetLocalVec(const glm::vec2& local) const;
-
-   // Convert from map position to OpenGL
-   glm::vec2
-   GetGlobalVec(const glm::vec2& local) const;
-
-   std::vector< Tile_t >
+   [[nodiscard]] std::vector< Tile_t >
    GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const;
 
-   Tile_t
+   [[nodiscard]] Tile_t
    GetTileFromPosition(const glm::vec2& local) const;
 
    void
    MoveObjs(const glm::vec2& moveBy);
 
+   /**
+    * \brief Called whenever an ombject with collision is moved. Generates the vector of
+    * occupied tiles/nodes, based on \c box
+    *
+    * \param[in] box Object's bounding box, needed to calculate collision
+    * \param[in] currentTiles Tiles occupied by the object, up to this point
+    * \param[in] objectID ID of the object that was moved
+    *
+    * \return Vector of tiles/nodes occupied by given object
+    */
    std::vector< Tile_t >
-   GameObjectMoved(const std::array< glm::vec2, 4 >& box,
-                   const std::vector< Tile_t >& currentTiles);
+   GameObjectMoved(const std::array< glm::vec2, 4 >& box, const std::vector< Tile_t >& currentTiles,
+                   Object::ID objectID);
 
    void
    Create(Application* context, const glm::ivec2& size);
 
-   // pathToFile - global path to level file (.dgl)
+   // pathToLevel - global path to level file (.dgl)
    void
-   Load(Application* context, const std::string& pathToFile);
+   Load(Application* context, const std::string& pathToLevel);
 
-   // pathToFile - global path to level file (.dgl)
+   // pathToLevel - global path to level file (.dgl)
    void
-   Save(const std::string& pathToFile);
+   Save(const std::string& pathToLevel);
 
    void
    Quit();
@@ -68,7 +69,7 @@ class Level
    DeleteObject(Object::ID deletedObject);
 
    Object&
-   GetObjectRef(Object::ID object);
+   GetObjectRef(Object::ID objectID);
 
    void
    Update(bool isReverse);
@@ -89,7 +90,7 @@ class Level
     *
     * \return True if it's on the map, false otherwise
     */
-   bool
+   [[nodiscard]] bool
    IsInLevelBoundaries(const glm::vec2& position) const;
 
    /**
@@ -119,7 +120,7 @@ class Level
     *
     * \return Vector of tiles
     */
-   std::vector< Tile_t >
+   [[nodiscard]] std::vector< Tile_t >
    GetTilesAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos) const;
 
    void
@@ -134,19 +135,19 @@ class Level
       m_locked = false;
    }
 
-   bool
+   [[nodiscard]] bool
    IsCameraLocked() const
    {
       return m_locked;
    }
 
-   glm::vec2
+   [[nodiscard]] glm::vec2
    GetLevelPosition() const
    {
       return m_background.GetPosition();
    }
 
-   glm::ivec2
+   [[nodiscard]] glm::ivec2
    GetSize() const
    {
       return m_levelSize;
@@ -167,11 +168,11 @@ class Level
       return m_player;
    }
 
-   const std::vector< std::shared_ptr< GameObject > >&
-   GetObjects(bool includePlayer = false);
+   [[nodiscard]] const std::vector< std::shared_ptr< GameObject > >&
+   GetObjects() const;
 
-   std::string
-   GetShader()
+   [[nodiscard]] std::string
+   GetShader() const
    {
       return m_shaderName;
    }
@@ -185,7 +186,7 @@ class Level
    std::shared_ptr< GameObject >
    GetGameObjectOnLocation(const glm::vec2& screenPosition);
 
-   uint32_t
+   [[nodiscard]] uint32_t
    GetTileSize() const
    {
       return m_tileWidth;

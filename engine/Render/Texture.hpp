@@ -10,11 +10,12 @@
 
 namespace dgame {
 
+// NOLINTNEXTLINE
 class Texture
 {
  public:
    Texture();
-   Texture(const std::string& textureName);
+   explicit Texture(const std::string& textureName);
    ~Texture();
 
    // Create new texture which is filled with 'color'
@@ -25,27 +26,27 @@ class Texture
    LoadTextureFromFile(const std::string& fileName = "Default128.png", GLenum wrapMode = GL_REPEAT,
                        GLenum filter = GL_LINEAR);
 
-   byte_vec4*
+   [[nodiscard]] byte_vec4*
    GetVec4Data() const;
 
-   uint8_t*
+   [[nodiscard]] uint8_t*
    GetData() const;
 
-   std::string
+   [[nodiscard]] std::string
    GetName() const;
 
-   int32_t
+   [[nodiscard]] int32_t
    GetWidth() const;
 
-   int32_t
+   [[nodiscard]] int32_t
    GetHeight() const;
 
-   GLuint
+   [[nodiscard]] GLuint
    GetTextureHandle() const;
 
    // Make this texture active for given texture slot
    void
-   Use(GLuint slot);
+   Use(GLuint slot) const;
 
    GLuint
    Create();
@@ -60,7 +61,6 @@ class Texture
                          GLenum wrapModeS = GL_CLAMP_TO_EDGE, GLenum wrapModeT = GL_CLAMP_TO_EDGE,
                          GLenum magFilter = GL_NEAREST, GLenum minFilter = GL_LINEAR);
 
- private:
    FileManager::ImageHandleType m_data;
 
    // width and size of texture

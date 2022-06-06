@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace dgame {
 
@@ -14,7 +14,7 @@ struct Event
       MOUSE_SCROLL
    };
 
-   Event(EventType t) : m_type(t)
+   explicit Event(EventType t) : m_type(t)
    {
    }
 

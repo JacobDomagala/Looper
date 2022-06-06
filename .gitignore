@@ -308,11 +308,11 @@ paket-files/
 # Project specific folders
 build
 .vscode
-dependencies/Freetype/Freetype*
-dependencies/GLM/glm*
-dependencies/STB_IMAGE/STB_IMAGE*
-dependencies/JSON/JSON*
-dependencies/FMT/FMT*
-dependencies/Imgui/IMGUI*
-dependencies/glfw/GLFW*
+dependencies/freetype/freetype*
+dependencies/glm/glm*
+dependencies/stb_image/stb_image*
+dependencies/json/json*
+dependencies/fmt/fmt*
+dependencies/imgui/imgui*
+dependencies/glfw/glfw*
 *imgui.ini

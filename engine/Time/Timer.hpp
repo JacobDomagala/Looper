@@ -12,7 +12,6 @@ class Timer
    using seconds = std::chrono::seconds;
 
    Timer();
-   ~Timer() = default;
 
    static void
    PauseAllTimers();
@@ -32,14 +31,14 @@ class Timer
 
    // Get time elapsed between calling ToggleTimer() functions
    // Returned value is in miliseconds (float value)
-   float
+   [[nodiscard]] float
    GetFloatDeltaTime() const;
 
-   milliseconds
+   [[nodiscard]] milliseconds
    GetMsDeltaTime() const;
 
    // Returned value in seconds
-   float
+   [[nodiscard]] float
    GetTotalTime() const;
 
    void
@@ -61,6 +60,7 @@ class Timer
    // each Toggle() function call
    std::chrono::steady_clock::time_point m_timeStamp;
 
+   // NOLINTNEXTLINE
    static inline bool m_timersPaused = false;
 };
 

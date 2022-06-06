@@ -19,15 +19,14 @@ class GameObject : public Object
 {
  public:
    // Constructors and destructors
-   GameObject(Application& game, const glm::vec2& position, const glm::ivec2& size,
+   GameObject(Application& application, const glm::vec2& position, const glm::ivec2& size,
               const std::string& sprite, Object::TYPE type);
-   ~GameObject() override = default;
 
-   virtual void Hit(int32_t)
+   virtual void Hit(int32_t /*dmg*/)
    {
    }
 
-   virtual bool
+   [[nodiscard]] virtual bool
    Visible() const;
 
    // SETERS
@@ -49,31 +48,31 @@ class GameObject : public Object
    // GETERS
 
    // Get size of object
-   virtual glm::ivec2
+   [[nodiscard]] virtual glm::ivec2
    GetSize() const;
 
    // Get centered position in global(OpenGL) coords
-   virtual glm::vec2
+   [[nodiscard]] virtual glm::vec2
    GetCenteredPosition() const;
 
    // Get position in global (OpenGL) coords
-   virtual glm::vec2
+   [[nodiscard]] virtual glm::vec2
    GetPosition() const;
 
-   virtual bool
+   [[nodiscard]] virtual bool
    CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const;
 
    // Get position in (0,0) to (WIDTH, HEIGHT) screen coords (0,0 BEING TOP LEFT CORNER)
-   virtual glm::vec2
+   [[nodiscard]] virtual glm::vec2
    GetScreenPositionPixels() const;
 
-   virtual const Sprite&
+   [[nodiscard]] virtual const Sprite&
    GetSprite() const;
 
    virtual Sprite&
    GetSprite();
 
-   std::string
+   [[nodiscard]] std::string
    GetName() const;
 
    // Create sprite with default texture
@@ -108,10 +107,10 @@ class GameObject : public Object
    SetHasCollision(bool hasCollision);
 
    // Only used by editor when unselected by user
-   bool
+   [[nodiscard]] bool
    GetHasCollision() const;
 
-   std::vector< Tile_t >
+   [[nodiscard]] std::vector< Tile_t >
    GetOccupiedNodes() const;
 
  protected:
@@ -148,12 +147,10 @@ class GameObject : public Object
       std::vector< Tile_t > m_occupiedNodes;
    };
 
-   std::deque< State > m_statesQueue;
-   State m_currentState;
+   std::deque< State > m_gameObjectStatesQueue;
+   State m_currentGameObjectState;
 
    Application& m_appHandle;
-
-   TYPE m_type;
 
    bool m_hasCollision = false;
 

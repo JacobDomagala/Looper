@@ -11,18 +11,17 @@ class Framebuffer
 {
  public:
    Framebuffer() = default;
-   ~Framebuffer() = default;
 
    void
    SetUp(const glm::ivec2& windowSize);
 
    void
-   BeginDrawingToTexture();
+   BeginDrawingToTexture() const;
 
    void
-   EndDrawingToTexture();
+   EndDrawingToTexture() const;
 
-   GLuint
+   [[nodiscard]] GLuint
    GetTExtureID() const;
 
  private:

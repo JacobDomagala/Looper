@@ -6,17 +6,21 @@
 #include <fstream>
 #include <stb_image.h>
 
+#if defined(_WIN32)
+#include <Windows.h>
+#endif //  WIN
+
 namespace dgame {
 
 std::string
-FileManager::ReadFile(const std::string& fileName, FileType)
+FileManager::ReadFile(const std::string& fileName, FileType /*type*/)
 {
    std::ifstream fileHandle;
    fileHandle.open(fileName, std::ifstream::in);
 
    if (!fileHandle.is_open())
    {
-      m_logger.Log(Logger::TYPE::FATAL,
+      m_logger.Log(Logger::Type::FATAL,
                    "FileManager::ReadFile -> " + fileName + " can't be opened!");
    }
 
@@ -26,65 +30,31 @@ FileManager::ReadFile(const std::string& fileName, FileType)
 
    if (returnVal.empty())
    {
-      m_logger.Log(Logger::TYPE::FATAL, "FileManager::ReadFile -> " + fileName + " is empty!");
+      m_logger.Log(Logger::Type::FATAL, "FileManager::ReadFile -> " + fileName + " is empty!");
    }
 
    return returnVal;
 }
 
 FileManager::ImageSmart
-FileManager::LoadImageData(const std::string& imageName)
+FileManager::LoadImageData(const std::string& fileName)
 {
-   const auto pathToImage = std::filesystem::path(IMAGES_DIR / imageName).string();
+   const auto pathToImage = std::filesystem::path(IMAGES_DIR / fileName).string();
    int force_channels = 0;
-   int w, h, n;
+   int w = 0;
+   int h = 0;
+   int n = 0;
 
    ImageHandleType textureData(stbi_load(pathToImage.c_str(), &w, &h, &n, force_channels),
                                stbi_image_free);
 
    if (!textureData)
    {
-      m_logger.Log(Logger::TYPE::FATAL,
+      m_logger.Log(Logger::Type::FATAL,
                    fmt::format("FileManager::LoadImage -> {} can't be opened!", pathToImage));
    }
 
    return {std::move(textureData), {w, h}, n};
-}
-
-uint8_t*
-FileManager::LoadImageRawBytes(const std::string& fileName)
-{
-   const auto pathToImage = std::filesystem::path(IMAGES_DIR / fileName).string();
-   int force_channels = 0;
-   int w, h, n;
-
-   uint8_t* textureData = stbi_load(pathToImage.c_str(), &w, &h, &n, force_channels);
-
-   if (!textureData)
-   {
-      m_logger.Log(Logger::TYPE::FATAL,
-                   "FileManager::LoadImageRawBytes -> " + pathToImage + " can't be opened!");
-   }
-
-   return textureData;
-}
-
-FileManager::ImageRaw
-FileManager::LoadImageRawData(const std::string& fileName)
-{
-   const auto pathToImage = std::filesystem::path(IMAGES_DIR / fileName).string();
-   int force_channels = 0;
-   int w, h, n;
-
-   uint8_t* textureData = stbi_load(pathToImage.c_str(), &w, &h, &n, force_channels);
-
-   if (!textureData)
-   {
-      m_logger.Log(Logger::TYPE::FATAL,
-                   "FileManager::LoadImageRawData -> " + pathToImage + " can't be opened!");
-   }
-
-   return {textureData, {w, h}, n};
 }
 
 nlohmann::json
@@ -94,7 +64,7 @@ FileManager::LoadJsonFile(const std::string& pathToFile)
 
    if (!jsonFile.is_open())
    {
-      m_logger.Log(Logger::TYPE::FATAL,
+      m_logger.Log(Logger::Type::FATAL,
                    "FileManager::LoadJsonFile -> " + pathToFile + " can't be opened!");
    }
 
@@ -103,7 +73,7 @@ FileManager::LoadJsonFile(const std::string& pathToFile)
 
    if (json.is_null())
    {
-      m_logger.Log(Logger::TYPE::FATAL,
+      m_logger.Log(Logger::Type::FATAL,
                    "FileManager::LoadJsonFile -> " + pathToFile + " is empty!");
    }
 
@@ -111,11 +81,146 @@ FileManager::LoadJsonFile(const std::string& pathToFile)
 }
 
 void
-FileManager::SaveJsonFile(const std::string& pathToFile, nlohmann::json json)
+FileManager::SaveJsonFile(const std::string& pathToFile, const nlohmann::json& json)
 {
    std::ofstream jsonFile(pathToFile);
 
    jsonFile << json;
+}
+
+std::string
+FileManager::FileDialog(const std::filesystem::path& defaultPath,
+                        const std::vector< std::pair< std::string, std::string > >& fileTypes,
+                        bool save)
+{
+   constexpr auto FILE_DIALOG_MAX_BUFFER = 16384;
+
+#if defined(_WIN32)
+   //////////////////////////////////////////////
+   ///////     Generate file filter       ///////
+   //////////////////////////////////////////////
+   std::string filter;
+
+   if (!save && fileTypes.size() > 1)
+   {
+      auto generateFormats = [](const auto& filterTypes) {
+         std::string buffer;
+         for (size_t i = 0; i < filterTypes.size(); ++i)
+         {
+            buffer.append(
+               fmt::format("*.{}{}", filterTypes[i].second, i < filterTypes.size() - 1 ? ";" : ""));
+         }
+
+         return buffer;
+      };
+
+      // There could be a simpler way to insert \0 mid string
+      // Doesn't seem to work with fmt::format sadly
+      const auto formats = generateFormats(fileTypes);
+      filter.append(fmt::format("Supported file types ({})", formats));
+      filter.push_back('\0');
+      filter.append(fmt::format("{}", formats));
+      filter.push_back('\0');
+   }
+
+   for (const auto& [description, extension] : fileTypes)
+   {
+      // Same as above, need to explicitly push_back \0
+      filter.append(fmt::format("{} (*.{})", description, extension));
+      filter.push_back('\0');
+      filter.append(fmt::format("*.{}", extension));
+      filter.push_back('\0');
+   }
+
+
+   filter.push_back('\0');
+
+   const auto size =
+      MultiByteToWideChar(CP_UTF8, 0, filter.c_str(), static_cast< int >(filter.size()), NULL, 0);
+   std::wstring wfilter(size, 0);
+   MultiByteToWideChar(CP_UTF8, 0, filter.c_str(), static_cast< int >(filter.size()),
+                       wfilter.data(), size);
+
+
+   //////////////////////////////////////////////
+   ///////      Open file dialog          ///////
+   //////////////////////////////////////////////
+
+   std::wstring fileDialogBuffer(FILE_DIALOG_MAX_BUFFER, 0);
+   const auto directoryWstring = defaultPath.wstring();
+
+   OPENFILENAMEW ofn = {0};
+   ofn.lStructSize = sizeof(OPENFILENAMEW);
+   ofn.lpstrInitialDir = directoryWstring.c_str();
+   ofn.lpstrFile = fileDialogBuffer.data();
+   ofn.nMaxFile = FILE_DIALOG_MAX_BUFFER;
+   ofn.nFilterIndex = 1;
+   ofn.lpstrFilter = wfilter.c_str();
+
+   if (save)
+   {
+      ofn.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
+
+      if (!GetSaveFileNameW(&ofn))
+      {
+         return {};
+      }
+   }
+   else
+   {
+      ofn.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+      if (!GetOpenFileNameW(&ofn))
+      {
+         return {};
+      }
+   }
+
+   std::string result;
+
+   const auto tmpSize = static_cast< int >(wcslen(fileDialogBuffer.c_str()));
+   assert(tmpSize > 0);
+
+   auto filenameSize =
+      WideCharToMultiByte(CP_UTF8, 0, fileDialogBuffer.c_str(), tmpSize, NULL, 0, NULL, NULL);
+   result.resize(filenameSize, 0);
+
+   WideCharToMultiByte(CP_UTF8, 0, fileDialogBuffer.c_str(), tmpSize, result.data(), filenameSize,
+                       NULL, NULL);
+
+   return result;
+#else
+
+
+   const auto cmd = fmt::format("zenity --file-selection --filename={} {} --file-filter=\"{}\"",
+                                defaultPath.string(), save ? "--save " : "", [&fileTypes] {
+                                   std::string types;
+                                   for ([[maybe_unused]] const auto& [_, extension] : fileTypes)
+                                   {
+                                      types.append(fmt::format("\"*.{}\" ", extension));
+                                   }
+                                   return types;
+                                }());
+
+   // NOLINTNEXTLINE
+   auto* output = popen(cmd.c_str(), "r");
+   assert(output); // NOLINT
+
+   std::string buffer(FILE_DIALOG_MAX_BUFFER, 0);
+   if (fgets(buffer.data(), FILE_DIALOG_MAX_BUFFER, output))
+   {
+      // fgets includes \n character at the end, remove it
+      buffer[strcspn(buffer.c_str(), "\n")] = 0;
+   }
+   else
+   {
+      buffer = "";
+   }
+
+   pclose(output);
+
+   return buffer;
+#endif
 }
 
 } // namespace dgame

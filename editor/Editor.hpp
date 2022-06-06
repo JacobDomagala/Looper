@@ -21,8 +21,7 @@ class Window;
 class Editor : public Application
 {
  public:
-   Editor(const glm::ivec2& screenSize);
-   ~Editor() override = default;
+   explicit Editor(const glm::ivec2& screenSize);
 
    // APPLICATION OVERRIDES
    void
@@ -38,7 +37,7 @@ class Editor : public Application
    GetViewMatrix() const override;
 
    float
-   GetZoomLevel() override;
+   GetZoomLevel() const override;
 
    void
    KeyCallback(const KeyEvent& event) override;
@@ -60,13 +59,16 @@ class Editor : public Application
    CreateLevel(const glm::ivec2& size);
 
    void
-   LoadLevel(const std::string& levelName);
+   LoadLevel(const std::string& levelPath);
 
    void
-   SaveLevel(const std::string& levelName);
+   SaveLevel(const std::string& levelPath);
 
    void
    AddGameObject(GameObject::TYPE objectType);
+
+   void
+   CopyGameObject(const std::shared_ptr<GameObject>& objectToCopy);
 
    void
    AddObject(Object::TYPE objectType);
@@ -75,7 +77,7 @@ class Editor : public Application
    ToggleAnimateObject();
 
    bool
-   IsObjectAnimated();
+   IsObjectAnimated() const;
 
    void
    PlayLevel();
@@ -90,7 +92,7 @@ class Editor : public Application
    SetRenderAnimationPoints(bool render);
 
    void
-   SetLockAnimationPoints(bool render);
+   SetLockAnimationPoints(bool lock);
 
    void
    Update();
@@ -111,14 +113,14 @@ class Editor : public Application
    GetGridData() const;
 
    void
-   HandleGameObjectSelected(std::shared_ptr< GameObject > newSelectedGameObject,
+   HandleGameObjectSelected(const std::shared_ptr< GameObject >& newSelectedGameObject,
                             bool fromGUI = false);
 
    void
    HandleObjectSelected(Object::ID objectID, bool fromGUI);
 
    void
-   HandleEditorObjectSelected(std::shared_ptr< EditorObject > newSelectedObject,
+   HandleEditorObjectSelected(const std::shared_ptr< EditorObject >& newSelectedEditorObject,
                               bool fromGUI = false);
 
  private:
@@ -128,7 +130,6 @@ class Editor : public Application
       REMOVE
    };
 
- private:
    std::shared_ptr< EditorObject >
    GetEditorObjectByID(Object::ID ID);
 
@@ -148,7 +149,7 @@ class Editor : public Application
    DrawBoundingBoxes();
 
    bool
-   IsRunning() override;
+   IsRunning() const override;
 
    void
    HandleCamera();
@@ -184,7 +185,7 @@ class Editor : public Application
    bool m_mousePressedLastUpdate = false;
    bool m_mouseDrag = false;
 
-   glm::vec2 m_lastCursorPosition;
+   glm::vec2 m_lastCursorPosition = {};
 
    std::unique_ptr< byte_vec4 > m_collision = nullptr;
 
@@ -193,6 +194,8 @@ class Editor : public Application
    bool m_movementOnGameObject = false;
    bool m_gameObjectSelected = false;
    std::shared_ptr< GameObject > m_currentSelectedGameObject;
+
+   std::shared_ptr< GameObject > m_copiedGameObject;
 
    // Handling of editor objects (drawable objects linked to object in game)
    bool m_movementOnEditorObject = false;

@@ -22,6 +22,8 @@ Camera::Create(const glm::vec3& position, const glm::ivec2& windowSize, const gl
    const auto bottom = -m_windowSize.y / 2.0f;
 
    m_viewMatrix = glm::lookAt(m_position, m_position + m_lookAtDirection, m_upVector);
+
+   // NOLINTNEXTLINE top and bottom swapped intentionally
    m_projectionMatrix = glm::ortho(left, right, top, bottom, -1.0f, 10.0f);
    m_viewProjectionMatrix = m_projectionMatrix * m_viewMatrix;
 }
@@ -35,6 +37,7 @@ Camera::SetLevelSize(const glm::vec2& size)
 void
 Camera::SetProjection(float left, float right, float top, float bottom)
 {
+   // NOLINTNEXTLINE top and bottom swapped intentionally
    m_projectionMatrix = glm::ortho(left, right, top, bottom, -1.0f, 10.0f);
 }
 
@@ -52,7 +55,7 @@ Camera::SetCameraAtPosition(const glm::vec2& globalPosition)
 }
 
 void
-Camera::SetCameraAtObject(std::shared_ptr< GameObject > object)
+Camera::SetCameraAtObject(const std::shared_ptr< GameObject >& object)
 {
    m_position = glm::vec3(object->GetCenteredPosition(), 0.0f);
    UpdateViewMatrix();
@@ -93,6 +96,7 @@ Camera::Zoom(float value)
    const auto nearPlane = -1.0f;
    const auto farPlane = 1.0f;
 
+   // NOLINTNEXTLINE top and bottom swapped intentionally
    m_projectionMatrix = glm::ortho(left, right, top, bottom, nearPlane, farPlane);
    m_viewProjectionMatrix = m_projectionMatrix * m_viewMatrix;
 }
@@ -128,7 +132,7 @@ Camera::GetPosition() const
 }
 
 float
-Camera::GetRotation()
+Camera::GetRotation() const
 {
    return m_rotationValue;
 }

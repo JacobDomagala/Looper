@@ -36,25 +36,26 @@ Application::GetCamera()
 }
 
 Timer::milliseconds
-Application::GetDeltaTime()
+Application::GetDeltaTime() const
 {
    return m_deltaTime;
 }
 
 bool
-Application::IsGame()
+Application::IsGame() const
 {
    return m_isGame;
 }
 
 void
-Application::Log(Logger::TYPE t, const std::string& log)
+Application::Log(Logger::Type t, const std::string& log) const
 {
    m_logger.Log(t, log);
 }
 
 void
-Application::RenderText(std::string, const glm::vec2&, float, const glm::vec3&)
+Application::RenderText(const std::string& /*text*/, const glm::vec2& /*position*/, float /*scale*/,
+                        const glm::vec3& /*color*/)
 {
    // m_font.RenderText(GetProjection(), text, position, scale, color);
 }
@@ -86,7 +87,7 @@ Application::GlobalToScreen(const glm::vec2& globalPos) const
 }
 
 glm::vec2
-Application::ScreenToGlobal(const glm::vec2& screenPos)
+Application::ScreenToGlobal(const glm::vec2& screenPos) const
 {
    const auto windowCenterScreen = GetWindowSize() / 2.0f;
    const auto zoomRatio = (GetWindowSize() / (2.0f + GetZoomLevel())) / windowCenterScreen;

@@ -14,7 +14,7 @@ namespace dgame {
 void
 Game::MainLoop()
 {
-   Logger::SetLogType(Logger::TYPE::DEBUG);
+   Logger::SetLogType(Logger::Type::DEBUG);
 
    auto singleFrameTimer = 0.0f;
 
@@ -27,8 +27,8 @@ Game::MainLoop()
       {
          m_window->Clear();
          Renderer::BeginScene(m_camera);
-         const auto dt = Timer::milliseconds(
-            static_cast< long >(TARGET_TIME * 1000 * Timer::AreTimersRunning()));
+         const auto dt = Timer::milliseconds(static_cast< long >(
+            TARGET_TIME * 1000.0f * static_cast< float >(Timer::AreTimersRunning())));
          ProcessInput(dt);
 
          Render();
@@ -55,7 +55,7 @@ Game::MainLoop()
 }
 
 void
-Game::Init(const std::string configFile)
+Game::Init(const std::string& configFile)
 {
    m_logger.Init("Game");
    m_isGame = true;
@@ -64,7 +64,7 @@ Game::Init(const std::string configFile)
 
    if (!initFile)
    {
-      m_logger.Log(Logger::TYPE::FATAL, "Can't open" + (ASSETS_DIR / configFile).string());
+      m_logger.Log(Logger::Type::FATAL, "Can't open" + (ASSETS_DIR / configFile).string());
    }
 
    m_window = std::make_unique< Window >(WIDTH, HEIGHT, "WindowTitle");
@@ -78,7 +78,7 @@ Game::Init(const std::string configFile)
 
    while (!initFile.eof())
    {
-      std::string tmp = "";
+      std::string tmp;
       initFile >> tmp;
       if (tmp == "Levels:")
       {
@@ -124,7 +124,7 @@ Game::MoveGameObject(GameObject* gameObject, const glm::vec2& moveBy) const
 }
 
 void
-Game::KeyEvents()
+Game::KeyEvents() // NOLINT
 {
    const auto floatDeltaTime = static_cast< float >(m_deltaTime.count());
    // Camera movement is disabled
@@ -313,7 +313,7 @@ Game::GetViewMatrix() const
 }
 
 float
-Game::GetZoomLevel()
+Game::GetZoomLevel() const
 {
    return m_camera.GetZoomLevel();
 }
@@ -337,7 +337,7 @@ Game::SwapBuffers()
 }
 
 bool
-Game::IsRunning()
+Game::IsRunning() const
 {
    return m_window->IsRunning();
 }

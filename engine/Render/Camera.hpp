@@ -13,7 +13,6 @@ class Camera
 {
  public:
    Camera() = default;
-   ~Camera() = default;
 
    void
    Create(const glm::vec3& position, const glm::ivec2& windowSize,
@@ -33,7 +32,7 @@ class Camera
    SetCameraAtPosition(const glm::vec2& globalPosition);
 
    void
-   SetCameraAtObject(std::shared_ptr< GameObject > object);
+   SetCameraAtObject(const std::shared_ptr< GameObject >& object);
 
    void
    Move(const glm::vec3& conventionalVector);
@@ -44,30 +43,30 @@ class Camera
    void
    Zoom(float value);
 
-   float
+   [[nodiscard]] float
    GetZoomLevel() const;
 
-   const glm::mat4&
+   [[nodiscard]] const glm::mat4&
    GetViewMatrix() const;
 
-   const glm::mat4&
+   [[nodiscard]] const glm::mat4&
    GetProjectionMatrix() const;
 
-   const glm::mat4&
+   [[nodiscard]] const glm::mat4&
    GetViewProjectionMatrix() const;
 
-   const glm::vec3&
+   [[nodiscard]] const glm::vec3&
    GetPosition() const;
 
-   float
-   GetRotation();
+   [[nodiscard]] float
+   GetRotation() const;
 
    // Convert 'conventionalVector' to camera state related vector
    // Example:
    // - conventionalVector = vec3(1.0f, 0.0f, 0.0f)
    // - current camera is rotated by 90 degrees
    // function will return vec3(0.0f, 1.0f, 0.0f)
-   glm::vec3
+   [[nodiscard]] glm::vec3
    ConvertToCameraVector(const glm::vec3& conventionalVector) const;
 
  private:
@@ -83,16 +82,16 @@ class Camera
    float m_maxZoomIn = 1.5f;
    float m_maxZoomOut = -1.5f;
 
-   glm::vec2 m_levelSize;
-   glm::vec2 m_windowSize;
+   glm::vec2 m_levelSize = {};
+   glm::vec2 m_windowSize = {};
 
-   glm::vec3 m_position;
-   glm::vec3 m_upVector;
-   glm::vec3 m_lookAtDirection;
+   glm::vec3 m_position = {};
+   glm::vec3 m_upVector = {};
+   glm::vec3 m_lookAtDirection = {};
 
-   glm::mat4 m_viewMatrix;
-   glm::mat4 m_projectionMatrix;
-   glm::mat4 m_viewProjectionMatrix;
+   glm::mat4 m_viewMatrix = {};
+   glm::mat4 m_projectionMatrix = {};
+   glm::mat4 m_viewProjectionMatrix = {};
 };
 
 } // namespace dgame

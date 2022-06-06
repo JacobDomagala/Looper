@@ -29,7 +29,7 @@ Framebuffer::SetUp(const glm::ivec2& windowSize)
 }
 
 void
-Framebuffer::BeginDrawingToTexture()
+Framebuffer::BeginDrawingToTexture() const
 {
    // DRAW TO FRAMEBUFFER
    glBindFramebuffer(GL_FRAMEBUFFER, m_framebufferID);
@@ -38,7 +38,7 @@ Framebuffer::BeginDrawingToTexture()
 }
 
 void
-Framebuffer::EndDrawingToTexture()
+Framebuffer::EndDrawingToTexture() const
 {
    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

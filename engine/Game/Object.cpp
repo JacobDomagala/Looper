@@ -5,7 +5,7 @@ namespace dgame {
 static std::string
 TypeToString(Object::TYPE type)
 {
-   std::string typeStr = "";
+   std::string typeStr;
 
    switch (type)
    {
@@ -48,10 +48,8 @@ Object::GetTypeFromString(const std::string& stringType)
    return s_map[stringType];
 }
 
-Object::Object(TYPE type)
+Object::Object(TYPE type) : m_type(type)
 {
-   m_type = type;
-
    // First 32 bits are for ids, the other are for type storage
    auto type_val = static_cast< ID >(type) << TYPE_NUM_BITS;
    m_id = type_val + s_currentID;
@@ -88,27 +86,26 @@ Object::GetTypeFromID(ID id)
 {
    // Shift 'id' value to its type part
    const auto type_part = id >> TYPE_NUM_BITS;
+   Object::TYPE type = TYPE::NONE;
 
    if (type_part & static_cast< ID >(TYPE::ENEMY))
    {
-      return TYPE::ENEMY;
+      type = TYPE::ENEMY;
    }
    else if (type_part & static_cast< ID >(TYPE::PLAYER))
    {
-      return TYPE::PLAYER;
+      type = TYPE::PLAYER;
    }
    else if (type_part & static_cast< ID >(TYPE::ANIMATION_POINT))
    {
-      return TYPE::ANIMATION_POINT;
+      type = TYPE::ANIMATION_POINT;
    }
    else if (type_part & static_cast< ID >(TYPE::PATHFINDER_NODE))
    {
-      return TYPE::PATHFINDER_NODE;
+      type = TYPE::PATHFINDER_NODE;
    }
-   else
-   {
-      return TYPE::NONE;
-   }
+
+   return type;
 }
 
 Object::ID

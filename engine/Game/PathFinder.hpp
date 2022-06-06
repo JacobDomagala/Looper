@@ -17,15 +17,17 @@ struct Node : public Object
    {
    }
 
-   Node(const glm::ivec2& coords, const glm::vec2& posOnMap, NodeID ID,
-        const std::vector< NodeID >& connectedTo, bool occupied = false)
+   Node(const glm::ivec2& coords, const glm::vec2& posOnMap, NodeID nodeID,
+        std::vector< NodeID > connectedTo = {}, bool occupied = false,
+        std::vector< Object::ID > objectOccupying = {})
       : Object(Object::TYPE::PATHFINDER_NODE),
         m_xPos(coords.x),
         m_yPos(coords.y),
         m_position(posOnMap),
         m_occupied(occupied),
-        m_ID(ID),
-        m_connectedNodes(connectedTo)
+        m_ID(nodeID),
+        m_connectedNodes(std::move(connectedTo)),
+        m_objectsOccupyingThisNode(std::move(objectOccupying))
    {
    }
 
@@ -43,6 +45,7 @@ struct Node : public Object
    NodeID m_parentNode = -1;
 
    std::vector< NodeID > m_connectedNodes = {};
+   std::vector< Object::ID > m_objectsOccupyingThisNode = {};
 
    bool m_visited = false;
    int32_t m_localCost = std::numeric_limits< int32_t >::max();
@@ -59,7 +62,7 @@ class PathFinder
 {
  public:
    PathFinder() = default;
-   PathFinder(const glm::ivec2& levelSize, const uint32_t tileSize, std::vector< Node >&& nodes);
+   PathFinder(const glm::ivec2& levelSize, uint32_t tileSize, std::vector< Node >&& nodes);
 
    /**
     * \brief Initialize Pathfinder. This will create nodes for entire Level.
@@ -68,7 +71,7 @@ class PathFinder
     * \param[in] tileSize Size of tile
     */
    void
-   Initialize(const glm::ivec2& levelSize, const uint32_t tileSize);
+   Initialize(const glm::ivec2& levelSize, uint32_t tileSize);
 
    /**
     * \brief Initialize Pathfinder. This will not create nodes.
@@ -77,7 +80,7 @@ class PathFinder
     * \param[in] tileSize Size of tile
     */
    void
-   InitializeEmpty(const glm::ivec2& levelSize, const uint32_t tileSize);
+   InitializeEmpty(const glm::ivec2& levelSize, uint32_t tileSize);
 
    /**
     * \brief Mark Pathfinder as initialized
@@ -90,7 +93,7 @@ class PathFinder
     *
     * \return Whether it's initialized
     */
-   bool
+   [[nodiscard]] bool
    IsInitialized() const;
 
    /**
@@ -114,7 +117,7 @@ class PathFinder
     *
     * \return Nodes vector
     */
-   const std::vector< Node >&
+   [[nodiscard]] const std::vector< Node >&
    GetAllNodes() const;
 
    /**
@@ -132,7 +135,7 @@ class PathFinder
     *
     * \return NodeID
     */
-   Node::NodeID
+   [[nodiscard]] Node::NodeID
    GetNodeIDFromPosition(const glm::vec2& position) const;
 
    /**
@@ -152,7 +155,7 @@ class PathFinder
     *
     * \return NodeID
     */
-   Node::NodeID
+   [[nodiscard]] Node::NodeID
    GetNodeIDFromTile(const glm::ivec2& tile) const;
 
    /**
@@ -180,17 +183,19 @@ class PathFinder
     * \brief Set node (on the given tile) occupied
     *
     * \param[in] nodeCoords Tile on the map
+    * \param[in] objectID Object that occupies this node/tile
     */
    void
-   SetNodeOccupied(const Tile_t& nodeCoords);
+   SetNodeOccupied(const Tile_t& nodeCoords, Object::ID objectID);
 
    /**
     * \brief Set node (on the given tile) freed
     *
     * \param[in] nodeCoords Tile on the map
+    * \param[in] objectID Object that no longer occupies this node/tile
     */
    void
-   SetNodeFreed(const Tile_t& nodeCoords);
+   SetNodeFreed(const Tile_t& nodeCoords, Object::ID objectID);
 
  private:
    bool m_initialized = false;
