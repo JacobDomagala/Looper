@@ -1,6 +1,5 @@
-
-![Windows](https://github.com/JacobDomagala/DGame/workflows/Windows%20Full%20Build/badge.svg)
-![Ubuntu](https://github.com/JacobDomagala/DGame/workflows/Ubuntu%20Full%20Build/badge.svg)
+[![Windows](https://github.com/JacobDomagala/Looper/actions/workflows/windows.yml/badge.svg)](https://github.com/JacobDomagala/Looper/actions/workflows/windows.yml)
+[![Ubuntu](https://github.com/JacobDomagala/Looper/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/JacobDomagala/Looper/actions/workflows/ubuntu.yml)
 
 # Looper
 2D Top-down shooter game (and level editor) written in modern C++.
