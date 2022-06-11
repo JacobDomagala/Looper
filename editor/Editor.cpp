@@ -1,6 +1,7 @@
 #include "Editor.hpp"
 #include "EditorGUI.hpp"
 #include "Enemy.hpp"
+#include "FileManager.hpp"
 #include "Game.hpp"
 #include "InputManager.hpp"
 #include "RenderCommand.hpp"
@@ -558,7 +559,7 @@ Editor::GetGridData() const
 }
 
 void
-Editor::CreateLevel(const glm::ivec2& size)
+Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
 {
    if (m_levelLoaded)
    {
@@ -569,7 +570,7 @@ Editor::CreateLevel(const glm::ivec2& size)
    }
 
    m_currentLevel = std::make_shared< Level >();
-   m_currentLevel->Create(this, size);
+   m_currentLevel->Create(this, name, size);
    m_currentLevel->LoadShaders("Editor");
 
    // Populate editor objects
@@ -593,6 +594,7 @@ Editor::CreateLevel(const glm::ivec2& size)
    m_camera.SetLevelSize(m_currentLevel->GetSize());
 
    m_levelLoaded = true;
+   m_levelFileName = std::filesystem::path(LEVELS_DIR / std::string(name + ".dgl")).string();
    m_gui.LevelLoaded(m_currentLevel);
 }
 
@@ -660,7 +662,7 @@ void
 Editor::SaveLevel(const std::string& levelPath)
 {
    m_levelFileName = levelPath;
-   m_currentLevel->Save(levelPath);
+   m_currentLevel->Save(m_levelFileName);
 }
 
 void
@@ -732,6 +734,9 @@ Editor::IsObjectAnimated() const
 void
 Editor::PlayLevel()
 {
+   // TODO: For future we'd want to check if anything got changed,
+   //       so we don't always save (this can get costly later!)
+   m_currentLevel->Save(m_levelFileName);
    m_playGame = true;
 }
 
