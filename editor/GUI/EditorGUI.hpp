@@ -64,6 +64,9 @@ class EditorGUI
    void
    RenderGameObjectMenu();
 
+   void
+   RenderCreateNewLevelWindow();
+
    Editor& m_parent;
 
    // EditorObjectWindow m_editorObjectWindow;
@@ -77,6 +80,8 @@ class EditorGUI
    float m_levelWindowHeight = 0.0f;
    float m_debugWindowHeight = 0.0f;
    float m_debugWindowWidth = 0.0f;
+
+   bool m_createPushed = false;
 };
 
 } // namespace dgame
