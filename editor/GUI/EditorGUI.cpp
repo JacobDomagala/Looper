@@ -414,7 +414,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          }
 
          ImGui::SameLine();
-         if (ImGui::SliderFloat("", &timer, 0.0f, animationDuration, "%.3f ms"))
+         if (ImGui::SliderFloat("##", &timer, 0.0f, animationDuration, "%.3f ms"))
          {
             m_currentlySelectedGameObject->GetSprite().SetTranslateValue(
                animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(timer))));
