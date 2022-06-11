@@ -56,7 +56,7 @@ class Editor : public Application
    Render();
 
    void
-   CreateLevel(const glm::ivec2& size);
+   CreateLevel(const std::string& name, const glm::ivec2& size);
 
    void
    LoadLevel(const std::string& levelPath);

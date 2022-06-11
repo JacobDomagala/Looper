@@ -46,7 +46,7 @@ class Level
                    Object::ID objectID);
 
    void
-   Create(Application* context, const glm::ivec2& size);
+   Create(Application* context, const std::string& name, const glm::ivec2& size);
 
    // pathToLevel - global path to level file (.dgl)
    void
@@ -203,6 +203,7 @@ class Level
 
    bool m_locked = false;
 
+   std::string m_name = "DummyName";
    glm::ivec2 m_levelSize = {0, 0};
    uint32_t m_tileWidth = 128;
    std::vector< std::shared_ptr< GameObject > > m_objects;

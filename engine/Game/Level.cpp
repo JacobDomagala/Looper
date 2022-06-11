@@ -16,8 +16,9 @@
 namespace dgame {
 
 void
-Level::Create(Application* context, const glm::ivec2& size)
+Level::Create(Application* context, const std::string& name, const glm::ivec2& size)
 {
+   m_name = name;
    m_levelSize = size;
    const auto halfSize = size / 2;
    m_background.SetSprite(glm::vec2(halfSize), m_levelSize);

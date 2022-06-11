@@ -142,6 +142,32 @@ EditorGUI::IsBlockingEvents()
 }
 
 void
+EditorGUI::RenderCreateNewLevelWindow()
+{
+   const auto halfSize = m_windowSize / 2.0f;
+   static glm::ivec2 size = {1024, 1024};
+   static std::string name = "DummyLevelName";
+
+   ImGui::SetNextWindowPos({halfSize.x, halfSize.y});
+   ImGui::SetNextWindowSize({300, 100});
+   ImGui::Begin("Create New");
+   ImGui::InputInt2("Size", &size.x);
+   ImGui::InputText("Name", name.data(), name.length());
+   if (ImGui::Button("Create", {140, 25}))
+   {
+      m_parent.CreateLevel(name, size);
+      m_createPushed = false;
+   }
+   ImGui::SameLine();
+   if (ImGui::Button("Cancel", {140, 25}))
+   {
+      m_createPushed = false;
+   }
+
+   ImGui::End();
+}
+
+void
 EditorGUI::RenderMainPanel()
 {
    ImGui::SetNextWindowPos({0, 0});
@@ -177,9 +203,10 @@ EditorGUI::RenderMainPanel()
       }
    }
    ImGui::SameLine();
-   if (ImGui::Button("Create"))
+   if (ImGui::Button("Create") or m_createPushed)
    {
-      m_parent.CreateLevel({3072, 3072});
+      m_createPushed = true;
+      RenderCreateNewLevelWindow();
    }
    ImGui::End();
 }
@@ -414,7 +441,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          }
 
          ImGui::SameLine();
-         if (ImGui::SliderFloat("", &timer, 0.0f, animationDuration, "%.3f ms"))
+         if (ImGui::SliderFloat("##", &timer, 0.0f, animationDuration, "%.3f ms"))
          {
             m_currentlySelectedGameObject->GetSprite().SetTranslateValue(
                animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(timer))));
