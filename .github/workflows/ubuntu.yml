@@ -31,7 +31,9 @@ jobs:
     - name: Run CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DWARNINGS_AS_ERRORS=ON -DENABLE_INCLUDE_WHAT_YOU_USE=ON\
+      run: |
+        source ${{runner.workspace}}/Shady/1.3.216.0/setup-env.sh
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DWARNINGS_AS_ERRORS=ON -DENABLE_INCLUDE_WHAT_YOU_USE=ON\
            -DENABLE_SANITIZER_ADDRESS=ON -DENABLE_SANITIZER_UNDEFINED_BEHAVIOR=ON -DENABLE_SANITIZER_LEAK=ON -DUNITY_BUILD=ON
 
     - name: Build
