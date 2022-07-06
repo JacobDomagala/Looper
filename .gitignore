@@ -316,3 +316,4 @@ dependencies/fmt/fmt*
 dependencies/imgui/imgui*
 dependencies/glfw/glfw*
 *imgui.ini
+/CMakeSettings.json

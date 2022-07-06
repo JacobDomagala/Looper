@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(DGame)
+project(Looper)
 
 set(OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/build)
 set(DEPENDENCIES_PATH ${CMAKE_CURRENT_SOURCE_DIR}/dependencies)
