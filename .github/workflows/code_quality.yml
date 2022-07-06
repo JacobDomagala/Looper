@@ -24,6 +24,7 @@ jobs:
       uses: JacobDomagala/StaticAnalysis@master
       with:
         exclude_dir: dependencies
+        init_script: init_script.sh
         apt_pckgs: xorg-dev
         verbose: true
         cppcheck_args: |
