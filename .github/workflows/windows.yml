@@ -16,19 +16,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Cache Vulkan SDK
-      id: cache-vulkan-sdk
-      uses: actions/cache@v1
+    - name: Prepare Vulkan SDK
+      uses: humbletim/setup-vulkan-sdk@v1.2.0
       with:
-        path: "C:\\VulkanSDK\\1.3.216.0"
-        key: vulkan-sdk-1.3.216.0
-
-    - name: Setup Vulkan
-      if: steps.cache-vulkan-sdk.outputs.cache-hit != 'true'
-      run: |
-        Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/1.3.216.0/windows/VulkanSDK-1.3.216.0-Installer.exe" -OutFile VulkanSDK.exe;
-        $installer = Start-Process -FilePath VulkanSDK.exe -Wait -PassThru -ArgumentList @("/S");
-        $installer.WaitForExit();
+        vulkan-query-version: 1.3.204.0
+        vulkan-components: Vulkan-Headers, Vulkan-Loader
+        vulkan-use-cache: true
 
     - name: Create Build Environment
       run: |
@@ -38,8 +31,6 @@ jobs:
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: |
-        export VULKAN_SDK="C:\\VulkanSDK\\1.3.216.0"
-
         cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DASSIMP_BUILD_TESTS=0\
            -DASSIMP_BUILD_ASSIMP_TOOLS=0 -DBUILD_SHARED_LIBS=0
 
