@@ -20,8 +20,8 @@ jobs:
       id: cache-vulkan-sdk
       uses: actions/cache@v1
       with:
-        path: "C:\\VulkanSDK\\1.2.170.0"
-        key: vulkan-sdk-1.2.170.0
+        path: "C:\\VulkanSDK\\1.3.216.0"
+        key: vulkan-sdk-1.3.216.0
 
     - name: Setup Vulkan
       if: steps.cache-vulkan-sdk.outputs.cache-hit != 'true'
