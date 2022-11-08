@@ -2,7 +2,7 @@
 
 #include <glad/glad.h>
 
-namespace dgame {
+namespace looper {
 
 /////////////////////////////////////////////////////////////////////////////
 // VertexBuffer /////////////////////////////////////////////////////////////
@@ -77,4 +77,4 @@ IndexBuffer::Unbind() const
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-} // namespace dgame
+} // namespace looper

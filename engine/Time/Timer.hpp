@@ -3,7 +3,7 @@
 #include <chrono>
 #include <string>
 
-namespace dgame {
+namespace looper {
 
 class Timer
 {
@@ -64,4 +64,4 @@ class Timer
    static inline bool m_timersPaused = false;
 };
 
-} // namespace dgame
+} // namespace looper

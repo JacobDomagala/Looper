@@ -3,7 +3,7 @@
 #include "Shader.hpp"
 #include "Window.hpp"
 
-namespace dgame {
+namespace looper {
 
 Texture::Texture()
 {
@@ -68,7 +68,7 @@ Texture::LoadTextureFromMemory(const glm::ivec2& size, uint8_t* /*data*/, const 
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<GLint>(minFilter));
    glGenerateMipmap(GL_TEXTURE_2D);
 
-   m_logger.Log(Logger::Type::DEBUG, "Created new texture {} and bound it to ID {}", m_name,
+   Logger::Debug("Created new texture {} and bound it to ID {}", m_name,
                 m_textureID);
 }
 
@@ -139,4 +139,4 @@ Texture::operator==(const Texture& other) const
    return m_textureID == other.GetTextureHandle();
 }
 
-} // namespace dgame
+} // namespace looper

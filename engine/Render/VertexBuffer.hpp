@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-namespace dgame {
+namespace looper {
 
 enum class ShaderDataType
 {
@@ -212,4 +212,4 @@ class IndexBuffer
    uint32_t m_Count = {};
 };
 
-} // namespace dgame
+} // namespace looper

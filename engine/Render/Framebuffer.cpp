@@ -2,7 +2,7 @@
 #include "Common.hpp"
 #include "Texture.hpp"
 
-namespace dgame {
+namespace looper {
 
 void
 Framebuffer::SetUp(const glm::ivec2& windowSize)
@@ -49,4 +49,4 @@ Framebuffer::GetTExtureID() const
    return m_textureID;
 }
 
-} // namespace dgame
+} // namespace looper

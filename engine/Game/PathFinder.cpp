@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <list>
 
-namespace dgame {
+namespace looper {
 
 PathFinder::PathFinder(const glm::ivec2& levelSize, const uint32_t tileSize,
                        std::vector< Node >&& nodes)
@@ -319,4 +319,4 @@ PathFinder::IsInitialized() const
    return m_initialized;
 }
 
-} // namespace dgame
+} // namespace looper

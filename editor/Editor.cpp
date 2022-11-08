@@ -13,13 +13,13 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <vulkan/vulkan.h>
+#include "RenderVulkan/vulkan_renderer.hpp"
 
-namespace dgame {
+namespace looper {
 
 Editor::Editor(const glm::ivec2& screenSize) : m_gui(*this)
 {
-   Logger::SetLogType(Logger::Type::DEBUG);
-   m_logger.Init("Editor");
    m_window = std::make_unique< Window >(screenSize.x, screenSize.y, "Editor");
 
    InputManager::Init(m_window->GetWindowHandle());
@@ -28,10 +28,13 @@ Editor::Editor(const glm::ivec2& screenSize) : m_gui(*this)
    InputManager::RegisterForMouseButtonInput(this);
    InputManager::RegisterForMouseMovementInput(this);
 
-   RenderCommand::Init();
-   Renderer::Init();
-
+   /*RenderCommand::Init();
+   Renderer::Init();*/
+   render::vulkan::VulkanRenderer::Initialize(m_window->GetWindowHandle());
+   
+  
    m_gui.Init();
+   render::vulkan::VulkanRenderer::CreateRenderPipeline();
 
    m_deltaTime = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000.0f));
 }
@@ -97,12 +100,12 @@ Editor::KeyCallback(const KeyEvent& event)
 
       if (m_gameObjectSelected && event.m_key == GLFW_KEY_C)
       {
-         m_logger.Log(Logger::Type::INFO, "Copy object!");
+         Logger::Info("Copy object!");
          m_copiedGameObject = m_currentSelectedGameObject;
       }
       if (m_copiedGameObject && event.m_key == GLFW_KEY_V)
       {
-         m_logger.Log(Logger::Type::INFO, "Paste object!");
+         Logger::Info("Paste object!");
          CopyGameObject(m_copiedGameObject);
       }
    }
@@ -396,7 +399,7 @@ Editor::ActionOnObject(Editor::ACTION action)
          }
          else if (m_gameObjectSelected && m_currentSelectedGameObject)
          {
-            if (m_currentSelectedGameObject->GetType() == dgame::Object::TYPE::PLAYER)
+            if (m_currentSelectedGameObject->GetType() == looper::Object::TYPE::PLAYER)
             {
                m_player.reset();
             }
@@ -692,8 +695,7 @@ Editor::AddObject(Object::TYPE objectType)
    {
       if (!m_currentSelectedGameObject)
       {
-         m_logger.Log(Logger::Type::WARNING,
-                      "Added new Animation point without currently selected object!");
+         Logger::Warn("Added new Animation point without currently selected object!");
       }
       auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
       auto newNode = animatablePtr->CreateAnimationNode(
@@ -785,7 +787,7 @@ Editor::RenderNodes(bool render)
 
       std::for_each(m_editorObjects.begin(), m_editorObjects.end(), [render](auto& object) {
          if (Object::GetTypeFromID(object->GetLinkedObjectID())
-             == dgame::Object::TYPE::PATHFINDER_NODE)
+             == looper::Object::TYPE::PATHFINDER_NODE)
          {
             object->SetVisible(render);
          }
@@ -933,4 +935,4 @@ Editor::MainLoop()
    }
 }
 
-} // namespace dgame
+} // namespace looper

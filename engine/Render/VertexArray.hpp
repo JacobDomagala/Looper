@@ -5,7 +5,7 @@
 #include <memory>
 #include <vector>
 
-namespace dgame {
+namespace looper {
 
 // NOLINTNEXTLINE
 class VertexArray
@@ -42,4 +42,4 @@ class VertexArray
    std::shared_ptr< IndexBuffer > m_IndexBuffer = {};
 };
 
-} // namespace dgame
+} // namespace looper

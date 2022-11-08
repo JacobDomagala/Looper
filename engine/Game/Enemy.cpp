@@ -7,7 +7,7 @@
 
 #include <random>
 
-namespace dgame {
+namespace looper {
 
 Enemy::Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size,
              const std::string& textureName, const std::vector< AnimationPoint >& keypoints,
@@ -248,4 +248,4 @@ Enemy::UpdateInternal(bool isReverse)
    Animatable::Update(isReverse);
 }
 
-} // namespace dgame
+} // namespace looper

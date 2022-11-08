@@ -3,7 +3,7 @@
 #include "Logger.hpp"
 #include "RendererAPI.hpp"
 
-namespace dgame {
+namespace looper {
 
 class OpenGLRendererAPI : public RendererAPI
 {
@@ -25,9 +25,6 @@ class OpenGLRendererAPI : public RendererAPI
 
    void
    DrawLines(uint32_t indexCount) override;
-
- private:
-   Logger m_logger = Logger("OpenGLRendererAPI");
 };
 
-} // namespace dgame
+} // namespace looper

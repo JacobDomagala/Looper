@@ -4,10 +4,12 @@
 
 #include <filesystem>
 #include <glm/glm.hpp>
+#undef max
+#undef min
 #include <nlohmann/json.hpp>
-#include <string>
+#include <string_view>
 
-namespace dgame {
+namespace looper {
 
 // NOLINTBEGIN
 const std::filesystem::path ROOT_DIR = std::filesystem::path(std::string(CMAKE_ROOT_DIR));
@@ -20,16 +22,14 @@ const std::filesystem::path IMAGES_DIR = ASSETS_DIR / "images" / "";
 class FileManager
 {
  public:
-   template < typename T > struct ImageData
+   using ImageHandleType = std::unique_ptr< uint8_t[], std::function< void(uint8_t*) > >;
+   
+   struct ImageData
    {
-      T m_bytes;
+      ImageHandleType m_bytes;
       glm::ivec2 m_size;
       int32_t m_format;
    };
-
-   // NOLINTNEXTLINE
-   using ImageHandleType = std::unique_ptr< uint8_t[], std::function< void(uint8_t*) > >;
-   using ImageSmart = ImageData< ImageHandleType >;
 
    enum class FileType
    {
@@ -37,17 +37,23 @@ class FileManager
       TEXT
    };
 
-   static std::string
-   ReadFile(const std::string& fileName, FileType type = FileType::TEXT);
+   static std::vector< char >
+   ReadBinaryFile(const std::filesystem::path& path);
 
-   static ImageSmart
-   LoadImageData(const std::string& fileName);
+   static std::vector< char >
+   ReadBinaryFile(std::string_view fileName);
+
+   static std::string
+   ReadFile(std::string_view fileName, FileType type = FileType::TEXT);
+
+   static ImageData
+   LoadImageData(std::string_view fileName);
 
    static nlohmann::json
-   LoadJsonFile(const std::string& pathToFile);
+   LoadJsonFile(std::string_view pathToFile);
 
    static void
-   SaveJsonFile(const std::string& pathToFile, const nlohmann::json& json);
+   SaveJsonFile(std::string_view pathToFile, const nlohmann::json& json);
 
    /**
     * \brief Return file path to selected file
@@ -63,10 +69,6 @@ class FileManager
    static std::string
    FileDialog(const std::filesystem::path& defaultPath,
               const std::vector< std::pair< std::string, std::string > >& fileTypes, bool save);
-
- private:
-   // NOLINTNEXTLINE
-   static inline const Logger m_logger = Logger("FileManager");
 };
 
-} // namespace dgame
+} // namespace looper

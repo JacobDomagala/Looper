@@ -4,14 +4,12 @@
 #include <Player.hpp>
 #include <Window.hpp>
 
-namespace dgame {
+namespace looper {
 
 Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& size,
                const std::string& sprite, const std::string& name)
    : GameObject(game, position, size, sprite, TYPE::PLAYER)
 {
-   m_logger.Init("Player");
-
    m_name = name;
    m_currentState.m_velocity = {0.0f, 0.0f};
    m_currentState.m_speed = 0.0005f;
@@ -156,4 +154,4 @@ Player::GetWeapons() const
    return weapons;
 }
 
-} // namespace dgame
+} // namespace looper

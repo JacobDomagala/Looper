@@ -2,7 +2,7 @@
 
 #include <glad/glad.h>
 
-namespace dgame {
+namespace looper {
 
 static GLenum
 ShaderDataTypeToOpenGLBaseType(ShaderDataType type)
@@ -109,4 +109,4 @@ VertexArray::SetIndexBuffer(const std::shared_ptr< IndexBuffer >& indexBuffer)
 
    m_IndexBuffer = indexBuffer;
 }
-} // namespace dgame
+} // namespace looper

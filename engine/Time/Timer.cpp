@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <memory>
 
-namespace dgame {
+namespace looper {
 
 Timer::Timer()
    : m_deltaTime(milliseconds(0)),
@@ -77,4 +77,4 @@ Timer::GetCurrentTime()
    return fmt::format("{:%H:%M:%S}", fmt::localtime(time));
 }
 
-} // namespace dgame
+} // namespace looper

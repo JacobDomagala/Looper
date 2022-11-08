@@ -8,7 +8,7 @@
 #include <memory>
 #include <string>
 
-namespace dgame {
+namespace looper {
 
 // NOLINTNEXTLINE
 class Texture
@@ -71,8 +71,6 @@ class Texture
    std::string m_name = "EmptyName.png";
 
    GLuint m_textureID = 0;
-
-   Logger m_logger = Logger("Texture");
 };
 
-} // namespace dgame
+} // namespace looper

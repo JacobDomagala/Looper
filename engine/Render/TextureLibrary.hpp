@@ -8,7 +8,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace dgame {
+namespace looper {
 
 class TextureLibrary
 {
@@ -27,8 +27,7 @@ class TextureLibrary
    // NOLINTBEGIN
    static inline std::unordered_map< std::string, std::shared_ptr< Texture > > s_loadedTextures =
       {};
-   static inline Logger s_logger = Logger("TextureLibrary");
    // NOLINTEND
 };
 
-} // namespace dgame
+} // namespace looper

@@ -4,7 +4,7 @@
 
 #include <glm/gtx/transform.hpp>
 
-namespace dgame {
+namespace looper {
 
 void
 Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
@@ -244,4 +244,4 @@ Sprite::GetTransformedRectangle() const
    return {topRight, topLeft, bottomLeft, bottomRight};
 }
 
-} // namespace dgame
+} // namespace looper

@@ -8,7 +8,7 @@
 
 #include <glm/glm.hpp>
 
-namespace dgame {
+namespace looper {
 
 class Editor;
 
@@ -141,4 +141,4 @@ class EditorObject
    Sprite m_sprite;
 };
 
-} // namespace dgame
+} // namespace looper

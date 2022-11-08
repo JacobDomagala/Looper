@@ -4,7 +4,7 @@
 
 #include <glm/glm.hpp>
 
-namespace dgame {
+namespace looper {
 
 // NOLINTNEXTLINE
 class RendererAPI
@@ -49,4 +49,4 @@ class RendererAPI
    static inline API s_API = RendererAPI::API::OpenGL;
 };
 
-} // namespace dgame
+} // namespace looper

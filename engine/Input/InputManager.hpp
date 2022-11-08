@@ -9,7 +9,7 @@
 
 struct GLFWwindow;
 
-namespace dgame {
+namespace looper {
 
 struct Event;
 
@@ -78,8 +78,7 @@ class InputManager
 
    static inline glm::vec2 s_mousePosition = {};
    static inline std::unordered_map< int32_t, bool > s_keyMap = {};
-   static inline Logger s_logger = Logger("InputManager");
    // NOLINTEND
 };
 
-} // namespace dgame
+} // namespace looper

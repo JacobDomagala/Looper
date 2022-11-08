@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 
-namespace dgame {
+namespace looper {
 
 class Texture;
 class Camera;
@@ -49,4 +49,4 @@ class Renderer
    FlushAndReset(PrimitiveType type);
 };
 
-} // namespace dgame
+} // namespace looper

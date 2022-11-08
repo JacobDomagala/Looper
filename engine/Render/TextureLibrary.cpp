@@ -1,17 +1,17 @@
 #include "TextureLibrary.hpp"
 
-namespace dgame {
+namespace looper {
 
 std::shared_ptr< Texture >
 TextureLibrary::GetTexture(const std::string& textureName)
 {
    if (s_loadedTextures.find(textureName) == s_loadedTextures.end())
    {
-      s_logger.Log(Logger::Type::INFO, "Texture: {} not found in library. Loading it", textureName);
+      Logger::Info("Texture: {} not found in library. Loading it", textureName);
       LoadTexture(textureName);
    }
    else {
-      s_logger.Log(Logger::Type::INFO, "Texture: {} found in library!", textureName);
+      Logger::Info("Texture: {} found in library!", textureName);
    }
 
    return s_loadedTextures[textureName];
@@ -29,4 +29,4 @@ TextureLibrary::LoadTexture(const std::string& textureName)
    s_loadedTextures[textureName] = std::make_shared< Texture >(textureName);
 }
 
-} // namespace dgame
+} // namespace looper

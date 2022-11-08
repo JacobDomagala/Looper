@@ -10,7 +10,7 @@
 #include <array>
 #include <deque>
 
-namespace dgame {
+namespace looper {
 
 class Window;
 class Enemy;
@@ -107,4 +107,4 @@ class Player : public GameObject
    Logger m_logger;
 };
 
-} // namespace dgame
+} // namespace looper

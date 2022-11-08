@@ -9,7 +9,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace dgame {
+namespace looper {
 
 struct Character
 {
@@ -36,4 +36,4 @@ class Font
    Logger m_logger;
 };
 
-} // namespace dgame
+} // namespace looper

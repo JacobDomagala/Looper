@@ -5,7 +5,7 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 
-namespace dgame {
+namespace looper {
 
 class Framebuffer
 {
@@ -29,4 +29,4 @@ class Framebuffer
    GLuint m_textureID = 0;
 };
 
-} // namespace dgame
+} // namespace looper

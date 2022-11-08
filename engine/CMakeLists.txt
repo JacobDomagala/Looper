@@ -9,7 +9,9 @@ target_include_directories(${MODULE_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "
                                           "${CMAKE_CURRENT_SOURCE_DIR}/Core" "${CMAKE_CURRENT_SOURCE_DIR}/FileManager"
                                           "${CMAKE_CURRENT_SOURCE_DIR}/Game" "${CMAKE_CURRENT_SOURCE_DIR}/Input"
                                           "${CMAKE_CURRENT_SOURCE_DIR}/Logger" "${CMAKE_CURRENT_SOURCE_DIR}/Render"
-                                          "${CMAKE_CURRENT_SOURCE_DIR}/Time" "${CMAKE_CURRENT_SOURCE_DIR}/Window")
+                                          "${CMAKE_CURRENT_SOURCE_DIR}/RenderVulkan" "${CMAKE_CURRENT_SOURCE_DIR}/Scene"
+                                          "${CMAKE_CURRENT_SOURCE_DIR}/Utils" "${CMAKE_CURRENT_SOURCE_DIR}/Time"
+                                          "${CMAKE_CURRENT_SOURCE_DIR}/Window")
 
 
 find_package(Vulkan REQUIRED)

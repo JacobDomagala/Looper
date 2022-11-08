@@ -8,7 +8,7 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 
-namespace dgame {
+namespace looper {
 
 class Window;
 class Application;
@@ -144,4 +144,4 @@ class Sprite
    glm::ivec2 m_size;
 };
 
-} // namespace dgame
+} // namespace looper

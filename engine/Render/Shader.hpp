@@ -6,7 +6,7 @@
 #include <glm/glm.hpp>
 #include <string>
 
-namespace dgame {
+namespace looper {
 
 // NOLINTNEXTLINE
 class Shader
@@ -64,8 +64,6 @@ class Shader
 
    std::string m_name = {};
    GLuint m_programID = {};
-
-   Logger m_logger = Logger("Shader");
 };
 
-} // namespace dgame
+} // namespace looper

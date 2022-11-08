@@ -6,7 +6,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 
-namespace dgame {
+namespace looper {
 
 class RenderCommand
 {
@@ -52,4 +52,4 @@ class RenderCommand
    static inline std::unique_ptr< RendererAPI > s_RendererAPI = RendererAPI::Create();
 };
 
-} // namespace dgame
+} // namespace looper

@@ -4,7 +4,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/transform.hpp>
 
-namespace dgame {
+namespace looper {
 
 void
 Camera::Create(const glm::vec3& position, const glm::ivec2& windowSize, const glm::vec3& lookAt,
@@ -153,4 +153,4 @@ Camera::UpdateViewMatrix()
    m_viewProjectionMatrix = m_projectionMatrix * m_viewMatrix;
 }
 
-} // namespace dgame
+} // namespace looper

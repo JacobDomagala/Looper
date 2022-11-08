@@ -9,7 +9,7 @@
 
 struct GLFWwindow;
 
-namespace dgame {
+namespace looper {
 
 // NOLINTNEXTLINE
 class Window

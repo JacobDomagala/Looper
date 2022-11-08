@@ -3,7 +3,7 @@
 #include "Game.hpp"
 #include "Window.hpp"
 
-namespace dgame {
+namespace looper {
 
 GameObject::GameObject(Application& application, const glm::vec2& position, const glm::ivec2& size,
                        const std::string& sprite, Object::TYPE type)
@@ -248,10 +248,10 @@ GameObject::ConvertToGameHandle()
    auto* gameHandle = dynamic_cast< Game* >(&m_appHandle);
    if (gameHandle == nullptr)
    {
-      m_appHandle.Log(Logger::Type::FATAL, "Game logic called not from Game class");
+      Logger::Fatal("GameObject: Game logic called not from Game class");
    }
 
    return gameHandle;
 }
 
-} // namespace dgame
+} // namespace looper

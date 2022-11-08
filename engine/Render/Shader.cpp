@@ -3,7 +3,7 @@
 
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
-namespace dgame {
+namespace looper {
 
 Shader::Shader(const std::string& shaderName)
 {
@@ -30,7 +30,7 @@ Shader::GetProgram() const
 void
 Shader::UseProgram() const
 {
-   m_logger.Log(Logger::Type::TRACE, "Binding Shader program {}", m_programID);
+   Logger::Trace("Shader: Binding Shader program {}", m_programID);
    glUseProgram(m_programID);
 }
 
@@ -78,7 +78,7 @@ Shader::LoadShaders(const std::string& shaderName)
    glDeleteShader(vertexShaderID);
    glDeleteShader(fragmentShaderID);
 
-   m_logger.Log(Logger::Type::DEBUG, "Loaded shader {} bound to ID = {}", shaderName, m_programID);
+   Logger::Debug("Shader: Loaded shader {} bound to ID = {}", shaderName, m_programID);
 }
 
 void
@@ -94,7 +94,7 @@ Shader::CheckCompileStatus(GLuint shaderID) const
       std::string log(static_cast< std::string::size_type >(maxLength), '\0');
       glGetShaderInfoLog(shaderID, maxLength, &maxLength, log.data());
 
-      m_logger.Log(Logger::Type::FATAL, log);
+      Logger::Fatal("{}", log);
    }
 }
 
@@ -111,7 +111,7 @@ Shader::CheckLinkStatus(GLuint programID) const
       std::string log(static_cast< std::string::size_type >(maxLength), '\0');
       glGetProgramInfoLog(programID, maxLength, &maxLength, log.data());
 
-      m_logger.Log(Logger::Type::FATAL, log);
+      Logger::Fatal("{}", log);
    }
 }
 
@@ -121,7 +121,7 @@ Shader::GetUniformLocation(const std::string& uniformName)
    GLint location = glGetUniformLocation(m_programID, uniformName.c_str());
    if (!location)
    {
-      m_logger.Log(Logger::Type::WARNING, "Uniform location not found. Uniform name: {}",
+      Logger::Warn("Shader: Uniform location not found. Uniform name: {}",
                    uniformName);
    }
 
@@ -173,4 +173,4 @@ Shader::SetUniformIntArray(const int* value, int count, const std::string& name)
    glUniform1iv(location, count, value);
 }
 
-} // namespace dgame
+} // namespace looper

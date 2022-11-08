@@ -4,7 +4,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-namespace dgame {
+namespace looper {
 
 void
 OpenGLRendererAPI::Init()
@@ -14,45 +14,44 @@ OpenGLRendererAPI::Init()
 
    if (status != 1)
    {
-      m_logger.Log(Logger::Type::FATAL, "gladLoadGLLoader() != OK");
+      Logger::Fatal("OpenGLRendererAPI: gladLoadGLLoader() != OK");
    }
 
    int major = {};
    int minor = {};
    glGetIntegerv(GL_MAJOR_VERSION, &major);
    glGetIntegerv(GL_MINOR_VERSION, &minor);
-   m_logger.Log(Logger::Type::DEBUG, "OpenGL Version - {}.{}", major, minor);
+   Logger::Debug("OpenGLRendererAPI: OpenGL Version - {}.{}", major, minor);
 
    glEnable(GL_DEBUG_OUTPUT);
    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
    glDebugMessageCallback(
       [](GLenum /*source*/, GLenum type, GLuint /*id*/, GLenum severity, GLsizei /*length*/,
-         const GLchar* message, const void* logger) {
-         const auto buffer =
-            fmt::format("OpenGL: type = {}, severity = {}, message = {}", type, severity, message);
-
-         // NOLINTNEXTLINE
-         const auto* logg = reinterpret_cast< const Logger* >(logger);
+         const GLchar* message, const void* /**/) {
 
          switch (severity)
          {
             case GL_DEBUG_SEVERITY_HIGH:
-               logg->Log(Logger::Type::FATAL, buffer);
+               Logger::Fatal("OpenGL: type = {}, severity = {}, message = {}", type,
+                             severity, message);
                return;
             case GL_DEBUG_SEVERITY_MEDIUM:
-               logg->Log(Logger::Type::WARNING, buffer);
+               Logger::Warn("OpenGL: type = {}, severity = {}, message = {}", type, severity,
+                            message);
                return;
             case GL_DEBUG_SEVERITY_LOW:
-               logg->Log(Logger::Type::INFO, buffer);
+               Logger::Info("OpenGL: type = {}, severity = {}, message = {}", type, severity,
+                            message);
                return;
             case GL_DEBUG_SEVERITY_NOTIFICATION:
             default:
-               logg->Log(Logger::Type::DEBUG, buffer);
+               Logger::Debug("OpenGL: type = {}, severity = {}, message = {}", type, severity,
+                             message);
                return;
          }
       },
-      &m_logger);
+      nullptr);
 
    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr,
                          GL_FALSE);
@@ -98,4 +97,4 @@ OpenGLRendererAPI::DrawLines(uint32_t indexCount)
    glDrawArrays(GL_LINES, 0, static_cast< GLsizei >(indexCount * 2));
 }
 
-} // namespace dgame
+} // namespace looper

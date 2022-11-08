@@ -6,7 +6,9 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-namespace dgame {
+#undef max
+
+namespace looper {
 
 // Should be Tile probably
 struct Node : public Object
@@ -204,4 +206,4 @@ class PathFinder
    uint32_t m_tileSize = {};
 };
 
-} // namespace dgame
+} // namespace looper

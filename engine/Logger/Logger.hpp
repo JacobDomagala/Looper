@@ -1,51 +1,90 @@
 #pragma once
 
 #include "Timer.hpp"
+#include "formatter_types.hpp"
 
-#include <fmt/format.h>
-#include <string>
+#include <fmt/color.h>
+#include <string_view>
+#include <unordered_map>
 
-namespace dgame {
+#if defined(_WIN32)
+#include <Windows.h>
+#endif //  WIN
+
+namespace looper {
+
+enum class TYPE
+{
+   TRACE,
+   DEBUG,
+   INFO,
+   WARNING,
+   FATAL
+};
+
+struct LoggerTypeHash
+{
+   std::size_t
+   operator()(TYPE t) const
+   {
+      return static_cast< std::size_t >(t);
+   }
+};
 
 class Logger
 {
  public:
-   enum class Type
-   {
-      TRACE = 0,
-      DEBUG,
-      INFO,
-      WARNING,
-      FATAL
-   };
-
-   explicit Logger(std::string name);
-   Logger() = default;
-
-   void
-   Init(const std::string& name);
+   template < typename... Args >
+   static constexpr void
+   Trace(fmt::format_string< Args... > buffer, Args&&... args);
 
    template < typename... Args >
-   void
-   Log(Type type, const std::string& buffer, Args&&... args) const
-   {
-      if (type >= m_currentLogType)
-      {
-         fmt::print("{}{}<{}> {}\n", Timer::GetCurrentTime(), ToString(type), m_moduleName,
-                    fmt::format(fmt::runtime(buffer), std::forward< Args >(args)...));
-      }
-   }
+   static constexpr void
+   Debug(fmt::format_string< Args... > buffer, Args&&... args);
+
+   template < typename... Args >
+   static constexpr void
+   Info(fmt::format_string< Args... > buffer, Args&&... args);
+
+   template < typename... Args >
+   static constexpr void
+   Warn(fmt::format_string< Args... > buffer, Args&&... args);
+
+   template < typename... Args >
+   static constexpr void
+   Fatal(fmt::format_string< Args... > buffer, Args&&... args);
+
+   template < TYPE LogLevel, typename... Args >
+   static constexpr void
+   Log(fmt::format_string<Args...> buffer, Args&&... args);
 
    static void
-   SetLogType(Type type);
-
-   static std::string
-   ToString(Type type);
+   SetType(TYPE newType);
 
  private:
-   std::string m_moduleName;
-   // NOLINTNEXTLINE
-   static inline Type m_currentLogType = Type::DEBUG;
+   static std::string
+   ToString(TYPE type);
+
+ private:
+   static inline TYPE s_currentLogType = TYPE::DEBUG;
+
+#if defined(_WIN32)
+   static const inline std::unordered_map< TYPE, WORD, LoggerTypeHash > s_typeStyles = {
+      {TYPE::TRACE, FOREGROUND_BLUE},
+      {TYPE::DEBUG, FOREGROUND_GREEN | FOREGROUND_BLUE},
+      {TYPE::INFO, FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_RED},
+      {TYPE::WARNING, FOREGROUND_GREEN | FOREGROUND_RED},
+      {TYPE::FATAL, FOREGROUND_RED}};
+#else
+   static const inline std::unordered_map< TYPE, fmt::color, LoggerTypeHash > s_typeStyles = {
+      {TYPE::TRACE, fmt::color::azure},
+      {TYPE::DEBUG, fmt::color::blanched_almond},
+      {TYPE::INFO, fmt::color::floral_white},
+      {TYPE::WARNING, fmt::color::yellow},
+      {TYPE::FATAL, fmt::color::crimson}};
+#endif
 };
 
-} // namespace dgame
+} // namespace shady::trace
+
+#include "logger.impl.hpp"

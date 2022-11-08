@@ -4,7 +4,7 @@
 
 #include <memory>
 
-namespace dgame {
+namespace looper {
 
 std::unique_ptr< RendererAPI >
 RendererAPI::Create()
@@ -20,4 +20,4 @@ RendererAPI::Create()
    return nullptr;
 }
 
-} // namespace dgame
+} // namespace looper

@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace dgame {
+namespace looper {
 
 // Base class for all objects located in the game (player, enemy, light source, particle emitter
 // etc.
@@ -74,4 +74,4 @@ operator==(const Object& left, const Object& right)
    return left.GetID() == right.GetID();
 }
 
-} // namespace dgame
+} // namespace looper

@@ -8,7 +8,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace dgame {
+namespace looper {
 
 class ShaderLibrary
 {
@@ -26,8 +26,7 @@ class ShaderLibrary
 
    // NOLINTBEGIN
    static inline std::unordered_map< std::string, std::shared_ptr< Shader > > s_loadedShaders = {};
-   static inline Logger s_logger = Logger("ShaderLibrary");
    // NOLINTEND
 };
 
-} // namespace dgame
+} // namespace looper

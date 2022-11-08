@@ -11,7 +11,7 @@
 #include <glm/gtx/transform.hpp>
 #include <memory>
 
-namespace dgame {
+namespace looper {
 
 class Player;
 class Application;
@@ -47,8 +47,8 @@ class Application : public InputListener
    bool
    IsGame() const;
 
-   void
-   Log(Logger::Type t, const std::string& log) const;
+   /*void
+   Log(Logger::Type t, const std::string& log) const;*/
 
    void
    RenderText(const std::string& text, const glm::vec2& position, float scale,
@@ -99,4 +99,4 @@ class Application : public InputListener
 };
 
 
-} // namespace dgame
+} // namespace looper

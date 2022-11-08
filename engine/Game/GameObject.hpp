@@ -9,7 +9,7 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 
-namespace dgame {
+namespace looper {
 
 class Application;
 class Game;
@@ -164,4 +164,4 @@ class GameObject : public Object
    std::string m_name = "DummyName";
 };
 
-} // namespace dgame
+} // namespace looper

@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 
-namespace dgame {
+namespace looper {
 
 class GameObject;
 
@@ -73,8 +73,6 @@ class Camera
    void
    UpdateViewMatrix();
 
-   Logger m_logger = Logger("Camera");
-
    float m_cameraSpeed = 0.0f;
    float m_rotationValue = 0.0f;
    float m_zoomSpeed = 0.10f;
@@ -94,4 +92,4 @@ class Camera
    glm::mat4 m_viewProjectionMatrix = {};
 };
 
-} // namespace dgame
+} // namespace looper

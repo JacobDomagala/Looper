@@ -9,7 +9,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
 
-namespace dgame {
+namespace looper {
 
 struct QuadVertex
 {
@@ -79,7 +79,7 @@ Renderer::Init()
    s_Data.QuadVertexArray = std::make_shared< VertexArray >();
 
    s_Data.QuadVertexBuffer = std::make_shared< VertexBuffer >(
-      static_cast< uint32_t >(dgame::RendererData::MaxVertices * sizeof(QuadVertex)));
+      static_cast< uint32_t >(looper::RendererData::MaxVertices * sizeof(QuadVertex)));
    s_Data.QuadVertexBuffer->SetLayout(BufferLayout{{ShaderDataType::Float3, "a_Position"},
                                                    {ShaderDataType::Float4, "a_Color"},
                                                    {ShaderDataType::Float2, "a_TexCoord"},
@@ -87,12 +87,12 @@ Renderer::Init()
                                                    {ShaderDataType::Float, "a_TilingFactor"}});
    s_Data.QuadVertexArray->AddVertexBuffer(s_Data.QuadVertexBuffer);
 
-   s_Data.QuadVertexBufferBase = new QuadVertex[dgame::RendererData::MaxVertices];
+   s_Data.QuadVertexBufferBase = new QuadVertex[looper::RendererData::MaxVertices];
 
-   auto* quadIndices = new uint32_t[dgame::RendererData::MaxIndices];
+   auto* quadIndices = new uint32_t[looper::RendererData::MaxIndices];
 
    uint32_t offset = 0;
-   for (uint32_t i = 0; i < dgame::RendererData::MaxIndices; i += 6)
+   for (uint32_t i = 0; i < looper::RendererData::MaxIndices; i += 6)
    {
       quadIndices[i + 0] = offset + 0;
       quadIndices[i + 1] = offset + 1;
@@ -105,22 +105,22 @@ Renderer::Init()
       offset += 4;
    }
 
-   auto quadIB = std::make_shared< IndexBuffer >(quadIndices, dgame::RendererData::MaxIndices);
+   auto quadIB = std::make_shared< IndexBuffer >(quadIndices, looper::RendererData::MaxIndices);
    s_Data.QuadVertexArray->SetIndexBuffer(quadIB);
    delete[] quadIndices;
 
    s_Data.WhiteTexture = std::make_shared< Texture >();
    s_Data.WhiteTexture->CreateColorTexture({1, 1}, {1.0f, 1.0f, 1.0f});
 
-   std::array<int32_t, dgame::RendererData::MaxTextureSlots> samplers = {};
-   for (uint32_t i = 0; i < dgame::RendererData::MaxTextureSlots; i++){
+   std::array<int32_t, looper::RendererData::MaxTextureSlots> samplers = {};
+   for (uint32_t i = 0; i < looper::RendererData::MaxTextureSlots; i++){
       samplers.at(i) = static_cast< int32_t >(i);
    }
 
 
    s_Data.TextureShader = ShaderLibrary::GetShader("DefaultShader");
    s_Data.TextureShader->UseProgram();
-   s_Data.TextureShader->SetUniformIntArray(samplers.data(), dgame::RendererData::MaxTextureSlots, "u_Textures");
+   s_Data.TextureShader->SetUniformIntArray(samplers.data(), looper::RendererData::MaxTextureSlots, "u_Textures");
 
    // Set all texture slots to 0
    s_Data.TextureSlots[0] = s_Data.WhiteTexture;
@@ -129,12 +129,12 @@ Renderer::Init()
    s_LineData.LineVertexArray = std::make_shared< VertexArray >();
 
    s_LineData.LineVertexBuffer = std::make_shared< VertexBuffer >(
-      static_cast< uint32_t >(dgame::LineRendererData::MaxVertices * sizeof(LineVertex)));
+      static_cast< uint32_t >(looper::LineRendererData::MaxVertices * sizeof(LineVertex)));
    s_LineData.LineVertexBuffer->SetLayout(
       BufferLayout{{ShaderDataType::Float3, "a_Position"}, {ShaderDataType::Float4, "a_Color"}});
    s_LineData.LineVertexArray->AddVertexBuffer(s_LineData.LineVertexBuffer);
 
-   s_LineData.LineVertexBufferBase = new LineVertex[dgame::LineRendererData::MaxVertices];
+   s_LineData.LineVertexBufferBase = new LineVertex[looper::LineRendererData::MaxVertices];
 
    s_LineData.LineShader = ShaderLibrary::GetShader("LineShader");
 }
@@ -317,7 +317,7 @@ Renderer::DrawLine(const glm::vec2& startPosition, const glm::vec2& endPosition,
 {
    constexpr size_t LineVertexCount = 2;
 
-   if (s_LineData.NumLines == dgame::LineRendererData::MaxLines)
+   if (s_LineData.NumLines == looper::LineRendererData::MaxLines)
    {
       FlushAndReset(PrimitiveType::LINE);
    }
@@ -333,4 +333,4 @@ Renderer::DrawLine(const glm::vec2& startPosition, const glm::vec2& endPosition,
    ++s_LineData.NumLines;
 }
 
-} // namespace dgame
+} // namespace looper

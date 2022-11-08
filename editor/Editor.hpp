@@ -13,7 +13,7 @@
 #include <glm/matrix.hpp>
 #include <utility>
 
-namespace dgame {
+namespace looper {
 
 class Player;
 class Window;
@@ -213,4 +213,4 @@ class Editor : public Application
    bool m_playGame = false;
 };
 
-} // namespace dgame
+} // namespace looper

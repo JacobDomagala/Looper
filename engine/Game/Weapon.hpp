@@ -4,7 +4,7 @@
 #include <string>
 #include <utility>
 
-namespace dgame {
+namespace looper {
 
 class Weapon
 {
@@ -96,4 +96,4 @@ class Glock : public Weapon
    }
 };
 
-} // namespace dgame
+} // namespace looper

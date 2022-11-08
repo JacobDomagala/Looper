@@ -1,39 +1,35 @@
-#include "Logger.hpp"
+#include "logger.hpp"
 
-namespace dgame {
-
-Logger::Logger(std::string name) : m_moduleName(std::move((name)))
-{
-}
+namespace looper {
 
 void
-Logger::Init(const std::string& name)
+Logger::SetType(TYPE newType)
 {
-   m_moduleName = name;
+   s_currentLogType = newType;
 }
 
 std::string
-Logger::ToString(Logger::Type type)
+Logger::ToString(TYPE type)
 {
    std::string returnValue;
 
-   if (type == Logger::Type::TRACE)
+   if (type == TYPE::TRACE)
    {
       returnValue = "  [TRACE]  ";
    }
-   else if (type == Logger::Type::DEBUG)
+   else if (type == TYPE::DEBUG)
    {
       returnValue = "  [DEBUG]  ";
    }
-   else if (type == Logger::Type::INFO)
+   else if (type == TYPE::INFO)
    {
       returnValue = "  [INFO]   ";
    }
-   else if (type == Logger::Type::WARNING)
+   else if (type == TYPE::WARNING)
    {
       returnValue = " [WARNING] ";
    }
-   else if (type == Logger::Type::FATAL)
+   else if (type == TYPE::FATAL)
    {
       returnValue = "  [FATAL]  ";
    }
@@ -45,10 +41,4 @@ Logger::ToString(Logger::Type type)
    return returnValue;
 }
 
-void
-Logger::SetLogType(Logger::Type type)
-{
-   m_currentLogType = type;
-}
-
-} // namespace dgame
+} // namespace looper::trace

@@ -14,7 +14,7 @@
 #include <glm/gtx/transform.hpp>
 #include <vector>
 
-namespace dgame {
+namespace looper {
 
 class Game : public Application
 {
@@ -134,4 +134,4 @@ class Game : public Application
    GameState m_state = GameState::GAME;
 };
 
-} // namespace dgame
+} // namespace looper

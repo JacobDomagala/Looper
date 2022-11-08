@@ -1,4 +1,5 @@
 #include "FileManager.hpp"
+#include "Utils/assert.hpp"
 
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
@@ -10,18 +11,42 @@
 #include <Windows.h>
 #endif //  WIN
 
-namespace dgame {
+namespace looper {
+
+std::vector< char >
+FileManager::ReadBinaryFile(const std::filesystem::path& path)
+{
+   return ReadBinaryFile(std::string_view{path.string()});
+}
+
+std::vector< char >
+FileManager::ReadBinaryFile(std::string_view fileName)
+{
+   std::ifstream fileHandle(fileName.data(), std::ios::binary);
+
+   utils::Assert(fileHandle.is_open(),
+                 fmt::format("FileManager::ReadBinaryFile -> {} can't be opened!", fileName));
+
+   const auto size = std::filesystem::file_size(fileName);
+
+   utils::Assert(size, fmt::format("FileManager::ReadBinaryFile -> {} is empty!", fileName));
+
+   std::vector< char > buffer(size);
+
+   fileHandle.read(buffer.data(), static_cast< std::streamsize >(size));
+
+   return buffer;
+}
 
 std::string
-FileManager::ReadFile(const std::string& fileName, FileType /*type*/)
+FileManager::ReadFile(std::string_view fileName, FileType /*type*/)
 {
    std::ifstream fileHandle;
    fileHandle.open(fileName, std::ifstream::in);
 
    if (!fileHandle.is_open())
    {
-      m_logger.Log(Logger::Type::FATAL,
-                   "FileManager::ReadFile -> " + fileName + " can't be opened!");
+      Logger::Fatal("FileManager::ReadFile -> {} can't be opened!", fileName);
    }
 
    std::string returnVal((std::istreambuf_iterator< char >(fileHandle)),
@@ -30,14 +55,14 @@ FileManager::ReadFile(const std::string& fileName, FileType /*type*/)
 
    if (returnVal.empty())
    {
-      m_logger.Log(Logger::Type::FATAL, "FileManager::ReadFile -> " + fileName + " is empty!");
+      Logger::Fatal("FileManager::ReadFile -> {} is empty!", fileName);
    }
 
    return returnVal;
 }
 
-FileManager::ImageSmart
-FileManager::LoadImageData(const std::string& fileName)
+FileManager::ImageData
+FileManager::LoadImageData(std::string_view fileName)
 {
    const auto pathToImage = std::filesystem::path(IMAGES_DIR / fileName).string();
    int force_channels = 0;
@@ -50,22 +75,21 @@ FileManager::LoadImageData(const std::string& fileName)
 
    if (!textureData)
    {
-      m_logger.Log(Logger::Type::FATAL,
-                   fmt::format("FileManager::LoadImage -> {} can't be opened!", pathToImage));
+      Logger::Fatal("FileManager::LoadImage -> {} can't be opened!", pathToImage);
    }
 
    return {std::move(textureData), {w, h}, n};
 }
 
 nlohmann::json
-FileManager::LoadJsonFile(const std::string& pathToFile)
+FileManager::LoadJsonFile(std::string_view pathToFile)
 {
-   std::ifstream jsonFile(pathToFile);
+   std::ifstream jsonFile(std::string{pathToFile});
 
    if (!jsonFile.is_open())
    {
-      m_logger.Log(Logger::Type::FATAL,
-                   "FileManager::LoadJsonFile -> " + pathToFile + " can't be opened!");
+      Logger::Fatal("FileManager::LoadJsonFile -> {} can't be opened!",
+                   pathToFile);
    }
 
    nlohmann::json json;
@@ -73,17 +97,16 @@ FileManager::LoadJsonFile(const std::string& pathToFile)
 
    if (json.is_null())
    {
-      m_logger.Log(Logger::Type::FATAL,
-                   "FileManager::LoadJsonFile -> " + pathToFile + " is empty!");
+      Logger::Fatal("FileManager::LoadJsonFile -> {} is empty!", pathToFile);
    }
 
    return json;
 }
 
 void
-FileManager::SaveJsonFile(const std::string& pathToFile, const nlohmann::json& json)
+FileManager::SaveJsonFile(std::string_view pathToFile, const nlohmann::json& json)
 {
-   std::ofstream jsonFile(pathToFile);
+   std::ofstream jsonFile(std::string{pathToFile});
 
    jsonFile << json;
 }
@@ -223,4 +246,4 @@ FileManager::FileDialog(const std::filesystem::path& defaultPath,
 #endif
 }
 
-} // namespace dgame
+} // namespace looper

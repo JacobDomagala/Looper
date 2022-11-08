@@ -4,13 +4,13 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-namespace dgame {
+namespace looper {
 
 void
 InputManager::InternalKeyCallback(GLFWwindow* /*window*/, int32_t key, int32_t scancode, int32_t action,
                                   int32_t mods)
 {
-   s_logger.Log(Logger::Type::TRACE, "GLFW key {} {} scan code - {}", action, key, scancode);
+   Logger::Trace("GLFW key {} {} scan code - {}", action, key, scancode);
 
    s_keyMap[key] = action;
 
@@ -20,7 +20,7 @@ InputManager::InternalKeyCallback(GLFWwindow* /*window*/, int32_t key, int32_t s
 void
 InputManager::InternalMouseButtonCallback(GLFWwindow* /*window*/, int32_t button, int32_t action, int32_t mods)
 {
-   s_logger.Log(Logger::Type::TRACE, "GLFW mouse button {} {} {}", button, action, mods);
+   Logger::Trace("GLFW mouse button {} {} {}", button, action, mods);
 
    BroadcastEvent(MouseButtonEvent{button, action, mods});
 }
@@ -28,7 +28,7 @@ InputManager::InternalMouseButtonCallback(GLFWwindow* /*window*/, int32_t button
 void
 InputManager::InternalCursorPositionCallback(GLFWwindow* /*window*/, double xPos, double yPos)
 {
-   s_logger.Log(Logger::Type::TRACE, "GLFW cursor pos {} {}", xPos, yPos);
+   Logger::Trace("GLFW cursor pos {} {}", xPos, yPos);
 
    s_mousePosition = glm::vec2(xPos, yPos);
 
@@ -38,7 +38,7 @@ InputManager::InternalCursorPositionCallback(GLFWwindow* /*window*/, double xPos
 void
 InputManager::InternalMouseScrollCallback(GLFWwindow* /*window*/, double xOffset, double yOffset)
 {
-   s_logger.Log(Logger::Type::TRACE, "GLFW scroll {} {}", xOffset, yOffset);
+   Logger::Trace("GLFW scroll {} {}", xOffset, yOffset);
 
    BroadcastEvent(MouseScrollEvent{xOffset, yOffset});
 }
@@ -89,7 +89,6 @@ void
 InputManager::Init(GLFWwindow* mainWindow)
 {
    s_windowHandle = mainWindow;
-   s_logger.Init("InputManager");
 
    glfwSetKeyCallback(s_windowHandle, InternalKeyCallback);
    glfwSetMouseButtonCallback(s_windowHandle, InternalMouseButtonCallback);
@@ -148,4 +147,4 @@ InputManager::SetMousePos(const glm::vec2& position)
                     static_cast< double >(position.y));
 }
 
-} // namespace dgame
+} // namespace looper

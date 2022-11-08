@@ -9,18 +9,16 @@
 #include <glm/glm.hpp>
 #include FT_FREETYPE_H
 
-namespace dgame {
+namespace looper {
 
 void
 Font::SetFont(const std::string& fileName)
 {
-   m_logger.Init("Font");
-
    FT_Library ft = {};
 
    if (FT_Init_FreeType(&ft))
    {
-      m_logger.Log(Logger::Type::FATAL, "Error initializing FreeType!");
+      Logger::Fatal("Error initializing FreeType!");
    }
 
 
@@ -29,7 +27,7 @@ Font::SetFont(const std::string& fileName)
 
    if (FT_New_Face(ft, filePath.c_str(), 0, &face))
    {
-      m_logger.Log(Logger::Type::FATAL, "Error loading font " + filePath);
+      Logger::Fatal("Error loading font {}", filePath);
    }
 
    FT_New_Face(ft, filePath.c_str(), 0, &face);
@@ -46,7 +44,7 @@ Font::SetFont(const std::string& fileName)
       // NOLINTNEXTLINE
       if (FT_Load_Char(face, c, FT_LOAD_RENDER))
       {
-         m_logger.Log(Logger::Type::FATAL, "Error loading font face for character {} for font {}",
+         Logger::Fatal("Error loading font face for character {} for font {}",
                       c, filePath);
       }
 
@@ -91,7 +89,7 @@ Font::SetFont(const std::string& fileName)
    glBindVertexArray(0);
    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
-   m_logger.Log(Logger::Type::INFO, fmt::format("Loaded font: {}", fileName));
+   Logger::Info("Loaded font: {}", fileName);
 }
 
 void
@@ -149,4 +147,4 @@ Font::RenderText(const glm::mat4& /*projectionMatrix*/, std::string text, glm::v
    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-} // namespace dgame
+} // namespace looper

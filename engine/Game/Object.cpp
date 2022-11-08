@@ -1,6 +1,6 @@
 #include "Object.hpp"
 
-namespace dgame {
+namespace looper {
 
 static std::string
 TypeToString(Object::TYPE type)
@@ -114,4 +114,4 @@ Object::GetID() const
    return m_id;
 }
 
-} // namespace dgame
+} // namespace looper

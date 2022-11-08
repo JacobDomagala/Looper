@@ -9,13 +9,11 @@
 #include <fstream>
 #include <string>
 
-namespace dgame {
+namespace looper {
 
 void
 Game::MainLoop()
 {
-   Logger::SetLogType(Logger::Type::DEBUG);
-
    auto singleFrameTimer = 0.0f;
 
    while (IsRunning())
@@ -57,14 +55,13 @@ Game::MainLoop()
 void
 Game::Init(const std::string& configFile)
 {
-   m_logger.Init("Game");
    m_isGame = true;
 
    std::ifstream initFile((ASSETS_DIR / configFile).string());
 
    if (!initFile)
    {
-      m_logger.Log(Logger::Type::FATAL, "Can't open" + (ASSETS_DIR / configFile).string());
+      Logger::Fatal("Game: Can't open {}", (ASSETS_DIR / configFile).string());
    }
 
    m_window = std::make_unique< Window >(WIDTH, HEIGHT, "WindowTitle");
@@ -400,4 +397,4 @@ Game::Render()
    RenderSecondPass();
 }
 
-} // namespace dgame
+} // namespace looper
