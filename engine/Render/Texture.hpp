@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Common.hpp"
-#include "FileManager.hpp"
-#include "Logger.hpp"
+#include "utils/file_manager.hpp"
+#include "logger.hpp"
 
 #include <glad/glad.h>
 #include <memory>

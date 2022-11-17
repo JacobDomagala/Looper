@@ -1,7 +1,7 @@
 #include "Editor.hpp"
 #include "EditorGUI.hpp"
 #include "Enemy.hpp"
-#include "FileManager.hpp"
+#include "utils/file_manager.hpp"
 #include "Game.hpp"
 #include "InputManager.hpp"
 #include "RenderCommand.hpp"
@@ -14,7 +14,7 @@
 #include <set>
 #include <string>
 #include <vulkan/vulkan.h>
-#include "RenderVulkan/vulkan_renderer.hpp"
+#include "RenderVulkan/renderer.hpp"
 
 namespace looper {
 
@@ -31,9 +31,8 @@ Editor::Editor(const glm::ivec2& screenSize) : m_gui(*this)
    /*RenderCommand::Init();
    Renderer::Init();*/
    render::vulkan::VulkanRenderer::Initialize(m_window->GetWindowHandle());
-   
-  
-   m_gui.Init();
+
+   // m_gui.Init();
    render::vulkan::VulkanRenderer::CreateRenderPipeline();
 
    m_deltaTime = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000.0f));

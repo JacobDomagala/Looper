@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Object.hpp"
-#include "RenderVulkan/vulkan_buffer.hpp"
+#include "RenderVulkan/buffer.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -117,8 +117,8 @@ class EditorGUI
    inline static uint32_t m_subpass = 0;
 
    inline static PushConstBlock m_pushConstant = {};
-   inline static render::vulkan::Buffer m_vertexBuffer = {};
-   inline static render::vulkan::Buffer m_indexBuffer = {};
+   inline static render::Buffer m_vertexBuffer = {};
+   inline static render::Buffer m_indexBuffer = {};
    inline static int32_t m_vertexCount = 0;
    inline static int32_t m_indexCount = 0;
 };

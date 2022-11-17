@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Logger.hpp"
+#include "logger.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -105,8 +105,6 @@ class Window
 
    // is windows active
    bool m_isRunning = {};
-
-   Logger m_logger = {};
 
    // NOLINTNEXTLINE
    static inline bool s_glfwInitalized = false;

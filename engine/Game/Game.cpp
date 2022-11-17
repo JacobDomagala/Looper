@@ -1,6 +1,6 @@
 #include "Game.hpp"
 #include "Enemy.hpp"
-#include "FileManager.hpp"
+#include "utils/file_manager.hpp"
 #include "RenderCommand.hpp"
 #include "Renderer.hpp"
 #include "Window.hpp"

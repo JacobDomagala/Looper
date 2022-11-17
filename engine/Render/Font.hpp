@@ -1,7 +1,7 @@
 #pragma once
 
-#include "FileManager.hpp"
-#include "Logger.hpp"
+#include "utils/file_manager.hpp"
+#include "logger.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
 
@@ -33,7 +33,6 @@ class Font
    GLuint m_VAO{}, m_VBO{};
    std::unordered_map< GLchar, Character > m_characters;
    std::string m_shaderName{};
-   Logger m_logger;
 };
 
 } // namespace looper

@@ -1,6 +1,6 @@
 #include "Animatable.hpp"
 #include "Common.hpp"
-#include "Logger.hpp"
+#include "logger.hpp"
 
 #include <algorithm>
 

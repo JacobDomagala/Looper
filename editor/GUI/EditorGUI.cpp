@@ -2,7 +2,10 @@
 #include "Animatable.hpp"
 #include "Editor.hpp"
 #include "GameObject.hpp"
+#include "RenderVulkan/texture.hpp"
+#include "RenderVulkan/shader.hpp"
 #include "RenderVulkan/types.hpp"
+#include "RenderVulkan/common.hpp"
 
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
@@ -125,7 +128,7 @@ EditorGUI::Init()
    SetStyle();
 
    PrepareResources();
-   PreparePipeline(Data::m_pipelineCache, Data::m_renderPass);
+   PreparePipeline(render::vulkan::Data::m_pipelineCache, render::vulkan::Data::m_renderPass);
 }
 
 bool
@@ -157,7 +160,7 @@ EditorGUI::UpdateBuffers()
       m_vertexBuffer.Unmap();
       m_vertexBuffer.Destroy();
 
-      m_vertexBuffer = Buffer::CreateBuffer(vertexBufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+      m_vertexBuffer = render::Buffer::CreateBuffer(vertexBufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
       m_vertexCount = imDrawData->TotalVtxCount;
       m_vertexBuffer.Map();
@@ -171,7 +174,7 @@ EditorGUI::UpdateBuffers()
       m_indexBuffer.Unmap();
       m_indexBuffer.Destroy();
 
-      m_indexBuffer = Buffer::CreateBuffer(indexBufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+      m_indexBuffer = render::Buffer::CreateBuffer(indexBufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
                                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
       m_indexCount = imDrawData->TotalIdxCount;
       m_indexBuffer.Map();
@@ -257,7 +260,7 @@ EditorGUI::PrepareResources()
    int32_t texWidth = 0;
    int32_t texHeight = 0;
 
-   const auto fontFilename = (utils::FileManager::FONTS_DIR / "Roboto-Medium.ttf").string();
+   const auto fontFilename = (FONTS_DIR / "Roboto-Medium.ttf").string();
 
    io.Fonts->AddFontFromFileTTF(fontFilename.c_str(), 16.0f);
 
@@ -265,27 +268,27 @@ EditorGUI::PrepareResources()
 
 
    std::tie(m_fontImage, m_fontMemory) =
-      Texture::CreateImage(static_cast< uint32_t >(texWidth), static_cast< uint32_t >(texHeight), 1,
+      render::Texture::CreateImage(static_cast< uint32_t >(texWidth), static_cast< uint32_t >(texHeight), 1,
                            VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
                            VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 
    m_fontView =
-      Texture::CreateImageView(m_fontImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+      render::Texture::CreateImageView(m_fontImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 
 
-   Texture::TransitionImageLayout(m_fontImage, VK_IMAGE_LAYOUT_UNDEFINED,
+   render::Texture::TransitionImageLayout(m_fontImage, VK_IMAGE_LAYOUT_UNDEFINED,
                                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1);
 
-   Texture::CopyBufferToImage(m_fontImage, static_cast< uint32_t >(texWidth),
+   render::Texture::CopyBufferToImage(m_fontImage, static_cast< uint32_t >(texWidth),
                               static_cast< uint32_t >(texHeight), fontData);
 
-   Texture::TransitionImageLayout(m_fontImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+   render::Texture::TransitionImageLayout(m_fontImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1);
 
    // Font texture Sampler
-   m_sampler = Texture::CreateSampler();
+   m_sampler = render::Texture::CreateSampler();
 
    // Descriptor pool
    VkDescriptorPoolSize descriptorPoolSize{};
@@ -300,7 +303,7 @@ EditorGUI::PrepareResources()
    descriptorPoolInfo.maxSets = 2;
 
    VK_CHECK(
-      vkCreateDescriptorPool(Data::vk_device, &descriptorPoolInfo, nullptr, &m_descriptorPool), "");
+      vkCreateDescriptorPool(render::vulkan::Data::vk_device, &descriptorPoolInfo, nullptr, &m_descriptorPool), "");
 
    // Descriptor set layout
    VkDescriptorSetLayoutBinding setLayoutBinding{};
@@ -317,7 +320,7 @@ EditorGUI::PrepareResources()
    descriptorSetLayoutCreateInfo.bindingCount = static_cast< uint32_t >(setLayoutBindings.size());
 
 
-   VK_CHECK(vkCreateDescriptorSetLayout(Data::vk_device, &descriptorSetLayoutCreateInfo, nullptr,
+   VK_CHECK(vkCreateDescriptorSetLayout(render::vulkan::Data::vk_device, &descriptorSetLayoutCreateInfo, nullptr,
                                         &m_descriptorSetLayout),
             "");
 
@@ -329,7 +332,7 @@ EditorGUI::PrepareResources()
    descriptorSetAllocateInfo.descriptorSetCount = 1;
 
 
-   VK_CHECK(vkAllocateDescriptorSets(Data::vk_device, &descriptorSetAllocateInfo, &m_descriptorSet),
+   VK_CHECK(vkAllocateDescriptorSets(render::vulkan::Data::vk_device, &descriptorSetAllocateInfo, &m_descriptorSet),
             "");
 
    VkDescriptorImageInfo descriptorImageInfo{};
@@ -346,7 +349,7 @@ EditorGUI::PrepareResources()
    writeDescriptorSet.descriptorCount = 1;
 
    std::vector< VkWriteDescriptorSet > writeDescriptorSets = {writeDescriptorSet};
-   vkUpdateDescriptorSets(Data::vk_device, static_cast< uint32_t >(writeDescriptorSets.size()),
+   vkUpdateDescriptorSets(render::vulkan::Data::vk_device, static_cast< uint32_t >(writeDescriptorSets.size()),
                           writeDescriptorSets.data(), 0, nullptr);
 }
 
@@ -367,7 +370,7 @@ EditorGUI::PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPas
 
    pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
    pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRange;
-   VK_CHECK(vkCreatePipelineLayout(Data::vk_device, &pipelineLayoutCreateInfo, nullptr,
+   VK_CHECK(vkCreatePipelineLayout(render::vulkan::Data::vk_device, &pipelineLayoutCreateInfo, nullptr,
                                    &m_pipelineLayout),
             "");
 
@@ -441,7 +444,7 @@ EditorGUI::PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPas
    pipelineDynamicStateCreateInfo.flags = 0;
 
    auto [vertexInfo, fragmentInfo] =
-      Shader::CreateShader(Data::vk_device, "vulkan/ui.vert.spv", "vulkan/ui.frag.spv");
+      render::vulkan::VulkanShader::CreateShader(render::vulkan::Data::vk_device, "vulkan/ui.vert.spv", "vulkan/ui.frag.spv");
    std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = {vertexInfo.shaderInfo,
                                                      fragmentInfo.shaderInfo};
 
@@ -509,7 +512,7 @@ EditorGUI::PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPas
 
    pipelineCreateInfo.pVertexInputState = &pipelineVertexInputStateCreateInfo;
 
-   VK_CHECK(vkCreateGraphicsPipelines(Data::vk_device, pipelineCache, 1, &pipelineCreateInfo,
+   VK_CHECK(vkCreateGraphicsPipelines(render::vulkan::Data::vk_device, pipelineCache, 1, &pipelineCreateInfo,
                                       nullptr, &m_pipeline),
             "");
 }

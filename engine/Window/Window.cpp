@@ -1,9 +1,9 @@
 #include "Window.hpp"
 #include "Common.hpp"
 #include "Game.hpp"
-#include "Logger.hpp"
+#include "logger.hpp"
 #include "RenderCommand.hpp"
-#include "Utils/assert.hpp"
+#include "utils/assert.hpp"
 
 #include <GLFW/glfw3.h>
 #include <functional>

@@ -5,7 +5,7 @@
 #include "Framebuffer.hpp"
 #include "InputManager.hpp"
 #include "Level.hpp"
-#include "Logger.hpp"
+#include "logger.hpp"
 #include "Player.hpp"
 #include "Timer.hpp"
 #include "Window.hpp"

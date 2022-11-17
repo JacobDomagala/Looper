@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Logger.hpp"
+#include "logger.hpp"
 #include "Texture.hpp"
 
 #include <glad/glad.h>

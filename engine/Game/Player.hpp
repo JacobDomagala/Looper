@@ -2,7 +2,7 @@
 
 #include "Common.hpp"
 #include "GameObject.hpp"
-#include "Logger.hpp"
+#include "logger.hpp"
 #include "Shader.hpp"
 #include "Sprite.hpp"
 #include "Weapon.hpp"
@@ -103,8 +103,6 @@ class Player : public GameObject
 
    // player's max health
    int32_t m_maxHP = 100;
-
-   Logger m_logger;
 };
 
 } // namespace looper

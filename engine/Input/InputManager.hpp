@@ -1,7 +1,7 @@
 #pragma once
 
 #include "InputListener.hpp"
-#include "Logger.hpp"
+#include "logger.hpp"
 
 #include <glm/glm.hpp>
 #include <unordered_map>

@@ -4,7 +4,7 @@
 #include "Font.hpp"
 #include "InputListener.hpp"
 #include "Level.hpp"
-#include "Logger.hpp"
+#include "logger.hpp"
 #include "Timer.hpp"
 
 #include <glm/glm.hpp>

@@ -5,7 +5,7 @@
 #include "EditorObject.hpp"
 #include "Game.hpp"
 #include "Level.hpp"
-#include "Logger.hpp"
+#include "logger.hpp"
 #include "Object.hpp"
 #include "Player.hpp"
 #include "Timer.hpp"
