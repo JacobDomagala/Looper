@@ -43,7 +43,7 @@ jobs:
         cmake --build . --config $BUILD_TYPE  2> >(tee "output.txt")
 
     - name: Post PR comment for warnings/errors
-      if: github.ref != 'refs/heads/master'
+      if: ${{ always() }} && github.ref != 'refs/heads/master'
       uses: JacobDomagala/CompileResultAction@master
       with:
         comment_title: UBUNTU COMPILE RESULT

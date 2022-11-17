@@ -42,7 +42,7 @@ jobs:
         cat output.txt
 
     - name: Post PR comment for warnings/errors
-      if: github.ref != 'refs/heads/master'
+      if: ${{ always() }} && github.ref != 'refs/heads/master'
       uses: JacobDomagala/CompileResultAction@master
       with:
         compile_result_file: ${{runner.workspace}}/build/output.txt
