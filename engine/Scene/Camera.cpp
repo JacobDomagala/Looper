@@ -87,7 +87,7 @@ Camera::Zoom(float value)
 {
    m_zoomScale += value * m_zoomSpeed;
 
-   m_zoomScale = std::clamp(m_zoomScale, m_maxZoomOut, m_maxZoomIn);
+   m_zoomScale = glm::clamp(m_zoomScale, m_maxZoomOut, m_maxZoomIn);
 
    const auto left = -m_windowSize.x / (2.0f + m_zoomScale);
    const auto right = m_windowSize.x / (2.0f + m_zoomScale);

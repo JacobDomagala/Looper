@@ -2,7 +2,7 @@
 #include "Common.hpp"
 #include "Game.hpp"
 #include "logger.hpp"
-#include "RenderCommand.hpp"
+// #include "RenderCommand.hpp"
 #include "utils/assert.hpp"
 
 #include <GLFW/glfw3.h>
@@ -24,6 +24,7 @@ Window::Window(int32_t width, int32_t height, const std::string& title)
    glfwWindowHint(GLFW_VISIBLE, GL_TRUE);
    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
+   // NOLINTNEXTLINE
    m_pWindow = glfwCreateWindow(m_width, m_height, title.c_str(), nullptr, nullptr);
 
    utils::Assert(m_pWindow, "Failed to create GLFW window!");
@@ -40,12 +41,12 @@ Window::ShutDown()
 }
 
 void
-Window::SetIcon(const std::string& file)
+Window::SetIcon(const std::string& /*file*/)
 {
    GLFWimage image;
    image.width = 16;
    image.height = 16;
-   image.pixels = TextureLibrary::GetTexture(file)->GetData();
+   // image.pixels = render::TextureLibrary::GetTexture(file)->GetData();
 
    auto* cursor = glfwCreateCursor(&image, 0, 0);
    glfwSetCursor(m_pWindow, cursor);
@@ -63,19 +64,9 @@ Window::Resize(int32_t newWidth, int32_t newHeight)
 void
 Window::Clear()
 {
-   glfwMakeContextCurrent(m_pWindow);
+   // glfwMakeContextCurrent(m_pWindow);
 
-   RenderCommand::Clear();
-}
-
-void
-Window::SwapBuffers()
-{
-   if (m_isRunning)
-   {
-      glfwMakeContextCurrent(m_pWindow);
-      glfwSwapBuffers(m_pWindow);
-   }
+   // RenderCommand::Clear();
 }
 
 void

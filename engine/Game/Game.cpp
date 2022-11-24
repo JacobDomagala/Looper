@@ -1,8 +1,8 @@
 #include "Game.hpp"
 #include "Enemy.hpp"
 #include "utils/file_manager.hpp"
-#include "RenderCommand.hpp"
-#include "Renderer.hpp"
+// #include "RenderCommand.hpp"
+#include "renderer.hpp"
 #include "Window.hpp"
 
 #include <GLFW/glfw3.h>
@@ -24,7 +24,7 @@ Game::MainLoop()
       while (IsRunning() && (singleFrameTimer > TARGET_TIME))
       {
          m_window->Clear();
-         Renderer::BeginScene(m_camera);
+         render::vulkan::VulkanRenderer::BeginScene(/*_camera*/);
          const auto dt = Timer::milliseconds(static_cast< long >(
             TARGET_TIME * 1000.0f * static_cast< float >(Timer::AreTimersRunning())));
          ProcessInput(dt);
@@ -42,8 +42,7 @@ Game::MainLoop()
          ++m_frames;
          m_frameTimer += singleFrameTimer;
          // singleFrameTimer = 0.0f;
-         Renderer::EndScene();
-         SwapBuffers();
+         render::vulkan::VulkanRenderer::EndScene();
 
          singleFrameTimer -= TARGET_TIME;
 
@@ -66,9 +65,9 @@ Game::Init(const std::string& configFile)
 
    m_window = std::make_unique< Window >(WIDTH, HEIGHT, "WindowTitle");
 
-   RenderCommand::Init();
-   RenderCommand::SetClearColor({1.0f, 0.2f, 0.3f, 1.0f});
-   Renderer::Init();
+   // RenderCommand::Init();
+   // RenderCommand::SetClearColor({1.0f, 0.2f, 0.3f, 1.0f});
+   render::vulkan::VulkanRenderer::Initialize(m_window->GetWindowHandle());
    // RenderCommand::SetViewport(0, 0, WIDTH, HEIGHT);
 
    // m_frameBuffer.SetUp();
@@ -209,11 +208,11 @@ Game::KeyEvents() // NOLINT
 void
 Game::MouseEvents()
 {
-   const auto playerPos = m_player->GetCenteredPosition();
-   const auto mousePos = ScreenToGlobal(InputManager::GetMousePos());
-   const auto collided = m_currentLevel->GetCollidedPosition(playerPos, mousePos);
+   // const auto playerPos = m_player->GetCenteredPosition();
+   // const auto mousePos = ScreenToGlobal(InputManager::GetMousePos());
+   // const auto collided = m_currentLevel->GetCollidedPosition(playerPos, mousePos);
 
-   Renderer::DrawLine(m_player->GetCenteredPosition(), collided, {0.8f, 0.0f, 0.3f, 1.0f});
+   // Renderer::DrawLine(m_player->GetCenteredPosition(), collided, {0.8f, 0.0f, 0.3f, 1.0f});
 
    if (!m_reverse)
    {
@@ -325,12 +324,6 @@ glm::vec2
 Game::GetCursorScreenPosition()
 {
    return m_window->GetCursorScreenPosition(m_camera.GetProjectionMatrix());
-}
-
-void
-Game::SwapBuffers()
-{
-   m_window->SwapBuffers();
 }
 
 bool

@@ -2,7 +2,7 @@
 
 #include "Common.hpp"
 #include "Object.hpp"
-#include "Shader.hpp"
+// #include "Shader.hpp"
 #include "Sprite.hpp"
 
 #include <deque>
@@ -157,9 +157,6 @@ class GameObject : public Object
    // object's sprite
    Sprite m_sprite;
    std::string m_shaderName;
-
-   // byte array of sprite used for collision
-   byte_vec4* m_collision;
 
    std::string m_name = "DummyName";
 };

@@ -187,8 +187,6 @@ class Editor : public Application
 
    glm::vec2 m_lastCursorPosition = {};
 
-   std::unique_ptr< byte_vec4 > m_collision = nullptr;
-
    // Handling game objects (which are visible in game)
    bool m_animateGameObject = false;
    bool m_movementOnGameObject = false;

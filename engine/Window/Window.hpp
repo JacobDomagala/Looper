@@ -48,9 +48,6 @@ class Window
    void
    Clear();
 
-   void
-   SwapBuffers();
-
    // true -> mouse visible and not wrapped
    // false -> mouse is disabled (hidden and wrapped)
    void

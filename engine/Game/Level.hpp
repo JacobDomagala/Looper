@@ -2,7 +2,6 @@
 
 #include "PathFinder.hpp"
 #include "Player.hpp"
-#include "Shader.hpp"
 
 #include <glm/glm.hpp>
 #include <unordered_map>

@@ -102,20 +102,20 @@ Texture::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels,
 
 VkImageView
 Texture::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
-                         uint32_t mipLevels, bool cubemap)
+                         uint32_t mipLevels, bool /*cubemap*/)
 {
    VkImageViewCreateInfo viewInfo{};
    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
    viewInfo.image = image;
-   viewInfo.viewType = not cubemap ? VK_IMAGE_VIEW_TYPE_2D : VK_IMAGE_VIEW_TYPE_CUBE;
+   viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
    viewInfo.format = format;
    viewInfo.subresourceRange.baseMipLevel = 0;
    viewInfo.subresourceRange.levelCount = mipLevels;
    viewInfo.subresourceRange.aspectMask = aspectFlags;
    viewInfo.subresourceRange.baseArrayLayer = 0;
-   viewInfo.subresourceRange.layerCount = not cubemap ? 1 : 6;
+   viewInfo.subresourceRange.layerCount = 1;
 
-   VkImageView imageView;
+   VkImageView imageView = {};
    VK_CHECK(vkCreateImageView(vulkan::Data::vk_device, &viewInfo, nullptr, &imageView),
             "Failed to create texture image view!");
 
@@ -249,6 +249,18 @@ vulkan::TextureType
 Texture::GetType() const
 {
    return m_type;
+}
+
+const std::string&
+Texture::GetName() const
+{
+   return m_name;
+}
+
+VkImage
+Texture::GetImage() const
+{
+   return m_textureImage;
 }
 
 void

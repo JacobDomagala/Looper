@@ -3,7 +3,6 @@
 #include "Common.hpp"
 #include "GameObject.hpp"
 #include "logger.hpp"
-#include "Shader.hpp"
 #include "Sprite.hpp"
 #include "Weapon.hpp"
 
@@ -24,14 +23,6 @@ class Player : public GameObject
    // check if player got git by enemy
    bool
    CheckCollision(const glm::vec2& bulletPosition, Enemy const* enemy, bool enemyShooting = true);
-
-   // load shaders with given name
-   void
-   LoadShaders(const std::string& shaderFile);
-
-   // load shaders with given shader program
-   void
-   LoadShaders(const Shader& program);
 
    // set position in OpenGL
    void

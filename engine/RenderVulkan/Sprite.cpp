@@ -1,6 +1,6 @@
 #include "Sprite.hpp"
 #include "Application.hpp"
-#include "Renderer.hpp"
+#include "renderer.hpp"
 
 #include <glm/gtx/transform.hpp>
 
@@ -9,8 +9,8 @@ namespace looper {
 void
 Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
 {
-   m_texture = std::make_shared< Texture >();
-   m_texture->CreateColorTexture(size, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+   // m_texture = std::make_shared< Texture >();
+   // m_texture->CreateColorTexture(size, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
    m_currentState.m_currentPosition = position;
    m_initialPosition = position;
@@ -22,12 +22,12 @@ Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
    m_currentState.m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
-byte_vec4*
+void
 Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size,
-                          const std::string& fileName)
+                          const std::string& /*fileName*/)
 {
-   m_texture = TextureLibrary::GetTexture(fileName);
-   auto* returnPtr = m_texture->GetData(); // m_texture->LoadTextureFromFile(fileName);
+   // m_texture = render::TextureLibrary::GetTexture(fileName);
+   // auto* returnPtr = m_texture->GetData(); // m_texture->LoadTextureFromFile(fileName);
 
    /*glGenVertexArrays(1, &m_vertexArrayBuffer);
    glGenBuffers(1, &m_vertexBuffer);
@@ -55,9 +55,6 @@ Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size,
    glEnableVertexAttribArray(0);
    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
    glBindVertexArray(0);*/
-
-   // NOLINTNEXTLINE
-   return reinterpret_cast<byte_vec4*>(returnPtr);
 }
 
 void
@@ -81,9 +78,11 @@ Sprite::Update(bool isReverse)
 void
 Sprite::Render()
 {
-   Renderer::DrawQuad(m_currentState.m_translateVal, m_size, m_currentState.m_angle,
-                      TextureLibrary::GetTexture(m_texture->GetName()), 1.0f,
-                      m_currentState.m_color);
+   // Renderer::DrawQuad(m_currentState.m_translateVal, m_size, m_currentState.m_angle,
+   //                    TextureLibrary::GetTexture(m_texture->GetName()), 1.0f,
+   //                    m_currentState.m_color);
+
+   render::vulkan::VulkanRenderer::DrawQuad();
 }
 
 glm::vec2
@@ -148,9 +147,9 @@ Sprite::SetColor(const glm::vec3& color)
 }
 
 void
-Sprite::SetTextureFromFile(const std::string& filePath)
+Sprite::SetTextureFromFile(const std::string& /*filePath*/)
 {
-   m_texture = TextureLibrary::GetTexture(filePath);
+   // m_texture = TextureLibrary::GetTexture(filePath);
 }
 
 void
@@ -166,7 +165,7 @@ Sprite::SetInitialPosition(const glm::vec2& globalPosition)
    m_initialPosition = globalPosition;
 }
 
-Texture&
+render::Texture&
 Sprite::GetTexture()
 {
    return *m_texture;

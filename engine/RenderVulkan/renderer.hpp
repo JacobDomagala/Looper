@@ -2,12 +2,14 @@
 
 #include "shader.hpp"
 
-#include "vertex.hpp"
 #include "types.hpp"
+#include "vertex.hpp"
+
 
 #include <glm/glm.hpp>
-#include <vulkan/vulkan.h>
 #include <vector>
+#include <vulkan/vulkan.h>
+
 
 struct GLFWwindow;
 
@@ -29,6 +31,13 @@ class VulkanRenderer
    MeshLoaded(const std::vector< vulkan::Vertex >& vertices,
               const std::vector< uint32_t >& indicies, const TextureMaps& textures,
               const glm::mat4& modelMat);
+
+   static void
+   BeginScene() {}
+   static void
+   EndScene() {}
+   static void
+   DrawQuad() {}
 
    inline static glm::mat4 view_mat = glm::mat4(1.0f);
    inline static glm::mat4 proj_mat = glm::mat4(1.0f);
@@ -149,7 +158,7 @@ class VulkanRenderer
    inline static std::vector< VkDeviceMemory > m_uniformBuffersMemory = {};
 
    inline static std::vector< VkBuffer > m_ssbo = {};
-   inline static std::vector < VkDeviceMemory > m_ssboMemory = {};
+   inline static std::vector< VkDeviceMemory > m_ssboMemory = {};
 
    inline static VkImage m_depthImage = {};
    inline static VkDeviceMemory m_depthImageMemory = {};
@@ -159,7 +168,7 @@ class VulkanRenderer
    inline static VkDeviceMemory m_colorImageMemory = {};
    inline static VkImageView m_colorImageView = {};
 
-   inline static std::vector<VkDrawIndexedIndirectCommand> m_renderCommands = {};
+   inline static std::vector< VkDrawIndexedIndirectCommand > m_renderCommands = {};
    inline static VkBuffer m_indirectDrawsBuffer = {};
    inline static VkDeviceMemory m_indirectDrawsBufferMemory = {};
    inline static uint32_t m_currentVertex = {};

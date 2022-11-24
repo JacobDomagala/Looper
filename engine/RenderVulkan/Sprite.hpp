@@ -1,11 +1,10 @@
 #pragma once
 
 #include "Common.hpp"
-#include "Shader.hpp"
-#include "TextureLibrary.hpp"
+#include "texture.hpp"
 
+#include <memory>
 #include <deque>
-#include <glad/glad.h>
 #include <glm/glm.hpp>
 
 namespace looper {
@@ -28,8 +27,7 @@ class Sprite
              const glm::ivec2& size = glm::ivec2(10, 10));
 
    // Create sprite with texture
-   // Returns byte data used for collision
-   byte_vec4*
+   void
    SetSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
                      const glm::ivec2& size = glm::ivec2(10, 10),
                      const std::string& fileName = "Default128.png");
@@ -41,7 +39,7 @@ class Sprite
    SetTextureFromFile(const std::string& filePath);
 
    void
-   SetTexture(const Texture& texture);
+   SetTexture(const render::Texture& texture);
 
    void
    SetTranslateValue(const glm::vec2& translateBy);
@@ -75,7 +73,7 @@ class Sprite
    float&
    GetUniformScaleValue();
 
-   Texture&
+   render::Texture&
    GetTexture();
 
    // Set rotation angle
@@ -136,7 +134,7 @@ class Sprite
    State m_currentState;
 
    // sprite's texture
-   std::shared_ptr< Texture > m_texture;
+   std::shared_ptr< render::Texture > m_texture;
 
    glm::vec2 m_initialPosition;
 

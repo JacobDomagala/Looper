@@ -6,6 +6,7 @@
 #include "RenderVulkan/shader.hpp"
 #include "RenderVulkan/types.hpp"
 #include "RenderVulkan/common.hpp"
+#include "utils/file_manager.hpp"
 
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
@@ -769,9 +770,10 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
       if (m_currentLevel)
       {
          auto& sprite = m_currentlySelectedGameObject->GetSprite();
-         ImGui::Image(reinterpret_cast< void* >( // NOLINT
-                         static_cast< size_t >(sprite.GetTexture().GetTextureHandle())),
-                      {150, 150});
+         // TODO: fix it!
+         // ImGui::Image(reinterpret_cast< void* >( // NOLINT
+         //                 static_cast< size_t >(sprite.GetTexture().GetImage())),
+         //              {150, 150});
          ImGui::InputText("FileName", sprite.GetTextureName().data(), sprite.GetTextureName().size(),
                           ImGuiInputTextFlags_ReadOnly);
          if (ImGui::Button("Change Texture"))

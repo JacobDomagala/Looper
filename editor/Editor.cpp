@@ -4,8 +4,8 @@
 #include "utils/file_manager.hpp"
 #include "Game.hpp"
 #include "InputManager.hpp"
-#include "RenderCommand.hpp"
-#include "Renderer.hpp"
+// #include "RenderCommand.hpp"
+#include "renderer.hpp"
 #include "Window.hpp"
 
 #include <GLFW/glfw3.h>
@@ -23,17 +23,17 @@ Editor::Editor(const glm::ivec2& screenSize) : m_gui(*this)
    m_window = std::make_unique< Window >(screenSize.x, screenSize.y, "Editor");
 
    InputManager::Init(m_window->GetWindowHandle());
-   InputManager::RegisterForKeyInput(this);
-   InputManager::RegisterForMouseScrollInput(this);
-   InputManager::RegisterForMouseButtonInput(this);
-   InputManager::RegisterForMouseMovementInput(this);
+   // InputManager::RegisterForKeyInput(this);
+   // InputManager::RegisterForMouseScrollInput(this);
+   // InputManager::RegisterForMouseButtonInput(this);
+   // InputManager::RegisterForMouseMovementInput(this);
 
    /*RenderCommand::Init();
    Renderer::Init();*/
    render::vulkan::VulkanRenderer::Initialize(m_window->GetWindowHandle());
 
    // m_gui.Init();
-   render::vulkan::VulkanRenderer::CreateRenderPipeline();
+   // render::vulkan::VulkanRenderer::CreateRenderPipeline();
 
    m_deltaTime = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000.0f));
 }
@@ -50,33 +50,33 @@ Editor::HandleCamera()
    m_timer.ToggleTimer();
    m_deltaTime = m_timer.GetMsDeltaTime();
 
-   auto cameraMoveBy = glm::vec2();
+   // auto cameraMoveBy = glm::vec2();
 
-   if (!EditorGUI::IsBlockingEvents() && m_levelLoaded)
-   {
-      if (InputManager::CheckKeyPressed(GLFW_KEY_W))
-      {
-         cameraMoveBy += glm::vec2(0.0f, -1.0f);
-      }
-      if (InputManager::CheckKeyPressed(GLFW_KEY_S))
-      {
-         cameraMoveBy += glm::vec2(0.0f, 1.0f);
-      }
-      if (InputManager::CheckKeyPressed(GLFW_KEY_A))
-      {
-         cameraMoveBy += glm::vec2(-1.0f, 0.0f);
-      }
-      if (InputManager::CheckKeyPressed(GLFW_KEY_D))
-      {
-         cameraMoveBy += glm::vec2(1.0f, 0);
-      }
-      if (InputManager::CheckKeyPressed(GLFW_KEY_SPACE))
-      {
-         m_camera.SetCameraAtPosition({0.0f, 0.0f, 0.0f});
-      }
+   // if (!EditorGUI::IsBlockingEvents() && m_levelLoaded)
+   // {
+   //    if (InputManager::CheckKeyPressed(GLFW_KEY_W))
+   //    {
+   //       cameraMoveBy += glm::vec2(0.0f, -1.0f);
+   //    }
+   //    if (InputManager::CheckKeyPressed(GLFW_KEY_S))
+   //    {
+   //       cameraMoveBy += glm::vec2(0.0f, 1.0f);
+   //    }
+   //    if (InputManager::CheckKeyPressed(GLFW_KEY_A))
+   //    {
+   //       cameraMoveBy += glm::vec2(-1.0f, 0.0f);
+   //    }
+   //    if (InputManager::CheckKeyPressed(GLFW_KEY_D))
+   //    {
+   //       cameraMoveBy += glm::vec2(1.0f, 0);
+   //    }
+   //    if (InputManager::CheckKeyPressed(GLFW_KEY_SPACE))
+   //    {
+   //       m_camera.SetCameraAtPosition({0.0f, 0.0f, 0.0f});
+   //    }
 
-      m_camera.Move(glm::vec3(cameraMoveBy, 0.0f));
-   }
+   //    m_camera.Move(glm::vec3(cameraMoveBy, 0.0f));
+   // }
 }
 
 void
@@ -420,7 +420,7 @@ Editor::Render()
 {
    if (m_levelLoaded)
    {
-      Renderer::BeginScene(m_camera);
+      render::vulkan::VulkanRenderer::BeginScene(/*m_camera*/);
 
       m_currentLevel->GetSprite().Render();
       DrawBackgroundObjects();
@@ -431,7 +431,7 @@ Editor::Render()
       DrawBoundingBoxes();
       DrawGrid();
 
-      Renderer::EndScene();
+      render::vulkan::VulkanRenderer::EndScene();
    }
 }
 
@@ -486,7 +486,7 @@ Editor::DrawAnimationPoints()
                                    object->GetLinkedObjectID());
                if (it != animaltionPointIDs.end())
                {
-                  Renderer::DrawLine(lineStart, object->GetPosition(), {1.0f, 0.0f, 1.0f, 1.0f});
+                  // render::vulkan::VulkanRenderer::DrawLine(lineStart, object->GetPosition(), {1.0f, 0.0f, 1.0f, 1.0f});
                   lineStart = object->GetCenteredPosition();
 
                   object->Render();
@@ -500,51 +500,51 @@ Editor::DrawAnimationPoints()
 void
 Editor::DrawBoundingBoxes()
 {
-   constexpr glm::vec4 color = {1.0f, 0.2f, 0.1f, 1.0f};
+   // constexpr glm::vec4 color = {1.0f, 0.2f, 0.1f, 1.0f};
 
-   auto drawBoundingBox = [color](const Sprite& sprite) {
-      const auto rect = sprite.GetTransformedRectangle();
-      Renderer::DrawLine(rect[0], rect[1], color);
-      Renderer::DrawLine(rect[1], rect[2], color);
-      Renderer::DrawLine(rect[2], rect[3], color);
-      Renderer::DrawLine(rect[3], rect[0], color);
-   };
+   // auto drawBoundingBox = [color](const Sprite& sprite) {
+   //    const auto rect = sprite.GetTransformedRectangle();
+   //    Renderer::DrawLine(rect[0], rect[1], color);
+   //    Renderer::DrawLine(rect[1], rect[2], color);
+   //    Renderer::DrawLine(rect[2], rect[3], color);
+   //    Renderer::DrawLine(rect[3], rect[0], color);
+   // };
 
-   if (m_currentSelectedGameObject)
-   {
-      drawBoundingBox(m_currentSelectedGameObject->GetSprite());
-   }
+   // if (m_currentSelectedGameObject)
+   // {
+   //    drawBoundingBox(m_currentSelectedGameObject->GetSprite());
+   // }
 
-   if (m_currentEditorObjectSelected)
-   {
-      drawBoundingBox(m_currentEditorObjectSelected->GetSprite());
-   }
+   // if (m_currentEditorObjectSelected)
+   // {
+   //    drawBoundingBox(m_currentEditorObjectSelected->GetSprite());
+   // }
 }
 
 void
 Editor::DrawGrid()
 {
-   if (m_drawGrid)
-   {
-      const auto levelSize = m_currentLevel->GetSize();
-      const auto grad = m_gridCellSize;
+   // if (m_drawGrid)
+   // {
+   //    const auto levelSize = m_currentLevel->GetSize();
+   //    const auto grad = m_gridCellSize;
 
-      const auto w = levelSize.x / grad;
-      const auto h = levelSize.y / grad;
-      // const auto offset = glm::ivec2(0, grad);
+   //    const auto w = levelSize.x / grad;
+   //    const auto h = levelSize.y / grad;
+   //    // const auto offset = glm::ivec2(0, grad);
 
-      for (int i = 0; i <= h; ++i)
-      {
-         Renderer::DrawLine(glm::vec2(0, i * grad), glm::vec2(levelSize.x, i * grad),
-                            {1.0f, 0.0f, 1.0f, 1.0f});
-      }
+   //    for (int i = 0; i <= h; ++i)
+   //    {
+   //       Renderer::DrawLine(glm::vec2(0, i * grad), glm::vec2(levelSize.x, i * grad),
+   //                          {1.0f, 0.0f, 1.0f, 1.0f});
+   //    }
 
-      for (int i = 0; i <= w; ++i)
-      {
-         Renderer::DrawLine(glm::vec2(i * grad, 0), glm::vec2(i * grad, levelSize.y),
-                            {1.0f, 0.0f, 1.0f, 1.0f});
-      }
-   }
+   //    for (int i = 0; i <= w; ++i)
+   //    {
+   //       Renderer::DrawLine(glm::vec2(i * grad, 0), glm::vec2(i * grad, levelSize.y),
+   //                          {1.0f, 0.0f, 1.0f, 1.0f});
+   //    }
+   // }
 }
 
 void
@@ -745,7 +745,7 @@ void
 Editor::LaunchGameLoop()
 {
    // Clear rednerer data
-   Renderer::Shutdown();
+   // Renderer::Shutdown();
    EditorGUI::Shutdown();
 
    m_game = std::make_unique< Game >();
@@ -757,9 +757,9 @@ Editor::LaunchGameLoop()
    m_playGame = false;
 
    // Reinitialize renderer
-   glfwMakeContextCurrent(m_window->GetWindowHandle());
-   RenderCommand::Init();
-   Renderer::Init();
+   // glfwMakeContextCurrent(m_window->GetWindowHandle());
+   // RenderCommand::Init();
+   render::vulkan::VulkanRenderer::Initialize(m_window->GetWindowHandle());
 
    m_gui.Init();
 }
@@ -910,7 +910,7 @@ Editor::IsRunning() const
 void
 Editor::MainLoop()
 {
-   RenderCommand::SetClearColor({0.2f, 0.1f, 0.5f, 1.0f});
+   // RenderCommand::SetClearColor({0.2f, 0.1f, 0.5f, 1.0f});
 
    while (IsRunning())
    {
@@ -923,9 +923,7 @@ Editor::MainLoop()
       Update();
 
       Render();
-      m_gui.Render();
-
-      m_window->SwapBuffers();
+      // m_gui.Render();
 
       if (m_playGame)
       {

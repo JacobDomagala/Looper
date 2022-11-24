@@ -1,4 +1,3 @@
-#include "Renderer.hpp"
 #include <Enemy.hpp>
 #include <Game.hpp>
 #include <Player.hpp>
@@ -21,25 +20,6 @@ Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& s
 
    // NOLINTNEXTLINE
    m_currentWeapon = m_weapons.at(0).get();
-}
-
-// void
-// Player::CreateSprite(const glm::vec2& position, const glm::ivec2& size, const std::string&
-// fileName)
-//{
-//   m_collision = m_sprite.SetSpriteTextured(position, size, fileName);
-//   m_currentGameObjectState.m_centeredPosition = m_sprite.GetPosition();
-//   m_currentGameObjectState.m_position = glm::ivec2(position.x, -position.y);
-//}
-
-void
-Player::LoadShaders(const std::string& /*shaderName*/)
-{
-}
-
-void
-Player::LoadShaders(const Shader& /*shaderName*/)
-{
 }
 
 bool

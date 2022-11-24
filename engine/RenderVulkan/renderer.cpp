@@ -1,13 +1,14 @@
 
 #include "renderer.hpp"
-#include "logger/logger.hpp"
-#include "utils/assert.hpp"
-#include "utils/file_manager.hpp"
 #include "buffer.hpp"
 #include "command.hpp"
 #include "common.hpp"
+#include "logger/logger.hpp"
 #include "shader.hpp"
 #include "texture.hpp"
+#include "utils/assert.hpp"
+#include "utils/file_manager.hpp"
+
 
 
 #include <GLFW/glfw3.h>
@@ -41,7 +42,7 @@ struct PerInstanceBuffer
    int32_t norm = {};
    int32_t spec = {};
 
-  //  int32_t padding;
+   //  int32_t padding;
 };
 
 std::vector< PerInstanceBuffer > perInstance;
@@ -65,7 +66,7 @@ VulkanRenderer::MeshLoaded(const std::vector< vulkan::Vertex >& vertices_in,
    newModel.indexCount = static_cast< uint32_t >(indicies_in.size());
    newModel.firstInstance = 0;
    newModel.instanceCount = 1;
-   newModel.vertexOffset = static_cast<int32_t>(m_currentVertex);
+   newModel.vertexOffset = static_cast< int32_t >(m_currentVertex);
    m_renderCommands.push_back(newModel);
 
    m_currentVertex += static_cast< uint32_t >(vertices_in.size());
@@ -244,7 +245,8 @@ findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
       }
 
       VkBool32 presentSupport = false;
-      vkGetPhysicalDeviceSurfaceSupportKHR(device, static_cast<uint32_t>(i), surface, &presentSupport);
+      vkGetPhysicalDeviceSurfaceSupportKHR(device, static_cast< uint32_t >(i), surface,
+                                           &presentSupport);
 
       if (presentSupport)
       {
@@ -435,7 +437,7 @@ VulkanRenderer::CreateVertexBuffer()
 
    void* data;
    vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
-   memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
+   memcpy(data, vertices.data(), static_cast< size_t >(bufferSize));
    vkUnmapMemory(Data::vk_device, stagingBufferMemory);
 
    Buffer::CreateBuffer(bufferSize,
@@ -461,7 +463,7 @@ VulkanRenderer::CreateIndexBuffer()
 
    void* data;
    vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
-   memcpy(data, indices.data(), static_cast<size_t>(bufferSize));
+   memcpy(data, indices.data(), static_cast< size_t >(bufferSize));
    vkUnmapMemory(Data::vk_device, stagingBufferMemory);
 
    Buffer::CreateBuffer(bufferSize,
@@ -605,7 +607,7 @@ VulkanRenderer::CreateDescriptorSets()
       descriptorWrites[3].dstBinding = 3;
       descriptorWrites[3].dstArrayElement = 0;
       descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-      descriptorWrites[3].descriptorCount = static_cast<uint32_t>(textures.size());
+      descriptorWrites[3].descriptorCount = static_cast< uint32_t >(textures.size());
       descriptorWrites[3].pImageInfo = descriptorImageInfos;
 
       vkUpdateDescriptorSets(Data::vk_device, static_cast< uint32_t >(descriptorWrites.size()),
@@ -930,14 +932,14 @@ VulkanRenderer::CreateSwapchain(GLFWwindow* windowHandle)
    swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
    QueueFamilyIndices indicesSecond = findQueueFamilies(Data::vk_physicalDevice, m_surface);
-   uint32_t queueFamilyIndices[2] = {indicesSecond.graphicsFamily.value(),
+   std::array<uint32_t, 2> queueFamilyIndices = {indicesSecond.graphicsFamily.value(),
                                      indicesSecond.presentFamily.value()};
 
    if (indicesSecond.graphicsFamily != indicesSecond.presentFamily)
    {
       swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
       swapChainCreateInfo.queueFamilyIndexCount = 2;
-      swapChainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
+      swapChainCreateInfo.pQueueFamilyIndices = queueFamilyIndices.data();
    }
    else
    {
@@ -998,7 +1000,7 @@ VulkanRenderer::CreateDescriptorSetLayout()
 
    VkDescriptorSetLayoutBinding texturesLayoutBinding{};
    texturesLayoutBinding.binding = 3;
-   texturesLayoutBinding.descriptorCount = static_cast<uint32_t>(textures.size());
+   texturesLayoutBinding.descriptorCount = static_cast< uint32_t >(textures.size());
    texturesLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
    texturesLayoutBinding.pImmutableSamplers = nullptr;
    texturesLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -1114,25 +1116,21 @@ VulkanRenderer::CreateFramebuffers()
 
       VK_CHECK(vkCreateFramebuffer(Data::vk_device, &framebufferInfo, nullptr,
                                    &m_swapChainFramebuffers[i]),
-               "failed to create framebuffer!");
+               "Failed to create framebuffer!");
    }
 }
 
 void
 VulkanRenderer::CreateCommandPool()
 {
-   /*
-    *  CREATE COMMAND POOL
-    */
-
-   QueueFamilyIndices queueFamilyIndicesTwo = findQueueFamilies(Data::vk_physicalDevice, m_surface);
+   auto queueFamilyIndicesTwo = findQueueFamilies(Data::vk_physicalDevice, m_surface);
 
    VkCommandPoolCreateInfo poolInfo{};
    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
    poolInfo.queueFamilyIndex = queueFamilyIndicesTwo.graphicsFamily.value();
 
    VK_CHECK(vkCreateCommandPool(Data::vk_device, &poolInfo, nullptr, &Data::vk_commandPool),
-            "failed to create command pool!");
+            "Failed to create command pool!");
 }
 
 void

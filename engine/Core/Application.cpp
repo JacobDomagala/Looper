@@ -1,5 +1,5 @@
 #include "Application.hpp"
-#include "Renderer.hpp"
+#include "renderer.hpp"
 #include "Window.hpp"
 
 #include <glm/gtx/rotate_vector.hpp>
@@ -8,7 +8,7 @@ namespace looper {
 
 Application::~Application()
 {
-   Renderer::Shutdown();
+   // render::VulkanRenderer::Shutdown();
 }
 
 std::shared_ptr< Player >

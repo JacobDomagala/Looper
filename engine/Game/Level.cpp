@@ -3,7 +3,6 @@
 #include "utils/file_manager.hpp"
 #include "Game.hpp"
 #include "Player.hpp"
-#include "Shader.hpp"
 #include "Timer.hpp"
 #include "Window.hpp"
 

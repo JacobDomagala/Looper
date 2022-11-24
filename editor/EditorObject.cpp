@@ -120,12 +120,6 @@ EditorObject::GetSprite()
 }
 
 void
-EditorObject::SetShaders(const Shader& /*program*/)
-{
-   // m_program = program;
-}
-
-void
 EditorObject::CreateSprite(const glm::vec2& globalPosition, const glm::ivec2& size)
 {
    m_sprite.SetSprite(globalPosition, size);

@@ -3,7 +3,6 @@
 #include "Common.hpp"
 #include "GameObject.hpp"
 #include "Object.hpp"
-#include "Shader.hpp"
 #include "Sprite.hpp"
 
 #include <glm/glm.hpp>
@@ -33,9 +32,6 @@ class EditorObject
 
    void
    SetPosition(const glm::vec2& position);
-
-   void
-   SetShaders(const Shader& program);
 
    void
    SetName(const std::string& name);
