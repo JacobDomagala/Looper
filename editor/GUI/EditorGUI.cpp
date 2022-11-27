@@ -5,7 +5,7 @@
 #include "RenderVulkan/texture.hpp"
 #include "RenderVulkan/shader.hpp"
 #include "RenderVulkan/types.hpp"
-#include "RenderVulkan/common.hpp"
+#include "RenderVulkan/vulkan_common.hpp"
 #include "utils/file_manager.hpp"
 
 #include <backends/imgui_impl_glfw.h>

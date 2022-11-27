@@ -1,5 +1,5 @@
 #include "shader.hpp"
-#include "common.hpp"
+#include "vulkan_common.hpp"
 #include "logger/logger.hpp"
 #include "utils/assert.hpp"
 #include "utils/file_manager.hpp"

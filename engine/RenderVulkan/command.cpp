@@ -1,5 +1,5 @@
 #include "command.hpp"
-#include "common.hpp"
+#include "vulkan_common.hpp"
 
 namespace looper::render::vulkan {
 
