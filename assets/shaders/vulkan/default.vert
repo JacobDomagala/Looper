@@ -1,9 +1,7 @@
 #version 460
 
 #extension GL_ARB_shader_storage_buffer_object : require
-#extension GL_ARB_shader_draw_parameters : require
 #extension GL_ARB_gpu_shader_int64 : enable
-#extension GL_ARB_shader_draw_parameters : enable
 
 layout(set = 0, binding = 0) uniform UniformBufferObject
 {
@@ -31,10 +29,8 @@ layout(location = 2) in vec4 a_color;
 
 layout(location = 0) out VS_OUT
 {
-   vec3 fPosition;
    vec2 fTexCoord;
    vec3 fColor;
-   vec3 fCameraPosition;
 
    flat int fDiffSampl;
 }

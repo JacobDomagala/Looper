@@ -801,7 +801,7 @@ VulkanRenderer::CreateInstance()
    appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
    appInfo.pApplicationName = "looper";
    appInfo.applicationVersion = VK_MAKE_VERSION(0, 0, 1);
-   appInfo.apiVersion = VK_API_VERSION_1_2;
+   appInfo.apiVersion = VK_API_VERSION_1_3;
 
    VkInstanceCreateInfo createInfo{};
    createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -870,7 +870,7 @@ VulkanRenderer::CreateDevice()
    }
 
    VkPhysicalDeviceVulkan12Features deviceFeatures_12{};
-   deviceFeatures_12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+   deviceFeatures_12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
    deviceFeatures_12.drawIndirectCount = VK_TRUE;
 
    VkPhysicalDeviceFeatures deviceFeatures{};

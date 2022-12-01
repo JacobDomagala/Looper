@@ -33,7 +33,7 @@ Editor::Editor(const glm::ivec2& screenSize) : m_gui(*this)
    render::vulkan::VulkanRenderer::Initialize(m_window->GetWindowHandle());
 
    // m_gui.Init();
-   // render::vulkan::VulkanRenderer::CreateRenderPipeline();
+   render::vulkan::VulkanRenderer::CreateRenderPipeline();
 
    m_deltaTime = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000.0f));
 }
