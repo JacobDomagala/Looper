@@ -51,10 +51,10 @@ class Editor : public Application
    void
    MouseScrollCallback(const MouseScrollEvent& event) override;
 
-   // EDITOR SPECIFIC FUNCTIONS
    void
-   Render();
+   Render(VkCommandBuffer cmdBuffer) override;
 
+   // EDITOR SPECIFIC FUNCTIONS
    void
    CreateLevel(const std::string& name, const glm::ivec2& size);
 

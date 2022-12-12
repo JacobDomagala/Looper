@@ -29,7 +29,7 @@ Game::MainLoop()
             TARGET_TIME * 1000.0f * static_cast< float >(Timer::AreTimersRunning())));
          ProcessInput(dt);
 
-         Render();
+         render::vulkan::VulkanRenderer::Draw(this);
          if (m_frameTimer > 1.0f)
          {
             m_framesLastSecond = m_frames;
@@ -384,7 +384,7 @@ Game::HandleReverseLogic()
 }
 
 void
-Game::Render()
+Game::Render(VkCommandBuffer cmdBuffer)
 {
    RenderFirstPass();
    RenderSecondPass();

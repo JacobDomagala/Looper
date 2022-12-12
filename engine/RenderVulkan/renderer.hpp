@@ -13,6 +13,11 @@
 
 struct GLFWwindow;
 
+namespace looper {
+struct Application;
+}
+
+
 namespace looper::render::vulkan {
 
 class VulkanRenderer
@@ -25,7 +30,7 @@ class VulkanRenderer
    CreateRenderPipeline();
 
    static void
-   Draw();
+   Draw(Application* app);
 
    static void
    MeshLoaded(const std::vector< vulkan::Vertex >& vertices,
@@ -33,11 +38,17 @@ class VulkanRenderer
               const glm::mat4& modelMat);
 
    static void
-   BeginScene() {}
+   BeginScene()
+   {
+   }
    static void
-   EndScene() {}
+   EndScene()
+   {
+   }
    static void
-   DrawQuad() {}
+   DrawQuad()
+   {
+   }
 
    inline static glm::mat4 view_mat = glm::mat4(1.0f);
    inline static glm::mat4 proj_mat = glm::mat4(1.0f);
@@ -69,7 +80,7 @@ class VulkanRenderer
    CreateFramebuffers();
 
    static void
-   CreateCommandBuffers();
+   CreateCommandBuffers(Application* app);
 
    static void
    CreateSyncObjects();
@@ -130,7 +141,6 @@ class VulkanRenderer
    inline static std::vector< VkImageView > m_swapChainImageViews = {};
    inline static std::vector< VkFramebuffer > m_swapChainFramebuffers = {};
    inline static VkFormat m_swapChainImageFormat = {};
-   inline static VkExtent2D m_swapChainExtent = {};
 
    inline static VkRenderPass m_renderPass = {};
 

@@ -15,6 +15,7 @@
 #include <string>
 #include <vulkan/vulkan.h>
 #include "RenderVulkan/renderer.hpp"
+#include "RenderVulkan/vulkan_common.hpp"
 
 namespace looper {
 
@@ -417,7 +418,7 @@ Editor::ActionOnObject(Editor::ACTION action)
 }
 
 void
-Editor::Render()
+Editor::Render(VkCommandBuffer cmdBuffer)
 {
    if (m_levelLoaded)
    {
@@ -434,6 +435,8 @@ Editor::Render()
 
       render::vulkan::VulkanRenderer::EndScene();
    }
+
+   m_gui.Render(cmdBuffer);
 }
 
 void
@@ -865,6 +868,8 @@ Editor::Update()
          m_animateGameObject = false;
       }
    }
+
+   m_gui.UpdateUI();
 }
 
 void
@@ -923,8 +928,8 @@ Editor::MainLoop()
 
       Update();
 
-      Render();
-      // m_gui.Render();
+      // Render();
+      render::vulkan::VulkanRenderer::Draw(this);
 
       if (m_playGame)
       {

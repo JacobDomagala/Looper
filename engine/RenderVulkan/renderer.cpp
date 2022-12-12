@@ -8,7 +8,7 @@
 #include "texture.hpp"
 #include "utils/assert.hpp"
 #include "utils/file_manager.hpp"
-
+#include "Application.hpp"
 
 
 #include <GLFW/glfw3.h>
@@ -658,7 +658,7 @@ VulkanRenderer::CreateRenderPipeline()
    CreateFramebuffers();
    CreatePipelineCache();
    // CreateCommandBuffers();
-   // CreateSyncObjects();
+   CreateSyncObjects();
 }
 
 void
@@ -687,7 +687,8 @@ VulkanRenderer::CreateColorResources()
    VkFormat colorFormat = m_swapChainImageFormat;
 
    std::tie(m_colorImage, m_colorImageMemory) = Texture::CreateImage(
-      m_swapChainExtent.width, m_swapChainExtent.height, 1, render::vulkan::Data::m_msaaSamples, colorFormat,
+      Data::m_swapChainExtent.width, Data::m_swapChainExtent.height, 1,
+      render::vulkan::Data::m_msaaSamples, colorFormat,
       VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -701,7 +702,8 @@ VulkanRenderer::CreateDepthResources()
    VkFormat depthFormat = FindDepthFormat();
 
    const auto [depthImage, depthImageMemory] = Texture::CreateImage(
-      m_swapChainExtent.width, m_swapChainExtent.height, 1, render::vulkan::Data::m_msaaSamples, depthFormat,
+      Data::m_swapChainExtent.width, Data::m_swapChainExtent.height, 1,
+      render::vulkan::Data::m_msaaSamples, depthFormat,
       VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
@@ -751,15 +753,18 @@ VulkanRenderer::HasStencilComponent(VkFormat format)
 }
 
 void
-VulkanRenderer::Draw()
+VulkanRenderer::Draw(Application* app)
 {
    vkWaitForFences(Data::vk_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+
+   vkDeviceWaitIdle(Data::vk_device);
+    CreateCommandBuffers(app);
 
    uint32_t imageIndex;
    vkAcquireNextImageKHR(Data::vk_device, m_swapChain, UINT64_MAX,
                          m_imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
-   UpdateUniformBuffer(imageIndex);
+   // UpdateUniformBuffer(imageIndex);
    if (m_imagesInFlight[imageIndex] != VK_NULL_HANDLE)
    {
       vkWaitForFences(Data::vk_device, 1, &m_imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
@@ -979,7 +984,7 @@ VulkanRenderer::CreateSwapchain(GLFWwindow* windowHandle)
    vkGetSwapchainImagesKHR(Data::vk_device, m_swapChain, &imageCount, m_swapChainImages.data());
 
    m_swapChainImageFormat = surfaceFormat.format;
-   m_swapChainExtent = extent;
+   Data::m_swapChainExtent = extent;
 }
 
 void
@@ -1130,8 +1135,8 @@ VulkanRenderer::CreateFramebuffers()
       framebufferInfo.renderPass = render::vulkan::Data::m_renderPass;
       framebufferInfo.attachmentCount = static_cast< uint32_t >(attachments.size());
       framebufferInfo.pAttachments = attachments.data();
-      framebufferInfo.width = m_swapChainExtent.width;
-      framebufferInfo.height = m_swapChainExtent.height;
+      framebufferInfo.width = Data::m_swapChainExtent.width;
+      framebufferInfo.height = Data::m_swapChainExtent.height;
       framebufferInfo.layers = 1;
 
       VK_CHECK(vkCreateFramebuffer(Data::vk_device, &framebufferInfo, nullptr,
@@ -1147,6 +1152,7 @@ VulkanRenderer::CreateCommandPool()
 
    VkCommandPoolCreateInfo poolInfo{};
    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+   poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
    poolInfo.queueFamilyIndex = queueFamilyIndicesTwo.graphicsFamily.value();
 
    VK_CHECK(vkCreateCommandPool(Data::vk_device, &poolInfo, nullptr, &Data::vk_commandPool),
@@ -1154,114 +1160,82 @@ VulkanRenderer::CreateCommandPool()
 }
 
 void
-VulkanRenderer::CreateCommandBuffers()
+VulkanRenderer::CreateCommandBuffers(Application* app)
 {
-   // auto tex = TextureLibrary::GetTexture(TextureType::DIFFUSE_MAP, "196.png");
-
-
-   // LoadModel();
-   // CreateVertexBuffer();
-   // CreateIndexBuffer();
-   // CreateUniformBuffers();
-
-   const auto commandsSize = m_renderCommands.size() * sizeof(VkDrawIndexedIndirectCommand);
-   /*VkBuffer stagingBuffer;
-   VkDeviceMemory stagingBufferMemory;*/
-
-   // Commands + draw count
-   //VkDeviceSize bufferSize = commandsSize + sizeof(uint32_t);
-
-   //Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
-   //                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-   //                     m_indirectDrawsBuffer, m_indirectDrawsBufferMemory);
-
-   //void* data;
-   //vkMapMemory(Data::vk_device, m_indirectDrawsBufferMemory, 0, bufferSize, 0, &data);
-   //memcpy(data, m_renderCommands.data(), static_cast< size_t >(bufferSize));
-   //memcpy(static_cast< uint8_t* >(data) + commandsSize, &m_numMeshes, sizeof(uint32_t));
-
-
-   // vkUnmapMemory(Data::vk_device, stagingBufferMemory);
-
-   // Buffer::CreateBuffer(bufferSize,
-   //                     VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-   //                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indirectDrawsBuffer,
-   //                     m_indirectDrawsBufferMemory);
-
-   // Buffer::CopyBuffer(stagingBuffer, m_indirectDrawsBuffer, bufferSize);
-
-   // vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
-   // vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
-
-   CreateDescriptorPool();
-   CreateDescriptorSets();
-
-
-   /*
-    *  CREATE COMMAND BUFFERS
-    */
-
-   m_commandBuffers.resize(m_swapChainFramebuffers.size());
-
-   VkCommandBufferAllocateInfo allocInfo{};
-   allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-   allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-   allocInfo.commandPool = Data::vk_commandPool;
-   allocInfo.commandBufferCount = static_cast< uint32_t >(m_commandBuffers.size());
-
-   VK_CHECK(vkAllocateCommandBuffers(Data::vk_device, &allocInfo, m_commandBuffers.data()),
-            "failed to allocate command buffers!");
-
-   for (size_t i = 0; i < m_commandBuffers.size(); i++)
+   if (m_commandBuffers.empty())
    {
-      VkCommandBufferBeginInfo beginInfo{};
-      beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+      m_commandBuffers.resize(m_swapChainFramebuffers.size());
 
-      VK_CHECK(vkBeginCommandBuffer(m_commandBuffers[i], &beginInfo),
-               "failed to begin recording command buffer!");
+      VkCommandBufferAllocateInfo allocInfo{};
+      allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+      allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+      allocInfo.commandPool = Data::vk_commandPool;
+      allocInfo.commandBufferCount = static_cast< uint32_t >(m_commandBuffers.size());
 
-      VkRenderPassBeginInfo renderPassInfoTwo{};
-      renderPassInfoTwo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-      renderPassInfoTwo.renderPass = render::vulkan::Data::m_renderPass;
-      renderPassInfoTwo.framebuffer = m_swapChainFramebuffers[i];
-      renderPassInfoTwo.renderArea.offset = {0, 0};
-      renderPassInfoTwo.renderArea.extent = m_swapChainExtent;
+      VK_CHECK(vkAllocateCommandBuffers(Data::vk_device, &allocInfo, m_commandBuffers.data()),
+               "failed to allocate command buffers!");
+   }
 
-      std::array< VkClearValue, 2 > clearValues{};
-      clearValues[0].color = {{0.3f, 0.5f, 0.1f, 1.0f}};
-      clearValues[1].depthStencil = {1.0f, 0};
+   VkCommandBufferBeginInfo beginInfo{};
+   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
-      renderPassInfoTwo.clearValueCount = static_cast< uint32_t >(clearValues.size());
-      renderPassInfoTwo.pClearValues = clearValues.data();
+   std::array< VkClearValue, 2 > clearValues{};
+   clearValues[0].color = {{0.3f, 0.5f, 0.1f, 1.0f}};
+   clearValues[1].depthStencil = {1.0f, 0};
 
-      vkCmdBeginRenderPass(m_commandBuffers[i], &renderPassInfoTwo, VK_SUBPASS_CONTENTS_INLINE);
+   VkRenderPassBeginInfo renderPassInfo{};
+   renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+   renderPassInfo.renderPass = Data::m_renderPass;
+   renderPassInfo.renderArea.offset = {0, 0};
+   renderPassInfo.renderArea.extent = Data::m_swapChainExtent;
+   renderPassInfo.clearValueCount = static_cast< uint32_t >(clearValues.size());
+   renderPassInfo.pClearValues = clearValues.data();
 
-      vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
+   for (uint32_t i = 0; i < m_commandBuffers.size(); ++i)
+   {
+      renderPassInfo.framebuffer = m_swapChainFramebuffers[i];
 
-      VkBuffer vertexBuffers[] = {m_vertexBuffer};
-      VkDeviceSize offsets[] = {0};
-      vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, vertexBuffers, offsets);
+      VK_CHECK(vkBeginCommandBuffer(m_commandBuffers[i], &beginInfo), "");
 
-      vkCmdBindIndexBuffer(m_commandBuffers[i], m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+      vkCmdBeginRenderPass(m_commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-      vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
-                              m_pipelineLayout, 0, 1, &m_descriptorSets[i], 0, nullptr);
+      VkViewport viewport{};
+      viewport.width = static_cast< float >(Data::m_swapChainExtent.width);
+      viewport.height = static_cast< float >(Data::m_swapChainExtent.height);
+      viewport.minDepth = 0.0f;
+      viewport.maxDepth = 1.0f;
 
+      vkCmdSetViewport(m_commandBuffers[i], 0, 1, &viewport);
 
-      /*vkCmdDrawIndexedIndirect(m_commandBuffers[i], m_indirectDrawsBuffer, 0, m_numMeshes,
-                        sizeof(VkDrawIndexedIndirectCommand));*/
+      VkRect2D scissor{};
+      scissor.extent.width = Data::m_swapChainExtent.width;
+      scissor.extent.height = Data::m_swapChainExtent.height;
+      scissor.offset.x = 0;
+      scissor.offset.y = 0;
 
-      // This allows for dynamic number of meshes in the scene
-      // For static scenes, vkCmdDrawIndexedIndirect should probably be used with DEVICE_LOCAL
-      // memory type
-      vkCmdDrawIndexedIndirectCount(m_commandBuffers[i], m_indirectDrawsBuffer, 0,
-                                    m_indirectDrawsBuffer,
-                                    sizeof(VkDrawIndexedIndirectCommand) * m_numMeshes, m_numMeshes,
-                                    sizeof(VkDrawIndexedIndirectCommand));
+      vkCmdSetScissor(m_commandBuffers[i], 0, 1, &scissor);
+
+      /*
+       * STAGE 2 - COMPOSITION
+       */
+      /*vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
+                              m_pipelineLayout, 0, 1,
+                              m_descriptorSets.data(), 0, nullptr);*/
+
+      vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
+                        m_graphicsPipeline);
+
+      // Final composition as full screen quad
+      // vkCmdDraw(m_commandBuffers[i], 3, 1, 0, 0);
+
+      /*
+       * TODO: This is only teporarly here, fix in future!
+       */
+      app->Render(m_commandBuffers[i]);
 
       vkCmdEndRenderPass(m_commandBuffers[i]);
 
-      VK_CHECK(vkEndCommandBuffer(m_commandBuffers[i]), "failed to record command buffer!");
+      VK_CHECK(vkEndCommandBuffer(m_commandBuffers[i]), "");
    }
 }
 
@@ -1320,14 +1294,14 @@ VulkanRenderer::CreatePipeline()
    VkViewport viewport{};
    viewport.x = 0.0f;
    viewport.y = 0.0f;
-   viewport.width = static_cast< float >(m_swapChainExtent.width);
-   viewport.height = static_cast< float >(m_swapChainExtent.height);
+   viewport.width = static_cast< float >(Data::m_swapChainExtent.width);
+   viewport.height = static_cast< float >(Data::m_swapChainExtent.height);
    viewport.minDepth = 0.0f;
    viewport.maxDepth = 1.0f;
 
    VkRect2D scissor{};
    scissor.offset = {0, 0};
-   scissor.extent = m_swapChainExtent;
+   scissor.extent = Data::m_swapChainExtent;
 
    VkPipelineViewportStateCreateInfo viewportState{};
    viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;

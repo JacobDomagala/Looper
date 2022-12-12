@@ -34,7 +34,7 @@ class Game : public Application
    ProcessInput(Timer::milliseconds deltaTime);
 
    void
-   Render();
+   Render(VkCommandBuffer cmdBuffer) override;
 
    glm::vec2
    GetCursor();

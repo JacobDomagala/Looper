@@ -50,6 +50,9 @@ class Application : public InputListener
    /*void
    Log(Logger::Type t, const std::string& log) const;*/
 
+   virtual void
+   Render(VkCommandBuffer cmdBuffer) = 0;
+
    void
    RenderText(const std::string& text, const glm::vec2& position, float scale,
               const glm::vec3& color = glm::vec3(1.0f, 1.0f, 1.0f));

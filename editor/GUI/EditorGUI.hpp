@@ -38,7 +38,7 @@ class EditorGUI
    Shutdown();
 
    void
-   Render();
+   UpdateUI();
 
    void
    GameObjectSelected(const std::shared_ptr< GameObject >& selectedGameObject);

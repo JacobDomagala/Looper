@@ -872,10 +872,11 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
 }
 
 void
-EditorGUI::Render()
+EditorGUI::UpdateUI()
 {
-   ImGui_ImplOpenGL3_NewFrame();
-   ImGui_ImplGlfw_NewFrame();
+   ImGuiIO& io = ImGui::GetIO();
+   io.DisplaySize = ImVec2(m_parent.GetWindowSize().x, m_parent.GetWindowSize().y);
+
    ImGui::NewFrame();
 
    m_windowSize = m_parent.GetWindowSize();
@@ -899,10 +900,9 @@ EditorGUI::Render()
       RenderGameObjectMenu();
    }
 
-   ImGuiIO& io = ImGui::GetIO();
-   io.DisplaySize = ImVec2(m_parent.GetWindowSize().x, m_parent.GetWindowSize().y);
    ImGui::Render();
-   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+   UpdateBuffers();
 }
 
 void
