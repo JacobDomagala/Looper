@@ -8,7 +8,7 @@ namespace looper::render::vulkan {
 
 struct Vertex
 {
-   glm::vec3 m_position;;
+   glm::vec3 m_position;
    glm::vec2 m_texCoords;
    glm::vec4 m_color;
 

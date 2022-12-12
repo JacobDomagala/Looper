@@ -138,6 +138,21 @@ struct SwapChainSupportDetails
 };
 
 
+std::set< std::string >
+get_supported_extensions()
+{
+   uint32_t count;
+   vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr); // get number of extensions
+   std::vector< VkExtensionProperties > extensions(count);
+   vkEnumerateInstanceExtensionProperties(nullptr, &count, extensions.data()); // populate buffer
+   std::set< std::string > results;
+   for (auto& extension : extensions)
+   {
+      results.insert(extension.extensionName);
+   }
+   return results;
+}
+
 /*
  *  Query GLFW for required extensions
  */
@@ -868,10 +883,15 @@ VulkanRenderer::CreateDevice()
 
       queueCreateInfos.push_back(queueCreateInfo);
    }
-
+   
    VkPhysicalDeviceVulkan12Features deviceFeatures_12{};
-   deviceFeatures_12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+   deviceFeatures_12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
    deviceFeatures_12.drawIndirectCount = VK_TRUE;
+
+   VkPhysicalDeviceVulkan11Features deviceFeatures_11{};
+   deviceFeatures_11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+   deviceFeatures_11.pNext = &deviceFeatures_12;
+   deviceFeatures_11.shaderDrawParameters = VK_TRUE;
 
    VkPhysicalDeviceFeatures deviceFeatures{};
    deviceFeatures.samplerAnisotropy = VK_TRUE;
@@ -879,7 +899,7 @@ VulkanRenderer::CreateDevice()
 
    VkDeviceCreateInfo createInfo{};
    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-   createInfo.pNext = &deviceFeatures_12;
+   createInfo.pNext = &deviceFeatures_11;
 
    createInfo.queueCreateInfoCount = static_cast< uint32_t >(queueCreateInfos.size());
    createInfo.pQueueCreateInfos = queueCreateInfos.data();
