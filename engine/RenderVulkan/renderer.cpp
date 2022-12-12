@@ -657,8 +657,8 @@ VulkanRenderer::CreateRenderPipeline()
    CreateDepthResources();
    CreateFramebuffers();
    CreatePipelineCache();
-   CreateCommandBuffers();
-   CreateSyncObjects();
+   // CreateCommandBuffers();
+   // CreateSyncObjects();
 }
 
 void
@@ -687,7 +687,7 @@ VulkanRenderer::CreateColorResources()
    VkFormat colorFormat = m_swapChainImageFormat;
 
    std::tie(m_colorImage, m_colorImageMemory) = Texture::CreateImage(
-      m_swapChainExtent.width, m_swapChainExtent.height, 1, m_msaaSamples, colorFormat,
+      m_swapChainExtent.width, m_swapChainExtent.height, 1, render::vulkan::Data::m_msaaSamples, colorFormat,
       VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -701,7 +701,7 @@ VulkanRenderer::CreateDepthResources()
    VkFormat depthFormat = FindDepthFormat();
 
    const auto [depthImage, depthImageMemory] = Texture::CreateImage(
-      m_swapChainExtent.width, m_swapChainExtent.height, 1, m_msaaSamples, depthFormat,
+      m_swapChainExtent.width, m_swapChainExtent.height, 1, render::vulkan::Data::m_msaaSamples, depthFormat,
       VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
@@ -858,7 +858,7 @@ VulkanRenderer::CreateDevice()
          Logger::Info("Device found! Using {}", deviceProps.deviceName);
 
          Data::vk_physicalDevice = device;
-         m_msaaSamples = getMaxUsableSampleCount(Data::vk_physicalDevice);
+         render::vulkan::Data::m_msaaSamples = getMaxUsableSampleCount(Data::vk_physicalDevice);
          break;
       }
    }
@@ -1044,7 +1044,7 @@ VulkanRenderer::CreateRenderPass()
    VkAttachmentDescription colorAttachment{};
    colorAttachment.format = m_swapChainImageFormat;
    // colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-   colorAttachment.samples = m_msaaSamples;
+   colorAttachment.samples = render::vulkan::Data::m_msaaSamples;
    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
    colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -1055,7 +1055,7 @@ VulkanRenderer::CreateRenderPass()
    VkAttachmentDescription depthAttachment{};
    depthAttachment.format = FindDepthFormat();
    // depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-   depthAttachment.samples = m_msaaSamples;
+   depthAttachment.samples = render::vulkan::Data::m_msaaSamples;
    depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
    depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -1111,7 +1111,7 @@ VulkanRenderer::CreateRenderPass()
    renderPassInfo.dependencyCount = 1;
    renderPassInfo.pDependencies = &dependency;
 
-   VK_CHECK(vkCreateRenderPass(Data::vk_device, &renderPassInfo, nullptr, &m_renderPass),
+   VK_CHECK(vkCreateRenderPass(Data::vk_device, &renderPassInfo, nullptr, &render::vulkan::Data::m_renderPass),
             "failed to create render pass!");
 }
 
@@ -1127,7 +1127,7 @@ VulkanRenderer::CreateFramebuffers()
 
       VkFramebufferCreateInfo framebufferInfo{};
       framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-      framebufferInfo.renderPass = m_renderPass;
+      framebufferInfo.renderPass = render::vulkan::Data::m_renderPass;
       framebufferInfo.attachmentCount = static_cast< uint32_t >(attachments.size());
       framebufferInfo.pAttachments = attachments.data();
       framebufferInfo.width = m_swapChainExtent.width;
@@ -1160,25 +1160,25 @@ VulkanRenderer::CreateCommandBuffers()
 
 
    // LoadModel();
-   CreateVertexBuffer();
-   CreateIndexBuffer();
-   CreateUniformBuffers();
+   // CreateVertexBuffer();
+   // CreateIndexBuffer();
+   // CreateUniformBuffers();
 
    const auto commandsSize = m_renderCommands.size() * sizeof(VkDrawIndexedIndirectCommand);
    /*VkBuffer stagingBuffer;
    VkDeviceMemory stagingBufferMemory;*/
 
    // Commands + draw count
-   VkDeviceSize bufferSize = commandsSize + sizeof(uint32_t);
+   //VkDeviceSize bufferSize = commandsSize + sizeof(uint32_t);
 
-   Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        m_indirectDrawsBuffer, m_indirectDrawsBufferMemory);
+   //Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
+   //                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+   //                     m_indirectDrawsBuffer, m_indirectDrawsBufferMemory);
 
-   void* data;
-   vkMapMemory(Data::vk_device, m_indirectDrawsBufferMemory, 0, bufferSize, 0, &data);
-   memcpy(data, m_renderCommands.data(), static_cast< size_t >(bufferSize));
-   memcpy(static_cast< uint8_t* >(data) + commandsSize, &m_numMeshes, sizeof(uint32_t));
+   //void* data;
+   //vkMapMemory(Data::vk_device, m_indirectDrawsBufferMemory, 0, bufferSize, 0, &data);
+   //memcpy(data, m_renderCommands.data(), static_cast< size_t >(bufferSize));
+   //memcpy(static_cast< uint8_t* >(data) + commandsSize, &m_numMeshes, sizeof(uint32_t));
 
 
    // vkUnmapMemory(Data::vk_device, stagingBufferMemory);
@@ -1222,7 +1222,7 @@ VulkanRenderer::CreateCommandBuffers()
 
       VkRenderPassBeginInfo renderPassInfoTwo{};
       renderPassInfoTwo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-      renderPassInfoTwo.renderPass = m_renderPass;
+      renderPassInfoTwo.renderPass = render::vulkan::Data::m_renderPass;
       renderPassInfoTwo.framebuffer = m_swapChainFramebuffers[i];
       renderPassInfoTwo.renderArea.offset = {0, 0};
       renderPassInfoTwo.renderArea.extent = m_swapChainExtent;
@@ -1350,7 +1350,7 @@ VulkanRenderer::CreatePipeline()
    VkPipelineMultisampleStateCreateInfo multisampling{};
    multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
    multisampling.sampleShadingEnable = VK_FALSE;
-   multisampling.rasterizationSamples = m_msaaSamples;
+   multisampling.rasterizationSamples = render::vulkan::Data::m_msaaSamples;
 
 
    VkPipelineDepthStencilStateCreateInfo depthStencil{};
@@ -1399,7 +1399,7 @@ VulkanRenderer::CreatePipeline()
    pipelineInfo.pDepthStencilState = &depthStencil;
    pipelineInfo.pColorBlendState = &colorBlending;
    pipelineInfo.layout = m_pipelineLayout;
-   pipelineInfo.renderPass = m_renderPass;
+   pipelineInfo.renderPass = render::vulkan::Data::m_renderPass;
    pipelineInfo.subpass = 0;
    pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 

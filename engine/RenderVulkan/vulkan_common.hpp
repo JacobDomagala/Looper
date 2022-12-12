@@ -39,6 +39,7 @@ struct Data
    inline static VkCommandPool vk_commandPool = {};
    inline static VkPipelineCache m_pipelineCache = {};
    inline static VkRenderPass m_renderPass = {};
+   inline static VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 };
 
 uint32_t
