@@ -21,6 +21,7 @@ void
 InputManager::InternalMouseButtonCallback(GLFWwindow* /*window*/, int32_t button, int32_t action, int32_t mods)
 {
    Logger::Trace("GLFW mouse button {} {} {}", button, action, mods);
+   s_mouseButtonMap[button] = action;
 
    BroadcastEvent(MouseButtonEvent{button, action, mods});
 }
@@ -132,6 +133,12 @@ bool
 InputManager::CheckKeyPressed(int32_t keyKode)
 {
    return s_keyMap[keyKode];
+}
+
+bool
+InputManager::CheckButtonPressed(int32_t button)
+{
+   return s_mouseButtonMap[button];
 }
 
 glm::vec2
