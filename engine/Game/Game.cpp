@@ -384,7 +384,7 @@ Game::HandleReverseLogic()
 }
 
 void
-Game::Render(VkCommandBuffer cmdBuffer)
+Game::Render(VkCommandBuffer /*cmdBuffer*/)
 {
    RenderFirstPass();
    RenderSecondPass();

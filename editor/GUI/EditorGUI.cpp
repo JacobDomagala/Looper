@@ -8,8 +8,7 @@
 #include "RenderVulkan/vulkan_common.hpp"
 #include "utils/file_manager.hpp"
 
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_opengl3.h>
+#include <GLFW/glfw3.h>
 #include <cstdint>
 #include <fmt/format.h>
 #include <imgui.h>
@@ -520,8 +519,6 @@ EditorGUI::PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPas
 void
 EditorGUI::Shutdown()
 {
-   ImGui_ImplGlfw_Shutdown();
-   ImGui_ImplOpenGL3_Shutdown();
    ImGui::DestroyContext();
 }
 
@@ -876,6 +873,12 @@ EditorGUI::UpdateUI()
 {
    ImGuiIO& io = ImGui::GetIO();
    io.DisplaySize = ImVec2(m_parent.GetWindowSize().x, m_parent.GetWindowSize().y);
+
+   auto mousePos = InputManager::GetMousePos();
+
+   io.MousePos = ImVec2(mousePos.x, mousePos.y);
+   io.MouseDown[0] = InputManager::CheckButtonPressed(GLFW_MOUSE_BUTTON_1);
+   io.MouseDown[1] = InputManager::CheckButtonPressed(GLFW_MOUSE_BUTTON_2);
 
    ImGui::NewFrame();
 

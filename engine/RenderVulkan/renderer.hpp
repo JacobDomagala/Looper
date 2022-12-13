@@ -14,7 +14,7 @@
 struct GLFWwindow;
 
 namespace looper {
-struct Application;
+class Application;
 }
 
 
