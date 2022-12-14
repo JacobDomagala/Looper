@@ -24,11 +24,10 @@ Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
 
 void
 Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size,
-                          const std::string& /*fileName*/)
+                          const std::string& fileName)
 {
-   // m_texture = render::TextureLibrary::GetTexture(fileName);
-   // auto* returnPtr = m_texture->GetData(); // m_texture->LoadTextureFromFile(fileName);
-
+   texture_ = render::TextureLibrary::GetTexture(fileName).GetID();
+   
    /*glGenVertexArrays(1, &m_vertexArrayBuffer);
    glGenBuffers(1, &m_vertexBuffer);
    glBindVertexArray(m_vertexArrayBuffer);
@@ -112,7 +111,7 @@ Sprite::GetOriginalSize() const
 std::string
 Sprite::GetTextureName() const
 {
-   return m_texture->GetName();
+   return render::TextureLibrary::GetTexture(texture_).GetName();
 }
 
 glm::vec2
@@ -165,10 +164,10 @@ Sprite::SetInitialPosition(const glm::vec2& globalPosition)
    m_initialPosition = globalPosition;
 }
 
-render::Texture&
+const render::Texture&
 Sprite::GetTexture()
 {
-   return *m_texture;
+   return render::TextureLibrary::GetTexture(texture_);
 }
 
 void

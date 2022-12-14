@@ -39,9 +39,6 @@ class Sprite
    SetTextureFromFile(const std::string& filePath);
 
    void
-   SetTexture(const render::Texture& texture);
-
-   void
    SetTranslateValue(const glm::vec2& translateBy);
 
    void
@@ -73,7 +70,7 @@ class Sprite
    float&
    GetUniformScaleValue();
 
-   render::Texture&
+   const render::Texture&
    GetTexture();
 
    // Set rotation angle
@@ -134,7 +131,7 @@ class Sprite
    State m_currentState;
 
    // sprite's texture
-   std::shared_ptr< render::Texture > m_texture;
+   render::Texture::TextureID texture_;
 
    glm::vec2 m_initialPosition;
 

@@ -24,10 +24,10 @@ Editor::Editor(const glm::ivec2& screenSize) : m_gui(*this)
    m_window = std::make_unique< Window >(screenSize.x, screenSize.y, "Editor");
 
    InputManager::Init(m_window->GetWindowHandle());
-   // InputManager::RegisterForKeyInput(this);
-   // InputManager::RegisterForMouseScrollInput(this);
-   // InputManager::RegisterForMouseButtonInput(this);
-   // InputManager::RegisterForMouseMovementInput(this);
+   InputManager::RegisterForKeyInput(this);
+   InputManager::RegisterForMouseScrollInput(this);
+   InputManager::RegisterForMouseButtonInput(this);
+   InputManager::RegisterForMouseMovementInput(this);
 
    /*RenderCommand::Init();
    Renderer::Init();*/

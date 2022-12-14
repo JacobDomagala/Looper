@@ -11,7 +11,9 @@ namespace looper::render {
 class Texture
 {
  public:
-   Texture(vulkan::TextureType type, std::string_view textureName);
+   using TextureID = uint64_t;
+
+   Texture(vulkan::TextureType type, std::string_view textureName, TextureID id);
 
    Texture() = default;
 
@@ -62,6 +64,9 @@ class Texture
    [[nodiscard]] VkImage
    GetImage() const;
 
+   [[nodiscard]] TextureID
+   GetID() const;
+
  private:
    void
    TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
@@ -70,6 +75,7 @@ class Texture
    CopyBufferToImage(uint8_t* data);
 
  private:
+   TextureID id_ = {};
    vulkan::TextureType m_type = {};
    VkImage m_textureImage = {};
    VkDeviceMemory m_textureImageMemory = {};
@@ -92,6 +98,9 @@ class TextureLibrary
    static const Texture&
    GetTexture(const std::string& textureName);
 
+   static const Texture&
+   GetTexture(const Texture::TextureID id);
+
    static void
    CreateTexture(vulkan::TextureType type, const std::string& textureName);
 
@@ -104,6 +113,7 @@ class TextureLibrary
 
  private:
    static inline std::unordered_map< std::string, Texture > s_loadedTextures = {};
+   static inline Texture::TextureID currentID_ = 0;
 };
 
 } // namespace shady::render

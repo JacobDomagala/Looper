@@ -25,7 +25,7 @@ Texture::Destroy()
    vkFreeMemory(vulkan::Data::vk_device, m_textureImageMemory, nullptr);
 }
 
-Texture::Texture(vulkan::TextureType type, std::string_view textureName)
+Texture::Texture(vulkan::TextureType type, std::string_view textureName, TextureID id): id_(id)
 {
    CreateTextureImage(type, textureName);
 }
@@ -263,6 +263,12 @@ Texture::GetImage() const
    return m_textureImage;
 }
 
+Texture::TextureID
+Texture::GetID() const
+{
+   return id_;
+}
+
 void
 Texture::CreateTextureSampler()
 {
@@ -407,6 +413,22 @@ TextureLibrary::GetTexture(const std::string& textureName)
    return GetTexture(vulkan::TextureType::DIFFUSE_MAP, textureName);
 }
 
+const Texture&
+TextureLibrary::GetTexture(const Texture::TextureID id)
+{
+   for (auto& texture : s_loadedTextures)
+   {
+      if (texture.second.GetID() == id)
+      {
+         return texture.second;
+      }
+   }
+
+   utils::Assert(true, fmt::format("TextureLibrary::GetTexture (With TextureID = {}) failed! "
+                                   "Requested texture ID is not present!\n",
+                                   id));
+}
+
 void
 TextureLibrary::CreateTexture(vulkan::TextureType type, const std::string& textureName)
 {
@@ -430,7 +452,8 @@ TextureLibrary::Clear()
 void
 TextureLibrary::LoadTexture(vulkan::TextureType type, std::string_view textureName)
 {
-   s_loadedTextures[std::string{textureName}] = {type, textureName};
+    
+   s_loadedTextures[std::string{textureName}] = {type, textureName, currentID_++};
 }
 
 } // namespace shady::render
