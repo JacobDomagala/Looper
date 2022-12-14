@@ -37,7 +37,6 @@ Texture::CreateTextureImage(vulkan::TextureType type, std::string_view textureNa
    auto textureData = FileManager::LoadImageData(textureName);
    m_width = static_cast<uint32_t>(textureData.m_size.x);
    m_height = static_cast<uint32_t>(textureData.m_size.y);
-
    m_format = type == vulkan::TextureType::DIFFUSE_MAP ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
    m_mips = static_cast< uint32_t >(std::floor(std::log2(std::max(m_width, m_height)))) + 1;
 
@@ -289,7 +288,8 @@ Texture::CopyBufferToImage(VkImage image, uint32_t texWidth, uint32_t texHeight,
    region.imageOffset = {0, 0, 0};
    region.imageExtent = {texWidth, texHeight, 1};
 
-   const auto size = static_cast< size_t >(texWidth) * static_cast< size_t >(texHeight) * size_t{4};
+   const auto size =
+      static_cast< size_t >(texWidth) * static_cast< size_t >(texHeight) * static_cast< size_t >(4);
    Buffer::CopyDataToImageWithStaging(image, data, size, {region});
 }
 

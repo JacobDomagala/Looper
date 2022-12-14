@@ -65,7 +65,7 @@ FileManager::ImageData
 FileManager::LoadImageData(std::string_view fileName)
 {
    const auto pathToImage = std::filesystem::path(IMAGES_DIR / fileName).string();
-   int force_channels = 0;
+   int force_channels = STBI_rgb_alpha;
    int w = 0;
    int h = 0;
    int n = 0;
