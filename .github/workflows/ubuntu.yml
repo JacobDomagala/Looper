@@ -8,11 +8,11 @@ on:
 
 env:
   BUILD_TYPE: Release
-  CXX: clang++
+  CXX: clang++-14
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v2
@@ -21,7 +21,7 @@ jobs:
       run: |
         sudo apt-get update
 
-        sudo apt-get install -y xorg-dev libc++-10-dev llvm-dev libubsan0 iwyu
+        sudo apt-get install -y xorg-dev llvm-dev iwyu clang++-14
 
         wget https://sdk.lunarg.com/sdk/download/1.3.216.0/linux/vulkansdk-linux-x86_64-1.3.216.0.tar.gz
         tar xf vulkansdk-linux-x86_64-1.3.216.0.tar.gz
@@ -34,7 +34,7 @@ jobs:
       run: |
         source ${{runner.workspace}}/Looper/1.3.216.0/setup-env.sh
         cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DWARNINGS_AS_ERRORS=ON -DENABLE_INCLUDE_WHAT_YOU_USE=ON\
-           -DENABLE_SANITIZER_ADDRESS=ON -DENABLE_SANITIZER_UNDEFINED_BEHAVIOR=ON -DENABLE_SANITIZER_LEAK=ON -DUNITY_BUILD=ON
+           -DENABLE_SANITIZER_ADDRESS=ON -DENABLE_SANITIZER_UNDEFINED_BEHAVIOR=OFF -DENABLE_SANITIZER_LEAK=ON -DUNITY_BUILD=ON
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
