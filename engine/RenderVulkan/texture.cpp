@@ -25,7 +25,8 @@ Texture::Destroy()
    vkFreeMemory(vulkan::Data::vk_device, m_textureImageMemory, nullptr);
 }
 
-Texture::Texture(vulkan::TextureType type, std::string_view textureName, TextureID id): id_(id)
+Texture::Texture(vulkan::TextureType type, std::string_view textureName, TextureID id)
+   : id_(id), m_name(std::string(textureName))
 {
    CreateTextureImage(type, textureName);
 }
