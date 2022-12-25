@@ -34,7 +34,7 @@ class VulkanRenderer
 
    static void
    MeshLoaded(const std::vector< vulkan::Vertex >& vertices,
-              const std::vector< uint32_t >& indicies, const TextureMaps& textures,
+              const TextureMaps& textures,
               const glm::mat4& modelMat);
 
    static void
@@ -49,6 +49,9 @@ class VulkanRenderer
    DrawQuad()
    {
    }
+
+   static void
+   SetupData();
 
    inline static glm::mat4 view_mat = glm::mat4(1.0f);
    inline static glm::mat4 proj_mat = glm::mat4(1.0f);
@@ -90,7 +93,6 @@ class VulkanRenderer
 
    static void
    CreatePipelineCache();
-
 
    static void
    CreateVertexBuffer();

@@ -1,6 +1,7 @@
 #include "Sprite.hpp"
 #include "Application.hpp"
 #include "renderer.hpp"
+#include "texture.hpp"
 
 #include <glm/gtx/transform.hpp>
 
@@ -27,7 +28,7 @@ Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size,
                           const std::string& fileName)
 {
    texture_ = render::TextureLibrary::GetTexture(fileName).GetID();
-   
+
    /*glGenVertexArrays(1, &m_vertexArrayBuffer);
    glGenBuffers(1, &m_vertexBuffer);
    glBindVertexArray(m_vertexArrayBuffer);
@@ -54,6 +55,22 @@ Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size,
    glEnableVertexAttribArray(0);
    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
    glBindVertexArray(0);*/
+
+   std::vector< render::vulkan::Vertex > vtcs = {
+      {glm::vec3(0.5f, 0.5f, 0.0f), glm::vec2{1.0f, 1.0f}, glm::vec4{}},
+      {glm::vec3{-0.5f, 0.5f, 0.0f}, glm::vec2{0.0f, 1.0f}, glm::vec4{}},
+      {glm::vec3{-0.5f, -0.5f, 0.0f}, glm::vec2{0.0f, 0.0f}, glm::vec4{}},
+      {glm::vec3{0.5f, -0.5f, 0.0f}, glm::vec2{1.0f, 0.0f}, glm::vec4{}}};
+
+   glm::mat4 transformMat = glm::translate(glm::mat4(1.0f), glm::vec3(position, 0.0f))
+                            * glm::rotate(glm::mat4(1.0f), 0.0f, {0.0f, 0.0f, 1.0f})
+                            * glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
+
+   std::array< std::string, 3 > txts = {render::TextureLibrary::GetTexture(texture_).GetName(),
+                                        render::TextureLibrary::GetTexture(texture_).GetName(),
+                                        render::TextureLibrary::GetTexture(texture_).GetName()};
+
+   render::vulkan::VulkanRenderer::MeshLoaded(vtcs, txts, transformMat);
 }
 
 void

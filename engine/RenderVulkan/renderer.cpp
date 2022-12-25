@@ -55,22 +55,21 @@ std::vector< VkImageView > texturesVec = {};
 
 void
 VulkanRenderer::MeshLoaded(const std::vector< vulkan::Vertex >& vertices_in,
-                           const std::vector< uint32_t >& indicies_in,
                            const TextureMaps& textures_in, const glm::mat4& modelMat)
 {
    std::copy(vertices_in.begin(), vertices_in.end(), std::back_inserter(vertices));
-   std::copy(indicies_in.begin(), indicies_in.end(), std::back_inserter(indices));
+   // std::copy(indicies_in.begin(), indicies_in.end(), std::back_inserter(indices));
 
    VkDrawIndexedIndirectCommand newModel = {};
    newModel.firstIndex = m_currentIndex;
-   newModel.indexCount = static_cast< uint32_t >(indicies_in.size());
+   newModel.indexCount = static_cast< uint32_t >(6);
    newModel.firstInstance = 0;
    newModel.instanceCount = 1;
    newModel.vertexOffset = static_cast< int32_t >(m_currentVertex);
    m_renderCommands.push_back(newModel);
 
    m_currentVertex += static_cast< uint32_t >(vertices_in.size());
-   m_currentIndex += static_cast< uint32_t >(indicies_in.size());
+   m_currentIndex += static_cast< uint32_t >(6);
 
    PerInstanceBuffer newInstance;
    newInstance.model = modelMat;
@@ -447,7 +446,7 @@ chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* windo
 void
 VulkanRenderer::CreateVertexBuffer()
 {
-   VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+   VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
 
    VkBuffer stagingBuffer;
    VkDeviceMemory stagingBufferMemory;
@@ -470,9 +469,62 @@ VulkanRenderer::CreateVertexBuffer()
    vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
 }
 
+
+void
+VulkanRenderer::SetupData()
+{
+   CreateVertexBuffer();
+   CreateIndexBuffer();
+   CreateUniformBuffers();
+
+   const auto commandsSize = m_renderCommands.size() * sizeof(VkDrawIndexedIndirectCommand);
+   // VkBuffer stagingBuffer;
+   // VkDeviceMemory stagingBufferMemory;
+
+   ////  Commands + draw count
+   VkDeviceSize bufferSize = commandsSize + sizeof(uint32_t);
+
+   Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
+                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                        m_indirectDrawsBuffer, m_indirectDrawsBufferMemory);
+
+   void* data = nullptr;
+   vkMapMemory(Data::vk_device, m_indirectDrawsBufferMemory, 0, bufferSize, 0, &data);
+   memcpy(data, m_renderCommands.data(), static_cast< size_t >(bufferSize));
+   memcpy(static_cast< uint8_t* >(data) + commandsSize, &m_numMeshes, sizeof(uint32_t));
+
+
+   // vkUnmapMemory(Data::vk_device, stagingBufferMemory);
+
+   /*  Buffer::CreateBuffer(
+        bufferSize, VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indirectDrawsBuffer, m_indirectDrawsBufferMemory);
+
+     Buffer::CopyBuffer(stagingBuffer, m_indirectDrawsBuffer, bufferSize);
+
+     vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
+     vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);*/
+}
+
 void
 VulkanRenderer::CreateIndexBuffer()
 {
+   indices.resize(100000);
+
+   uint32_t offset = 0;
+   for (uint32_t i = 0; i < 100000 - 6 ; i += 6)
+   {
+      indices[i + 0] = offset + 0;
+      indices[i + 1] = offset + 1;
+      indices[i + 2] = offset + 2;
+
+      indices[i + 3] = offset + 0;
+      indices[i + 4] = offset + 2;
+      indices[i + 5] = offset + 3;
+
+      offset += 4;
+   }
+
    VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
    VkBuffer stagingBuffer;
@@ -1224,12 +1276,26 @@ VulkanRenderer::CreateCommandBuffers(Application* app)
       /*
        * STAGE 2 - COMPOSITION
        */
-      /*vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
+      vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
                               m_pipelineLayout, 0, 1,
-                              m_descriptorSets.data(), 0, nullptr);*/
+                              m_descriptorSets.data(), 0, nullptr);
 
       vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
                         m_graphicsPipeline);
+
+      VkDeviceSize offsets[] = {0};
+      vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_vertexBuffer, offsets);
+
+      vkCmdBindIndexBuffer(m_commandBuffers[i], m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+      vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
+                              m_pipelineLayout, 0, 1, &m_descriptorSets[i], 0, nullptr);
+
+
+      vkCmdDrawIndexedIndirectCount(m_commandBuffers[i], m_indirectDrawsBuffer, 0,
+                                    m_indirectDrawsBuffer,
+                                    sizeof(VkDrawIndexedIndirectCommand) * m_numMeshes,
+                                    m_numMeshes, sizeof(VkDrawIndexedIndirectCommand));
 
       // Final composition as full screen quad
       // vkCmdDraw(m_commandBuffers[i], 3, 1, 0, 0);

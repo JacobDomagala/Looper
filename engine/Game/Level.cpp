@@ -5,6 +5,7 @@
 #include "Player.hpp"
 #include "Timer.hpp"
 #include "Window.hpp"
+#include "RenderVulkan/renderer.hpp"
 
 #include <algorithm>
 #include <fstream>
@@ -140,6 +141,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
          Logger::Fatal("Level::Load -> Unspecified type {} during level loading", key);
       }
    }
+
+   render::vulkan::VulkanRenderer::SetupData();
 }
 
 void
@@ -451,7 +454,6 @@ Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
    m_background.SetSpriteTextured(glm::vec2(static_cast< float >(m_levelSize.x) / 2.0f,
                                             static_cast< float >(m_levelSize.y) / 2.0f),
                                   size, fileName);
-   // m_shaders.LoadDefault();
 }
 
 void
