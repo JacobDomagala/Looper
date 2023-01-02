@@ -141,8 +141,6 @@ Level::Load(Application* context, const std::string& pathToLevel)
          Logger::Fatal("Level::Load -> Unspecified type {} during level loading", key);
       }
    }
-
-   render::vulkan::VulkanRenderer::SetupData();
 }
 
 void

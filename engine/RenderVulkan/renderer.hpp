@@ -53,6 +53,9 @@ class VulkanRenderer
    static void
    SetupData();
 
+   static void
+   CreateCommandBuffers(Application* app);
+
    inline static glm::mat4 view_mat = glm::mat4(1.0f);
    inline static glm::mat4 proj_mat = glm::mat4(1.0f);
    inline static glm::mat4 model_mat = glm::mat4(1.0f);
@@ -81,9 +84,6 @@ class VulkanRenderer
 
    static void
    CreateFramebuffers();
-
-   static void
-   CreateCommandBuffers(Application* app);
 
    static void
    CreateSyncObjects();
@@ -130,6 +130,7 @@ class VulkanRenderer
    HasStencilComponent(VkFormat format);
 
  private:
+   inline static bool isLoaded_ = false;
    inline static VkDebugUtilsMessengerCreateInfoEXT m_debugCreateInfo = {};
    inline static VkDebugUtilsMessengerEXT m_debugMessenger = {};
    inline static VkSurfaceKHR m_surface = {};

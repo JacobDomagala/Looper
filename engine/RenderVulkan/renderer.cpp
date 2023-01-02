@@ -478,8 +478,6 @@ VulkanRenderer::SetupData()
    CreateUniformBuffers();
 
    const auto commandsSize = m_renderCommands.size() * sizeof(VkDrawIndexedIndirectCommand);
-   // VkBuffer stagingBuffer;
-   // VkDeviceMemory stagingBufferMemory;
 
    ////  Commands + draw count
    VkDeviceSize bufferSize = commandsSize + sizeof(uint32_t);
@@ -493,26 +491,21 @@ VulkanRenderer::SetupData()
    memcpy(data, m_renderCommands.data(), static_cast< size_t >(bufferSize));
    memcpy(static_cast< uint8_t* >(data) + commandsSize, &m_numMeshes, sizeof(uint32_t));
 
+   CreateRenderPipeline();
+   CreateDescriptorPool();
+   CreateDescriptorSets();
 
-   // vkUnmapMemory(Data::vk_device, stagingBufferMemory);
-
-   /*  Buffer::CreateBuffer(
-        bufferSize, VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indirectDrawsBuffer, m_indirectDrawsBufferMemory);
-
-     Buffer::CopyBuffer(stagingBuffer, m_indirectDrawsBuffer, bufferSize);
-
-     vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
-     vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);*/
+   isLoaded_ = true;
 }
 
 void
 VulkanRenderer::CreateIndexBuffer()
 {
-   indices.resize(100000);
+   constexpr int indicesPerMesh = 6;
+   indices.resize(m_numMeshes * indicesPerMesh);
 
    uint32_t offset = 0;
-   for (uint32_t i = 0; i < 100000 - 6 ; i += 6)
+   for (uint32_t i = 0; i < indices.size() - indicesPerMesh; i += indicesPerMesh)
    {
       indices[i + 0] = offset + 0;
       indices[i + 1] = offset + 1;
@@ -612,7 +605,7 @@ VulkanRenderer::CreateDescriptorSets()
    }
 
    const auto [imageView, sampler] =
-      TextureLibrary::GetTexture(TextureType::DIFFUSE_MAP, "196.png").GetImageViewAndSampler();
+      TextureLibrary::GetTexture(TextureType::DIFFUSE_MAP, "Default128.png").GetImageViewAndSampler();
 
    for (size_t i = 0; i < m_swapChainImages.size(); i++)
    {
@@ -627,10 +620,10 @@ VulkanRenderer::CreateDescriptorSets()
       instanceBufferInfo.offset = 0;
       instanceBufferInfo.range = perInstance.size() * sizeof(PerInstanceBuffer);
 
-      /*VkDescriptorImageInfo imageInfo{};
+      VkDescriptorImageInfo imageInfo{};
       imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
       imageInfo.imageView = imageView;
-      imageInfo.sampler = sampler;*/
+      imageInfo.sampler = sampler;
 
       VkDescriptorImageInfo* descriptorImageInfos = new VkDescriptorImageInfo[textures.size()];
 
@@ -673,7 +666,6 @@ VulkanRenderer::CreateDescriptorSets()
       descriptorWrites[2].descriptorCount = 1;
       descriptorWrites[2].pImageInfo = &samplerInfo;
 
-      descriptorWrites[3].pImageInfo = descriptorImageInfos;
       descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
       descriptorWrites[3].dstSet = m_descriptorSets[i];
       descriptorWrites[3].dstBinding = 3;
@@ -815,13 +807,13 @@ VulkanRenderer::Draw(Application* app)
    vkWaitForFences(Data::vk_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
    vkDeviceWaitIdle(Data::vk_device);
-    CreateCommandBuffers(app);
-
+ 
    uint32_t imageIndex;
    vkAcquireNextImageKHR(Data::vk_device, m_swapChain, UINT64_MAX,
                          m_imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
    // UpdateUniformBuffer(imageIndex);
+   // CreateCommandBuffers(app);
    if (m_imagesInFlight[imageIndex] != VK_NULL_HANDLE)
    {
       vkWaitForFences(Data::vk_device, 1, &m_imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
@@ -1273,30 +1265,31 @@ VulkanRenderer::CreateCommandBuffers(Application* app)
 
       vkCmdSetScissor(m_commandBuffers[i], 0, 1, &scissor);
 
-      /*
-       * STAGE 2 - COMPOSITION
-       */
-      vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
-                              m_pipelineLayout, 0, 1,
-                              m_descriptorSets.data(), 0, nullptr);
+      if (isLoaded_)
+      {
+         /*
+          * STAGE 2 - COMPOSITION
+          */
+         vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                 m_pipelineLayout, 0, 1, m_descriptorSets.data(), 0, nullptr);
 
-      vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
-                        m_graphicsPipeline);
+         vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
+                           m_graphicsPipeline);
 
-      VkDeviceSize offsets[] = {0};
-      vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_vertexBuffer, offsets);
+         VkDeviceSize offsets[] = {0};
+         vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_vertexBuffer, offsets);
 
-      vkCmdBindIndexBuffer(m_commandBuffers[i], m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+         vkCmdBindIndexBuffer(m_commandBuffers[i], m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-      vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
-                              m_pipelineLayout, 0, 1, &m_descriptorSets[i], 0, nullptr);
+         vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                 m_pipelineLayout, 0, 1, &m_descriptorSets[i], 0, nullptr);
 
 
-      vkCmdDrawIndexedIndirectCount(m_commandBuffers[i], m_indirectDrawsBuffer, 0,
-                                    m_indirectDrawsBuffer,
-                                    sizeof(VkDrawIndexedIndirectCommand) * m_numMeshes,
-                                    m_numMeshes, sizeof(VkDrawIndexedIndirectCommand));
-
+         vkCmdDrawIndexedIndirectCount(m_commandBuffers[i], m_indirectDrawsBuffer, 0,
+                                       m_indirectDrawsBuffer,
+                                       sizeof(VkDrawIndexedIndirectCommand) * m_numMeshes,
+                                       m_numMeshes, sizeof(VkDrawIndexedIndirectCommand));
+      }
       // Final composition as full screen quad
       // vkCmdDraw(m_commandBuffers[i], 3, 1, 0, 0);
 

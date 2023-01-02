@@ -422,18 +422,18 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 {
    if (m_levelLoaded)
    {
-      render::vulkan::VulkanRenderer::BeginScene(/*m_camera*/);
+      //render::vulkan::VulkanRenderer::BeginScene(/*m_camera*/);
 
-      m_currentLevel->GetSprite().Render();
-      DrawBackgroundObjects();
-      m_currentLevel->RenderGameObjects();
+      //m_currentLevel->GetSprite().Render();
+      //DrawBackgroundObjects();
+      //m_currentLevel->RenderGameObjects();
 
-      DrawEditorObjects();
-      DrawAnimationPoints();
-      DrawBoundingBoxes();
-      DrawGrid();
+      //DrawEditorObjects();
+      //DrawAnimationPoints();
+      //DrawBoundingBoxes();
+      //DrawGrid();
 
-      render::vulkan::VulkanRenderer::EndScene();
+      //render::vulkan::VulkanRenderer::EndScene();
    }
 
    m_gui.Render(cmdBuffer);
@@ -662,6 +662,8 @@ Editor::LoadLevel(const std::string& levelPath)
 
    m_levelLoaded = true;
    m_gui.LevelLoaded(m_currentLevel);
+
+   render::vulkan::VulkanRenderer::SetupData();
 }
 
 void
@@ -869,7 +871,10 @@ Editor::Update()
       }
    }
 
-   m_gui.UpdateUI();
+   if (m_gui.UpdateUI())
+   {
+      render::vulkan::VulkanRenderer::CreateCommandBuffers(this);
+   }
 }
 
 void

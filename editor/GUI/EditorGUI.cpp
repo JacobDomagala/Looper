@@ -868,7 +868,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
    ImGui::End();
 }
 
-void
+bool
 EditorGUI::UpdateUI()
 {
    ImGuiIO& io = ImGui::GetIO();
@@ -905,7 +905,7 @@ EditorGUI::UpdateUI()
 
    ImGui::Render();
 
-   UpdateBuffers();
+   return UpdateBuffers();
 }
 
 void

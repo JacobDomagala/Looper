@@ -37,7 +37,7 @@ class EditorGUI
    static void
    Shutdown();
 
-   void
+   bool
    UpdateUI();
 
    void

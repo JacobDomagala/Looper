@@ -21,5 +21,5 @@ layout(location = 0) out vec4 outColor;
 void
 main(void)
 {
-    outColor = texture(sampler2D(textures[fs_in.fDiffSampl], samp), fs_in.fTexCoord);
+    outColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);//texture(sampler2D(textures[fs_in.fDiffSampl], samp), fs_in.fTexCoord);
 }
