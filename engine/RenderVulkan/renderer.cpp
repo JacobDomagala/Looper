@@ -28,21 +28,15 @@ constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 struct UniformBufferObject
 {
-   alignas(16) glm::mat4 lightspace;
    alignas(16) glm::mat4 proj;
    alignas(16) glm::mat4 view;
    glm::vec4 cameraPos;
-   glm::vec4 lightPos;
 };
 
 struct PerInstanceBuffer
 {
    alignas(16) glm::mat4 model;
    int32_t diffuse = {};
-   int32_t norm = {};
-   int32_t spec = {};
-
-   //  int32_t padding;
 };
 
 std::vector< PerInstanceBuffer > perInstance;
@@ -97,16 +91,6 @@ VulkanRenderer::MeshLoaded(const std::vector< vulkan::Vertex >& vertices_in,
       {
          case TextureType::DIFFUSE_MAP: {
             newInstance.diffuse = idx;
-         }
-         break;
-
-         case TextureType::NORMAL_MAP: {
-            newInstance.norm = idx;
-         }
-         break;
-
-         case TextureType::SPECULAR_MAP: {
-            newInstance.spec = idx;
          }
          break;
       }
@@ -713,21 +697,24 @@ VulkanRenderer::CreateRenderPipeline()
 void
 VulkanRenderer::UpdateUniformBuffer(uint32_t currentImage)
 {
-   UniformBufferObject ubo{};
+   if (!m_uniformBuffersMemory.empty() and !m_ssboMemory.empty())
+   {
+      UniformBufferObject ubo{};
 
-   ubo.view = view_mat;
-   ubo.proj = proj_mat;
+      ubo.view = view_mat;
+      ubo.proj = proj_mat;
 
-   void* data;
-   vkMapMemory(Data::vk_device, m_uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
-   memcpy(data, &ubo, sizeof(ubo));
-   vkUnmapMemory(Data::vk_device, m_uniformBuffersMemory[currentImage]);
+      void* data;
+      vkMapMemory(Data::vk_device, m_uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
+      memcpy(data, &ubo, sizeof(ubo));
+      vkUnmapMemory(Data::vk_device, m_uniformBuffersMemory[currentImage]);
 
-   void* data2;
-   vkMapMemory(Data::vk_device, m_ssboMemory[currentImage], 0,
-               perInstance.size() * sizeof(PerInstanceBuffer), 0, &data2);
-   memcpy(data2, perInstance.data(), perInstance.size() * sizeof(PerInstanceBuffer));
-   vkUnmapMemory(Data::vk_device, m_ssboMemory[currentImage]);
+      void* data2;
+      vkMapMemory(Data::vk_device, m_ssboMemory[currentImage], 0,
+                  perInstance.size() * sizeof(PerInstanceBuffer), 0, &data2);
+      memcpy(data2, perInstance.data(), perInstance.size() * sizeof(PerInstanceBuffer));
+      vkUnmapMemory(Data::vk_device, m_ssboMemory[currentImage]);
+   }
 }
 
 void
@@ -810,7 +797,7 @@ VulkanRenderer::Draw(Application* app)
    vkAcquireNextImageKHR(Data::vk_device, m_swapChain, UINT64_MAX,
                          m_imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
-   // UpdateUniformBuffer(imageIndex);
+   UpdateUniformBuffer(imageIndex);
    // CreateCommandBuffers(app);
    if (m_imagesInFlight[imageIndex] != VK_NULL_HANDLE)
    {
@@ -1267,11 +1254,8 @@ VulkanRenderer::CreateCommandBuffers(Application* app)
 
       if (isLoaded_)
       {
-         /*
-          * STAGE 2 - COMPOSITION
-          */
-         vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                 m_pipelineLayout, 0, 1, m_descriptorSets.data(), 0, nullptr);
+       /*  vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                 m_pipelineLayout, 0, 1, m_descriptorSets.data(), 0, nullptr);*/
 
          vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
                            m_graphicsPipeline);
@@ -1289,9 +1273,11 @@ VulkanRenderer::CreateCommandBuffers(Application* app)
                                        m_indirectDrawsBuffer,
                                        sizeof(VkDrawIndexedIndirectCommand) * m_numMeshes,
                                        m_numMeshes, sizeof(VkDrawIndexedIndirectCommand));
+
+        //  vkCmdDraw(m_commandBuffers[i], 3, 1, 0, 0);
       }
       // Final composition as full screen quad
-      // vkCmdDraw(m_commandBuffers[i], 3, 1, 0, 0);
+      
 
       /*
        * TODO: This is only teporarly here, fix in future!

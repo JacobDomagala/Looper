@@ -875,6 +875,9 @@ Editor::Update()
    {
       render::vulkan::VulkanRenderer::CreateCommandBuffers(this);
    }
+
+   render::vulkan::VulkanRenderer::view_mat = m_camera.GetViewMatrix();
+   render::vulkan::VulkanRenderer::proj_mat = m_camera.GetProjectionMatrix();
 }
 
 void
