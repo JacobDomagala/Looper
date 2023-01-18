@@ -7,7 +7,7 @@ layout(set = 0, binding = 0) uniform UniformBufferObject
 {
    mat4 u_projectionMat;
    mat4 u_viewMat;
-   vec3 u_cameraPos;
+   vec4 u_cameraPos;
 }
 ubo;
 
@@ -48,4 +48,5 @@ main(void)
 
    mat4 modelMat = curInstanceData.modelMat;
    gl_Position = ubo.u_projectionMat * ubo.u_viewMat * modelMat * vec4(a_position, 1.0f);
+   // gl_Position = ubo.u_viewMat * modelMat * vec4(a_position, 1.0f);
 }

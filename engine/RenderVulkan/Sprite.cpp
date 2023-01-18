@@ -57,10 +57,10 @@ Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size,
    glBindVertexArray(0);*/
 
    std::vector< render::vulkan::Vertex > vtcs = {
-      {glm::vec3(0.5f, 0.5f, 0.0f), glm::vec2{1.0f, 1.0f}, glm::vec4{}},
       {glm::vec3{-0.5f, 0.5f, 0.0f}, glm::vec2{0.0f, 1.0f}, glm::vec4{}},
-      {glm::vec3{-0.5f, -0.5f, 0.0f}, glm::vec2{0.0f, 0.0f}, glm::vec4{}},
-      {glm::vec3{0.5f, -0.5f, 0.0f}, glm::vec2{1.0f, 0.0f}, glm::vec4{}}};
+      {glm::vec3(0.5f, 0.5f, 0.0f), glm::vec2{1.0f, 1.0f}, glm::vec4{}},
+      {glm::vec3{0.5f, -0.5f, 0.0f}, glm::vec2{1.0f, 0.0f}, glm::vec4{}},
+      {glm::vec3{-0.5f, -0.5f, 0.0f}, glm::vec2{0.0f, 0.0f}, glm::vec4{}}};
 
    glm::mat4 transformMat = glm::translate(glm::mat4(1.0f), glm::vec3(position, 0.0f))
                             * glm::rotate(glm::mat4(1.0f), 0.0f, {0.0f, 0.0f, 1.0f})

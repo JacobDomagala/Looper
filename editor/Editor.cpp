@@ -52,33 +52,33 @@ Editor::HandleCamera()
    m_timer.ToggleTimer();
    m_deltaTime = m_timer.GetMsDeltaTime();
 
-   // auto cameraMoveBy = glm::vec2();
+    auto cameraMoveBy = glm::vec2();
 
-   // if (!EditorGUI::IsBlockingEvents() && m_levelLoaded)
-   // {
-   //    if (InputManager::CheckKeyPressed(GLFW_KEY_W))
-   //    {
-   //       cameraMoveBy += glm::vec2(0.0f, -1.0f);
-   //    }
-   //    if (InputManager::CheckKeyPressed(GLFW_KEY_S))
-   //    {
-   //       cameraMoveBy += glm::vec2(0.0f, 1.0f);
-   //    }
-   //    if (InputManager::CheckKeyPressed(GLFW_KEY_A))
-   //    {
-   //       cameraMoveBy += glm::vec2(-1.0f, 0.0f);
-   //    }
-   //    if (InputManager::CheckKeyPressed(GLFW_KEY_D))
-   //    {
-   //       cameraMoveBy += glm::vec2(1.0f, 0);
-   //    }
-   //    if (InputManager::CheckKeyPressed(GLFW_KEY_SPACE))
-   //    {
-   //       m_camera.SetCameraAtPosition({0.0f, 0.0f, 0.0f});
-   //    }
+    if (!EditorGUI::IsBlockingEvents() && m_levelLoaded)
+    {
+       if (InputManager::CheckKeyPressed(GLFW_KEY_W))
+       {
+          cameraMoveBy += glm::vec2(0.0f, -1.0f);
+       }
+       if (InputManager::CheckKeyPressed(GLFW_KEY_S))
+       {
+          cameraMoveBy += glm::vec2(0.0f, 1.0f);
+       }
+       if (InputManager::CheckKeyPressed(GLFW_KEY_A))
+       {
+          cameraMoveBy += glm::vec2(-1.0f, 0.0f);
+       }
+       if (InputManager::CheckKeyPressed(GLFW_KEY_D))
+       {
+          cameraMoveBy += glm::vec2(1.0f, 0);
+       }
+       if (InputManager::CheckKeyPressed(GLFW_KEY_SPACE))
+       {
+          m_camera.SetCameraAtPosition({0.0f, 0.0f, 0.0f});
+       }
 
-   //    m_camera.Move(glm::vec3(cameraMoveBy, 0.0f));
-   // }
+       m_camera.Move(glm::vec3(cameraMoveBy, 0.0f));
+    }
 }
 
 void
@@ -924,8 +924,6 @@ Editor::IsRunning() const
 void
 Editor::MainLoop()
 {
-   // RenderCommand::SetClearColor({0.2f, 0.1f, 0.5f, 1.0f});
-
    while (IsRunning())
    {
       m_window->Clear();
