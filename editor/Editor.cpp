@@ -7,6 +7,7 @@
 // #include "RenderCommand.hpp"
 #include "renderer.hpp"
 #include "Window.hpp"
+#include "stopwatch.hpp"
 
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -564,6 +565,12 @@ Editor::GetGridData() const
    return {m_drawGrid, m_gridCellSize};
 }
 
+time::TimeStep
+Editor::GetRenderTime() const
+{
+   return timeLastFrame_;
+}
+
 void
 Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
 {
@@ -924,8 +931,11 @@ Editor::IsRunning() const
 void
 Editor::MainLoop()
 {
+   time::Stopwatch watch;
    while (IsRunning())
    {
+      watch.Start();
+
       m_window->Clear();
 
       InputManager::PollEvents();
@@ -934,6 +944,8 @@ Editor::MainLoop()
       Update();
 
       render::vulkan::VulkanRenderer::Draw(this);
+
+      timeLastFrame_ = watch.Stop();
 
       if (m_playGame)
       {

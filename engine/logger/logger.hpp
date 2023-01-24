@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Timer.hpp"
+#include "timer.hpp"
 #include "formatter_types.hpp"
 
 #include <fmt/color.h>

@@ -682,6 +682,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
    ImGui::SetNextWindowPos({m_windowWidth, m_windowSize.y - m_debugWindowHeight});
    ImGui::SetNextWindowSize(ImVec2(m_debugWindowWidth, m_debugWindowHeight));
    ImGui::Begin("Debug");
+   ImGui::Text("Render time %s", m_parent.GetRenderTime().ToString().c_str());
    const auto cameraPos = m_parent.GetCamera().GetPosition();
    ImGui::Text("Camera Position %f, %f", static_cast< double >(cameraPos.x),
                static_cast< double >(cameraPos.y));

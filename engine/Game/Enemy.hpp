@@ -3,7 +3,7 @@
 #include "Animatable.hpp"
 #include "Common.hpp"
 #include "GameObject.hpp"
-#include "Timer.hpp"
+#include "timer.hpp"
 #include "Weapon.hpp"
 
 #include <deque>

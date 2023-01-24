@@ -7,7 +7,7 @@
 #include "Level.hpp"
 #include "logger.hpp"
 #include "Player.hpp"
-#include "Timer.hpp"
+#include "timer.hpp"
 #include "Window.hpp"
 
 #include <glm/glm.hpp>

@@ -1,4 +1,4 @@
-#include "Timer.hpp"
+#include "timer.hpp"
 
 #include <fmt/chrono.h>
 #include <iomanip>

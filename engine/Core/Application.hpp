@@ -5,7 +5,7 @@
 #include "InputListener.hpp"
 #include "Level.hpp"
 #include "logger.hpp"
-#include "Timer.hpp"
+#include "timer.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>

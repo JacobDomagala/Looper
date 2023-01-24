@@ -8,7 +8,8 @@
 #include "logger.hpp"
 #include "Object.hpp"
 #include "Player.hpp"
-#include "Timer.hpp"
+#include "timer.hpp"
+#include "time_step.hpp"
 
 #include <glm/matrix.hpp>
 #include <utility>
@@ -112,6 +113,9 @@ class Editor : public Application
    std::pair< bool, int32_t >
    GetGridData() const;
 
+   [[nodiscard]]
+   time::TimeStep GetRenderTime() const;
+
    void
    HandleGameObjectSelected(const std::shared_ptr< GameObject >& newSelectedGameObject,
                             bool fromGUI = false);
@@ -209,6 +213,7 @@ class Editor : public Application
    EditorGUI m_gui;
 
    bool m_playGame = false;
+   time::TimeStep timeLastFrame_;
 };
 
 } // namespace looper

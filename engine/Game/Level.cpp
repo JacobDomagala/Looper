@@ -3,7 +3,7 @@
 #include "utils/file_manager.hpp"
 #include "Game.hpp"
 #include "Player.hpp"
-#include "Timer.hpp"
+#include "timer.hpp"
 #include "Window.hpp"
 #include "RenderVulkan/renderer.hpp"
 
