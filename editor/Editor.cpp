@@ -424,12 +424,12 @@ Editor::Render(VkCommandBuffer cmdBuffer)
    {
       //render::vulkan::VulkanRenderer::BeginScene(/*m_camera*/);
 
-      //m_currentLevel->GetSprite().Render();
-      //DrawBackgroundObjects();
-      //m_currentLevel->RenderGameObjects();
+      m_currentLevel->GetSprite().Render();
+      DrawBackgroundObjects();
+      m_currentLevel->RenderGameObjects();
 
-      //DrawEditorObjects();
-      //DrawAnimationPoints();
+      DrawEditorObjects();
+      DrawAnimationPoints();
       //DrawBoundingBoxes();
       //DrawGrid();
 
@@ -931,10 +931,8 @@ Editor::MainLoop()
       InputManager::PollEvents();
 
       HandleCamera();
-
       Update();
 
-      // Render();
       render::vulkan::VulkanRenderer::Draw(this);
 
       if (m_playGame)

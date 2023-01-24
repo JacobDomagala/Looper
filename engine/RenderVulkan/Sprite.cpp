@@ -23,54 +23,58 @@ Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
    m_currentState.m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
+
 void
-Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size,
+Sprite::SetSpriteTextured(const glm::vec3& position, const glm::ivec2& size,
                           const std::string& fileName)
 {
    texture_ = render::TextureLibrary::GetTexture(fileName).GetID();
 
-   /*glGenVertexArrays(1, &m_vertexArrayBuffer);
-   glGenBuffers(1, &m_vertexBuffer);
-   glBindVertexArray(m_vertexArrayBuffer);
-   glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
-
-   glm::vec4 positions[] = {glm::vec4(0.0f + size.x, 0.0f, 1.0f, 1.0f),         glm::vec4(0.0f,
-   0.0f, 0.0f, 1.0f), glm::vec4(0.0f, 0.0f - size.y, 0.0f, 0.0f),
-
-                            glm::vec4(0.0f + size.x, 0.0f, 1.0f, 1.0f),         glm::vec4(0.0f, 0.0f
-   - size.y, 0.0f, 0.0f), glm::vec4(0.0f + size.x, 0.0f - size.y, 1.0f, 0.0f)};*/
-
-   /*m_centeredPosition.x = position.x + (size.x / 2.0f);
-   m_centeredPosition.y = position.y - (size.y / 2.0f);*/
    m_initialPosition = position;
    m_currentState.m_currentPosition = position;
    m_size = size;
 
-   m_currentState.m_translateVal = glm::vec3(position, 0.0f);
+   m_currentState.m_translateVal = position;
    m_currentState.m_angle = 0.0f;
    m_currentState.m_scaleVal = glm::vec2(1.0f, 1.0f);
    m_currentState.m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
-   /*glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
-   glEnableVertexAttribArray(0);
-   glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-   glBindVertexArray(0);*/
 
+   /*                          y -1
+                                ^
+                                |
+       x (0) [-0.5f, -0.5f]     |     x (1) [0.5f, -0.5f]
+                                |
+     -------------------------------------------------------->  x +1
+                                |
+                                |
+        x (3) [-0.5f, 0.5f]     |     x (2) [0.5f, 0.5f]
+
+   */
    std::vector< render::vulkan::Vertex > vtcs = {
-      {glm::vec3{-0.5f, 0.5f, 0.0f}, glm::vec2{0.0f, 1.0f}, glm::vec4{}},
-      {glm::vec3(0.5f, 0.5f, 0.0f), glm::vec2{1.0f, 1.0f}, glm::vec4{}},
+      {glm::vec3{-0.5f, -0.5f, 0.0f}, glm::vec2{0.0f, 0.0f}, glm::vec4{}},
       {glm::vec3{0.5f, -0.5f, 0.0f}, glm::vec2{1.0f, 0.0f}, glm::vec4{}},
-      {glm::vec3{-0.5f, -0.5f, 0.0f}, glm::vec2{0.0f, 0.0f}, glm::vec4{}}};
+      {glm::vec3(0.5f, 0.5f, 0.0f), glm::vec2{1.0f, 1.0f}, glm::vec4{}},
+      {glm::vec3{-0.5f, 0.5f, 0.0f}, glm::vec2{0.0f, 1.0f}, glm::vec4{}}};
 
-   glm::mat4 transformMat = glm::translate(glm::mat4(1.0f), glm::vec3(position, 0.0f))
-                            * glm::rotate(glm::mat4(1.0f), 0.0f, {0.0f, 0.0f, 1.0f})
-                            * glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
+   glm::mat4 transformMat =
+      glm::translate(glm::mat4(1.0f), glm::vec3(m_currentState.m_translateVal, 0.0f))
+      // glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f))
+      * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
+      * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
 
    std::array< std::string, 3 > txts = {render::TextureLibrary::GetTexture(texture_).GetName(),
                                         render::TextureLibrary::GetTexture(texture_).GetName(),
                                         render::TextureLibrary::GetTexture(texture_).GetName()};
 
-   render::vulkan::VulkanRenderer::MeshLoaded(vtcs, txts, transformMat);
+   rendererIdx_ = render::vulkan::VulkanRenderer::MeshLoaded(vtcs, txts, transformMat);
+}
+
+void
+Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size,
+                          const std::string& fileName)
+{
+   SetSpriteTextured(glm::vec3{position, 0.0f}, size, fileName);
 }
 
 void
@@ -98,7 +102,17 @@ Sprite::Render()
    //                    TextureLibrary::GetTexture(m_texture->GetName()), 1.0f,
    //                    m_currentState.m_color);
 
-   render::vulkan::VulkanRenderer::DrawQuad();
+    if (changed_)
+   {
+      glm::mat4 transformMat =
+         glm::translate(glm::mat4(1.0f), glm::vec3(m_currentState.m_translateVal, 0.0f))
+         * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
+         * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
+
+      render::vulkan::VulkanRenderer::SubmitMeshData(rendererIdx_ , transformMat); 
+
+      changed_ = false;
+    }
 }
 
 glm::vec2
@@ -160,6 +174,7 @@ void
 Sprite::SetColor(const glm::vec3& color)
 {
    m_currentState.m_color = glm::vec4(color, 1.0f);
+   changed_ = true;
 }
 
 void
@@ -173,6 +188,8 @@ Sprite::SetTranslateValue(const glm::vec2& translateBy)
 {
    m_currentState.m_currentPosition = m_initialPosition + translateBy;
    m_currentState.m_translateVal = glm::vec3(m_initialPosition + translateBy, 0.0f);
+
+   changed_ = true;
 }
 
 void
@@ -193,6 +210,8 @@ Sprite::Rotate(float angle, RotationType type)
    m_currentState.m_angle = type == RotationType::DEGREES ? glm::degrees(angle) : angle;
    m_currentState.m_angle =
       glm::clamp(m_currentState.m_angle, glm::radians(-360.0f), glm::radians(360.0f));
+
+   changed_ = true;
 }
 
 void
@@ -201,6 +220,8 @@ Sprite::RotateCumulative(float angle, RotationType type)
    m_currentState.m_angle += type == RotationType::DEGREES ? glm::degrees(angle) : angle;
    m_currentState.m_angle =
       glm::clamp(m_currentState.m_angle, glm::radians(-360.0f), glm::radians(360.0f));
+
+   changed_ = true;
 }
 
 void
@@ -214,6 +235,8 @@ Sprite::Scale(const glm::vec2& scaleValue)
 
    m_size = static_cast< glm::vec2 >(m_size)
             * (m_currentState.m_scaleVal + m_currentState.m_uniformScaleValue);
+
+   changed_ = true;
 }
 
 void
@@ -231,6 +254,8 @@ Sprite::Translate(const glm::vec2& translateValue)
 {
    m_currentState.m_currentPosition += translateValue;
    m_currentState.m_translateVal += translateValue;
+
+   changed_ = true;
 }
 
 void
@@ -241,6 +266,8 @@ Sprite::ScaleUniformly(const float scaleValue)
      m_currentState.m_scaleVal.x = glm::clamp(m_currentState.m_scaleVal.x, m_scaleRange.first,
      m_scaleRange.second); m_currentState.m_scaleVal.y = glm::clamp(m_currentState.m_scaleVal.y,
      m_scaleRange.first, m_scaleRange.second);*/
+
+   changed_ = true;
 }
 
 std::array< glm::vec2, 4 >

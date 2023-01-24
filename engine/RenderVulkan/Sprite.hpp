@@ -33,6 +33,11 @@ class Sprite
                      const std::string& fileName = "Default128.png");
 
    void
+   SetSpriteTextured(const glm::vec3& position = glm::vec3(0.0f, 0.0f, 0.0f),
+                     const glm::ivec2& size = glm::ivec2(10, 10),
+                     const std::string& fileName = "Default128.png");
+
+   void
    SetColor(const glm::vec3& color);
 
    void
@@ -137,6 +142,8 @@ class Sprite
 
    // width and height
    glm::ivec2 m_size;
+   bool changed_ = false;
+   uint32_t rendererIdx_ = -1;
 };
 
 } // namespace looper

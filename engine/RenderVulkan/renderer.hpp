@@ -32,10 +32,14 @@ class VulkanRenderer
    static void
    Draw(Application* app);
 
-   static void
+   [[nodiscard]]
+   static uint32_t
    MeshLoaded(const std::vector< vulkan::Vertex >& vertices,
               const TextureMaps& textures,
               const glm::mat4& modelMat);
+
+   static void
+   SubmitMeshData(const uint32_t idx, const glm::mat4& modelMat);
 
    static void
    BeginScene()
