@@ -14,7 +14,7 @@ Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
    // m_texture->CreateColorTexture(size, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
    m_currentState.m_currentPosition = position;
-   m_initialPosition = position;
+   m_initialPosition = glm::vec3(position, 0.0f);
    m_size = size;
 
    m_currentState.m_translateVal = glm::vec3(position, 0.0f);
@@ -58,7 +58,7 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::ivec2& size,
       {glm::vec3{-0.5f, 0.5f, 0.0f}, glm::vec2{0.0f, 1.0f}, glm::vec4{}}};
 
    glm::mat4 transformMat =
-      glm::translate(glm::mat4(1.0f), glm::vec3(m_currentState.m_translateVal, 0.0f))
+      glm::translate(glm::mat4(1.0f), glm::vec3(m_currentState.m_translateVal, m_initialPosition.z))
       // glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f))
       * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
       * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
@@ -105,7 +105,8 @@ Sprite::Render()
     if (changed_)
    {
       glm::mat4 transformMat =
-         glm::translate(glm::mat4(1.0f), glm::vec3(m_currentState.m_translateVal, 0.0f))
+         glm::translate(glm::mat4(1.0f),
+                        glm::vec3(m_currentState.m_translateVal, m_initialPosition.z))
          * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
          * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
 
@@ -186,8 +187,8 @@ Sprite::SetTextureFromFile(const std::string& /*filePath*/)
 void
 Sprite::SetTranslateValue(const glm::vec2& translateBy)
 {
-   m_currentState.m_currentPosition = m_initialPosition + translateBy;
-   m_currentState.m_translateVal = glm::vec3(m_initialPosition + translateBy, 0.0f);
+   m_currentState.m_currentPosition = glm::vec2(m_initialPosition) + translateBy;
+   m_currentState.m_translateVal = m_currentState.m_currentPosition;
 
    changed_ = true;
 }
@@ -195,7 +196,7 @@ Sprite::SetTranslateValue(const glm::vec2& translateBy)
 void
 Sprite::SetInitialPosition(const glm::vec2& globalPosition)
 {
-   m_initialPosition = globalPosition;
+   m_initialPosition = glm::vec3(globalPosition, m_initialPosition.z);
 }
 
 const render::Texture&

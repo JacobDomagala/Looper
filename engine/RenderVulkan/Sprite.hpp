@@ -138,7 +138,7 @@ class Sprite
    // sprite's texture
    render::Texture::TextureID texture_;
 
-   glm::vec2 m_initialPosition;
+   glm::vec3 m_initialPosition;
 
    // width and height
    glm::ivec2 m_size;
