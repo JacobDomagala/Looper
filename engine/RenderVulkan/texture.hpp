@@ -91,13 +91,13 @@ class Texture
 class TextureLibrary
 {
  public:
-   static const Texture&
+   static const Texture*
    GetTexture(vulkan::TextureType type, const std::string& textureName);
 
-   static const Texture&
+   static const Texture*
    GetTexture(const std::string& textureName);
 
-   static const Texture&
+   static const Texture*
    GetTexture(const Texture::TextureID id);
 
    static void

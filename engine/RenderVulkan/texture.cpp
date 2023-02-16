@@ -316,7 +316,7 @@ Texture::CopyBufferToCubemapImage(VkImage image, uint32_t texWidth, uint32_t tex
       bufferCopyRegion.imageExtent.width = texWidth;
       bufferCopyRegion.imageExtent.height = texHeight;
       bufferCopyRegion.imageExtent.depth = 1;
-      bufferCopyRegion.bufferOffset = static_cast<VkDeviceSize>(face * single_face_size);
+      bufferCopyRegion.bufferOffset = face * single_face_size;
 
       bufferCopyRegions.push_back(bufferCopyRegion);
    }
@@ -396,7 +396,7 @@ Texture::TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout,
 /**************************************************************************************************
  *************************************** TEXTURE LIBRARY ******************************************
  *************************************************************************************************/
-const Texture&
+const Texture*
 TextureLibrary::GetTexture(vulkan::TextureType type, const std::string& textureName)
 {
    if (s_loadedTextures.find(textureName) == s_loadedTextures.end())
@@ -405,29 +405,32 @@ TextureLibrary::GetTexture(vulkan::TextureType type, const std::string& textureN
       LoadTexture(type, textureName);
    }
 
-   return s_loadedTextures[textureName];
+   return &s_loadedTextures[textureName];
 }
 
-const Texture&
+const Texture*
 TextureLibrary::GetTexture(const std::string& textureName)
 {
    return GetTexture(vulkan::TextureType::DIFFUSE_MAP, textureName);
 }
 
-const Texture&
+const Texture*
 TextureLibrary::GetTexture(const Texture::TextureID id)
 {
    for (auto& texture : s_loadedTextures)
    {
       if (texture.second.GetID() == id)
       {
-         return texture.second;
+         return &texture.second;
       }
    }
 
    utils::Assert(true, fmt::format("TextureLibrary::GetTexture (With TextureID = {}) failed! "
                                    "Requested texture ID is not present!\n",
                                    id));
+
+   return nullptr;
+
 }
 
 void
@@ -453,7 +456,7 @@ TextureLibrary::Clear()
 void
 TextureLibrary::LoadTexture(vulkan::TextureType type, std::string_view textureName)
 {
-    
+
    s_loadedTextures[std::string{textureName}] = {type, textureName, currentID_++};
 }
 

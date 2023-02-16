@@ -1,5 +1,5 @@
 #include "scoped_timer.hpp"
-#include "Logger/logger.hpp"
+#include "logger/logger.hpp"
 
 namespace looper::time {
 

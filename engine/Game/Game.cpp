@@ -197,7 +197,7 @@ Game::KeyEvents() // NOLINT
          m_camera.SetCameraAtObject(m_player);
       }
 
-      if (glm::length(glm::vec2(playerMoveBy)) > 0.0f)
+      if (glm::length(playerMoveBy) > 0.0f)
       {
          m_camera.Move(glm::vec3{cameraMoveBy, 0.0f});
          MoveGameObject(m_player.get(), playerMoveBy);

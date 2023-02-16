@@ -75,7 +75,7 @@ class Sprite
    float&
    GetUniformScaleValue();
 
-   const render::Texture&
+   const render::Texture*
    GetTexture();
 
    // Set rotation angle
@@ -143,7 +143,7 @@ class Sprite
    // width and height
    glm::ivec2 m_size;
    bool changed_ = false;
-   uint32_t rendererIdx_ = -1;
+   uint32_t rendererIdx_ = static_cast< uint32_t >(~0);
 };
 
 } // namespace looper

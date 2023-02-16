@@ -1,14 +1,15 @@
 
 #include "renderer.hpp"
+#include "Application.hpp"
 #include "buffer.hpp"
 #include "command.hpp"
-#include "vulkan_common.hpp"
 #include "logger/logger.hpp"
 #include "shader.hpp"
 #include "texture.hpp"
 #include "utils/assert.hpp"
 #include "utils/file_manager.hpp"
-#include "Application.hpp"
+#include "vulkan_common.hpp"
+
 
 
 #include <GLFW/glfw3.h>
@@ -53,7 +54,7 @@ VulkanRenderer::MeshLoaded(const std::vector< vulkan::Vertex >& vertices_in,
 {
    std::copy(vertices_in.begin(), vertices_in.end(), std::back_inserter(vertices));
    std::transform(vertices.end() - 4, vertices.end(), vertices.end() - 4, [](auto& vtx) {
-      vtx.m_drawID = VulkanRenderer::m_numMeshes;
+      vtx.m_drawID = static_cast< float >(VulkanRenderer::m_numMeshes);
       return vtx;
    });
 
@@ -86,19 +87,21 @@ VulkanRenderer::MeshLoaded(const std::vector< vulkan::Vertex >& vertices_in,
       if (it == textures.end())
       {
          textures[texture] = {currTexIdx++,
-                              TextureLibrary::GetTexture(texture).GetImageViewAndSampler().first};
+                              TextureLibrary::GetTexture(texture)->GetImageViewAndSampler().first};
 
-         texturesVec.push_back(TextureLibrary::GetTexture(texture).GetImageViewAndSampler().first);
+         texturesVec.push_back(TextureLibrary::GetTexture(texture)->GetImageViewAndSampler().first);
       }
 
       const auto idx = textures[texture].first;
-      const auto tex = TextureLibrary::GetTexture(texture);
-      switch (tex.GetType())
+      const auto* tex = TextureLibrary::GetTexture(texture);
+      switch (tex->GetType())
       {
          case TextureType::DIFFUSE_MAP: {
             newInstance.diffuse = idx;
          }
          break;
+         default:
+            break;
       }
    }
 
@@ -455,7 +458,7 @@ VulkanRenderer::CreateVertexBuffer()
 
    void* data;
    vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
-   memcpy(data, vertices.data(), static_cast< size_t >(bufferSize));
+   memcpy(data, vertices.data(), bufferSize);
    vkUnmapMemory(Data::vk_device, stagingBufferMemory);
 
    Buffer::CreateBuffer(bufferSize,
@@ -527,7 +530,7 @@ VulkanRenderer::CreateIndexBuffer()
 
    void* data;
    vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
-   memcpy(data, indices.data(), static_cast< size_t >(bufferSize));
+   memcpy(data, indices.data(), bufferSize);
    vkUnmapMemory(Data::vk_device, stagingBufferMemory);
 
    Buffer::CreateBuffer(bufferSize,
@@ -604,7 +607,8 @@ VulkanRenderer::CreateDescriptorSets()
    }
 
    const auto [imageView, sampler] =
-      TextureLibrary::GetTexture(TextureType::DIFFUSE_MAP, "Default128.png").GetImageViewAndSampler();
+      TextureLibrary::GetTexture(TextureType::DIFFUSE_MAP, "Default128.png")
+         ->GetImageViewAndSampler();
 
    for (size_t i = 0; i < m_swapChainImages.size(); i++)
    {
@@ -739,8 +743,7 @@ VulkanRenderer::CreateColorResources()
 
    std::tie(m_colorImage, m_colorImageMemory) = Texture::CreateImage(
       Data::m_swapChainExtent.width, Data::m_swapChainExtent.height, 1,
-      render::vulkan::Data::m_msaaSamples, colorFormat,
-      VK_IMAGE_TILING_OPTIMAL,
+      render::vulkan::Data::m_msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
    m_colorImageView =
@@ -754,9 +757,8 @@ VulkanRenderer::CreateDepthResources()
 
    const auto [depthImage, depthImageMemory] = Texture::CreateImage(
       Data::m_swapChainExtent.width, Data::m_swapChainExtent.height, 1,
-      render::vulkan::Data::m_msaaSamples, depthFormat,
-      VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+      render::vulkan::Data::m_msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
    m_depthImage = depthImage;
    m_depthImageMemory = depthImageMemory;
@@ -783,6 +785,10 @@ VulkanRenderer::FindSupportedFormat(const std::vector< VkFormat >& candidates, V
       {
          return format;
       }
+      else
+      {
+         // ??
+      }
    }
 
    utils::Assert(false, "failed to find supported format!");
@@ -804,11 +810,11 @@ VulkanRenderer::HasStencilComponent(VkFormat format)
 }
 
 void
-VulkanRenderer::Draw(Application* app)
+VulkanRenderer::Draw(Application* /*app*/)
 {
    vkWaitForFences(Data::vk_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
- 
-   uint32_t imageIndex;
+
+   uint32_t imageIndex = {};
    vkAcquireNextImageKHR(Data::vk_device, m_swapChain, UINT64_MAX,
                          m_imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
@@ -907,7 +913,6 @@ VulkanRenderer::CreateDevice()
 
    for (const auto& device : devices)
    {
-
       if (isDeviceSuitable(device, m_surface))
       {
          VkPhysicalDeviceProperties deviceProps{};
@@ -940,7 +945,7 @@ VulkanRenderer::CreateDevice()
 
       queueCreateInfos.push_back(queueCreateInfo);
    }
-   
+
    VkPhysicalDeviceVulkan12Features deviceFeatures_12{};
    deviceFeatures_12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
    deviceFeatures_12.drawIndirectCount = VK_TRUE;
@@ -1009,8 +1014,8 @@ VulkanRenderer::CreateSwapchain(GLFWwindow* windowHandle)
    swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
    QueueFamilyIndices indicesSecond = findQueueFamilies(Data::vk_physicalDevice, m_surface);
-   std::array<uint32_t, 2> queueFamilyIndices = {indicesSecond.graphicsFamily.value(),
-                                     indicesSecond.presentFamily.value()};
+   std::array< uint32_t, 2 > queueFamilyIndices = {indicesSecond.graphicsFamily.value(),
+                                                   indicesSecond.presentFamily.value()};
 
    if (indicesSecond.graphicsFamily != indicesSecond.presentFamily)
    {
@@ -1168,7 +1173,8 @@ VulkanRenderer::CreateRenderPass()
    renderPassInfo.dependencyCount = 1;
    renderPassInfo.pDependencies = &dependency;
 
-   VK_CHECK(vkCreateRenderPass(Data::vk_device, &renderPassInfo, nullptr, &render::vulkan::Data::m_renderPass),
+   VK_CHECK(vkCreateRenderPass(Data::vk_device, &renderPassInfo, nullptr,
+                               &render::vulkan::Data::m_renderPass),
             "failed to create render pass!");
 }
 
@@ -1269,8 +1275,8 @@ VulkanRenderer::CreateCommandBuffers(Application* app)
 
       if (isLoaded_)
       {
-       /*  vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                 m_pipelineLayout, 0, 1, m_descriptorSets.data(), 0, nullptr);*/
+         /*  vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                   m_pipelineLayout, 0, 1, m_descriptorSets.data(), 0, nullptr);*/
 
          vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS,
                            m_graphicsPipeline);
@@ -1284,15 +1290,15 @@ VulkanRenderer::CreateCommandBuffers(Application* app)
                                  m_pipelineLayout, 0, 1, &m_descriptorSets[i], 0, nullptr);
 
 
-         //vkCmdDrawIndexedIndirectCount(m_commandBuffers[i], m_indirectDrawsBuffer, 0,
-         //                              m_indirectDrawsBuffer,
-         //                              sizeof(VkDrawIndexedIndirectCommand) * m_numMeshes,
-         //                              m_numMeshes, sizeof(VkDrawIndexedIndirectCommand));
+         // vkCmdDrawIndexedIndirectCount(m_commandBuffers[i], m_indirectDrawsBuffer, 0,
+         //                               m_indirectDrawsBuffer,
+         //                               sizeof(VkDrawIndexedIndirectCommand) * m_numMeshes,
+         //                               m_numMeshes, sizeof(VkDrawIndexedIndirectCommand));
 
-          vkCmdDrawIndexed(m_commandBuffers[i], indices.size(), 1, 0, 0, 0);
+         vkCmdDrawIndexed(m_commandBuffers[i], static_cast< uint32_t >(indices.size()), 1, 0, 0, 0);
       }
       // Final composition as full screen quad
-      
+
 
       /*
        * TODO: This is only teporarly here, fix in future!
