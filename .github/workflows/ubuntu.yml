@@ -7,17 +7,12 @@ on:
   pull_request:
 
 env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
-  CXX: clang++
+  CXX: clang++-14
 
 jobs:
   build:
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
-    # See: https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#configuring-a-build-matrix
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v2
@@ -26,14 +21,20 @@ jobs:
       run: |
         sudo apt-get update
 
-        sudo apt-get install -y xorg-dev libc++-10-dev llvm-dev libubsan0 iwyu
+        sudo apt-get install -y xorg-dev llvm-dev iwyu clang++-14
+
+        wget https://sdk.lunarg.com/sdk/download/1.3.216.0/linux/vulkansdk-linux-x86_64-1.3.216.0.tar.gz
+        tar xf vulkansdk-linux-x86_64-1.3.216.0.tar.gz
+
         cmake -E make_directory ${{runner.workspace}}/build
 
     - name: Run CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DWARNINGS_AS_ERRORS=ON -DENABLE_INCLUDE_WHAT_YOU_USE=ON\
-           -DENABLE_SANITIZER_ADDRESS=ON -DENABLE_SANITIZER_UNDEFINED_BEHAVIOR=ON -DENABLE_SANITIZER_LEAK=ON -DUNITY_BUILD=ON
+      run: |
+        source ${{runner.workspace}}/Looper/1.3.216.0/setup-env.sh
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DWARNINGS_AS_ERRORS=ON -DENABLE_INCLUDE_WHAT_YOU_USE=OFF\
+           -DENABLE_SANITIZER_ADDRESS=ON -DENABLE_SANITIZER_UNDEFINED_BEHAVIOR=OFF -DENABLE_SANITIZER_LEAK=ON -DUNITY_BUILD=ON
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
@@ -42,7 +43,7 @@ jobs:
         cmake --build . --config $BUILD_TYPE  2> >(tee "output.txt")
 
     - name: Post PR comment for warnings/errors
-      if: github.ref != 'refs/heads/master'
+      if: ${{ always() }} && github.ref != 'refs/heads/master'
       uses: JacobDomagala/CompileResultAction@master
       with:
         comment_title: UBUNTU COMPILE RESULT

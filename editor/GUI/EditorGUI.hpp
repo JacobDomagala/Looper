@@ -1,14 +1,16 @@
 #pragma once
 
 #include "Object.hpp"
+#include "renderer/buffer.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
 #include <unordered_map>
 #include <vector>
 
+#include <vulkan/vulkan.h>
 
-namespace dgame {
+namespace looper {
 
 class Editor;
 class GameObject;
@@ -17,6 +19,12 @@ class GameObjectWindow;
 class EditorObjectWindow;
 class LevelWindow;
 class Level;
+
+struct PushConstBlock
+{
+   glm::vec2 scale;
+   glm::vec2 translate;
+};
 
 class EditorGUI
 {
@@ -29,8 +37,8 @@ class EditorGUI
    static void
    Shutdown();
 
-   void
-   Render();
+   bool
+   UpdateUI();
 
    void
    GameObjectSelected(const std::shared_ptr< GameObject >& selectedGameObject);
@@ -56,6 +64,12 @@ class EditorGUI
    static bool
    IsBlockingEvents();
 
+      static bool
+   UpdateBuffers();
+
+   static void
+   Render(VkCommandBuffer commandBuffer);
+
  private:
    void
    RenderMainPanel();
@@ -66,6 +80,13 @@ class EditorGUI
 
    void
    RenderCreateNewLevelWindow();
+
+ private:
+   static void
+   PrepareResources();
+
+   static void
+   PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPass);
 
    Editor& m_parent;
 
@@ -82,6 +103,24 @@ class EditorGUI
    float m_debugWindowWidth = 0.0f;
 
    bool m_createPushed = false;
+
+      inline static VkImage m_fontImage = {};
+   inline static VkDeviceMemory m_fontMemory = {};
+   inline static VkImageView m_fontView = {};
+   inline static VkSampler m_sampler = {};
+   inline static VkDescriptorPool m_descriptorPool = {};
+   inline static VkDescriptorSetLayout m_descriptorSetLayout = {};
+   inline static VkDescriptorSet m_descriptorSet = {};
+
+   inline static VkPipeline m_pipeline = {};
+   inline static VkPipelineLayout m_pipelineLayout = {};
+   inline static uint32_t m_subpass = 0;
+
+   inline static PushConstBlock m_pushConstant = {};
+   inline static render::Buffer m_vertexBuffer = {};
+   inline static render::Buffer m_indexBuffer = {};
+   inline static int32_t m_vertexCount = 0;
+   inline static int32_t m_indexCount = 0;
 };
 
-} // namespace dgame
+} // namespace looper

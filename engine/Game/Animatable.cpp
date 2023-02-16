@@ -1,9 +1,10 @@
 #include "Animatable.hpp"
 #include "Common.hpp"
+#include "logger.hpp"
 
 #include <algorithm>
 
-namespace dgame {
+namespace looper {
 
 Animatable::Animatable(ANIMATION_TYPE type) : m_type(type)
 {
@@ -245,7 +246,7 @@ Animatable::DeleteAnimationNode(Object::ID animationID)
    }
    else
    {
-      m_logger.Log(Logger::Type::WARNING, "Attempting to remove non existing node with ID={}",
+      Logger::Warn("Attempting to remove non existing node with ID={}",
                    animationID);
    }
 }
@@ -403,4 +404,4 @@ Animatable::GetAnimationStartLocation() const
    return m_animationStartPosition;
 }
 
-} // namespace dgame
+} // namespace looper

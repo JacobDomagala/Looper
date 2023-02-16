@@ -2,12 +2,11 @@
 
 #include "PathFinder.hpp"
 #include "Player.hpp"
-#include "Shader.hpp"
 
 #include <glm/glm.hpp>
 #include <unordered_map>
 
-namespace dgame {
+namespace looper {
 
 class Application;
 class GameObject;
@@ -193,8 +192,6 @@ class Level
    }
 
  private:
-   Logger m_logger = Logger("Level");
-
    Application* m_contextPointer = nullptr;
    Sprite m_background;
 
@@ -210,4 +207,4 @@ class Level
    PathFinder m_pathFinder;
 };
 
-} // namespace dgame
+} // namespace looper

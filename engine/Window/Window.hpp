@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Logger.hpp"
+#include "logger.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -9,7 +9,7 @@
 
 struct GLFWwindow;
 
-namespace dgame {
+namespace looper {
 
 // NOLINTNEXTLINE
 class Window
@@ -47,9 +47,6 @@ class Window
 
    void
    Clear();
-
-   void
-   SwapBuffers();
 
    // true -> mouse visible and not wrapped
    // false -> mouse is disabled (hidden and wrapped)
@@ -105,8 +102,6 @@ class Window
 
    // is windows active
    bool m_isRunning = {};
-
-   Logger m_logger = {};
 
    // NOLINTNEXTLINE
    static inline bool s_glfwInitalized = false;

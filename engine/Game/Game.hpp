@@ -1,20 +1,20 @@
 #pragma once
 
 #include "Application.hpp"
-#include "Font.hpp"
-#include "Framebuffer.hpp"
+// #include "Font.hpp"
+// #include "Framebuffer.hpp"
 #include "InputManager.hpp"
 #include "Level.hpp"
-#include "Logger.hpp"
+#include "logger.hpp"
 #include "Player.hpp"
-#include "Timer.hpp"
+#include "timer.hpp"
 #include "Window.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <vector>
 
-namespace dgame {
+namespace looper {
 
 class Game : public Application
 {
@@ -27,14 +27,14 @@ class Game : public Application
    void
    Init(const std::string& configFile);
 
-   bool
+   [[nodiscard]] bool
    IsReverse() const;
 
    void
    ProcessInput(Timer::milliseconds deltaTime);
 
    void
-   Render();
+   Render(VkCommandBuffer cmdBuffer) override;
 
    glm::vec2
    GetCursor();
@@ -42,25 +42,22 @@ class Game : public Application
    glm::vec2
    GetCursorScreenPosition();
 
-   void
-   SwapBuffers();
-
    static void
    RegisterForKeyInput(InputListener* listener);
 
    void
    LoadLevel(const std::string& pathToLevel);
 
-   glm::vec2
+   [[nodiscard]] glm::vec2
    GetWindowSize() const override;
 
-   const glm::mat4&
+   [[nodiscard]] const glm::mat4&
    GetProjection() const override;
 
-   const glm::mat4&
+   [[nodiscard]] const glm::mat4&
    GetViewMatrix() const override;
 
-   float
+   [[nodiscard]] float
    GetZoomLevel() const override;
 
  private:
@@ -109,7 +106,7 @@ class Game : public Application
    void
    HandleReverseLogic();
 
-   bool
+   [[nodiscard]] bool
    IsRunning() const override;
 
    bool m_initialized = false;
@@ -122,7 +119,7 @@ class Game : public Application
    std::vector< std::string > m_levels;
 
    // framebuffer for first pass
-   Framebuffer m_frameBuffer;
+   // Framebuffer m_frameBuffer;
 
    // set to true when game runs in reverse mode
    bool m_reverse = false;
@@ -134,4 +131,4 @@ class Game : public Application
    GameState m_state = GameState::GAME;
 };
 
-} // namespace dgame
+} // namespace looper

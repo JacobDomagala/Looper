@@ -2,7 +2,7 @@
 
 #include "Event.hpp"
 
-namespace dgame {
+namespace looper {
 
 // NOLINTNEXTLINE
 class InputListener
@@ -31,4 +31,4 @@ class InputListener
    }
 };
 
-} // namespace dgame
+} // namespace looper

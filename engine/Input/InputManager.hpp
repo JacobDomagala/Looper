@@ -1,7 +1,7 @@
 #pragma once
 
 #include "InputListener.hpp"
-#include "Logger.hpp"
+#include "logger.hpp"
 
 #include <glm/glm.hpp>
 #include <unordered_map>
@@ -9,7 +9,7 @@
 
 struct GLFWwindow;
 
-namespace dgame {
+namespace looper {
 
 struct Event;
 
@@ -34,6 +34,12 @@ class InputManager
    // @return True if key is pressed, False otherwise
    static bool
    CheckKeyPressed(int32_t keyKode);
+
+   // @brief Polling function to check if mouse button is currenty pressed
+   // @param action Mouse button in which user is interested
+   // @return True if button is pressed, False otherwise
+   static bool
+   CheckButtonPressed(int32_t button);
 
    // @brief Polling function to get current mouse position
    // @return Mouse position relative to window
@@ -77,9 +83,9 @@ class InputManager
    static inline GLFWwindow* s_windowHandle = nullptr;
 
    static inline glm::vec2 s_mousePosition = {};
+   static inline std::unordered_map< int32_t, bool > s_mouseButtonMap = {};
    static inline std::unordered_map< int32_t, bool > s_keyMap = {};
-   static inline Logger s_logger = Logger("InputManager");
    // NOLINTEND
 };
 
-} // namespace dgame
+} // namespace looper

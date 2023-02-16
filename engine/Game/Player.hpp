@@ -2,15 +2,14 @@
 
 #include "Common.hpp"
 #include "GameObject.hpp"
-#include "Logger.hpp"
-#include "Shader.hpp"
+#include "logger.hpp"
 #include "Sprite.hpp"
 #include "Weapon.hpp"
 
 #include <array>
 #include <deque>
 
-namespace dgame {
+namespace looper {
 
 class Window;
 class Enemy;
@@ -24,14 +23,6 @@ class Player : public GameObject
    // check if player got git by enemy
    bool
    CheckCollision(const glm::vec2& bulletPosition, Enemy const* enemy, bool enemyShooting = true);
-
-   // load shaders with given name
-   void
-   LoadShaders(const std::string& shaderFile);
-
-   // load shaders with given shader program
-   void
-   LoadShaders(const Shader& program);
 
    // set position in OpenGL
    void
@@ -103,8 +94,6 @@ class Player : public GameObject
 
    // player's max health
    int32_t m_maxHP = 100;
-
-   Logger m_logger;
 };
 
-} // namespace dgame
+} // namespace looper

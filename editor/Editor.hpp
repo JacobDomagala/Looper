@@ -5,15 +5,16 @@
 #include "EditorObject.hpp"
 #include "Game.hpp"
 #include "Level.hpp"
-#include "Logger.hpp"
+#include "logger.hpp"
 #include "Object.hpp"
 #include "Player.hpp"
-#include "Timer.hpp"
+#include "timer.hpp"
+#include "time_step.hpp"
 
 #include <glm/matrix.hpp>
 #include <utility>
 
-namespace dgame {
+namespace looper {
 
 class Player;
 class Window;
@@ -51,10 +52,10 @@ class Editor : public Application
    void
    MouseScrollCallback(const MouseScrollEvent& event) override;
 
-   // EDITOR SPECIFIC FUNCTIONS
    void
-   Render();
+   Render(VkCommandBuffer cmdBuffer) override;
 
+   // EDITOR SPECIFIC FUNCTIONS
    void
    CreateLevel(const std::string& name, const glm::ivec2& size);
 
@@ -111,6 +112,9 @@ class Editor : public Application
 
    std::pair< bool, int32_t >
    GetGridData() const;
+
+   [[nodiscard]]
+   time::TimeStep GetRenderTime() const;
 
    void
    HandleGameObjectSelected(const std::shared_ptr< GameObject >& newSelectedGameObject,
@@ -187,8 +191,6 @@ class Editor : public Application
 
    glm::vec2 m_lastCursorPosition = {};
 
-   std::unique_ptr< byte_vec4 > m_collision = nullptr;
-
    // Handling game objects (which are visible in game)
    bool m_animateGameObject = false;
    bool m_movementOnGameObject = false;
@@ -211,6 +213,7 @@ class Editor : public Application
    EditorGUI m_gui;
 
    bool m_playGame = false;
+   time::TimeStep timeLastFrame_;
 };
 
-} // namespace dgame
+} // namespace looper

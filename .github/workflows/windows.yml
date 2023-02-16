@@ -7,6 +7,8 @@ on:
   pull_request:
 
 env:
+  VULKAN_DIR: C:\VulkanSDK
+  SDK_VERSION: 1.3.204.1
   BUILD_TYPE: Release
 
 jobs:
@@ -16,25 +18,35 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Cache Vulkan SDK
+      id: cache-vulkan-sdk
+      uses: actions/cache@v3
+      with:
+        path: ${{env.VULKAN_DIR}}\${{env.SDK_VERSION}}
+        key: vulkan-sdk-${{ runner.os }}-${{env.SDK_VERSION}}
+
+    - name: Download and install Vulkan SDK
+      if: steps.cache-vulkan-sdk.outputs.cache-hit != 'true'
+      run: |
+        Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/$env:SDK_VERSION/windows/VulkanSDK-$env:SDK_VERSION-Installer.exe" -OutFile VulkanSDK.exe;
+        $installer = Start-Process -FilePath VulkanSDK.exe -Wait -PassThru -ArgumentList @("--accept-licenses --default-answer --confirm-command install");
+        $installer.WaitForExit();
+
     - name: Create Build Environment
       run: |
         cmake -E make_directory ${{runner.workspace}}/build
 
-    - name: Configure CMake
-      shell: bash
+    - name: Configure CMake and build
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DASSIMP_BUILD_TESTS=0\
-           -DASSIMP_BUILD_ASSIMP_TOOLS=0 -DBUILD_SHARED_LIBS=0
-
-    - name: Build
-      working-directory: ${{runner.workspace}}/build
-      shell: bash
       run: |
-        cmake --build . --config $BUILD_TYPE > output.txt
+        $env:VULKAN_SDK="$env:VULKAN_DIR\$env:SDK_VERSION"
+
+        cmake $env:GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE
+        cmake --build . --config $env:BUILD_TYPE > output.txt
         cat output.txt
 
     - name: Post PR comment for warnings/errors
-      if: github.ref != 'refs/heads/master'
+      if: ${{ always() }} && github.ref != 'refs/heads/master'
       uses: JacobDomagala/CompileResultAction@master
       with:
         compile_result_file: ${{runner.workspace}}/build/output.txt

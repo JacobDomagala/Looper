@@ -317,3 +317,5 @@ dependencies/imgui/imgui*
 dependencies/glfw/glfw*
 *imgui.ini
 /CMakeSettings.json
+*.cache/*
+compile_commands.json

@@ -10,6 +10,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_PATH})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTPUT_PATH})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTPUT_PATH})
 
+set(ASSETS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/assets)
+set(SHADERS_PATH ${ASSETS_PATH}/shaders)
+
 add_definitions( -DCMAKE_ROOT_DIR="${CMAKE_CURRENT_SOURCE_DIR}" )
 
 # Link this 'library' to use the warnings specified in CompilerWarnings.cmake
@@ -38,3 +41,8 @@ add_subdirectory(engine)
 add_subdirectory(game)
 add_subdirectory(editor)
 
+include(cmake/compile_shaders.cmake)
+compile_shader(SOURCE_FILE "${SHADERS_PATH}/vulkan/default.vert"  OUTPUT_FILE_NAME "${SHADERS_PATH}/vulkan/vert.spv")
+compile_shader(SOURCE_FILE "${SHADERS_PATH}/vulkan/default.frag"  OUTPUT_FILE_NAME "${SHADERS_PATH}/vulkan/frag.spv")
+compile_shader(SOURCE_FILE "${SHADERS_PATH}/vulkan/ui.vert"  OUTPUT_FILE_NAME "${SHADERS_PATH}/vulkan/ui.vert.spv")
+compile_shader(SOURCE_FILE "${SHADERS_PATH}/vulkan/ui.frag"  OUTPUT_FILE_NAME "${SHADERS_PATH}/vulkan/ui.frag.spv")

@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace dgame {
+namespace looper {
 
 struct Event
 {
@@ -68,4 +68,4 @@ struct MouseScrollEvent : public Event
    double m_yOffset;
 };
 
-} // namespace dgame
+} // namespace looper

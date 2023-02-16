@@ -1,4 +1,4 @@
 #include <Weapon.hpp>
 
-namespace dgame {
+namespace looper {
 }

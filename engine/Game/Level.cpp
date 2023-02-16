@@ -1,19 +1,21 @@
 #include "Level.hpp"
 #include "Enemy.hpp"
-#include "FileManager.hpp"
+#include "utils/file_manager.hpp"
 #include "Game.hpp"
 #include "Player.hpp"
-#include "Shader.hpp"
-#include "Timer.hpp"
+#include "timer.hpp"
 #include "Window.hpp"
+#include "renderer/renderer.hpp"
 
 #include <algorithm>
 #include <fstream>
 #include <functional>
+#undef max
+#undef min
 #include <nlohmann/json.hpp>
 #include <set>
 
-namespace dgame {
+namespace looper {
 
 void
 Level::Create(Application* context, const std::string& name, const glm::ivec2& size)
@@ -136,8 +138,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
       }
       else
       {
-         m_logger.Log(Logger::Type::FATAL,
-                      "Level::Load -> Unspecified type " + key + " during level loading");
+         Logger::Fatal("Level::Load -> Unspecified type {} during level loading", key);
       }
    }
 }
@@ -247,8 +248,8 @@ Level::Save(const std::string& pathToLevel)
          break;
 
          default: {
-            m_logger.Log(Logger::Type::WARNING,
-                         "Unhandled Object type {} present in game level file!",
+            Logger::Warn(
+                         "Level: Unhandled Object type {} present in game level file!",
                          object->GetTypeString());
          }
       }
@@ -448,10 +449,9 @@ Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
    m_locked = false;
    m_levelSize = size;
 
-   m_background.SetSpriteTextured(glm::vec2(static_cast< float >(m_levelSize.x) / 2.0f,
-                                            static_cast< float >(m_levelSize.y) / 2.0f),
+   m_background.SetSpriteTextured(glm::vec3(static_cast< float >(m_levelSize.x) / 2.0f,
+                                            static_cast< float >(m_levelSize.y) / 2.0f, -1.0f),
                                   size, fileName);
-   // m_shaders.LoadDefault();
 }
 
 void
@@ -470,8 +470,8 @@ Level::DeleteObject(Object::ID deletedObject)
 
    if (objectIter == m_objects.end())
    {
-      m_logger.Log(Logger::Type::FATAL,
-                   "Trying to delete an object that doesn't exist! Object type: {}",
+      Logger::Fatal(
+                   "Level: Trying to delete an object that doesn't exist! Object type: {}",
                    Object::GetTypeString(deletedObject));
    }
    else
@@ -539,7 +539,7 @@ Level::GetObjectRef(Object::ID objectID)
       break;
 
       default: {
-         m_logger.Log(Logger::Type::FATAL, "Trying to get Object on unknown type!");
+         Logger::Fatal("Level: Trying to get Object on unknown type!");
       }
    }
 
@@ -651,4 +651,4 @@ Level::SetSize(const glm::ivec2& newSize)
    m_background.Translate(-diff);
 }
 
-} // namespace dgame
+} // namespace looper

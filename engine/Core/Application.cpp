@@ -1,14 +1,14 @@
 #include "Application.hpp"
-#include "Renderer.hpp"
+#include "renderer.hpp"
 #include "Window.hpp"
 
 #include <glm/gtx/rotate_vector.hpp>
 
-namespace dgame {
+namespace looper {
 
 Application::~Application()
 {
-   Renderer::Shutdown();
+   // render::VulkanRenderer::Shutdown();
 }
 
 std::shared_ptr< Player >
@@ -47,11 +47,11 @@ Application::IsGame() const
    return m_isGame;
 }
 
-void
-Application::Log(Logger::Type t, const std::string& log) const
-{
-   m_logger.Log(t, log);
-}
+//void
+//Application::Log(Logger::Type t, const std::string& log) const
+//{
+//   m_logger.Log(t, log);
+//}
 
 void
 Application::RenderText(const std::string& /*text*/, const glm::vec2& /*position*/, float /*scale*/,
@@ -107,4 +107,4 @@ Application::ScreenToGlobal(const glm::vec2& screenPos) const
    return globalPos;
 }
 
-} // namespace dgame
+} // namespace looper

@@ -1,21 +1,19 @@
 #include "Game.hpp"
 #include "Enemy.hpp"
-#include "FileManager.hpp"
-#include "RenderCommand.hpp"
-#include "Renderer.hpp"
+#include "utils/file_manager.hpp"
+// #include "RenderCommand.hpp"
+#include "renderer.hpp"
 #include "Window.hpp"
 
 #include <GLFW/glfw3.h>
 #include <fstream>
 #include <string>
 
-namespace dgame {
+namespace looper {
 
 void
 Game::MainLoop()
 {
-   Logger::SetLogType(Logger::Type::DEBUG);
-
    auto singleFrameTimer = 0.0f;
 
    while (IsRunning())
@@ -26,12 +24,12 @@ Game::MainLoop()
       while (IsRunning() && (singleFrameTimer > TARGET_TIME))
       {
          m_window->Clear();
-         Renderer::BeginScene(m_camera);
+         render::vulkan::VulkanRenderer::BeginScene(/*_camera*/);
          const auto dt = Timer::milliseconds(static_cast< long >(
             TARGET_TIME * 1000.0f * static_cast< float >(Timer::AreTimersRunning())));
          ProcessInput(dt);
 
-         Render();
+         render::vulkan::VulkanRenderer::Draw(this);
          if (m_frameTimer > 1.0f)
          {
             m_framesLastSecond = m_frames;
@@ -44,8 +42,7 @@ Game::MainLoop()
          ++m_frames;
          m_frameTimer += singleFrameTimer;
          // singleFrameTimer = 0.0f;
-         Renderer::EndScene();
-         SwapBuffers();
+         render::vulkan::VulkanRenderer::EndScene();
 
          singleFrameTimer -= TARGET_TIME;
 
@@ -57,21 +54,20 @@ Game::MainLoop()
 void
 Game::Init(const std::string& configFile)
 {
-   m_logger.Init("Game");
    m_isGame = true;
 
    std::ifstream initFile((ASSETS_DIR / configFile).string());
 
    if (!initFile)
    {
-      m_logger.Log(Logger::Type::FATAL, "Can't open" + (ASSETS_DIR / configFile).string());
+      Logger::Fatal("Game: Can't open {}", (ASSETS_DIR / configFile).string());
    }
 
    m_window = std::make_unique< Window >(WIDTH, HEIGHT, "WindowTitle");
 
-   RenderCommand::Init();
-   RenderCommand::SetClearColor({1.0f, 0.2f, 0.3f, 1.0f});
-   Renderer::Init();
+   // RenderCommand::Init();
+   // RenderCommand::SetClearColor({1.0f, 0.2f, 0.3f, 1.0f});
+   render::vulkan::VulkanRenderer::Initialize(m_window->GetWindowHandle());
    // RenderCommand::SetViewport(0, 0, WIDTH, HEIGHT);
 
    // m_frameBuffer.SetUp();
@@ -153,8 +149,8 @@ Game::KeyEvents() // NOLINT
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_O))
       {
-         glEnable(GL_BLEND);
-         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+         // glEnable(GL_BLEND);
+         // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_1))
       {
@@ -166,7 +162,7 @@ Game::KeyEvents() // NOLINT
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_P))
       {
-         glDisable(GL_BLEND);
+         // glDisable(GL_BLEND);
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_W))
       {
@@ -201,7 +197,7 @@ Game::KeyEvents() // NOLINT
          m_camera.SetCameraAtObject(m_player);
       }
 
-      if (glm::length(glm::vec2(playerMoveBy)) > 0.0f)
+      if (glm::length(playerMoveBy) > 0.0f)
       {
          m_camera.Move(glm::vec3{cameraMoveBy, 0.0f});
          MoveGameObject(m_player.get(), playerMoveBy);
@@ -212,11 +208,11 @@ Game::KeyEvents() // NOLINT
 void
 Game::MouseEvents()
 {
-   const auto playerPos = m_player->GetCenteredPosition();
-   const auto mousePos = ScreenToGlobal(InputManager::GetMousePos());
-   const auto collided = m_currentLevel->GetCollidedPosition(playerPos, mousePos);
+   // const auto playerPos = m_player->GetCenteredPosition();
+   // const auto mousePos = ScreenToGlobal(InputManager::GetMousePos());
+   // const auto collided = m_currentLevel->GetCollidedPosition(playerPos, mousePos);
 
-   Renderer::DrawLine(m_player->GetCenteredPosition(), collided, {0.8f, 0.0f, 0.3f, 1.0f});
+   // Renderer::DrawLine(m_player->GetCenteredPosition(), collided, {0.8f, 0.0f, 0.3f, 1.0f});
 
    if (!m_reverse)
    {
@@ -330,12 +326,6 @@ Game::GetCursorScreenPosition()
    return m_window->GetCursorScreenPosition(m_camera.GetProjectionMatrix());
 }
 
-void
-Game::SwapBuffers()
-{
-   m_window->SwapBuffers();
-}
-
 bool
 Game::IsRunning() const
 {
@@ -394,10 +384,10 @@ Game::HandleReverseLogic()
 }
 
 void
-Game::Render()
+Game::Render(VkCommandBuffer /*cmdBuffer*/)
 {
    RenderFirstPass();
    RenderSecondPass();
 }
 
-} // namespace dgame
+} // namespace looper

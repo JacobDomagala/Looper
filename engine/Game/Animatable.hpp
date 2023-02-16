@@ -1,15 +1,14 @@
 #pragma once
 
-#include "Logger.hpp"
 #include "Object.hpp"
-#include "Timer.hpp"
+#include "timer.hpp"
 
 #include <deque>
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
 
-namespace dgame {
+namespace looper {
 
 struct AnimationPoint : public Object
 {
@@ -184,8 +183,6 @@ class Animatable
    // Calculate next animation step based on current animation point and 'updateTime'
    [[nodiscard]] glm::vec2
    CalculateNextStep(Timer::milliseconds updateTime) const;
-
-   Logger m_logger = Logger("Animatable");
 };
 
-} // namespace dgame
+} // namespace looper

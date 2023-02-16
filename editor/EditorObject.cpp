@@ -3,7 +3,7 @@
 #include "Editor.hpp"
 #include "Enemy.hpp"
 
-namespace dgame {
+namespace looper {
 
 EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size,
                            const std::string& sprite, Object::ID linkedObject)
@@ -117,12 +117,6 @@ Sprite&
 EditorObject::GetSprite()
 {
    return m_sprite;
-}
-
-void
-EditorObject::SetShaders(const Shader& /*program*/)
-{
-   // m_program = program;
 }
 
 void
@@ -310,4 +304,4 @@ EditorObject::IsVisible() const
    return m_visible;
 }
 
-} // namespace dgame
+} // namespace looper

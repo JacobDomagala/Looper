@@ -1,42 +1,36 @@
 #include "Window.hpp"
 #include "Common.hpp"
 #include "Game.hpp"
-#include "Logger.hpp"
-#include "RenderCommand.hpp"
+#include "logger.hpp"
+// #include "RenderCommand.hpp"
+#include "utils/assert.hpp"
 
 #include <GLFW/glfw3.h>
 #include <functional>
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace dgame {
+namespace looper {
 
 Window::Window(int32_t width, int32_t height, const std::string& title)
    : m_width(width), m_height(height), m_title(title), m_isRunning(true)
 {
-   m_logger.Init("Window");
-
-   glfwSetErrorCallback([](int, const char* description) {
-      // Cast to void to avoid clang-tidy complaint
-      static_cast<void>(fprintf(stderr, "Error: %s\n", description));
+   glfwSetErrorCallback([](int error, const char* description) {
+      Logger::Fatal("GLFW Error={}: {}", error, description);
    });
 
-   if (GLFW_TRUE != glfwInit())
-   {
-      m_logger.Log(Logger::Type::FATAL, "GLFW_TRUE != glfwInit()");
-   }
+   utils::Assert(glfwInit(), "GLFW Init failed!");
 
-   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
    glfwWindowHint(GLFW_VISIBLE, GL_TRUE);
    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
+   // NOLINTNEXTLINE
    m_pWindow = glfwCreateWindow(m_width, m_height, title.c_str(), nullptr, nullptr);
-   m_logger.Log(Logger::Type::DEBUG, "GLFW Window created - \n" + std::string(*this));
 
-   glfwMakeContextCurrent(m_pWindow);
+   utils::Assert(m_pWindow, "Failed to create GLFW window!");
 
-   glfwSwapInterval(1);
+   Logger::Info("GLFW Window created! Name:{} Width:{} Height:{}", m_title, m_width,
+                       m_height);
 }
 
 void
@@ -47,12 +41,12 @@ Window::ShutDown()
 }
 
 void
-Window::SetIcon(const std::string& file)
+Window::SetIcon(const std::string& /*file*/)
 {
    GLFWimage image;
    image.width = 16;
    image.height = 16;
-   image.pixels = TextureLibrary::GetTexture(file)->GetData();
+   // image.pixels = render::TextureLibrary::GetTexture(file)->GetData();
 
    auto* cursor = glfwCreateCursor(&image, 0, 0);
    glfwSetCursor(m_pWindow, cursor);
@@ -70,19 +64,9 @@ Window::Resize(int32_t newWidth, int32_t newHeight)
 void
 Window::Clear()
 {
-   glfwMakeContextCurrent(m_pWindow);
+   // glfwMakeContextCurrent(m_pWindow);
 
-   RenderCommand::Clear();
-}
-
-void
-Window::SwapBuffers()
-{
-   if (m_isRunning)
-   {
-      glfwMakeContextCurrent(m_pWindow);
-      glfwSwapBuffers(m_pWindow);
-   }
+   // RenderCommand::Clear();
 }
 
 void

@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <list>
 
-namespace dgame {
+namespace looper {
 
 PathFinder::PathFinder(const glm::ivec2& levelSize, const uint32_t tileSize,
                        std::vector< Node >&& nodes)
@@ -272,15 +272,15 @@ PathFinder::SetNodeOccupied(const Tile_t& nodeCoords, Object::ID objectID)
 {
    if (nodeCoords != Tile_t{-1, -1})
    {
-      auto node = std::find_if(m_nodes.begin(), m_nodes.end(), [nodeCoords](const auto& node) {
+      auto node_found = std::find_if(m_nodes.begin(), m_nodes.end(), [nodeCoords](const auto& node) {
          return (node.m_xPos == nodeCoords.first) and (node.m_yPos == nodeCoords.second);
       });
 
       // NOLINTNEXTLINE
-      assert(node != m_nodes.end());
+      assert(node_found != m_nodes.end());
 
-      node->m_occupied = true;
-      node->m_objectsOccupyingThisNode.push_back(objectID);
+      node_found->m_occupied = true;
+      node_found->m_objectsOccupyingThisNode.push_back(objectID);
    }
 }
 
@@ -289,20 +289,20 @@ PathFinder::SetNodeFreed(const Tile_t& nodeCoords, Object::ID objectID)
 {
    if (nodeCoords != Tile_t{-1, -1})
    {
-      auto node = std::find_if(m_nodes.begin(), m_nodes.end(), [nodeCoords](const auto& node) {
+      auto node_found = std::find_if(m_nodes.begin(), m_nodes.end(), [nodeCoords](const auto& node) {
          return (node.m_xPos == nodeCoords.first) and (node.m_yPos == nodeCoords.second);
       });
 
       // NOLINTNEXTLINE
-      assert(node != m_nodes.end());
+      assert(node_found != m_nodes.end());
 
-      node->m_objectsOccupyingThisNode.erase(std::find(node->m_objectsOccupyingThisNode.begin(),
-                                                       node->m_objectsOccupyingThisNode.end(),
+      node_found->m_objectsOccupyingThisNode.erase(std::find(node_found->m_objectsOccupyingThisNode.begin(),
+                                                       node_found->m_objectsOccupyingThisNode.end(),
                                                        objectID));
 
-      if (node->m_objectsOccupyingThisNode.empty())
+      if (node_found->m_objectsOccupyingThisNode.empty())
       {
-         node->m_occupied = false;
+         node_found->m_occupied = false;
       }
    }
 }
@@ -319,4 +319,4 @@ PathFinder::IsInitialized() const
    return m_initialized;
 }
 
-} // namespace dgame
+} // namespace looper

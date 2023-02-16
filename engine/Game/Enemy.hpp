@@ -3,13 +3,13 @@
 #include "Animatable.hpp"
 #include "Common.hpp"
 #include "GameObject.hpp"
-#include "Timer.hpp"
+#include "timer.hpp"
 #include "Weapon.hpp"
 
 #include <deque>
 #include <vector>
 
-namespace dgame {
+namespace looper {
 
 class Application;
 class Window;
@@ -114,4 +114,4 @@ class Enemy : public GameObject, public Animatable
    glm::vec2 m_initialPosition = {};
 };
 
-} // namespace dgame
+} // namespace looper

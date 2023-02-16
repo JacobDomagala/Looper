@@ -1,17 +1,14 @@
-#include "Renderer.hpp"
 #include <Enemy.hpp>
 #include <Game.hpp>
 #include <Player.hpp>
 #include <Window.hpp>
 
-namespace dgame {
+namespace looper {
 
 Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& size,
                const std::string& sprite, const std::string& name)
    : GameObject(game, position, size, sprite, TYPE::PLAYER)
 {
-   m_logger.Init("Player");
-
    m_name = name;
    m_currentState.m_velocity = {0.0f, 0.0f};
    m_currentState.m_speed = 0.0005f;
@@ -25,30 +22,11 @@ Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& s
    m_currentWeapon = m_weapons.at(0).get();
 }
 
-// void
-// Player::CreateSprite(const glm::vec2& position, const glm::ivec2& size, const std::string&
-// fileName)
-//{
-//   m_collision = m_sprite.SetSpriteTextured(position, size, fileName);
-//   m_currentGameObjectState.m_centeredPosition = m_sprite.GetPosition();
-//   m_currentGameObjectState.m_position = glm::ivec2(position.x, -position.y);
-//}
-
-void
-Player::LoadShaders(const std::string& /*shaderName*/)
-{
-}
-
-void
-Player::LoadShaders(const Shader& /*shaderName*/)
-{
-}
-
 bool
 Player::CheckCollision(const glm::vec2& bulletPosition, Enemy const* enemy, bool enemyShooting)
 {
    // if the bullet is inside collision zone then player got hit
-   if (glm::length(glm::vec2(bulletPosition - m_currentGameObjectState.m_centeredPosition))
+   if (glm::length(bulletPosition - m_currentGameObjectState.m_centeredPosition)
        < (static_cast< float >(m_sprite.GetSize().x)) / 2.5f)
    {
       if (enemyShooting)
@@ -156,4 +134,4 @@ Player::GetWeapons() const
    return weapons;
 }
 
-} // namespace dgame
+} // namespace looper

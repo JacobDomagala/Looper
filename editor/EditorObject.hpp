@@ -3,12 +3,11 @@
 #include "Common.hpp"
 #include "GameObject.hpp"
 #include "Object.hpp"
-#include "Shader.hpp"
 #include "Sprite.hpp"
 
 #include <glm/glm.hpp>
 
-namespace dgame {
+namespace looper {
 
 class Editor;
 
@@ -33,9 +32,6 @@ class EditorObject
 
    void
    SetPosition(const glm::vec2& position);
-
-   void
-   SetShaders(const Shader& program);
 
    void
    SetName(const std::string& name);
@@ -141,4 +137,4 @@ class EditorObject
    Sprite m_sprite;
 };
 
-} // namespace dgame
+} // namespace looper
