@@ -37,7 +37,6 @@ else()
 	message(STATUS ${Vulkan_LIBRARY})
 endif()
 
-add_subdirectory(glad)
 add_subdirectory(glfw)
 add_subdirectory(imgui)
 add_subdirectory(freetype)

@@ -15,8 +15,8 @@
 #include <set>
 #include <string>
 #include <vulkan/vulkan.h>
-#include "RenderVulkan/renderer.hpp"
-#include "RenderVulkan/vulkan_common.hpp"
+#include "renderer/renderer.hpp"
+#include "renderer/vulkan_common.hpp"
 
 namespace looper {
 

@@ -12,4 +12,4 @@ add_library(imgui STATIC ${HEADERS} ${SOURCES})
 target_include_directories(imgui SYSTEM PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/imgui/" "${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends")
 
 # Needed for backend code
-target_link_libraries(imgui PRIVATE glfw glad)
+target_link_libraries(imgui PRIVATE glfw)

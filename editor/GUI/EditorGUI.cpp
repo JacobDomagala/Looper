@@ -2,10 +2,10 @@
 #include "Animatable.hpp"
 #include "Editor.hpp"
 #include "GameObject.hpp"
-#include "RenderVulkan/texture.hpp"
-#include "RenderVulkan/shader.hpp"
-#include "RenderVulkan/types.hpp"
-#include "RenderVulkan/vulkan_common.hpp"
+#include "renderer/texture.hpp"
+#include "renderer/shader.hpp"
+#include "renderer/types.hpp"
+#include "renderer/vulkan_common.hpp"
 #include "utils/file_manager.hpp"
 
 #include <GLFW/glfw3.h>

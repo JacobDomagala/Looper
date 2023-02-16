@@ -5,7 +5,7 @@
 #include "Player.hpp"
 #include "timer.hpp"
 #include "Window.hpp"
-#include "RenderVulkan/renderer.hpp"
+#include "renderer/renderer.hpp"
 
 #include <algorithm>
 #include <fstream>

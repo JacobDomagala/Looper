@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Object.hpp"
-#include "RenderVulkan/buffer.hpp"
+#include "renderer/buffer.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
