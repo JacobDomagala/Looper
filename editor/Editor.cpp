@@ -607,7 +607,7 @@ Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
    m_camera.SetLevelSize(m_currentLevel->GetSize());
 
    m_levelLoaded = true;
-   m_levelFileName = LEVELS_DIR / (name + ".dgl");
+   m_levelFileName = (LEVELS_DIR / (name + ".dgl")).string();
    m_gui.LevelLoaded(m_currentLevel);
 }
 
