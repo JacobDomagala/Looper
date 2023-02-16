@@ -20,13 +20,11 @@ Camera::Create(const glm::vec3& position, const glm::ivec2& windowSize, const gl
    const auto right = m_windowSize.x / 2.0f;
    const auto top = m_windowSize.y / 2.0f;
    const auto bottom = -m_windowSize.y / 2.0f;
-   const auto nearPlane = -1.0f;
-   const auto farPlane = 1.0f;
 
    m_viewMatrix = glm::lookAt(m_position, m_position + m_lookAtDirection, m_upVector);
    
    // NOLINTNEXTLINE top and bottom swapped intentionally
-   m_projectionMatrix = glm::ortho(left, right, top, bottom, nearPlane, farPlane);
+   m_projectionMatrix = glm::ortho(left, right, top, bottom, nearPlane_, farPlane_);
    m_viewProjectionMatrix = m_projectionMatrix * m_viewMatrix;
 }
 
@@ -95,11 +93,9 @@ Camera::Zoom(float value)
    const auto right = m_windowSize.x / (2.0f + m_zoomScale);
    const auto top = m_windowSize.y / (2.0f + m_zoomScale);
    const auto bottom = -m_windowSize.y / (2.0f + m_zoomScale);
-   const auto nearPlane = -1.0f;
-   const auto farPlane = 1.0f;
 
    // NOLINTNEXTLINE top and bottom swapped intentionally
-   m_projectionMatrix = glm::ortho(left, right, top, bottom, nearPlane, farPlane);
+   m_projectionMatrix = glm::ortho(left, right, top, bottom, nearPlane_, farPlane_);
 
    m_viewProjectionMatrix = m_projectionMatrix * m_viewMatrix;
 }

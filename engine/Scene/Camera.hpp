@@ -80,6 +80,9 @@ class Camera
    float m_maxZoomIn = 1.5f;
    float m_maxZoomOut = -1.5f;
 
+   const float nearPlane_ = 1.0f;
+   const float farPlane_ = -1.0f;
+
    glm::vec2 m_levelSize = {};
    glm::vec2 m_windowSize = {};
 
