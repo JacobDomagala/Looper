@@ -133,6 +133,8 @@ class VulkanRenderer
    static bool
    HasStencilComponent(VkFormat format);
 
+   inline static uint32_t m_numMeshes = {};
+
  private:
    inline static bool isLoaded_ = false;
    inline static VkDebugUtilsMessengerCreateInfoEXT m_debugCreateInfo = {};
@@ -190,7 +192,6 @@ class VulkanRenderer
    inline static VkDeviceMemory m_indirectDrawsBufferMemory = {};
    inline static uint32_t m_currentVertex = {};
    inline static uint32_t m_currentIndex = {};
-   inline static uint32_t m_numMeshes = {};
 };
 
 } // namespace looper::render::vulkan

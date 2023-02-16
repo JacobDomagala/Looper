@@ -52,6 +52,10 @@ VulkanRenderer::MeshLoaded(const std::vector< vulkan::Vertex >& vertices_in,
                            const TextureMaps& textures_in, const glm::mat4& modelMat)
 {
    std::copy(vertices_in.begin(), vertices_in.end(), std::back_inserter(vertices));
+   std::transform(vertices.end() - 4, vertices.end(), vertices.end() - 4, [](auto& vtx) {
+      vtx.m_drawID = VulkanRenderer::m_numMeshes;
+      return vtx;
+   });
 
    // Indices are handled in init
    // std::copy(indicies_in.begin(), indicies_in.end(), std::back_inserter(indices));
@@ -1280,12 +1284,12 @@ VulkanRenderer::CreateCommandBuffers(Application* app)
                                  m_pipelineLayout, 0, 1, &m_descriptorSets[i], 0, nullptr);
 
 
-         vkCmdDrawIndexedIndirectCount(m_commandBuffers[i], m_indirectDrawsBuffer, 0,
-                                       m_indirectDrawsBuffer,
-                                       sizeof(VkDrawIndexedIndirectCommand) * m_numMeshes,
-                                       m_numMeshes, sizeof(VkDrawIndexedIndirectCommand));
+         //vkCmdDrawIndexedIndirectCount(m_commandBuffers[i], m_indirectDrawsBuffer, 0,
+         //                              m_indirectDrawsBuffer,
+         //                              sizeof(VkDrawIndexedIndirectCommand) * m_numMeshes,
+         //                              m_numMeshes, sizeof(VkDrawIndexedIndirectCommand));
 
-        //  vkCmdDraw(m_commandBuffers[i], 3, 1, 0, 0);
+          vkCmdDrawIndexed(m_commandBuffers[i], indices.size(), 1, 0, 0, 0);
       }
       // Final composition as full screen quad
       
@@ -1388,24 +1392,27 @@ VulkanRenderer::CreatePipeline()
    multisampling.sampleShadingEnable = VK_FALSE;
    multisampling.rasterizationSamples = render::vulkan::Data::m_msaaSamples;
 
-
-   VkPipelineDepthStencilStateCreateInfo depthStencil{};
+   VkPipelineDepthStencilStateCreateInfo depthStencil = {};
    depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
    depthStencil.depthTestEnable = VK_TRUE;
    depthStencil.depthWriteEnable = VK_TRUE;
    depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
    depthStencil.depthBoundsTestEnable = VK_FALSE;
+   depthStencil.minDepthBounds = 0.0f;
+   depthStencil.maxDepthBounds = 1.0f;
    depthStencil.stencilTestEnable = VK_FALSE;
+   depthStencil.front = {};
+   depthStencil.back = {};
 
-   VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+   VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
    colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT
                                          | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
    colorBlendAttachment.blendEnable = VK_TRUE;
-   colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
-   colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-   colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD,
-   colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-   colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+   colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+   colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+   colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+   colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+   colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
    colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
 
    VkPipelineColorBlendStateCreateInfo colorBlending{};

@@ -52,10 +52,10 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::ivec2& size,
 
    */
    std::vector< render::vulkan::Vertex > vtcs = {
-      {glm::vec3{-0.5f, -0.5f, 0.0f}, glm::vec2{0.0f, 0.0f}, glm::vec4{}},
-      {glm::vec3{0.5f, -0.5f, 0.0f}, glm::vec2{1.0f, 0.0f}, glm::vec4{}},
-      {glm::vec3(0.5f, 0.5f, 0.0f), glm::vec2{1.0f, 1.0f}, glm::vec4{}},
-      {glm::vec3{-0.5f, 0.5f, 0.0f}, glm::vec2{0.0f, 1.0f}, glm::vec4{}}};
+      {glm::vec3{-0.5f, -0.5f, 0.0f}, glm::vec2{0.0f, 0.0f}, glm::vec4{}, 1.0f},
+      {glm::vec3{0.5f, -0.5f, 0.0f}, glm::vec2{1.0f, 0.0f}, glm::vec4{}, 1.0f},
+      {glm::vec3(0.5f, 0.5f, 0.0f), glm::vec2{1.0f, 1.0f}, glm::vec4{}, 1.0f},
+      {glm::vec3{-0.5f, 0.5f, 0.0f}, glm::vec2{0.0f, 1.0f}, glm::vec4{}, 1.0f}};
 
    glm::mat4 transformMat =
       glm::translate(glm::mat4(1.0f), glm::vec3(m_currentState.m_translateVal, m_initialPosition.z))
@@ -110,7 +110,7 @@ Sprite::Render()
          * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
          * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
 
-      render::vulkan::VulkanRenderer::SubmitMeshData(rendererIdx_ , transformMat); 
+      render::vulkan::VulkanRenderer::SubmitMeshData(rendererIdx_ , transformMat);
 
       changed_ = false;
     }
@@ -132,6 +132,7 @@ void
 Sprite::SetSize(glm::vec2 size)
 {
    m_size = size;
+   changed_ = true;
 }
 
 glm::vec2
@@ -248,6 +249,8 @@ Sprite::ScaleCumulative(const glm::vec2& scaleValue)
       glm::clamp(m_currentState.m_scaleVal.x, s_SCALERANGE.first, s_SCALERANGE.second);
    m_currentState.m_scaleVal.y =
       glm::clamp(m_currentState.m_scaleVal.y, s_SCALERANGE.first, s_SCALERANGE.second);
+
+   changed_ = true;
 }
 
 void
@@ -279,10 +282,10 @@ Sprite::GetTransformedRectangle() const
       * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
       * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
 
-   const glm::vec2 topLeft = transformMat * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
-   const glm::vec2 bottomLeft = transformMat * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);
-   const glm::vec2 topRight = transformMat * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
-   const glm::vec2 bottomRight = transformMat * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
+   const glm::vec2 topLeft = transformMat * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);
+   const glm::vec2 bottomLeft = transformMat * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
+   const glm::vec2 topRight = transformMat * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
+   const glm::vec2 bottomRight = transformMat * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
 
    return {topRight, topLeft, bottomLeft, bottomRight};
 }

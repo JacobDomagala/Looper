@@ -25,7 +25,7 @@ layout(std430, set = 0, binding = 1) readonly buffer Block
 layout(location = 0) in vec3 a_position;
 layout(location = 1) in vec2 a_texCoord;
 layout(location = 2) in vec4 a_color;
-// layout(location = 5) in float a_drawID;
+layout(location = 3) in float a_drawID;
 
 layout(location = 0) out VS_OUT
 {
@@ -39,7 +39,7 @@ vs_out;
 void
 main(void)
 {
-   BufferData curInstanceData = Transforms[gl_DrawID];
+   BufferData curInstanceData = Transforms[int(a_drawID)];
 
    vs_out.fTexCoord = a_texCoord;
    vs_out.fColor = vec3(a_color);
@@ -47,7 +47,7 @@ main(void)
    vs_out.fDiffSampl = curInstanceData.diff;
 
    mat4 modelMat = curInstanceData.modelMat;
-   // gl_Position = ubo.u_projectionMat * ubo.u_viewMat * vec4(a_position, 1.0f);
+   //gl_Position = ubo.u_projectionMat * ubo.u_viewMat * vec4(a_position, 1.0f);
    gl_Position = ubo.u_projectionMat * ubo.u_viewMat * modelMat * vec4(a_position, 1.0f);
    // gl_Position = ubo.u_viewMat * modelMat * vec4(a_position, 1.0f);
 }
