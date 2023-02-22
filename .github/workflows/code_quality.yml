@@ -18,7 +18,7 @@ jobs:
         echo "#!/bin/bash
         root_dir=\${1}
         build_dir=\${2}
-        pip install conan
+        pip install conan==1.59.0
         conan profile detect
         conan install \$root_dir --install-folder=build --build=missing --settings=build_type=Release -c tools.system.package_manager:mode=install
         wget https://sdk.lunarg.com/sdk/download/1.2.170.0/linux/vulkansdk-linux-x86_64-1.2.170.0.tar.gz
