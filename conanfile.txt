@@ -1,0 +1,13 @@
+# Docs at https://docs.conan.io/en/latest/reference/conanfile_txt.html
+
+[requires]
+fmt/9.1.0
+glfw/3.3.8
+imgui/1.89.2
+stb/20200203
+glm/0.9.9.8
+nlohmann_json/3.11.2
+
+[generators]
+cmake_find_package_multi
+cmake
