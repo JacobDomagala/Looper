@@ -36,6 +36,23 @@ jobs:
       run: |
         cmake -E make_directory ${{runner.workspace}}/build
 
+    - name: Install Conan
+      id: conan
+      uses: turtlebrowser/get-conan@main
+
+    - name: Cache Conan packages
+      id: cache-conan
+      uses: actions/cache@v3
+      with:
+        path: ~/.conan/data
+        key: conan-cache-${{ hashFiles('**/conanfile.txt') }}
+
+    - name: Install dependencies with Conan
+      working-directory: ${{runner.workspace}}/build
+      run: |
+        conan profile detect
+        conan install $env:GITHUB_WORKSPACE --output-folder=build --build=missing --settings=build_type=$env:BUILD_TYPE
+
     - name: Configure CMake and build
       working-directory: ${{runner.workspace}}/build
       run: |

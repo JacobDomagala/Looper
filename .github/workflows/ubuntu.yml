@@ -23,10 +23,25 @@ jobs:
 
         sudo apt-get install -y xorg-dev llvm-dev iwyu clang++-14
 
+        pip install conan
+
         wget https://sdk.lunarg.com/sdk/download/1.3.216.0/linux/vulkansdk-linux-x86_64-1.3.216.0.tar.gz
         tar xf vulkansdk-linux-x86_64-1.3.216.0.tar.gz
 
         cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: Cache Conan packages
+      id: cache-conan
+      uses: actions/cache@v3
+      with:
+        path: ~/.conan/data
+        key: conan-cache-${{ hashFiles('**/conanfile.txt') }}
+
+    - name: Install dependencies with Conan
+      working-directory: ${{runner.workspace}}/build
+      run: |
+        conan profile detect
+        conan install $GITHUB_WORKSPACE --output-folder=build --build=missing --settings=build_type=$BUILD_TYPE
 
     - name: Run CMake
       shell: bash
