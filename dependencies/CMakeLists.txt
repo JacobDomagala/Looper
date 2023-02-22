@@ -16,4 +16,3 @@ else()
 endif()
 
 add_subdirectory(stb_image)
-
