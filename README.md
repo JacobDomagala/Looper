@@ -6,15 +6,20 @@
 
 ## Build
 
-Looper is CMake based project working both on Linux (Ubuntu) and Windows. To build it, you will need at least C++17 compiler and CMake version 3.18. </br>
+Looper is CMake based project working both on Linux (Ubuntu) and Windows. To build it, you will need at least C++20 compiler and CMake version 3.18.
+While most of the dependencies will be handled by Conan/CMake, it's required that you have Vulkan installed on your machine.</br>
 
 Typical build process would look like this:
 ```bash
 # Create build directory
 mkdir build && cd build
 
+# Use newer ABI
+conan profile new default --detect
+conan profile update settings.compiler.libcxx=libstdc++11 default
+conan install .. --output-folder=build --build=missing --settings=build_type=Release
+
 # Generate build system for Windows/Linux
-cmake -G "Visual Studio 16 2019" ..
 cmake -G "Ninja" ..
 
 # Build
