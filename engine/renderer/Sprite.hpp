@@ -132,16 +132,16 @@ class Sprite
       float m_uniformScaleValue = 0.0f;
    };
 
-   std::deque< State > m_statesQueue;
-   State m_currentState;
+   std::deque< State > m_statesQueue = {};
+   State m_currentState = {};
 
    // sprite's texture
-   render::Texture::TextureID texture_;
+   render::Texture::TextureID texture_ = {};
 
-   glm::vec3 m_initialPosition;
+   glm::vec3 m_initialPosition = {};
 
    // width and height
-   glm::ivec2 m_size;
+   glm::ivec2 m_size = {};
    bool changed_ = false;
    uint32_t rendererIdx_ = static_cast< uint32_t >(~0);
 };

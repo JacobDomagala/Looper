@@ -193,7 +193,7 @@ class Level
 
  private:
    Application* m_contextPointer = nullptr;
-   Sprite m_background;
+   Sprite m_background = {};
 
    std::string m_shaderName = "DefaultShader";
    std::shared_ptr< Player > m_player = nullptr;
@@ -203,8 +203,8 @@ class Level
    std::string m_name = "DummyName";
    glm::ivec2 m_levelSize = {0, 0};
    uint32_t m_tileWidth = 128;
-   std::vector< std::shared_ptr< GameObject > > m_objects;
-   PathFinder m_pathFinder;
+   std::vector< std::shared_ptr< GameObject > > m_objects = {};
+   PathFinder m_pathFinder = {};
 };
 
 } // namespace looper
