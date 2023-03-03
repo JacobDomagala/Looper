@@ -395,30 +395,26 @@ getMaxUsableSampleCount(VkPhysicalDevice& physicalDevice)
 VkSurfaceFormatKHR
 chooseSwapSurfaceFormat(const std::vector< VkSurfaceFormatKHR >& availableFormats)
 {
-   for (const auto& availableFormat : availableFormats)
-   {
-      if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB
-          && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-      {
-         return availableFormat;
-      }
-   }
+   const auto format = std::find_if(
+      availableFormats.begin(), availableFormats.end(), [](const auto& availableFormat) {
+         return availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB
+                && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+      });
+     
 
-   return availableFormats[0];
+   return format != availableFormats.end() ? *format : availableFormats[0];
 }
 
 VkPresentModeKHR
 chooseSwapPresentMode(const std::vector< VkPresentModeKHR >& availablePresentModes)
 {
-   for (const auto& availablePresentMode : availablePresentModes)
-   {
-      if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
-      {
-         return availablePresentMode;
-      }
-   }
+   const auto mode = std::find_if(availablePresentModes.begin(), availablePresentModes.end(),
+                                  [](const auto& availablePresentMode) {
+                                     return availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR;
+                                  });
 
-   return VK_PRESENT_MODE_FIFO_KHR;
+
+   return mode != availablePresentModes.end() ? *mode : VK_PRESENT_MODE_FIFO_KHR;
 }
 
 VkExtent2D
@@ -803,11 +799,11 @@ VulkanRenderer::FindDepthFormat()
       VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
-bool
-VulkanRenderer::HasStencilComponent(VkFormat format)
-{
-   return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
-}
+//bool
+//VulkanRenderer::HasStencilComponent(VkFormat format)
+//{
+//   return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
+//}
 
 void
 VulkanRenderer::Draw(Application* /*app*/)
@@ -911,19 +907,18 @@ VulkanRenderer::CreateDevice()
    std::vector< VkPhysicalDevice > devices(deviceCount);
    vkEnumeratePhysicalDevices(Data::vk_instance, &deviceCount, devices.data());
 
-   for (const auto& device : devices)
-   {
-      if (isDeviceSuitable(device, m_surface))
-      {
-         VkPhysicalDeviceProperties deviceProps{};
-         vkGetPhysicalDeviceProperties(device, &deviceProps);
-         Logger::Info("Device found! Using {}", deviceProps.deviceName);
+   const auto device = std::find_if(devices.begin(), devices.end(), [](const auto& device) {
+      return isDeviceSuitable(device, m_surface);
+   });
 
-         Data::vk_physicalDevice = device;
-         render::vulkan::Data::m_msaaSamples = getMaxUsableSampleCount(Data::vk_physicalDevice);
-         break;
-      }
-   }
+   utils::Assert(device != devices.end(), "Unable to find suitable device!");
+
+   VkPhysicalDeviceProperties deviceProps{};
+   vkGetPhysicalDeviceProperties(*device, &deviceProps);
+   Logger::Info("Device found! Using {}", deviceProps.deviceName);
+
+   Data::vk_physicalDevice = *device;
+   render::vulkan::Data::m_msaaSamples = getMaxUsableSampleCount(Data::vk_physicalDevice);
 
    utils::Assert(Data::vk_physicalDevice != VK_NULL_HANDLE, "failed to find a suitable GPU!");
 

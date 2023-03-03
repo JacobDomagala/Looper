@@ -100,13 +100,13 @@ Game::Init(const std::string& configFile)
    m_initialized = true;
 }
 
-glm::vec2
-Game::CheckBulletCollision(const glm::vec2& positon, float range)
-{
-   return m_currentLevel->GetCollidedPosition(
-      positon, glm::clamp(positon + range, glm::vec2{0.0f, 0.0f},
-                          static_cast< glm::vec2 >(m_currentLevel->GetSize())));
-}
+//glm::vec2
+//Game::CheckBulletCollision(const glm::vec2& positon, float range)
+//{
+//   return m_currentLevel->GetCollidedPosition(
+//      positon, glm::clamp(positon + range, glm::vec2{0.0f, 0.0f},
+//                          static_cast< glm::vec2 >(m_currentLevel->GetSize())));
+//}
 
 void
 Game::MoveGameObject(GameObject* gameObject, const glm::vec2& moveBy) const

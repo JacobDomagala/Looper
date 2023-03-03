@@ -144,7 +144,7 @@ GameObject::SetHasCollision(bool hasCollision)
 
    if (!m_hasCollision)
    {
-      for (auto& node : m_currentGameObjectState.m_occupiedNodes)
+      for (const auto& node : m_currentGameObjectState.m_occupiedNodes)
       {
          m_appHandle.GetLevel().GetPathfinder().SetNodeFreed(node, m_id);
       }

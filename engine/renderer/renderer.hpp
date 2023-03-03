@@ -34,8 +34,8 @@ class VulkanRenderer
 
    [[nodiscard]]
    static uint32_t
-   MeshLoaded(const std::vector< vulkan::Vertex >& vertices,
-              const TextureMaps& textures,
+   MeshLoaded(const std::vector< vulkan::Vertex >& vertices_in,
+              const TextureMaps& textures_in,
               const glm::mat4& modelMat);
 
    static void
@@ -130,8 +130,8 @@ class VulkanRenderer
    static VkFormat
    FindDepthFormat();
 
-   static bool
-   HasStencilComponent(VkFormat format);
+   //static bool
+   //HasStencilComponent(VkFormat format);
 
    inline static uint32_t m_numMeshes = {};
 

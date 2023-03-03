@@ -73,8 +73,8 @@ class Game : public Application
     *
     * \return Returns collided position (or \c position + \c range if not collided)
     */
-   glm::vec2
-   CheckBulletCollision(const glm::vec2& positon, float range);
+   //glm::vec2
+   //CheckBulletCollision(const glm::vec2& positon, float range);
 
    /**
     * \brief Try to move GameObject \c gameObject by \c moveBy vector
