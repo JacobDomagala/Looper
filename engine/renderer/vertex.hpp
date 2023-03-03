@@ -4,7 +4,7 @@
 #include <vulkan/vulkan.h>
 #include <array>
 
-namespace looper::render::vulkan {
+namespace looper::render {
 
 struct Vertex
 {

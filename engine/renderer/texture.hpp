@@ -13,7 +13,7 @@ class Texture
  public:
    using TextureID = uint64_t;
 
-   Texture(vulkan::TextureType type, std::string_view textureName, TextureID id);
+   Texture(TextureType type, std::string_view textureName, TextureID id);
 
    Texture() = default;
 
@@ -21,7 +21,7 @@ class Texture
    Destroy();
 
    void
-   CreateTextureImage(vulkan::TextureType type, std::string_view textureName);
+   CreateTextureImage(TextureType type, std::string_view textureName);
 
    static std::pair< VkImage, VkDeviceMemory >
    CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels,
@@ -55,7 +55,7 @@ class Texture
    void
    CreateTextureSampler();
 
-   [[nodiscard]] vulkan::TextureType
+   [[nodiscard]] TextureType
    GetType() const;
 
    [[nodiscard]] const std::string&
@@ -76,7 +76,7 @@ class Texture
 
  private:
    TextureID id_ = {};
-   vulkan::TextureType m_type = {};
+   TextureType m_type = {};
    VkImage m_textureImage = {};
    VkDeviceMemory m_textureImageMemory = {};
    VkImageView m_textureImageView = {};
@@ -92,7 +92,7 @@ class TextureLibrary
 {
  public:
    static const Texture*
-   GetTexture(vulkan::TextureType type, const std::string& textureName);
+   GetTexture(TextureType type, const std::string& textureName);
 
    static const Texture*
    GetTexture(const std::string& textureName);
@@ -101,14 +101,14 @@ class TextureLibrary
    GetTexture(const Texture::TextureID id);
 
    static void
-   CreateTexture(vulkan::TextureType type, const std::string& textureName);
+   CreateTexture(TextureType type, const std::string& textureName);
 
    static void
    Clear();
 
  private:
    static void
-   LoadTexture(vulkan::TextureType type, std::string_view textureName);
+   LoadTexture(TextureType type, std::string_view textureName);
 
  private:
    static inline std::unordered_map< std::string, Texture > s_loadedTextures = {};

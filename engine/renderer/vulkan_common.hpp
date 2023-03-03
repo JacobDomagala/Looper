@@ -9,7 +9,7 @@
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vk_enum_string_helper.h>
 
-namespace looper::render::vulkan {
+namespace looper::render {
 
 constexpr void
 VK_CHECK(VkResult vkResult, std::string_view errorMessage)
@@ -47,4 +47,4 @@ struct Data
 uint32_t
 FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-} // namespace looper::render::vulkan
+} // namespace looper::render

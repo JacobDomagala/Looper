@@ -51,7 +51,7 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::ivec2& size,
         x (3) [-0.5f, 0.5f]     |     x (2) [0.5f, 0.5f]
 
    */
-   std::vector< render::vulkan::Vertex > vtcs = {
+   std::vector< render::Vertex > vtcs = {
       {glm::vec3{-0.5f, -0.5f, 0.0f}, glm::vec2{0.0f, 0.0f}, glm::vec4{}, 1.0f},
       {glm::vec3{0.5f, -0.5f, 0.0f}, glm::vec2{1.0f, 0.0f}, glm::vec4{}, 1.0f},
       {glm::vec3(0.5f, 0.5f, 0.0f), glm::vec2{1.0f, 1.0f}, glm::vec4{}, 1.0f},
@@ -67,7 +67,7 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::ivec2& size,
                                         render::TextureLibrary::GetTexture(texture_)->GetName(),
                                         render::TextureLibrary::GetTexture(texture_)->GetName()};
 
-   rendererIdx_ = render::vulkan::VulkanRenderer::MeshLoaded(vtcs, txts, transformMat);
+   rendererIdx_ = render::VulkanRenderer::MeshLoaded(vtcs, txts, transformMat);
 }
 
 void
@@ -110,7 +110,7 @@ Sprite::Render()
          * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
          * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
 
-      render::vulkan::VulkanRenderer::SubmitMeshData(rendererIdx_ , transformMat);
+      render::VulkanRenderer::SubmitMeshData(rendererIdx_ , transformMat);
 
       changed_ = false;
     }

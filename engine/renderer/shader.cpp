@@ -4,7 +4,7 @@
 #include "utils/assert.hpp"
 #include "utils/file_manager.hpp"
 
-namespace looper::render::vulkan {
+namespace looper::render {
 
 static VkShaderModule
 CreateShaderModule(VkDevice device, std::vector< char >&& shaderByteCode)
@@ -44,4 +44,4 @@ VulkanShader::CreateShader(VkDevice device, std::string_view vertex, std::string
    return {{device, vertShaderStageInfo}, {device, fragShaderStageInfo}};
 }
 
-} // namespace looper::render::vulkan
+} // namespace looper::render

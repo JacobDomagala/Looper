@@ -3,7 +3,7 @@
 #include <array>
 #include <string>
 
-namespace looper::render::vulkan {
+namespace looper::render {
 
 enum class TextureType
 {
@@ -15,4 +15,4 @@ enum class TextureType
 // DIFFUSE_MAP SPECULAR_MAP NORMAL_MAP
 using TextureMaps = std::array< std::string, 3 >;
 
-} // namespace looper::render::vulkan
+} // namespace looper::render

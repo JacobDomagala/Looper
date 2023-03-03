@@ -1,7 +1,7 @@
 #include "command.hpp"
 #include "vulkan_common.hpp"
 
-namespace looper::render::vulkan {
+namespace looper::render {
 
 VkCommandBuffer
 Command::BeginSingleTimeCommands()
@@ -40,4 +40,4 @@ Command::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
    vkFreeCommandBuffers(Data::vk_device, Data::vk_commandPool, 1, &commandBuffer);
 }
 
-} // namespace looper::render::vulkan
+} // namespace looper::render

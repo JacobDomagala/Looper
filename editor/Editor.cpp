@@ -32,10 +32,10 @@ Editor::Editor(const glm::ivec2& screenSize) : m_gui(*this)
 
    /*RenderCommand::Init();
    Renderer::Init();*/
-   render::vulkan::VulkanRenderer::Initialize(m_window->GetWindowHandle());
+   render::VulkanRenderer::Initialize(m_window->GetWindowHandle());
 
    // m_gui.Init();
-   render::vulkan::VulkanRenderer::CreateRenderPipeline();
+   render::VulkanRenderer::CreateRenderPipeline();
    m_gui.Init();
 
    m_deltaTime = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000.0f));
@@ -423,7 +423,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 {
    if (m_levelLoaded)
    {
-      //render::vulkan::VulkanRenderer::BeginScene(/*m_camera*/);
+      //render::VulkanRenderer::BeginScene(/*m_camera*/);
 
       m_currentLevel->GetSprite().Render();
       DrawBackgroundObjects();
@@ -434,7 +434,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       //DrawBoundingBoxes();
       //DrawGrid();
 
-      //render::vulkan::VulkanRenderer::EndScene();
+      //render::VulkanRenderer::EndScene();
    }
 
    m_gui.Render(cmdBuffer);
@@ -491,7 +491,7 @@ Editor::DrawAnimationPoints()
                                    object->GetLinkedObjectID());
                if (it != animaltionPointIDs.end())
                {
-                  // render::vulkan::VulkanRenderer::DrawLine(lineStart, object->GetPosition(), {1.0f, 0.0f, 1.0f, 1.0f});
+                  // render::VulkanRenderer::DrawLine(lineStart, object->GetPosition(), {1.0f, 0.0f, 1.0f, 1.0f});
                   lineStart = object->GetCenteredPosition();
 
                   object->Render();
@@ -670,7 +670,7 @@ Editor::LoadLevel(const std::string& levelPath)
    m_levelLoaded = true;
    m_gui.LevelLoaded(m_currentLevel);
 
-   render::vulkan::VulkanRenderer::SetupData();
+   render::VulkanRenderer::SetupData();
 }
 
 void
@@ -772,7 +772,7 @@ Editor::LaunchGameLoop()
    // Reinitialize renderer
    // glfwMakeContextCurrent(m_window->GetWindowHandle());
    // RenderCommand::Init();
-   render::vulkan::VulkanRenderer::Initialize(m_window->GetWindowHandle());
+   render::VulkanRenderer::Initialize(m_window->GetWindowHandle());
 
    m_gui.Init();
 }
@@ -880,11 +880,11 @@ Editor::Update()
 
    if (m_gui.UpdateUI())
    {
-      render::vulkan::VulkanRenderer::CreateCommandBuffers(this);
+      render::VulkanRenderer::CreateCommandBuffers(this);
    }
 
-   render::vulkan::VulkanRenderer::view_mat = m_camera.GetViewMatrix();
-   render::vulkan::VulkanRenderer::proj_mat = m_camera.GetProjectionMatrix();
+   render::VulkanRenderer::view_mat = m_camera.GetViewMatrix();
+   render::VulkanRenderer::proj_mat = m_camera.GetProjectionMatrix();
 }
 
 void
@@ -943,7 +943,7 @@ Editor::MainLoop()
       HandleCamera();
       Update();
 
-      render::vulkan::VulkanRenderer::Draw(this);
+      render::VulkanRenderer::Draw(this);
 
       timeLastFrame_ = watch.Stop();
 

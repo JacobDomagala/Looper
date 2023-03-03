@@ -128,7 +128,7 @@ EditorGUI::Init()
    SetStyle();
 
    PrepareResources();
-   PreparePipeline(render::vulkan::Data::m_pipelineCache, render::vulkan::Data::m_renderPass);
+   PreparePipeline(render::Data::m_pipelineCache, render::Data::m_renderPass);
 }
 
 bool
@@ -303,7 +303,7 @@ EditorGUI::PrepareResources()
    descriptorPoolInfo.maxSets = 2;
 
    VK_CHECK(
-      vkCreateDescriptorPool(render::vulkan::Data::vk_device, &descriptorPoolInfo, nullptr, &m_descriptorPool), "");
+      vkCreateDescriptorPool(render::Data::vk_device, &descriptorPoolInfo, nullptr, &m_descriptorPool), "");
 
    // Descriptor set layout
    VkDescriptorSetLayoutBinding setLayoutBinding{};
@@ -320,7 +320,7 @@ EditorGUI::PrepareResources()
    descriptorSetLayoutCreateInfo.bindingCount = static_cast< uint32_t >(setLayoutBindings.size());
 
 
-   VK_CHECK(vkCreateDescriptorSetLayout(render::vulkan::Data::vk_device, &descriptorSetLayoutCreateInfo, nullptr,
+   VK_CHECK(vkCreateDescriptorSetLayout(render::Data::vk_device, &descriptorSetLayoutCreateInfo, nullptr,
                                         &m_descriptorSetLayout),
             "");
 
@@ -332,7 +332,7 @@ EditorGUI::PrepareResources()
    descriptorSetAllocateInfo.descriptorSetCount = 1;
 
 
-   VK_CHECK(vkAllocateDescriptorSets(render::vulkan::Data::vk_device, &descriptorSetAllocateInfo, &m_descriptorSet),
+   VK_CHECK(vkAllocateDescriptorSets(render::Data::vk_device, &descriptorSetAllocateInfo, &m_descriptorSet),
             "");
 
    VkDescriptorImageInfo descriptorImageInfo{};
@@ -349,7 +349,7 @@ EditorGUI::PrepareResources()
    writeDescriptorSet.descriptorCount = 1;
 
    std::vector< VkWriteDescriptorSet > writeDescriptorSets = {writeDescriptorSet};
-   vkUpdateDescriptorSets(render::vulkan::Data::vk_device, static_cast< uint32_t >(writeDescriptorSets.size()),
+   vkUpdateDescriptorSets(render::Data::vk_device, static_cast< uint32_t >(writeDescriptorSets.size()),
                           writeDescriptorSets.data(), 0, nullptr);
 }
 
@@ -370,7 +370,7 @@ EditorGUI::PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPas
 
    pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
    pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRange;
-   VK_CHECK(vkCreatePipelineLayout(render::vulkan::Data::vk_device, &pipelineLayoutCreateInfo, nullptr,
+   VK_CHECK(vkCreatePipelineLayout(render::Data::vk_device, &pipelineLayoutCreateInfo, nullptr,
                                    &m_pipelineLayout),
             "");
 
@@ -428,7 +428,7 @@ EditorGUI::PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPas
    VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo{};
    pipelineMultisampleStateCreateInfo.sType =
       VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-   pipelineMultisampleStateCreateInfo.rasterizationSamples = render::vulkan::Data::m_msaaSamples;
+   pipelineMultisampleStateCreateInfo.rasterizationSamples = render::Data::m_msaaSamples;
    pipelineMultisampleStateCreateInfo.flags = 0;
 
 
@@ -443,7 +443,7 @@ EditorGUI::PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPas
    pipelineDynamicStateCreateInfo.flags = 0;
 
    auto [vertexInfo, fragmentInfo] =
-      render::vulkan::VulkanShader::CreateShader(render::vulkan::Data::vk_device, "vulkan/ui.vert.spv", "vulkan/ui.frag.spv");
+      render::VulkanShader::CreateShader(render::Data::vk_device, "vulkan/ui.vert.spv", "vulkan/ui.frag.spv");
    std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = {vertexInfo.shaderInfo,
                                                      fragmentInfo.shaderInfo};
 
@@ -511,7 +511,7 @@ EditorGUI::PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPas
 
    pipelineCreateInfo.pVertexInputState = &pipelineVertexInputStateCreateInfo;
 
-   VK_CHECK(vkCreateGraphicsPipelines(render::vulkan::Data::vk_device, pipelineCache, 1, &pipelineCreateInfo,
+   VK_CHECK(vkCreateGraphicsPipelines(render::Data::vk_device, pipelineCache, 1, &pipelineCreateInfo,
                                       nullptr, &m_pipeline),
             "");
 }

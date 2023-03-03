@@ -10,7 +10,7 @@ namespace looper::render {
 void
 Buffer::Map(VkDeviceSize size)
 {
-   vkMapMemory(vulkan::Data::vk_device, m_bufferMemory, 0, size, 0, &m_mappedMemory);
+   vkMapMemory(Data::vk_device, m_bufferMemory, 0, size, 0, &m_mappedMemory);
    m_mapped = true;
 }
 
@@ -19,7 +19,7 @@ Buffer::Unmap()
 {
    if (m_mapped)
    {
-      vkUnmapMemory(vulkan::Data::vk_device, m_bufferMemory);
+      vkUnmapMemory(Data::vk_device, m_bufferMemory);
       m_mapped = false;
       m_mappedMemory = nullptr;
    }
@@ -42,9 +42,9 @@ Buffer::CopyDataWithStaging(void* data, size_t dataSize)
                         stagingBuffer, stagingBufferMemory);
 
    void* mapped_data;
-   vkMapMemory(vulkan::Data::vk_device, stagingBufferMemory, 0, dataSize, 0, &mapped_data);
+   vkMapMemory(Data::vk_device, stagingBufferMemory, 0, dataSize, 0, &mapped_data);
    memcpy(mapped_data, data, dataSize);
-   vkUnmapMemory(vulkan::Data::vk_device, stagingBufferMemory);
+   vkUnmapMemory(Data::vk_device, stagingBufferMemory);
 
    Buffer::CopyBuffer(stagingBuffer, m_buffer, dataSize);
 }
@@ -60,19 +60,19 @@ Buffer::CopyDataToImageWithStaging(VkImage image, void* data, size_t dataSize,
                         stagingBuffer, stagingBufferMemory);
 
    void* mapped_data;
-   vkMapMemory(vulkan::Data::vk_device, stagingBufferMemory, 0, dataSize, 0, &mapped_data);
+   vkMapMemory(Data::vk_device, stagingBufferMemory, 0, dataSize, 0, &mapped_data);
    memcpy(mapped_data, data, dataSize);
-   vkUnmapMemory(vulkan::Data::vk_device, stagingBufferMemory);
+   vkUnmapMemory(Data::vk_device, stagingBufferMemory);
 
-   VkCommandBuffer commandBuffer = vulkan::Command::BeginSingleTimeCommands();
+   VkCommandBuffer commandBuffer = Command::BeginSingleTimeCommands();
 
    vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                           static_cast<uint32_t>(copyRegions.size()), copyRegions.data());
 
-   vulkan::Command::EndSingleTimeCommands(commandBuffer);
+   Command::EndSingleTimeCommands(commandBuffer);
 
-   vkDestroyBuffer(vulkan::Data::vk_device, stagingBuffer, nullptr);
-   vkFreeMemory(vulkan::Data::vk_device, stagingBufferMemory, nullptr);
+   vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
+   vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
 }
 
 void
@@ -90,9 +90,9 @@ AllocateMemory(VkMemoryRequirements memReq, VkDeviceMemory& bufferMemory,
    VkMemoryAllocateInfo allocInfo{};
    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
    allocInfo.allocationSize = memReq.size;
-   allocInfo.memoryTypeIndex = vulkan::FindMemoryType(memReq.memoryTypeBits, properties);
+   allocInfo.memoryTypeIndex = FindMemoryType(memReq.memoryTypeBits, properties);
 
-   VK_CHECK(vkAllocateMemory(vulkan::Data::vk_device, &allocInfo, nullptr, &bufferMemory),
+   VK_CHECK(vkAllocateMemory(Data::vk_device, &allocInfo, nullptr, &bufferMemory),
             "failed to allocate buffer memory!");
 }
 
@@ -101,7 +101,7 @@ Buffer::AllocateImageMemory(VkImage image, VkDeviceMemory& bufferMemory,
                             VkMemoryPropertyFlags properties)
 {
    VkMemoryRequirements memRequirements;
-   vkGetImageMemoryRequirements(vulkan::Data::vk_device, image, &memRequirements);
+   vkGetImageMemoryRequirements(Data::vk_device, image, &memRequirements);
 
    AllocateMemory(memRequirements, bufferMemory, properties);
 }
@@ -111,7 +111,7 @@ Buffer::AllocateBufferMemory(VkBuffer buffer, VkDeviceMemory& bufferMemory,
                              VkMemoryPropertyFlags properties)
 {
    VkMemoryRequirements memRequirements;
-   vkGetBufferMemoryRequirements(vulkan::Data::vk_device, buffer, &memRequirements);
+   vkGetBufferMemoryRequirements(Data::vk_device, buffer, &memRequirements);
 
    AllocateMemory(memRequirements, bufferMemory, properties);
 }
@@ -137,24 +137,24 @@ Buffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryProper
    bufferInfo.usage = usage;
    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-   VK_CHECK(vkCreateBuffer(vulkan::Data::vk_device, &bufferInfo, nullptr, &buffer),
+   VK_CHECK(vkCreateBuffer(Data::vk_device, &bufferInfo, nullptr, &buffer),
             "failed to create buffer!");
 
    AllocateBufferMemory(buffer, bufferMemory, properties);
 
-   vkBindBufferMemory(vulkan::Data::vk_device, buffer, bufferMemory, 0);
+   vkBindBufferMemory(Data::vk_device, buffer, bufferMemory, 0);
 }
 
 void
 Buffer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
-   VkCommandBuffer commandBuffer = vulkan::Command::BeginSingleTimeCommands();
+   VkCommandBuffer commandBuffer = Command::BeginSingleTimeCommands();
 
    VkBufferCopy copyRegion{};
    copyRegion.size = size;
    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-   vulkan::Command::EndSingleTimeCommands(commandBuffer);
+   Command::EndSingleTimeCommands(commandBuffer);
 }
 
 void
@@ -166,7 +166,7 @@ Buffer::Flush(VkDeviceSize size, VkDeviceSize offset) const
    mappedRange.offset = offset;
    mappedRange.size = size;
 
-   VK_CHECK(vkFlushMappedMemoryRanges(vulkan::Data::vk_device, 1, &mappedRange), "Buffer::Flush error!");
+   VK_CHECK(vkFlushMappedMemoryRanges(Data::vk_device, 1, &mappedRange), "Buffer::Flush error!");
 }
 
 void
@@ -174,11 +174,11 @@ Buffer::Destroy()
 {
    if (m_buffer)
    {
-      vkDestroyBuffer(vulkan::Data::vk_device, m_buffer, nullptr);
+      vkDestroyBuffer(Data::vk_device, m_buffer, nullptr);
    }
    if (m_bufferMemory)
    {
-      vkFreeMemory(vulkan::Data::vk_device, m_bufferMemory, nullptr);
+      vkFreeMemory(Data::vk_device, m_bufferMemory, nullptr);
    }
 }
 

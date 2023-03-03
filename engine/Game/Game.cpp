@@ -24,12 +24,12 @@ Game::MainLoop()
       while (IsRunning() && (singleFrameTimer > TARGET_TIME))
       {
          m_window->Clear();
-         render::vulkan::VulkanRenderer::BeginScene(/*_camera*/);
+         render::VulkanRenderer::BeginScene(/*_camera*/);
          const auto dt = Timer::milliseconds(static_cast< long >(
             TARGET_TIME * 1000.0f * static_cast< float >(Timer::AreTimersRunning())));
          ProcessInput(dt);
 
-         render::vulkan::VulkanRenderer::Draw(this);
+         render::VulkanRenderer::Draw(this);
          if (m_frameTimer > 1.0f)
          {
             m_framesLastSecond = m_frames;
@@ -42,7 +42,7 @@ Game::MainLoop()
          ++m_frames;
          m_frameTimer += singleFrameTimer;
          // singleFrameTimer = 0.0f;
-         render::vulkan::VulkanRenderer::EndScene();
+         render::VulkanRenderer::EndScene();
 
          singleFrameTimer -= TARGET_TIME;
 
@@ -67,7 +67,7 @@ Game::Init(const std::string& configFile)
 
    // RenderCommand::Init();
    // RenderCommand::SetClearColor({1.0f, 0.2f, 0.3f, 1.0f});
-   render::vulkan::VulkanRenderer::Initialize(m_window->GetWindowHandle());
+   render::VulkanRenderer::Initialize(m_window->GetWindowHandle());
    // RenderCommand::SetViewport(0, 0, WIDTH, HEIGHT);
 
    // m_frameBuffer.SetUp();

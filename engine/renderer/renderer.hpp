@@ -18,7 +18,7 @@ class Application;
 }
 
 
-namespace looper::render::vulkan {
+namespace looper::render {
 
 class VulkanRenderer
 {
@@ -34,7 +34,7 @@ class VulkanRenderer
 
    [[nodiscard]]
    static uint32_t
-   MeshLoaded(const std::vector< vulkan::Vertex >& vertices_in,
+   MeshLoaded(const std::vector< Vertex >& vertices_in,
               const TextureMaps& textures_in,
               const glm::mat4& modelMat);
 
@@ -194,4 +194,4 @@ class VulkanRenderer
    inline static uint32_t m_currentIndex = {};
 };
 
-} // namespace looper::render::vulkan
+} // namespace looper::render

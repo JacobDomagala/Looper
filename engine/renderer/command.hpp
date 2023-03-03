@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan.h>
 
-namespace looper::render::vulkan {
+namespace looper::render {
 
 class Command
 {
@@ -14,4 +14,4 @@ class Command
    EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 };
 
-} // namespace looper::render::vulkan
+} // namespace looper::render
