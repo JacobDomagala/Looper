@@ -91,7 +91,7 @@ Texture::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels,
       imageInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
    }
 
-   VK_CHECK(vkCreateImage(Data::vk_device, &imageInfo, nullptr, &image), "failed to create image!");
+   vk_check_error(vkCreateImage(Data::vk_device, &imageInfo, nullptr, &image), "failed to create image!");
 
    Buffer::AllocateImageMemory(image, imageMemory, properties);
 
@@ -116,7 +116,7 @@ Texture::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspe
    viewInfo.subresourceRange.layerCount = 1;
 
    VkImageView imageView = {};
-   VK_CHECK(vkCreateImageView(Data::vk_device, &viewInfo, nullptr, &imageView),
+   vk_check_error(vkCreateImageView(Data::vk_device, &viewInfo, nullptr, &imageView),
             "Failed to create texture image view!");
 
    return imageView;
@@ -148,7 +148,7 @@ Texture::CreateSampler(uint32_t mipLevels)
    samplerInfo.maxLod = static_cast< float >(mipLevels);
    samplerInfo.mipLodBias = 0.0f;
 
-   VK_CHECK(vkCreateSampler(Data::vk_device, &samplerInfo, nullptr, &sampler),
+   vk_check_error(vkCreateSampler(Data::vk_device, &samplerInfo, nullptr, &sampler),
             "Failed to create texture sampler!");
 
    return sampler;

@@ -92,7 +92,7 @@ AllocateMemory(VkMemoryRequirements memReq, VkDeviceMemory& bufferMemory,
    allocInfo.allocationSize = memReq.size;
    allocInfo.memoryTypeIndex = FindMemoryType(memReq.memoryTypeBits, properties);
 
-   VK_CHECK(vkAllocateMemory(Data::vk_device, &allocInfo, nullptr, &bufferMemory),
+   vk_check_error(vkAllocateMemory(Data::vk_device, &allocInfo, nullptr, &bufferMemory),
             "failed to allocate buffer memory!");
 }
 
@@ -137,7 +137,7 @@ Buffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryProper
    bufferInfo.usage = usage;
    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-   VK_CHECK(vkCreateBuffer(Data::vk_device, &bufferInfo, nullptr, &buffer),
+   vk_check_error(vkCreateBuffer(Data::vk_device, &bufferInfo, nullptr, &buffer),
             "failed to create buffer!");
 
    AllocateBufferMemory(buffer, bufferMemory, properties);
@@ -166,7 +166,7 @@ Buffer::Flush(VkDeviceSize size, VkDeviceSize offset) const
    mappedRange.offset = offset;
    mappedRange.size = size;
 
-   VK_CHECK(vkFlushMappedMemoryRanges(Data::vk_device, 1, &mappedRange), "Buffer::Flush error!");
+   vk_check_error(vkFlushMappedMemoryRanges(Data::vk_device, 1, &mappedRange), "Buffer::Flush error!");
 }
 
 void

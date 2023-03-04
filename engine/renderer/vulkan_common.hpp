@@ -11,8 +11,8 @@
 
 namespace looper::render {
 
-constexpr void
-VK_CHECK(VkResult vkResult, std::string_view errorMessage)
+constexpr inline void
+vk_check_error(VkResult vkResult, std::string_view errorMessage)
 {
    if (vkResult != VK_SUCCESS)
    {

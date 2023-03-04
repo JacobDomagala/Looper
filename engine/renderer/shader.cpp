@@ -15,7 +15,7 @@ CreateShaderModule(VkDevice device, std::vector< char >&& shaderByteCode)
    createInfo.pCode = reinterpret_cast< const uint32_t* >(shaderByteCode.data());
 
    VkShaderModule shaderModule;
-   VK_CHECK(vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule),
+   vk_check_error(vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule),
             "Failed to create shader module!");
 
    return shaderModule;

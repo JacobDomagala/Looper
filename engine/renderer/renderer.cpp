@@ -840,7 +840,7 @@ VulkanRenderer::Draw(Application* /*app*/)
 
    vkResetFences(Data::vk_device, 1, &m_inFlightFences[currentFrame]);
 
-   VK_CHECK(vkQueueSubmit(Data::vk_graphicsQueue, 1, &submitInfo, m_inFlightFences[currentFrame]),
+   vk_check_error(vkQueueSubmit(Data::vk_graphicsQueue, 1, &submitInfo, m_inFlightFences[currentFrame]),
             "failed to submit draw command buffer!");
 
    VkPresentInfoKHR presentInfo{};
@@ -893,7 +893,7 @@ VulkanRenderer::CreateInstance()
       createInfo.pNext = reinterpret_cast< void* >(&m_debugCreateInfo);
    }
 
-   VK_CHECK(vkCreateInstance(&createInfo, nullptr, &Data::vk_instance),
+   vk_check_error(vkCreateInstance(&createInfo, nullptr, &Data::vk_instance),
             "instance not created properly!");
 }
 
@@ -972,7 +972,7 @@ VulkanRenderer::CreateDevice()
       createInfo.ppEnabledLayerNames = VALIDATION_LAYERS.data();
    }
 
-   VK_CHECK(vkCreateDevice(Data::vk_physicalDevice, &createInfo, nullptr, &Data::vk_device),
+   vk_check_error(vkCreateDevice(Data::vk_physicalDevice, &createInfo, nullptr, &Data::vk_device),
             "failed to create logical device!");
 
    vkGetDeviceQueue(Data::vk_device, indices_.graphicsFamily.value(), 0, &Data::vk_graphicsQueue);
@@ -1028,7 +1028,7 @@ VulkanRenderer::CreateSwapchain(GLFWwindow* windowHandle)
    swapChainCreateInfo.presentMode = presentMode;
    swapChainCreateInfo.clipped = VK_TRUE;
 
-   VK_CHECK(vkCreateSwapchainKHR(Data::vk_device, &swapChainCreateInfo, nullptr, &m_swapChain),
+   vk_check_error(vkCreateSwapchainKHR(Data::vk_device, &swapChainCreateInfo, nullptr, &m_swapChain),
             "failed to create swap chain!");
 
    vkGetSwapchainImagesKHR(Data::vk_device, m_swapChain, &imageCount, nullptr);
@@ -1090,7 +1090,7 @@ VulkanRenderer::CreateDescriptorSetLayout()
    layoutInfo.bindingCount = static_cast< uint32_t >(bindings.size());
    layoutInfo.pBindings = bindings.data();
 
-   VK_CHECK(
+   vk_check_error(
       vkCreateDescriptorSetLayout(Data::vk_device, &layoutInfo, nullptr, &m_descriptorSetLayout),
       "Failed to create descriptor set layout!");
 }
@@ -1168,7 +1168,7 @@ VulkanRenderer::CreateRenderPass()
    renderPassInfo.dependencyCount = 1;
    renderPassInfo.pDependencies = &dependency;
 
-   VK_CHECK(vkCreateRenderPass(Data::vk_device, &renderPassInfo, nullptr,
+   vk_check_error(vkCreateRenderPass(Data::vk_device, &renderPassInfo, nullptr,
                                &render::Data::m_renderPass),
             "failed to create render pass!");
 }
@@ -1192,7 +1192,7 @@ VulkanRenderer::CreateFramebuffers()
       framebufferInfo.height = Data::m_swapChainExtent.height;
       framebufferInfo.layers = 1;
 
-      VK_CHECK(vkCreateFramebuffer(Data::vk_device, &framebufferInfo, nullptr,
+      vk_check_error(vkCreateFramebuffer(Data::vk_device, &framebufferInfo, nullptr,
                                    &m_swapChainFramebuffers[i]),
                "Failed to create framebuffer!");
    }
@@ -1208,7 +1208,7 @@ VulkanRenderer::CreateCommandPool()
    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
    poolInfo.queueFamilyIndex = queueFamilyIndicesTwo.graphicsFamily.value();
 
-   VK_CHECK(vkCreateCommandPool(Data::vk_device, &poolInfo, nullptr, &Data::vk_commandPool),
+   vk_check_error(vkCreateCommandPool(Data::vk_device, &poolInfo, nullptr, &Data::vk_commandPool),
             "Failed to create command pool!");
 }
 
@@ -1225,7 +1225,7 @@ VulkanRenderer::CreateCommandBuffers(Application* app)
       allocInfo.commandPool = Data::vk_commandPool;
       allocInfo.commandBufferCount = static_cast< uint32_t >(m_commandBuffers.size());
 
-      VK_CHECK(vkAllocateCommandBuffers(Data::vk_device, &allocInfo, m_commandBuffers.data()),
+      vk_check_error(vkAllocateCommandBuffers(Data::vk_device, &allocInfo, m_commandBuffers.data()),
                "failed to allocate command buffers!");
    }
 
@@ -1248,7 +1248,7 @@ VulkanRenderer::CreateCommandBuffers(Application* app)
 
       renderPassInfo.framebuffer = m_swapChainFramebuffers[i];
 
-      VK_CHECK(vkBeginCommandBuffer(m_commandBuffers[i], &beginInfo), "");
+      vk_check_error(vkBeginCommandBuffer(m_commandBuffers[i], &beginInfo), "");
 
       vkCmdBeginRenderPass(m_commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -1302,7 +1302,7 @@ VulkanRenderer::CreateCommandBuffers(Application* app)
 
       vkCmdEndRenderPass(m_commandBuffers[i]);
 
-      VK_CHECK(vkEndCommandBuffer(m_commandBuffers[i]), "");
+      vk_check_error(vkEndCommandBuffer(m_commandBuffers[i]), "");
    }
 }
 
@@ -1323,13 +1323,13 @@ VulkanRenderer::CreateSyncObjects()
 
    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
    {
-      VK_CHECK(vkCreateSemaphore(Data::vk_device, &semaphoreInfo, nullptr,
+      vk_check_error(vkCreateSemaphore(Data::vk_device, &semaphoreInfo, nullptr,
                                  &m_imageAvailableSemaphores[i]),
                fmt::format("Failed to create m_imageAvailableSemaphores[{}]!", i));
-      VK_CHECK(vkCreateSemaphore(Data::vk_device, &semaphoreInfo, nullptr,
+      vk_check_error(vkCreateSemaphore(Data::vk_device, &semaphoreInfo, nullptr,
                                  &m_renderFinishedSemaphores[i]),
                fmt::format("Failed to create m_renderFinishedSemaphores[{}]!", i));
-      VK_CHECK(vkCreateFence(Data::vk_device, &fenceInfo, nullptr, &m_inFlightFences[i]),
+      vk_check_error(vkCreateFence(Data::vk_device, &fenceInfo, nullptr, &m_inFlightFences[i]),
                fmt::format("Failed to create m_inFlightFences[{}]!", i));
    }
 }
@@ -1433,7 +1433,7 @@ VulkanRenderer::CreatePipeline()
    pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
 
 
-   VK_CHECK(
+   vk_check_error(
       vkCreatePipelineLayout(Data::vk_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout),
       "failed to create pipeline layout!");
 
@@ -1454,7 +1454,7 @@ VulkanRenderer::CreatePipeline()
    pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
 
-   VK_CHECK(vkCreateGraphicsPipelines(Data::vk_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+   vk_check_error(vkCreateGraphicsPipelines(Data::vk_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
                                       &m_graphicsPipeline),
             "failed to create graphics pipeline!");
 
@@ -1468,7 +1468,7 @@ VulkanRenderer::CreatePipelineCache()
 {
    VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
    pipelineCacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
-   VK_CHECK(vkCreatePipelineCache(Data::vk_device, &pipelineCacheCreateInfo, nullptr,
+   vk_check_error(vkCreatePipelineCache(Data::vk_device, &pipelineCacheCreateInfo, nullptr,
                                   &Data::m_pipelineCache),
             "");
 }
