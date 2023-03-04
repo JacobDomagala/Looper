@@ -199,7 +199,7 @@ populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
    auto callback = [](VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                       VkDebugUtilsMessageTypeFlagsEXT /*messageType*/,
                       const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-                      void* /*pUserData*/) -> VKAPI_ATTR VkBool32 VKAPI_CALL {
+                      void* /*pUserData*/) -> VKAPI_ATTR VkBool32 {
       switch (messageSeverity)
       {
          case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: {
