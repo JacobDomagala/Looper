@@ -217,28 +217,28 @@ Game::MouseEvents()
    if (!m_reverse)
    {
       // value to control how fast should camera move
-      int32_t multiplier = 3;
+      constexpr int32_t multiplier = 3;
 
       // cursor's position from center of the screen to trigger camera movement
-      float borderValue = 0.5f;
+      constexpr float borderValue = 0.5f;
 
-      float cameraMovement = floorf(static_cast< float >(m_deltaTime.count()));
+      const auto cameraMovement = floorf(static_cast< float >(m_deltaTime.count()));
       auto cameraMoveBy = glm::ivec2();
       const auto cursor = m_window->GetCursorNormalized();
 
       if (cursor.x > borderValue)
       {
-         float someX = (cursor.x - borderValue) * static_cast< float >(multiplier);
+         const float someX = (cursor.x - borderValue) * static_cast< float >(multiplier);
          cameraMoveBy += glm::vec2(cameraMovement * someX, 0.0f);
       }
       else if (cursor.x < -borderValue)
       {
-         float someX = (cursor.x + borderValue) * static_cast< float >(multiplier);
+         const float someX = (cursor.x + borderValue) * static_cast< float >(multiplier);
          cameraMoveBy += glm::vec2(cameraMovement * someX, 0.0f);
       }
       if (cursor.y > borderValue)
       {
-         float someY = (cursor.y - borderValue) * static_cast< float >(multiplier);
+         const float someY = (cursor.y - borderValue) * static_cast< float >(multiplier);
          cameraMoveBy += glm::vec2(0.0f, cameraMovement * someY);
       }
       else if (cursor.y < -borderValue)

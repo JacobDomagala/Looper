@@ -4,6 +4,7 @@
 #include <string>
 
 namespace looper::time {
+
 using milliseconds = std::chrono::milliseconds;
 using seconds = std::chrono::seconds;
 
@@ -11,13 +12,13 @@ struct TimeStep
 {
    explicit TimeStep(milliseconds time = {});
 
-   std::string
+   [[nodiscard]] std::string
    ToString() const;
 
-   seconds
+   [[nodiscard]] seconds
    GetSeconds() const;
 
-   milliseconds
+   [[nodiscard]] milliseconds
    GetMilliseconds() const;
 
  private:

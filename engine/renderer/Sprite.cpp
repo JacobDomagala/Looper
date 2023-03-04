@@ -51,19 +51,19 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::ivec2& size,
         x (3) [-0.5f, 0.5f]     |     x (2) [0.5f, 0.5f]
 
    */
-   std::vector< render::Vertex > vtcs = {
+   const std::vector< render::Vertex > vtcs = {
       {glm::vec3{-0.5f, -0.5f, 0.0f}, glm::vec2{0.0f, 0.0f}, glm::vec4{}, 1.0f},
       {glm::vec3{0.5f, -0.5f, 0.0f}, glm::vec2{1.0f, 0.0f}, glm::vec4{}, 1.0f},
       {glm::vec3(0.5f, 0.5f, 0.0f), glm::vec2{1.0f, 1.0f}, glm::vec4{}, 1.0f},
       {glm::vec3{-0.5f, 0.5f, 0.0f}, glm::vec2{0.0f, 1.0f}, glm::vec4{}, 1.0f}};
 
-   glm::mat4 transformMat =
+   const glm::mat4 transformMat =
       glm::translate(glm::mat4(1.0f), glm::vec3(m_currentState.m_translateVal, m_initialPosition.z))
       // glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f))
       * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
       * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
 
-   std::array< std::string, 3 > txts = {render::TextureLibrary::GetTexture(texture_)->GetName(),
+   const std::array< std::string, 3 > txts = {render::TextureLibrary::GetTexture(texture_)->GetName(),
                                         render::TextureLibrary::GetTexture(texture_)->GetName(),
                                         render::TextureLibrary::GetTexture(texture_)->GetName()};
 
@@ -104,7 +104,7 @@ Sprite::Render()
 
     if (changed_)
    {
-      glm::mat4 transformMat =
+      const glm::mat4 transformMat =
          glm::translate(glm::mat4(1.0f),
                         glm::vec3(m_currentState.m_translateVal, m_initialPosition.z))
          * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
@@ -201,7 +201,7 @@ Sprite::SetInitialPosition(const glm::vec2& globalPosition)
 }
 
 const render::Texture*
-Sprite::GetTexture()
+Sprite::GetTexture() const
 {
    return render::TextureLibrary::GetTexture(texture_);
 }

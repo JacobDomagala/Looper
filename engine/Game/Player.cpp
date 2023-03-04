@@ -42,7 +42,7 @@ Player::CheckCollision(const glm::vec2& bulletPosition, Enemy const* enemy, bool
 glm::vec2
 Player::GetScreenPosition() const
 {
-   glm::vec4 screenPosition = m_appHandle.GetProjection()
+   const glm::vec4 screenPosition = m_appHandle.GetProjection()
                               * glm::vec4(m_currentGameObjectState.m_centeredPosition, 0.0f, 1.0f);
    return {screenPosition.x, screenPosition.y};
 }

@@ -76,7 +76,7 @@ class Sprite
    GetUniformScaleValue();
 
    const render::Texture*
-   GetTexture();
+   GetTexture() const;
 
    // Set rotation angle
    void

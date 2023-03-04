@@ -8,6 +8,7 @@ ScopedTimer::ScopedTimer(std::string&& logMsg) : m_logMsg(std::move(logMsg))
    m_timer.Start();
 }
 
+//NOLINTNEXTLINE
 ScopedTimer::~ScopedTimer()
 {
    Logger::Debug("{} took {}", m_logMsg, m_timer.Stop().ToString());

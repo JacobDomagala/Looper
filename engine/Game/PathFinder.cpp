@@ -36,7 +36,7 @@ PathFinder::Initialize(const glm::ivec2& levelSize, const uint32_t tileSize)
       // width
       for (int x = 0; x < w; ++x)
       {
-         bool obstacle = false;
+         const bool obstacle = false;
 
          std::vector< Node::NodeID > connectedTo{};
 
@@ -223,7 +223,7 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
          }
 
          // Calculate the neighbours potential lowest parent distance
-         float fPossiblyLowerGoal =
+         const auto fPossiblyLowerGoal =
             static_cast< float >(nodeCurrent->m_localCost)
             + glm::distance(nodeCurrent->m_position, nodeNeighbour.m_position);
 
