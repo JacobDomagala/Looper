@@ -24,7 +24,7 @@ SetStyle()
 
    /// 0 = FLAT APPEARENCE
    /// 1 = MORE "3D" LOOK
-   int is3D = 1;
+   constexpr int is3D = 1;
 
    colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
    colors[ImGuiCol_TextDisabled] = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
@@ -143,9 +143,9 @@ EditorGUI::UpdateBuffers()
    };
 
    // Note: Alignment is done inside buffer creation
-   VkDeviceSize vertexBufferSize =
+   const VkDeviceSize vertexBufferSize =
       static_cast< uint32_t >(imDrawData->TotalVtxCount) * sizeof(ImDrawVert);
-   VkDeviceSize indexBufferSize =
+   const VkDeviceSize indexBufferSize =
       static_cast< uint32_t >(imDrawData->TotalIdxCount) * sizeof(ImDrawIdx);
 
    // Update buffers only if vertex or index count has been changed compared to current buffer size
@@ -183,8 +183,8 @@ EditorGUI::UpdateBuffers()
    }
 
    // Upload data
-   auto* vtxDst = reinterpret_cast< ImDrawVert* >(m_vertexBuffer.m_mappedMemory);
-   auto* idxDst = reinterpret_cast< ImDrawIdx* >(m_indexBuffer.m_mappedMemory);
+   auto* vtxDst = static_cast< ImDrawVert* >(m_vertexBuffer.m_mappedMemory);
+   auto* idxDst = static_cast< ImDrawIdx* >(m_indexBuffer.m_mappedMemory);
 
    for (int n = 0; n < imDrawData->CmdListsCount; n++)
    {
@@ -216,7 +216,7 @@ EditorGUI::Render(VkCommandBuffer commandBuffer)
       return;
    }
 
-   ImGuiIO& io = ImGui::GetIO();
+   const ImGuiIO& io = ImGui::GetIO();
 
    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,

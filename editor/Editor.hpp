@@ -28,16 +28,16 @@ class Editor : public Application
    void
    MainLoop() override;
 
-   glm::vec2
+   [[nodiscard]] glm::vec2
    GetWindowSize() const override;
 
-   const glm::mat4&
+   [[nodiscard]] const glm::mat4&
    GetProjection() const override;
 
-   const glm::mat4&
+   [[nodiscard]] const glm::mat4&
    GetViewMatrix() const override;
 
-   float
+   [[nodiscard]] float
    GetZoomLevel() const override;
 
    void
@@ -77,7 +77,7 @@ class Editor : public Application
    void
    ToggleAnimateObject();
 
-   bool
+   [[nodiscard]] bool
    IsObjectAnimated() const;
 
    void
@@ -101,7 +101,7 @@ class Editor : public Application
    void
    UpdateAnimationData();
 
-   bool
+   [[nodiscard]] bool
    GetRenderNodes() const;
 
    void
@@ -110,7 +110,7 @@ class Editor : public Application
    void
    SetGridData(bool render, int32_t cellSize);
 
-   std::pair< bool, int32_t >
+   [[nodiscard]] std::pair< bool, int32_t >
    GetGridData() const;
 
    [[nodiscard]]
@@ -134,7 +134,7 @@ class Editor : public Application
       REMOVE
    };
 
-   std::shared_ptr< EditorObject >
+   [[nodiscard]] std::shared_ptr< EditorObject >
    GetEditorObjectByID(Object::ID ID);
 
    void
@@ -152,7 +152,7 @@ class Editor : public Application
    void
    DrawBoundingBoxes();
 
-   bool
+   [[nodiscard]] bool
    IsRunning() const override;
 
    void

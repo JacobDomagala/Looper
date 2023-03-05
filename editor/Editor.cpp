@@ -437,7 +437,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       //render::VulkanRenderer::EndScene();
    }
 
-   m_gui.Render(cmdBuffer);
+   EditorGUI::Render(cmdBuffer);
 }
 
 void
