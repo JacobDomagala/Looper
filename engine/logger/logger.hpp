@@ -68,6 +68,7 @@ class Logger
  private:
    static inline TYPE s_currentLogType = TYPE::DEBUG;
 
+//NOLINTBEGIN
 #if defined(_WIN32)
    static const inline std::unordered_map< TYPE, WORD, LoggerTypeHash > s_typeStyles = {
       {TYPE::TRACE, FOREGROUND_BLUE},
@@ -83,6 +84,7 @@ class Logger
       {TYPE::WARNING, fmt::color::yellow},
       {TYPE::FATAL, fmt::color::crimson}};
 #endif
+//NOLINTEND
 };
 
 } // namespace shady::trace

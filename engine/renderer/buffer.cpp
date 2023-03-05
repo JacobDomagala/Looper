@@ -26,22 +26,22 @@ Buffer::Unmap()
 }
 
 void
-Buffer::CopyData(const void* data)
+Buffer::CopyData(const void* data) const
 {
    utils::Assert(m_mapped, "Buffer is not mapped!");
    memcpy(m_mappedMemory, data, m_bufferSize);
 }
 
 void
-Buffer::CopyDataWithStaging(void* data, size_t dataSize)
+Buffer::CopyDataWithStaging(void* data, size_t dataSize) const
 {
-   VkBuffer stagingBuffer;
-   VkDeviceMemory stagingBufferMemory;
+   VkBuffer stagingBuffer = {};
+   VkDeviceMemory stagingBufferMemory = {};
    Buffer::CreateBuffer(dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-   void* mapped_data;
+   void* mapped_data = {};
    vkMapMemory(Data::vk_device, stagingBufferMemory, 0, dataSize, 0, &mapped_data);
    memcpy(mapped_data, data, dataSize);
    vkUnmapMemory(Data::vk_device, stagingBufferMemory);
@@ -53,18 +53,18 @@ void
 Buffer::CopyDataToImageWithStaging(VkImage image, void* data, size_t dataSize,
                                    const std::vector< VkBufferImageCopy >& copyRegions)
 {
-   VkBuffer stagingBuffer;
-   VkDeviceMemory stagingBufferMemory;
+   VkBuffer stagingBuffer = {};
+   VkDeviceMemory stagingBufferMemory = {};
    Buffer::CreateBuffer(dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         stagingBuffer, stagingBufferMemory);
 
-   void* mapped_data;
+   void* mapped_data = {};
    vkMapMemory(Data::vk_device, stagingBufferMemory, 0, dataSize, 0, &mapped_data);
    memcpy(mapped_data, data, dataSize);
    vkUnmapMemory(Data::vk_device, stagingBufferMemory);
 
-   VkCommandBuffer commandBuffer = Command::BeginSingleTimeCommands();
+   auto commandBuffer = Command::BeginSingleTimeCommands();
 
    vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                           static_cast<uint32_t>(copyRegions.size()), copyRegions.data());
@@ -87,7 +87,7 @@ void
 AllocateMemory(VkMemoryRequirements memReq, VkDeviceMemory& bufferMemory,
                VkMemoryPropertyFlags properties)
 {
-   VkMemoryAllocateInfo allocInfo{};
+   VkMemoryAllocateInfo allocInfo = {};
    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
    allocInfo.allocationSize = memReq.size;
    allocInfo.memoryTypeIndex = FindMemoryType(memReq.memoryTypeBits, properties);
@@ -100,7 +100,7 @@ void
 Buffer::AllocateImageMemory(VkImage image, VkDeviceMemory& bufferMemory,
                             VkMemoryPropertyFlags properties)
 {
-   VkMemoryRequirements memRequirements;
+   VkMemoryRequirements memRequirements = {};
    vkGetImageMemoryRequirements(Data::vk_device, image, &memRequirements);
 
    AllocateMemory(memRequirements, bufferMemory, properties);
@@ -110,7 +110,7 @@ void
 Buffer::AllocateBufferMemory(VkBuffer buffer, VkDeviceMemory& bufferMemory,
                              VkMemoryPropertyFlags properties)
 {
-   VkMemoryRequirements memRequirements;
+   VkMemoryRequirements memRequirements = {};
    vkGetBufferMemoryRequirements(Data::vk_device, buffer, &memRequirements);
 
    AllocateMemory(memRequirements, bufferMemory, properties);
@@ -119,7 +119,7 @@ Buffer::AllocateBufferMemory(VkBuffer buffer, VkDeviceMemory& bufferMemory,
 Buffer
 Buffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
 {
-   Buffer newBuffer;
+   Buffer newBuffer = {};
    newBuffer.m_bufferSize = size;
    CreateBuffer(size, usage, properties, newBuffer.m_buffer, newBuffer.m_bufferMemory);
    newBuffer.SetupDescriptor();
@@ -131,7 +131,7 @@ void
 Buffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
                      VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 {
-   VkBufferCreateInfo bufferInfo{};
+   VkBufferCreateInfo bufferInfo = {};
    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
    bufferInfo.size = size;
    bufferInfo.usage = usage;
@@ -148,9 +148,9 @@ Buffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryProper
 void
 Buffer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
-   VkCommandBuffer commandBuffer = Command::BeginSingleTimeCommands();
+   auto commandBuffer = Command::BeginSingleTimeCommands();
 
-   VkBufferCopy copyRegion{};
+   VkBufferCopy copyRegion = {};
    copyRegion.size = size;
    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
@@ -170,7 +170,7 @@ Buffer::Flush(VkDeviceSize size, VkDeviceSize offset) const
 }
 
 void
-Buffer::Destroy()
+Buffer::Destroy() const
 {
    if (m_buffer)
    {

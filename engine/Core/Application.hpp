@@ -20,7 +20,6 @@ class Application : public InputListener
 {
  public:
    Application() = default;
-   ~Application() override;
    Application&
    operator=(Application&) = delete;
    Application&
@@ -29,16 +28,16 @@ class Application : public InputListener
    Application(Application&&) = delete;
 
 
-   std::shared_ptr< Player >
+   [[nodiscard]] std::shared_ptr< Player >
    GetPlayer();
 
-   Window&
+   [[nodiscard]] Window&
    GetWindow();
 
-   Level&
+   [[nodiscard]] Level&
    GetLevel();
 
-   Camera&
+   [[nodiscard]] Camera&
    GetCamera();
 
    [[nodiscard]] Timer::milliseconds
@@ -47,15 +46,8 @@ class Application : public InputListener
    [[nodiscard]] bool
    IsGame() const;
 
-   /*void
-   Log(Logger::Type t, const std::string& log) const;*/
-
    virtual void
    Render(VkCommandBuffer cmdBuffer) = 0;
-
-   void
-   RenderText(const std::string& text, const glm::vec2& position, float scale,
-              const glm::vec3& color = glm::vec3(1.0f, 1.0f, 1.0f));
 
    // convert from global position (OpenGL) to screen position (in pixels)
    [[nodiscard]] glm::vec2
@@ -87,18 +79,14 @@ class Application : public InputListener
    [[nodiscard]] virtual bool
    IsRunning() const = 0;
 
-   // NOLINTBEGIN (cppcoreguidelines-non-private-member-variables-in-classes)
-   Logger m_logger;
    bool m_isGame = false;
    std::shared_ptr< Player > m_player = nullptr;
-   std::shared_ptr< Level > m_currentLevel;
-   // Font m_font;
+   std::shared_ptr< Level > m_currentLevel = nullptr;
 
-   std::unique_ptr< Window > m_window;
-   Camera m_camera;
-   Timer m_timer;
+   std::unique_ptr< Window > m_window = nullptr;
+   Camera m_camera = {};
+   Timer m_timer = {};
    Timer::milliseconds m_deltaTime = {};
-   // NOLINTEND
 };
 
 

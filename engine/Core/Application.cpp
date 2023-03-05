@@ -6,11 +6,6 @@
 
 namespace looper {
 
-Application::~Application()
-{
-   // render::VulkanRenderer::Shutdown();
-}
-
 std::shared_ptr< Player >
 Application::GetPlayer()
 {
@@ -47,19 +42,6 @@ Application::IsGame() const
    return m_isGame;
 }
 
-//void
-//Application::Log(Logger::Type t, const std::string& log) const
-//{
-//   m_logger.Log(t, log);
-//}
-
-void
-Application::RenderText(const std::string& /*text*/, const glm::vec2& /*position*/, float /*scale*/,
-                        const glm::vec3& /*color*/)
-{
-   // m_font.RenderText(GetProjection(), text, position, scale, color);
-}
-
 void
 Application::CenterCameraOnPlayer()
 {
@@ -70,7 +52,7 @@ glm::vec2
 Application::GlobalToScreen(const glm::vec2& globalPos) const
 {
    // convert to <-1, 1>
-   glm::vec2 projectedPosition =
+   const glm::vec2 projectedPosition =
       GetProjection() * GetViewMatrix() * glm::vec4(globalPos, 0.0f, 1.0f);
 
    // convert to <0, 1>

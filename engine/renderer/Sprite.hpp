@@ -69,13 +69,13 @@ class Sprite
    [[nodiscard]] float
    GetRotation(RotationType type = RotationType::RADIANS) const;
 
-   glm::vec2&
+   [[nodiscard]] glm::vec2&
    GetScale();
 
-   float&
+   [[nodiscard]] float&
    GetUniformScaleValue();
 
-   const render::Texture*
+   [[nodiscard]] const render::Texture*
    GetTexture() const;
 
    // Set rotation angle

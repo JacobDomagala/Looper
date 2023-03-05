@@ -1,8 +1,6 @@
 #pragma once
 
 #include "Application.hpp"
-// #include "Font.hpp"
-// #include "Framebuffer.hpp"
 #include "InputManager.hpp"
 #include "Level.hpp"
 #include "logger.hpp"
@@ -36,10 +34,10 @@ class Game : public Application
    void
    Render(VkCommandBuffer cmdBuffer) override;
 
-   glm::vec2
+   [[nodiscard]] glm::vec2
    GetCursor();
 
-   glm::vec2
+   [[nodiscard]] glm::vec2
    GetCursorScreenPosition();
 
    static void
@@ -116,7 +114,7 @@ class Game : public Application
    int32_t m_framesLastSecond = 0;
 
    // all maps
-   std::vector< std::string > m_levels;
+   std::vector< std::string > m_levels = {};
 
    // framebuffer for first pass
    // Framebuffer m_frameBuffer;

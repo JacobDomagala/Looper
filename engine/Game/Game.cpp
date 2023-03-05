@@ -36,8 +36,8 @@ Game::MainLoop()
             m_frameTimer = 0.0f;
             m_frames = 0;
          }
-         RenderText(std::to_string(m_framesLastSecond) + " FPS",
-                    glm::vec2(-WIDTH / 2.0f, -HEIGHT / 2.0f), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));
+         // RenderText(std::to_string(m_framesLastSecond) + " FPS",
+         //            glm::vec2(-WIDTH / 2.0f, -HEIGHT / 2.0f), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));
 
          ++m_frames;
          m_frameTimer += singleFrameTimer;
@@ -74,7 +74,7 @@ Game::Init(const std::string& configFile)
 
    while (!initFile.eof())
    {
-      std::string tmp;
+      std::string tmp = {};
       initFile >> tmp;
       if (tmp == "Levels:")
       {
@@ -124,8 +124,8 @@ Game::KeyEvents() // NOLINT
 {
    const auto floatDeltaTime = static_cast< float >(m_deltaTime.count());
    // Camera movement is disabled
-   auto cameraMovement = 0.0f * floatDeltaTime;
-   auto playerMovement = 0.5f * floatDeltaTime;
+   const auto cameraMovement = 0.0f * floatDeltaTime;
+   const auto playerMovement = 0.5f * floatDeltaTime;
 
    auto playerMoveBy = glm::vec2();
    auto cameraMoveBy = glm::vec2();

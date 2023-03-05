@@ -277,7 +277,7 @@ Sprite::ScaleUniformly(const float scaleValue)
 std::array< glm::vec2, 4 >
 Sprite::GetTransformedRectangle() const
 {
-   glm::mat4 transformMat =
+   const auto transformMat =
       glm::translate(glm::mat4(1.0f), glm::vec3(m_currentState.m_translateVal, 0.0f))
       * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
       * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
