@@ -20,13 +20,14 @@ class Application : public InputListener
 {
  public:
    Application() = default;
+   ~Application() override = default;
+
    Application&
    operator=(Application&) = delete;
    Application&
    operator=(Application&&) = delete;
    Application(Application&) = delete;
    Application(Application&&) = delete;
-
 
    [[nodiscard]] std::shared_ptr< Player >
    GetPlayer();

@@ -64,7 +64,7 @@ Buffer::CopyDataToImageWithStaging(VkImage image, void* data, size_t dataSize,
    memcpy(mapped_data, data, dataSize);
    vkUnmapMemory(Data::vk_device, stagingBufferMemory);
 
-   auto commandBuffer = Command::BeginSingleTimeCommands();
+   auto* commandBuffer = Command::BeginSingleTimeCommands();
 
    vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                           static_cast<uint32_t>(copyRegions.size()), copyRegions.data());
@@ -148,7 +148,7 @@ Buffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryProper
 void
 Buffer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
-   auto commandBuffer = Command::BeginSingleTimeCommands();
+   auto* commandBuffer = Command::BeginSingleTimeCommands();
 
    VkBufferCopy copyRegion = {};
    copyRegion.size = size;

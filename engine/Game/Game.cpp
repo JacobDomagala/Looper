@@ -243,7 +243,7 @@ Game::MouseEvents()
       }
       else if (cursor.y < -borderValue)
       {
-         float someY = (cursor.y + borderValue) * static_cast< float >(multiplier);
+         const float someY = (cursor.y + borderValue) * static_cast< float >(multiplier);
          cameraMoveBy += glm::vec2(0.0f, cameraMovement * someY);
       }
       if (glm::length(glm::vec2(cameraMoveBy)) > 0.0f)

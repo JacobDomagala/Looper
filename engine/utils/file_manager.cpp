@@ -41,7 +41,7 @@ FileManager::ReadBinaryFile(std::string_view fileName)
 std::string
 FileManager::ReadFile(const std::string& fileName, FileType /*type*/)
 {
-   std::ifstream fileHandle;
+   std::ifstream fileHandle = {};
    fileHandle.open(fileName.c_str(), std::ifstream::in);
 
    if (!fileHandle.is_open())
@@ -65,7 +65,7 @@ FileManager::ImageData
 FileManager::LoadImageData(std::string_view fileName)
 {
    const auto pathToImage = std::filesystem::path(IMAGES_DIR / fileName).string();
-   int force_channels = STBI_rgb_alpha;
+   const int force_channels = STBI_rgb_alpha;
    int w = 0;
    int h = 0;
    int n = 0;

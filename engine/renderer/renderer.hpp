@@ -60,9 +60,9 @@ class VulkanRenderer
    static void
    CreateCommandBuffers(Application* app);
 
-   inline static glm::mat4 view_mat = glm::mat4(1.0f);
-   inline static glm::mat4 proj_mat = glm::mat4(1.0f);
-   inline static glm::mat4 model_mat = glm::mat4(1.0f);
+   inline static glm::mat4 view_mat = {};
+   inline static glm::mat4 proj_mat = {};
+   inline static glm::mat4 model_mat = {};
 
  private:
    static void

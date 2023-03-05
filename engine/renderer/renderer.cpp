@@ -139,7 +139,7 @@ struct QueueFamilyIndices
       return presentFamily.value();
    }
 
-   bool
+   [[nodiscard]] bool
    isComplete() const
    {
       return graphicsFamily.has_value() && presentFamily.has_value();
@@ -161,10 +161,10 @@ get_supported_extensions()
    vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr); // get number of extensions
    std::vector< VkExtensionProperties > extensions(count);
    vkEnumerateInstanceExtensionProperties(nullptr, &count, extensions.data()); // populate buffer
-   std::set< std::string > results;
+   std::set< std::string > results = {};
    for (auto& extension : extensions)
    {
-      results.insert(extension.extensionName);
+      results.insert(&extension.extensionName[0]);
    }
    return results;
 }
@@ -176,8 +176,7 @@ std::vector< const char* >
 getRequiredExtensions()
 {
    uint32_t glfwExtensionCount = 0;
-   const char** glfwExtensions = {};
-   glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+   const auto** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
    std::vector< const char* > extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
@@ -202,7 +201,7 @@ checkValidationLayerSupport()
 
    for (const auto& extension : availableLayers)
    {
-      validationLayers.erase(extension.layerName);
+      validationLayers.erase(&extension.layerName[0]);
    }
 
    return validationLayers.empty();
@@ -303,7 +302,7 @@ querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
 
    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
 
-   uint32_t formatCount;
+   uint32_t formatCount = {};
    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
 
    if (formatCount != 0)
@@ -312,7 +311,7 @@ querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
       vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
    }
 
-   uint32_t presentModeCount;
+   uint32_t presentModeCount = {};
    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
 
    if (presentModeCount != 0)
@@ -339,7 +338,7 @@ checkDeviceExtensionSupport(VkPhysicalDevice device)
 
    for (const auto& extension : availableExtensions)
    {
-      requiredExtensions.erase(extension.extensionName);
+      requiredExtensions.erase(&extension.extensionName[0]);
    }
 
    return requiredExtensions.empty();
@@ -350,21 +349,21 @@ isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
    static_cast<void>(findQueueFamilies(device, surface));
 
-   bool extensionsSupported = checkDeviceExtensionSupport(device);
+   const auto extensionsSupported = checkDeviceExtensionSupport(device);
 
    bool swapChainAdequate = false;
    if (extensionsSupported)
    {
-      SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device, surface);
+      const auto swapChainSupport = querySwapChainSupport(device, surface);
       swapChainAdequate =
          !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
    }
 
-   VkPhysicalDeviceFeatures supportedFeatures;
+   VkPhysicalDeviceFeatures supportedFeatures = {};
    vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
 
    // Make sure we use discrete GPU
-   VkPhysicalDeviceProperties physicalDeviceProperties;
+   VkPhysicalDeviceProperties physicalDeviceProperties = {};
    vkGetPhysicalDeviceProperties(device, &physicalDeviceProperties);
    auto isDiscrete = physicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
 
@@ -375,10 +374,10 @@ isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface)
 VkSampleCountFlagBits
 getMaxUsableSampleCount(VkPhysicalDevice& physicalDevice)
 {
-   VkPhysicalDeviceProperties physicalDeviceProperties;
+   VkPhysicalDeviceProperties physicalDeviceProperties = {};
    vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
 
-   VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts
+   const VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts
                                & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
    if (counts & VK_SAMPLE_COUNT_64_BIT)
    {
@@ -515,7 +514,8 @@ void
 VulkanRenderer::CreateIndexBuffer()
 {
    constexpr uint32_t indicesPerMesh = 6;
-   indices.resize(m_numMeshes * indicesPerMesh);
+   using indices_vec_size_t = std::vector<uint32_t>::size_type;
+   indices.resize(static_cast<indices_vec_size_t>(m_numMeshes * indicesPerMesh));
 
    uint32_t offset = 0;
    for (uint32_t i = 0; i < indices.size(); i += indicesPerMesh)
@@ -933,7 +933,7 @@ VulkanRenderer::CreateDevice()
    std::vector< VkDeviceQueueCreateInfo > queueCreateInfos = {};
    const std::set< uint32_t > uniqueQueueFamilies = {indices_.GetGraphics(), indices_.GetPresent()};
 
-   float queuePriority = 1.0f;
+   constexpr float queuePriority = 1.0f;
    for (const auto queueFamily : uniqueQueueFamilies)
    {
       VkDeviceQueueCreateInfo queueCreateInfo = {};
@@ -1341,8 +1341,8 @@ VulkanRenderer::CreatePipeline()
 {
    auto [vertexInfo, fragmentInfo] =
       VulkanShader::CreateShader(Data::vk_device, "vulkan/vert.spv", "vulkan/frag.spv");
-   VkPipelineShaderStageCreateInfo shaderStages[] = {vertexInfo.shaderInfo,
-                                                     fragmentInfo.shaderInfo};
+   auto shaderStages = std::to_array({vertexInfo.shaderInfo,
+                                                     fragmentInfo.shaderInfo});
 
    VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
    vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -1441,7 +1441,7 @@ VulkanRenderer::CreatePipeline()
    VkGraphicsPipelineCreateInfo pipelineInfo{};
    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
    pipelineInfo.stageCount = 2;
-   pipelineInfo.pStages = shaderStages;
+   pipelineInfo.pStages = shaderStages.data();
    pipelineInfo.pVertexInputState = &vertexInputInfo;
    pipelineInfo.pInputAssemblyState = &inputAssembly;
    pipelineInfo.pViewportState = &viewportState;

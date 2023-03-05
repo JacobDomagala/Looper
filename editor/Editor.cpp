@@ -154,7 +154,7 @@ Editor::CursorPositionCallback(const CursorPositionEvent& event)
    {
       const auto currentCursorPosition = glm::vec2(event.m_xPos, event.m_yPos);
 
-      if (m_mousePressedLastUpdate && m_levelLoaded)
+      if (m_mousePressedLastUpdate)
       {
          ShowCursor(false);
          HandleMouseDrag(currentCursorPosition, currentCursorPosition - m_lastCursorPosition);
@@ -502,29 +502,29 @@ Editor::DrawAnimationPoints()
    }
 }
 
-void
-Editor::DrawBoundingBoxes()
-{
-   // constexpr glm::vec4 color = {1.0f, 0.2f, 0.1f, 1.0f};
+// void
+// Editor::DrawBoundingBoxes()
+// {
+//    constexpr glm::vec4 color = {1.0f, 0.2f, 0.1f, 1.0f};
 
-   // auto drawBoundingBox = [color](const Sprite& sprite) {
-   //    const auto rect = sprite.GetTransformedRectangle();
-   //    Renderer::DrawLine(rect[0], rect[1], color);
-   //    Renderer::DrawLine(rect[1], rect[2], color);
-   //    Renderer::DrawLine(rect[2], rect[3], color);
-   //    Renderer::DrawLine(rect[3], rect[0], color);
-   // };
+//    auto drawBoundingBox = [color](const Sprite& sprite) {
+//       const auto rect = sprite.GetTransformedRectangle();
+//       Renderer::DrawLine(rect[0], rect[1], color);
+//       Renderer::DrawLine(rect[1], rect[2], color);
+//       Renderer::DrawLine(rect[2], rect[3], color);
+//       Renderer::DrawLine(rect[3], rect[0], color);
+//    };
 
-   // if (m_currentSelectedGameObject)
-   // {
-   //    drawBoundingBox(m_currentSelectedGameObject->GetSprite());
-   // }
+//    if (m_currentSelectedGameObject)
+//    {
+//       drawBoundingBox(m_currentSelectedGameObject->GetSprite());
+//    }
 
-   // if (m_currentEditorObjectSelected)
-   // {
-   //    drawBoundingBox(m_currentEditorObjectSelected->GetSprite());
-   // }
-}
+//    if (m_currentEditorObjectSelected)
+//    {
+//       drawBoundingBox(m_currentEditorObjectSelected->GetSprite());
+//    }
+// }
 
 void
 Editor::DrawGrid()
@@ -777,18 +777,18 @@ Editor::LaunchGameLoop()
    m_gui.Init();
 }
 
-std::shared_ptr< EditorObject >
-Editor::GetEditorObjectByID(Object::ID ID)
-{
-   auto editorObject =
-      std::find_if(m_editorObjects.begin(), m_editorObjects.end(), [ID](const auto& object) {
-         return object->GetLinkedObjectID() == ID;
-      });
+// std::shared_ptr< EditorObject >
+// Editor::GetEditorObjectByID(Object::ID ID)
+// {
+//    auto editorObject =
+//       std::find_if(m_editorObjects.begin(), m_editorObjects.end(), [ID](const auto& object) {
+//          return object->GetLinkedObjectID() == ID;
+//       });
 
-   assert(editorObject != m_editorObjects.end()); // NOLINT
+//    assert(editorObject != m_editorObjects.end()); // NOLINT
 
-   return *editorObject;
-}
+//    return *editorObject;
+// }
 
 void
 Editor::RenderNodes(bool render)

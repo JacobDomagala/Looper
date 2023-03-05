@@ -134,8 +134,8 @@ class Editor : public Application
       REMOVE
    };
 
-   [[nodiscard]] std::shared_ptr< EditorObject >
-   GetEditorObjectByID(Object::ID ID);
+   // [[nodiscard]] std::shared_ptr< EditorObject >
+   // GetEditorObjectByID(Object::ID ID);
 
    void
    ActionOnObject(ACTION action);
@@ -149,8 +149,8 @@ class Editor : public Application
    void
    DrawAnimationPoints();
 
-   void
-   DrawBoundingBoxes();
+   // void
+   // DrawBoundingBoxes();
 
    [[nodiscard]] bool
    IsRunning() const override;
