@@ -4,7 +4,7 @@
 #include <utility>
 #include <vulkan/vulkan.h>
 
-namespace looper::render::vulkan {
+namespace looper::renderer {
 
 struct ShaderInfoWrapper
 {
@@ -12,13 +12,13 @@ struct ShaderInfoWrapper
     * This should be called after the pipeline is created
     */
    void
-   Destroy()
+   Destroy() const
    {
       vkDestroyShaderModule(device, shaderInfo.module, nullptr);
    }
 
-   VkDevice device;
-   VkPipelineShaderStageCreateInfo shaderInfo;
+   VkDevice device = {};
+   VkPipelineShaderStageCreateInfo shaderInfo = {};
 };
 
 using VertexShaderInfo = ShaderInfoWrapper;
@@ -31,4 +31,4 @@ class VulkanShader
    CreateShader(VkDevice device, std::string_view vertex, std::string_view fragment);
 };
 
-} // namespace looper::render::vulkan
+} // namespace shady::renderer

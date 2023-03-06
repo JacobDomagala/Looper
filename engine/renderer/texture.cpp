@@ -10,7 +10,7 @@
 
 #include <string_view>
 
-namespace looper::render {
+namespace looper::renderer {
 
 /**************************************************************************************************
  ****************************************** TEXTURE ***********************************************
@@ -19,26 +19,26 @@ namespace looper::render {
 void
 Texture::Destroy()
 {
-   vkDestroySampler(vulkan::Data::vk_device, m_textureSampler, nullptr);
-   vkDestroyImageView(vulkan::Data::vk_device, m_textureImageView, nullptr);
-   vkDestroyImage(vulkan::Data::vk_device, m_textureImage, nullptr);
-   vkFreeMemory(vulkan::Data::vk_device, m_textureImageMemory, nullptr);
+   vkDestroySampler(Data::vk_device, m_textureSampler, nullptr);
+   vkDestroyImageView(Data::vk_device, m_textureImageView, nullptr);
+   vkDestroyImage(Data::vk_device, m_textureImage, nullptr);
+   vkFreeMemory(Data::vk_device, m_textureImageMemory, nullptr);
 }
 
-Texture::Texture(vulkan::TextureType type, std::string_view textureName, TextureID id)
+Texture::Texture(TextureType type, std::string_view textureName, TextureID id)
    : id_(id), m_name(std::string(textureName))
 {
    CreateTextureImage(type, textureName);
 }
 
 void
-Texture::CreateTextureImage(vulkan::TextureType type, std::string_view textureName)
+Texture::CreateTextureImage(TextureType type, std::string_view textureName)
 {
    m_type = type;
    auto textureData = FileManager::LoadImageData(textureName);
    m_width = static_cast<uint32_t>(textureData.m_size.x);
    m_height = static_cast<uint32_t>(textureData.m_size.y);
-   m_format = type == vulkan::TextureType::DIFFUSE_MAP ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
+   m_format = type == TextureType::DIFFUSE_MAP ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
    m_mips = static_cast< uint32_t >(std::floor(std::log2(std::max(m_width, m_height)))) + 1;
 
    std::tie(m_textureImage, m_textureImageMemory) = CreateImage(
@@ -66,10 +66,10 @@ Texture::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels,
                      VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling,
                      VkImageUsageFlags usage, VkMemoryPropertyFlags properties, bool cubemap)
 {
-   VkImage image;
-   VkDeviceMemory imageMemory;
+   VkImage image = {};
+   VkDeviceMemory imageMemory = {};
 
-   VkImageCreateInfo imageInfo{};
+   VkImageCreateInfo imageInfo = {};
    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
    imageInfo.imageType = VK_IMAGE_TYPE_2D;
    imageInfo.extent.width = width;
@@ -91,11 +91,11 @@ Texture::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels,
       imageInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
    }
 
-   VK_CHECK(vkCreateImage(vulkan::Data::vk_device, &imageInfo, nullptr, &image), "failed to create image!");
+   vk_check_error(vkCreateImage(Data::vk_device, &imageInfo, nullptr, &image), "failed to create image!");
 
    Buffer::AllocateImageMemory(image, imageMemory, properties);
 
-   vkBindImageMemory(vulkan::Data::vk_device, image, imageMemory, 0);
+   vkBindImageMemory(Data::vk_device, image, imageMemory, 0);
 
    return {image, imageMemory};
 }
@@ -104,7 +104,7 @@ VkImageView
 Texture::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
                          uint32_t mipLevels, bool /*cubemap*/)
 {
-   VkImageViewCreateInfo viewInfo{};
+   VkImageViewCreateInfo viewInfo = {};
    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
    viewInfo.image = image;
    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -116,7 +116,7 @@ Texture::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspe
    viewInfo.subresourceRange.layerCount = 1;
 
    VkImageView imageView = {};
-   VK_CHECK(vkCreateImageView(vulkan::Data::vk_device, &viewInfo, nullptr, &imageView),
+   vk_check_error(vkCreateImageView(Data::vk_device, &viewInfo, nullptr, &imageView),
             "Failed to create texture image view!");
 
    return imageView;
@@ -125,12 +125,12 @@ Texture::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspe
 VkSampler
 Texture::CreateSampler(uint32_t mipLevels)
 {
-   VkSampler sampler;
+   VkSampler sampler = {};
 
-   VkPhysicalDeviceProperties properties{};
-   vkGetPhysicalDeviceProperties(vulkan::Data::vk_physicalDevice, &properties);
+   VkPhysicalDeviceProperties properties = {};
+   vkGetPhysicalDeviceProperties(Data::vk_physicalDevice, &properties);
 
-   VkSamplerCreateInfo samplerInfo{};
+   VkSamplerCreateInfo samplerInfo = {};
    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
    samplerInfo.magFilter = VK_FILTER_LINEAR;
    samplerInfo.minFilter = VK_FILTER_LINEAR;
@@ -148,7 +148,7 @@ Texture::CreateSampler(uint32_t mipLevels)
    samplerInfo.maxLod = static_cast< float >(mipLevels);
    samplerInfo.mipLodBias = 0.0f;
 
-   VK_CHECK(vkCreateSampler(vulkan::Data::vk_device, &samplerInfo, nullptr, &sampler),
+   vk_check_error(vkCreateSampler(Data::vk_device, &samplerInfo, nullptr, &sampler),
             "Failed to create texture sampler!");
 
    return sampler;
@@ -159,8 +159,8 @@ Texture::GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, 
                          uint32_t mipLevels)
 {
    // Check if image format supports linear blitting
-   VkFormatProperties formatProperties;
-   vkGetPhysicalDeviceFormatProperties(vulkan::Data::vk_physicalDevice, imageFormat, &formatProperties);
+   VkFormatProperties formatProperties = {};
+   vkGetPhysicalDeviceFormatProperties(Data::vk_physicalDevice, imageFormat, &formatProperties);
 
    if (!(formatProperties.optimalTilingFeatures
          & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
@@ -168,9 +168,9 @@ Texture::GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, 
       utils::Assert(false, "Texture image format does not support linear blitting!");
    }
 
-   VkCommandBuffer commandBuffer = vulkan::Command::BeginSingleTimeCommands();
+   VkCommandBuffer commandBuffer = Command::BeginSingleTimeCommands();
 
-   VkImageMemoryBarrier barrier{};
+   VkImageMemoryBarrier barrier = {};
    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
    barrier.image = image;
    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -180,8 +180,8 @@ Texture::GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, 
    barrier.subresourceRange.layerCount = 1;
    barrier.subresourceRange.levelCount = 1;
 
-   int32_t mipWidth = texWidth;
-   int32_t mipHeight = texHeight;
+   auto mipWidth = texWidth;
+   auto mipHeight = texHeight;
 
    for (uint32_t i = 1; i < mipLevels; i++)
    {
@@ -194,7 +194,7 @@ Texture::GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, 
       vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
                            VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
-      VkImageBlit blit{};
+      VkImageBlit blit = {};
       blit.srcOffsets[0] = {0, 0, 0};
       blit.srcOffsets[1] = {mipWidth, mipHeight, 1};
       blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -220,10 +220,13 @@ Texture::GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, 
                            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1,
                            &barrier);
 
-      if (mipWidth > 1)
+      if (mipWidth > 1){
          mipWidth /= 2;
-      if (mipHeight > 1)
+      }
+
+      if (mipHeight > 1){
          mipHeight /= 2;
+      }
    }
 
    barrier.subresourceRange.baseMipLevel = mipLevels - 1;
@@ -236,7 +239,7 @@ Texture::GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, 
                         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1,
                         &barrier);
 
-   vulkan::Command::EndSingleTimeCommands(commandBuffer);
+   Command::EndSingleTimeCommands(commandBuffer);
 }
 
 std::pair< VkImageView, VkSampler >
@@ -245,7 +248,7 @@ Texture::GetImageViewAndSampler() const
    return {m_textureImageView, m_textureSampler};
 }
 
-vulkan::TextureType
+TextureType
 Texture::GetType() const
 {
    return m_type;
@@ -278,7 +281,7 @@ Texture::CreateTextureSampler()
 void
 Texture::CopyBufferToImage(VkImage image, uint32_t texWidth, uint32_t texHeight, uint8_t* data)
 {
-   VkBufferImageCopy region{};
+   VkBufferImageCopy region = {};
    region.bufferOffset = 0;
    region.bufferRowLength = 0;
    region.bufferImageHeight = 0;
@@ -340,9 +343,9 @@ void
 Texture::TransitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout,
                                uint32_t mipLevels, bool cubemap)
 {
-   VkCommandBuffer commandBuffer = vulkan::Command::BeginSingleTimeCommands();
+   VkCommandBuffer commandBuffer = Command::BeginSingleTimeCommands();
 
-   VkImageMemoryBarrier barrier{};
+   VkImageMemoryBarrier barrier = {};
    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
    barrier.oldLayout = oldLayout;
    barrier.newLayout = newLayout;
@@ -383,7 +386,7 @@ Texture::TransitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLa
    vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1,
                         &barrier);
 
-   vulkan::Command::EndSingleTimeCommands(commandBuffer);
+   Command::EndSingleTimeCommands(commandBuffer);
 }
 
 void
@@ -397,7 +400,7 @@ Texture::TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout,
  *************************************** TEXTURE LIBRARY ******************************************
  *************************************************************************************************/
 const Texture*
-TextureLibrary::GetTexture(vulkan::TextureType type, const std::string& textureName)
+TextureLibrary::GetTexture(TextureType type, const std::string& textureName)
 {
    if (s_loadedTextures.find(textureName) == s_loadedTextures.end())
    {
@@ -411,7 +414,7 @@ TextureLibrary::GetTexture(vulkan::TextureType type, const std::string& textureN
 const Texture*
 TextureLibrary::GetTexture(const std::string& textureName)
 {
-   return GetTexture(vulkan::TextureType::DIFFUSE_MAP, textureName);
+   return GetTexture(TextureType::DIFFUSE_MAP, textureName);
 }
 
 const Texture*
@@ -434,7 +437,7 @@ TextureLibrary::GetTexture(const Texture::TextureID id)
 }
 
 void
-TextureLibrary::CreateTexture(vulkan::TextureType type, const std::string& textureName)
+TextureLibrary::CreateTexture(TextureType type, const std::string& textureName)
 {
    if (s_loadedTextures.find(textureName) == s_loadedTextures.end())
    {
@@ -454,10 +457,10 @@ TextureLibrary::Clear()
 }
 
 void
-TextureLibrary::LoadTexture(vulkan::TextureType type, std::string_view textureName)
+TextureLibrary::LoadTexture(TextureType type, std::string_view textureName)
 {
 
    s_loadedTextures[std::string{textureName}] = {type, textureName, currentID_++};
 }
 
-} // namespace shady::render
+} // namespace shady::renderer

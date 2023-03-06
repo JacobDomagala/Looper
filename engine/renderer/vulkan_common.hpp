@@ -4,24 +4,22 @@
 
 #include <vulkan/vulkan.h>
 #include <array>
+#include <string_view>
+#include <fmt/format.h>
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vk_enum_string_helper.h>
 
-#define VK_CHECK(vkFunction, errorMessage)                                                        \
-   do                                                                                             \
-   {                                                                                              \
-      const auto result = vkFunction;                                                             \
-      if (result != VK_SUCCESS)                                                                   \
-      {                                                                                           \
-         utils::Assert(false,                                                                     \
-                       fmt::format("{} Return value {}", errorMessage, string_VkResult(result))); \
-      }                                                                                           \
-   } while (0);
+namespace looper::renderer {
 
-
-namespace looper::render::vulkan {
-
-
+constexpr inline void
+vk_check_error(VkResult vkResult, std::string_view errorMessage)
+{
+   if (vkResult != VK_SUCCESS)
+   {
+      utils::Assert(false,
+                    fmt::format("{} Return value {}", errorMessage, string_VkResult(vkResult)));
+   }
+}
 
 static constexpr bool ENABLE_VALIDATION = true;
 static constexpr std::array< const char*, 1 > VALIDATION_LAYERS = {"VK_LAYER_KHRONOS_validation"};
@@ -49,4 +47,4 @@ struct Data
 uint32_t
 FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-} // namespace looper::render::vulkan
+} // namespace shady::renderer

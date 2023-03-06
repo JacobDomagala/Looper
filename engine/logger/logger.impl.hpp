@@ -2,6 +2,8 @@
 
 #undef GetCurrentTime
 
+#include "logger.hpp"
+
 #include <fmt/format.h>
 
 namespace looper {

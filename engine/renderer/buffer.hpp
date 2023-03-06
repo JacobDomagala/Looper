@@ -3,7 +3,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 
-namespace looper::render {
+namespace looper::renderer {
 
 class Buffer
 {
@@ -33,10 +33,10 @@ class Buffer
    Unmap();
 
    void
-   CopyData(const void* data);
+   CopyData(const void* data) const;
 
    void
-   CopyDataWithStaging(void* data, size_t dataSize);
+   CopyDataWithStaging(void* data, size_t dataSize) const;
 
    static void
    CopyDataToImageWithStaging(VkImage image, void* data, size_t dataSize,
@@ -49,7 +49,7 @@ class Buffer
    SetupDescriptor(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
 
    void
-   Destroy();
+   Destroy() const;
 
  public:
    void* m_mappedMemory = nullptr;
@@ -61,4 +61,4 @@ class Buffer
 };
 
 
-} // namespace shady::render::vulkan
+} // namespace shady::renderer

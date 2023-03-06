@@ -1,10 +1,8 @@
 #pragma once
 
 #include "shader.hpp"
-
 #include "types.hpp"
 #include "vertex.hpp"
-
 
 #include <glm/glm.hpp>
 #include <vector>
@@ -18,7 +16,7 @@ class Application;
 }
 
 
-namespace looper::render::vulkan {
+namespace looper::renderer {
 
 class VulkanRenderer
 {
@@ -34,8 +32,8 @@ class VulkanRenderer
 
    [[nodiscard]]
    static uint32_t
-   MeshLoaded(const std::vector< vulkan::Vertex >& vertices,
-              const TextureMaps& textures,
+   MeshLoaded(const std::vector< Vertex >& vertices_in,
+              const TextureMaps& textures_in,
               const glm::mat4& modelMat);
 
    static void
@@ -60,9 +58,9 @@ class VulkanRenderer
    static void
    CreateCommandBuffers(Application* app);
 
-   inline static glm::mat4 view_mat = glm::mat4(1.0f);
-   inline static glm::mat4 proj_mat = glm::mat4(1.0f);
-   inline static glm::mat4 model_mat = glm::mat4(1.0f);
+   inline static glm::mat4 view_mat = {};
+   inline static glm::mat4 proj_mat = {};
+   inline static glm::mat4 model_mat = {};
 
  private:
    static void
@@ -130,8 +128,8 @@ class VulkanRenderer
    static VkFormat
    FindDepthFormat();
 
-   static bool
-   HasStencilComponent(VkFormat format);
+   //static bool
+   //HasStencilComponent(VkFormat format);
 
    inline static uint32_t m_numMeshes = {};
 
@@ -194,4 +192,4 @@ class VulkanRenderer
    inline static uint32_t m_currentIndex = {};
 };
 
-} // namespace looper::render::vulkan
+} // namespace shady::renderer

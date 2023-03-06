@@ -22,13 +22,14 @@ const std::filesystem::path IMAGES_DIR = ASSETS_DIR / "images" / "";
 class FileManager
 {
  public:
+   //NOLINTNEXTLINE
    using ImageHandleType = std::unique_ptr< uint8_t[], std::function< void(uint8_t*) > >;
 
    struct ImageData
    {
-      ImageHandleType m_bytes;
-      glm::ivec2 m_size;
-      int32_t m_format;
+      ImageHandleType m_bytes = {};
+      glm::ivec2 m_size = {};
+      int32_t m_format = {};
    };
 
    enum class FileType
