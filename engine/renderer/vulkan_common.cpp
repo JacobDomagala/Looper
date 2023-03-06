@@ -1,7 +1,7 @@
 #include "vulkan_common.hpp"
 #include "utils/assert.hpp"
 
-namespace looper::render {
+namespace looper::renderer {
 
 uint32_t
 FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
@@ -23,4 +23,4 @@ FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
    return 1;
 }
 
-} // namespace looper::render
+} // namespace shady::renderer

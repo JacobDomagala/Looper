@@ -3,7 +3,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 
-namespace looper::render {
+namespace looper::renderer {
 
 class Buffer
 {
@@ -61,4 +61,4 @@ class Buffer
 };
 
 
-} // namespace shady::render::vulkan
+} // namespace shady::renderer

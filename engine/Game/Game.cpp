@@ -1,9 +1,9 @@
-#include "Game.hpp"
-#include "Enemy.hpp"
+#include "game.hpp"
+#include "enemy.hpp"
 #include "utils/file_manager.hpp"
 // #include "RenderCommand.hpp"
 #include "renderer.hpp"
-#include "Window.hpp"
+#include "renderer/window/window.hpp"
 
 #include <GLFW/glfw3.h>
 #include <fstream>
@@ -24,12 +24,12 @@ Game::MainLoop()
       while (IsRunning() && (singleFrameTimer > TARGET_TIME))
       {
          m_window->Clear();
-         render::VulkanRenderer::BeginScene(/*_camera*/);
+         renderer::VulkanRenderer::BeginScene(/*_camera*/);
          const auto dt = Timer::milliseconds(static_cast< long >(
             TARGET_TIME * 1000.0f * static_cast< float >(Timer::AreTimersRunning())));
          ProcessInput(dt);
 
-         render::VulkanRenderer::Draw(this);
+         renderer::VulkanRenderer::Draw(this);
          if (m_frameTimer > 1.0f)
          {
             m_framesLastSecond = m_frames;
@@ -42,7 +42,7 @@ Game::MainLoop()
          ++m_frames;
          m_frameTimer += singleFrameTimer;
          // singleFrameTimer = 0.0f;
-         render::VulkanRenderer::EndScene();
+         renderer::VulkanRenderer::EndScene();
 
          singleFrameTimer -= TARGET_TIME;
 
@@ -63,11 +63,11 @@ Game::Init(const std::string& configFile)
       Logger::Fatal("Game: Can't open {}", (ASSETS_DIR / configFile).string());
    }
 
-   m_window = std::make_unique< Window >(WIDTH, HEIGHT, "WindowTitle");
+   m_window = std::make_unique< renderer::Window >(WIDTH, HEIGHT, "WindowTitle");
 
    // RenderCommand::Init();
    // RenderCommand::SetClearColor({1.0f, 0.2f, 0.3f, 1.0f});
-   render::VulkanRenderer::Initialize(m_window->GetWindowHandle());
+   renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle());
    // RenderCommand::SetViewport(0, 0, WIDTH, HEIGHT);
 
    // m_frameBuffer.SetUp();

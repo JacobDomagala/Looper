@@ -1,6 +1,6 @@
-#include "Application.hpp"
-#include "renderer.hpp"
-#include "Window.hpp"
+#include "application.hpp"
+#include "renderer/renderer.hpp"
+#include "renderer/window/window.hpp"
 
 #include <glm/gtx/rotate_vector.hpp>
 
@@ -12,7 +12,7 @@ Application::GetPlayer()
    return m_currentLevel->GetPlayer();
 }
 
-Window&
+renderer::Window&
 Application::GetWindow()
 {
    return *m_window;
@@ -24,7 +24,7 @@ Application::GetLevel()
    return *m_currentLevel;
 }
 
-Camera&
+renderer::Camera&
 Application::GetCamera()
 {
    return m_camera;

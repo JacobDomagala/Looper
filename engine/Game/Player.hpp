@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Common.hpp"
-#include "GameObject.hpp"
+#include "common.hpp"
+#include "game_object.hpp"
 #include "logger.hpp"
-#include "Sprite.hpp"
-#include "Weapon.hpp"
+#include "renderer/sprite.hpp"
+#include "weapon.hpp"
 
 #include <array>
 #include <deque>

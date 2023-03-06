@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Common.hpp"
-#include "Object.hpp"
+#include "common.hpp"
+#include "object.hpp"
 // #include "Shader.hpp"
-#include "Sprite.hpp"
+#include "renderer/sprite.hpp"
 
 #include <deque>
 #include <glm/glm.hpp>
@@ -65,10 +65,10 @@ class GameObject : public Object
    [[nodiscard]] virtual glm::vec2
    GetScreenPositionPixels() const;
 
-   [[nodiscard]] virtual const Sprite&
+   [[nodiscard]] virtual const renderer::Sprite&
    GetSprite() const;
 
-   virtual Sprite&
+   virtual renderer::Sprite&
    GetSprite();
 
    [[nodiscard]] std::string
@@ -154,7 +154,7 @@ class GameObject : public Object
    bool m_hasCollision = false;
 
    // object's sprite
-   Sprite m_sprite;
+   renderer::Sprite m_sprite;
    std::string m_shaderName;
 
    std::string m_name = "DummyName";

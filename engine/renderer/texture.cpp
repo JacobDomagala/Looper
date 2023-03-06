@@ -10,7 +10,7 @@
 
 #include <string_view>
 
-namespace looper::render {
+namespace looper::renderer {
 
 /**************************************************************************************************
  ****************************************** TEXTURE ***********************************************
@@ -463,4 +463,4 @@ TextureLibrary::LoadTexture(TextureType type, std::string_view textureName)
    s_loadedTextures[std::string{textureName}] = {type, textureName, currentID_++};
 }
 
-} // namespace shady::render
+} // namespace shady::renderer

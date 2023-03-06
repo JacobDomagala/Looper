@@ -1,6 +1,6 @@
-#include "Window.hpp"
-#include "Common.hpp"
-#include "Game.hpp"
+#include "window.hpp"
+#include "common.hpp"
+#include "game.hpp"
 #include "logger.hpp"
 // #include "RenderCommand.hpp"
 #include "utils/assert.hpp"
@@ -9,7 +9,7 @@
 #include <functional>
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace looper {
+namespace looper::renderer {
 
 Window::Window(int32_t width, int32_t height, const std::string& title)
    : m_width(width), m_height(height), m_title(title), m_isRunning(true)
@@ -29,8 +29,7 @@ Window::Window(int32_t width, int32_t height, const std::string& title)
 
    utils::Assert(m_pWindow, "Failed to create GLFW window!");
 
-   Logger::Info("GLFW Window created! Name:{} Width:{} Height:{}", m_title, m_width,
-                       m_height);
+   Logger::Info("GLFW Window created! Name:{} Width:{} Height:{}", m_title, m_width, m_height);
 }
 
 void
@@ -46,7 +45,7 @@ Window::SetIcon(const std::string& /*file*/)
    GLFWimage image;
    image.width = 16;
    image.height = 16;
-   // image.pixels = render::TextureLibrary::GetTexture(file)->GetData();
+   // image.pixels = renderer::TextureLibrary::GetTexture(file)->GetData();
 
    auto* cursor = glfwCreateCursor(&image, 0, 0);
    glfwSetCursor(m_pWindow, cursor);
@@ -94,7 +93,7 @@ Window::GetCursorNormalized()
    auto cursorPos = GetCursor();
 
    const glm::dvec2 centerOfScreen(static_cast< float >(m_width) / 2.0f,
-                             static_cast< float >(m_height) / 2.0f);
+                                   static_cast< float >(m_height) / 2.0f);
 
    cursorPos -= centerOfScreen;
    cursorPos /= centerOfScreen;
@@ -111,4 +110,4 @@ Window::GetCursor()
    return cursorPos;
 }
 
-} // namespace dgame
+} // namespace looper::renderer

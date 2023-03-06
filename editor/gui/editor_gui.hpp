@@ -1,14 +1,14 @@
 #pragma once
 
-#include "Object.hpp"
+#include "object.hpp"
 #include "renderer/buffer.hpp"
 
 #include <glm/glm.hpp>
+#include <vulkan/vulkan.h>
+
 #include <memory>
 #include <unordered_map>
 #include <vector>
-
-#include <vulkan/vulkan.h>
 
 namespace looper {
 
@@ -22,8 +22,8 @@ class Level;
 
 struct PushConstBlock
 {
-   glm::vec2 scale;
-   glm::vec2 translate;
+   glm::vec2 scale = {};
+   glm::vec2 translate = {};
 };
 
 class EditorGUI
@@ -64,7 +64,7 @@ class EditorGUI
    static bool
    IsBlockingEvents();
 
-      static bool
+   static bool
    UpdateBuffers();
 
    static void
@@ -94,7 +94,7 @@ class EditorGUI
    std::shared_ptr< GameObject > m_currentlySelectedGameObject;
    std::shared_ptr< Level > m_currentLevel;
 
-   glm::vec2 m_windowSize = glm::vec2{};
+   glm::vec2 m_windowSize = {};
    float m_windowWidth = 0.0f;
    float m_toolsWindowHeight = 0.0f;
    float m_gameObjectWindowHeight = 0.0f;
@@ -104,7 +104,7 @@ class EditorGUI
 
    bool m_createPushed = false;
 
-      inline static VkImage m_fontImage = {};
+   inline static VkImage m_fontImage = {};
    inline static VkDeviceMemory m_fontMemory = {};
    inline static VkImageView m_fontView = {};
    inline static VkSampler m_sampler = {};
@@ -117,8 +117,8 @@ class EditorGUI
    inline static uint32_t m_subpass = 0;
 
    inline static PushConstBlock m_pushConstant = {};
-   inline static render::Buffer m_vertexBuffer = {};
-   inline static render::Buffer m_indexBuffer = {};
+   inline static renderer::Buffer m_vertexBuffer = {};
+   inline static renderer::Buffer m_indexBuffer = {};
    inline static int32_t m_vertexCount = 0;
    inline static int32_t m_indexCount = 0;
 };

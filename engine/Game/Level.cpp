@@ -1,10 +1,10 @@
-#include "Level.hpp"
-#include "Enemy.hpp"
+#include "level.hpp"
+#include "enemy.hpp"
 #include "utils/file_manager.hpp"
-#include "Game.hpp"
-#include "Player.hpp"
-#include "timer.hpp"
-#include "Window.hpp"
+#include "game.hpp"
+#include "player.hpp"
+#include "utils/time/timer.hpp"
+#include "renderer/window/window.hpp"
 #include "renderer/renderer.hpp"
 
 #include <algorithm>
@@ -360,8 +360,8 @@ Level::GetTileFromPosition(const glm::vec2& local) const
       return invalidTile;
    }
 
-   const auto w = glm::floor(local.x / static_cast< float >(m_tileWidth));
-   const auto h = glm::floor(local.y / static_cast< float >(m_tileWidth));
+   const auto w = static_cast< int32_t >(glm::floor(local.x / static_cast< float >(m_tileWidth)));
+   const auto h = static_cast< int32_t >(glm::floor(local.y / static_cast< float >(m_tileWidth)));
 
    return {w, h};
 }
@@ -633,7 +633,7 @@ Level::GetGameObjectOnLocation(const glm::vec2& screenPosition)
    return objectOnLocation != m_objects.end() ? *objectOnLocation : nullptr;
 }
 
-Sprite&
+renderer::Sprite&
 Level::GetSprite()
 {
    return m_background;

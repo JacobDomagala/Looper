@@ -1,4 +1,4 @@
-#include <Weapon.hpp>
+#include <weapon.hpp>
 
 namespace looper {
 }

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Common.hpp"
-#include "Object.hpp"
+#include "common.hpp"
+#include "object.hpp"
 
 #include <glm/glm.hpp>
 #include <vector>

@@ -1,16 +1,20 @@
 #pragma once
 
-#include "Common.hpp"
+#include "common.hpp"
 #include "texture.hpp"
 
-#include <memory>
 #include <deque>
 #include <glm/glm.hpp>
+#include <memory>
+
 
 namespace looper {
+class Application;
+}
+
+namespace looper::renderer {
 
 class Window;
-class Application;
 
 class Sprite
 {
@@ -75,7 +79,7 @@ class Sprite
    [[nodiscard]] float&
    GetUniformScaleValue();
 
-   [[nodiscard]] const render::Texture*
+   [[nodiscard]] const renderer::Texture*
    GetTexture() const;
 
    // Set rotation angle
@@ -136,7 +140,7 @@ class Sprite
    State m_currentState = {};
 
    // sprite's texture
-   render::Texture::TextureID texture_ = {};
+   renderer::Texture::TextureID texture_ = {};
 
    glm::vec3 m_initialPosition = {};
 
@@ -146,4 +150,4 @@ class Sprite
    uint32_t rendererIdx_ = static_cast< uint32_t >(~0);
 };
 
-} // namespace looper
+} // namespace looper::renderer

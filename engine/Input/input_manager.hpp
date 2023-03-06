@@ -1,6 +1,6 @@
 #pragma once
 
-#include "InputListener.hpp"
+#include "input_listener.hpp"
 #include "logger.hpp"
 
 #include <glm/glm.hpp>

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Object.hpp"
-#include "timer.hpp"
+#include "object.hpp"
+#include "utils/time/timer.hpp"
 
 #include <deque>
 #include <glm/glm.hpp>

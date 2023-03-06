@@ -1,11 +1,12 @@
 #include "buffer.hpp"
 #include "command.hpp"
-#include "vulkan_common.hpp"
 #include "utils/assert.hpp"
+#include "vulkan_common.hpp"
+
 
 #include <fmt/format.h>
 
-namespace looper::render {
+namespace looper::renderer {
 
 void
 Buffer::Map(VkDeviceSize size)
@@ -67,7 +68,7 @@ Buffer::CopyDataToImageWithStaging(VkImage image, void* data, size_t dataSize,
    auto* commandBuffer = Command::BeginSingleTimeCommands();
 
    vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                          static_cast<uint32_t>(copyRegions.size()), copyRegions.data());
+                          static_cast< uint32_t >(copyRegions.size()), copyRegions.data());
 
    Command::EndSingleTimeCommands(commandBuffer);
 
@@ -93,7 +94,7 @@ AllocateMemory(VkMemoryRequirements memReq, VkDeviceMemory& bufferMemory,
    allocInfo.memoryTypeIndex = FindMemoryType(memReq.memoryTypeBits, properties);
 
    vk_check_error(vkAllocateMemory(Data::vk_device, &allocInfo, nullptr, &bufferMemory),
-            "failed to allocate buffer memory!");
+                  "failed to allocate buffer memory!");
 }
 
 void
@@ -138,7 +139,7 @@ Buffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryProper
    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
    vk_check_error(vkCreateBuffer(Data::vk_device, &bufferInfo, nullptr, &buffer),
-            "failed to create buffer!");
+                  "failed to create buffer!");
 
    AllocateBufferMemory(buffer, bufferMemory, properties);
 
@@ -166,7 +167,8 @@ Buffer::Flush(VkDeviceSize size, VkDeviceSize offset) const
    mappedRange.offset = offset;
    mappedRange.size = size;
 
-   vk_check_error(vkFlushMappedMemoryRanges(Data::vk_device, 1, &mappedRange), "Buffer::Flush error!");
+   vk_check_error(vkFlushMappedMemoryRanges(Data::vk_device, 1, &mappedRange),
+                  "Buffer::Flush error!");
 }
 
 void
@@ -182,4 +184,4 @@ Buffer::Destroy() const
    }
 }
 
-} // namespace shady::render
+} // namespace looper::renderer

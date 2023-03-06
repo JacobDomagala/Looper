@@ -1,9 +1,11 @@
 #pragma once
 
-#include "timer.hpp"
 #include "formatter_types.hpp"
+#include "utils/time/timer.hpp"
+
 
 #include <fmt/color.h>
+#include <stdint.h>
 #include <string_view>
 #include <unordered_map>
 
@@ -56,7 +58,7 @@ class Logger
 
    template < TYPE LogLevel, typename... Args >
    static constexpr void
-   Log(fmt::format_string<Args...> buffer, Args&&... args);
+   Log(fmt::format_string< Args... > buffer, Args&&... args);
 
    static void
    SetType(TYPE newType);
@@ -68,14 +70,14 @@ class Logger
  private:
    static inline TYPE s_currentLogType = TYPE::DEBUG;
 
-//NOLINTBEGIN
+// NOLINTBEGIN
 #if defined(_WIN32)
    static const inline std::unordered_map< TYPE, WORD, LoggerTypeHash > s_typeStyles = {
-      {TYPE::TRACE, FOREGROUND_BLUE},
-      {TYPE::DEBUG, FOREGROUND_GREEN | FOREGROUND_BLUE},
-      {TYPE::INFO, FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_RED},
-      {TYPE::WARNING, FOREGROUND_GREEN | FOREGROUND_RED},
-      {TYPE::FATAL, FOREGROUND_RED}};
+      {TYPE::TRACE, static_cast< WORD >(FOREGROUND_BLUE)},
+      {TYPE::DEBUG, static_cast< WORD >(FOREGROUND_GREEN | FOREGROUND_BLUE)},
+      {TYPE::INFO, static_cast< WORD >(FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_RED)},
+      {TYPE::WARNING, static_cast< WORD >(FOREGROUND_GREEN | FOREGROUND_RED)},
+      {TYPE::FATAL, static_cast< WORD >(FOREGROUND_RED)}};
 #else
    static const inline std::unordered_map< TYPE, fmt::color, LoggerTypeHash > s_typeStyles = {
       {TYPE::TRACE, fmt::color::azure},
@@ -84,9 +86,9 @@ class Logger
       {TYPE::WARNING, fmt::color::yellow},
       {TYPE::FATAL, fmt::color::crimson}};
 #endif
-//NOLINTEND
+   // NOLINTEND
 };
 
-} // namespace shady::trace
+} // namespace looper
 
 #include "logger.impl.hpp"

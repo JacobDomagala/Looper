@@ -1,4 +1,4 @@
-#include "Object.hpp"
+#include "object.hpp"
 
 namespace looper {
 

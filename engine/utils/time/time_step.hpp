@@ -10,7 +10,7 @@ using seconds = std::chrono::seconds;
 
 struct TimeStep
 {
-   explicit TimeStep(milliseconds time = {});
+   explicit TimeStep(milliseconds time = milliseconds{});
 
    [[nodiscard]] std::string
    ToString() const;
@@ -22,7 +22,7 @@ struct TimeStep
    GetMilliseconds() const;
 
  private:
-   milliseconds m_time;
+   milliseconds m_time = {};
 };
 
 }

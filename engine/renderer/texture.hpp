@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <vulkan/vulkan.h>
 
-namespace looper::render {
+namespace looper::renderer {
 
 class Texture
 {
@@ -115,4 +115,4 @@ class TextureLibrary
    static inline Texture::TextureID currentID_ = 0;
 };
 
-} // namespace shady::render
+} // namespace shady::renderer

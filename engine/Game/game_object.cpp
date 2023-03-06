@@ -1,7 +1,7 @@
-#include "GameObject.hpp"
-#include "Application.hpp"
-#include "Game.hpp"
-#include "Window.hpp"
+#include "game_object.hpp"
+#include "application.hpp"
+#include "game.hpp"
+#include "renderer/window/window.hpp"
 
 namespace looper {
 
@@ -23,7 +23,7 @@ GameObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 {
    bool collided = false;
 
-   Camera camera = m_appHandle.GetCamera();
+   renderer::Camera camera = m_appHandle.GetCamera();
    camera.Rotate(m_sprite.GetRotation(), false);
 
    const auto boundingRectangle = m_sprite.GetTransformedRectangle();
@@ -104,13 +104,13 @@ GameObject::GetCenteredPosition() const
    // return m_currentGameObjectState.m_centeredPosition;
 }
 
-const Sprite&
+const renderer::Sprite&
 GameObject::GetSprite() const
 {
    return m_sprite;
 }
 
-Sprite&
+renderer::Sprite&
 GameObject::GetSprite()
 {
    return m_sprite;

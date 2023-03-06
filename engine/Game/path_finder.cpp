@@ -1,4 +1,4 @@
-#include "PathFinder.hpp"
+#include "path_finder.hpp"
 
 #include <algorithm>
 #include <list>

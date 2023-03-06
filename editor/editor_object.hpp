@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Common.hpp"
-#include "GameObject.hpp"
-#include "Object.hpp"
-#include "Sprite.hpp"
+#include "common.hpp"
+#include "game_object.hpp"
+#include "object.hpp"
+#include "renderer/sprite.hpp"
 
 #include <glm/glm.hpp>
 
@@ -61,10 +61,10 @@ class EditorObject
    [[nodiscard]] glm::vec2
    GetScreenPositionPixels() const;
 
-   [[nodiscard]] const Sprite&
+   [[nodiscard]] const renderer::Sprite&
    GetSprite() const;
 
-   Sprite&
+   renderer::Sprite&
    GetSprite();
 
    [[nodiscard]] std::string
@@ -134,7 +134,7 @@ class EditorObject
    bool m_isBackground = false;
 
    // object's sprite
-   Sprite m_sprite;
+   renderer::Sprite m_sprite;
 };
 
 } // namespace looper

@@ -1,5 +1,5 @@
-#include "InputManager.hpp"
-#include "Event.hpp"
+#include "input_manager.hpp"
+#include "event.hpp"
 
 #include <GLFW/glfw3.h>
 #include <iostream>

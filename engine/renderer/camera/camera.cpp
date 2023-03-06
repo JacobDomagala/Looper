@@ -1,10 +1,10 @@
-#include "Camera.hpp"
-#include "GameObject.hpp"
+#include "camera.hpp"
+#include "game_object.hpp"
 
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/transform.hpp>
 
-namespace looper {
+namespace looper::renderer {
 
 void
 Camera::Create(const glm::vec3& position, const glm::ivec2& windowSize, const glm::vec3& lookAt,
@@ -22,7 +22,7 @@ Camera::Create(const glm::vec3& position, const glm::ivec2& windowSize, const gl
    const auto bottom = -m_windowSize.y / 2.0f;
 
    m_viewMatrix = glm::lookAt(m_position, m_position + m_lookAtDirection, m_upVector);
-   
+
    // NOLINTNEXTLINE top and bottom swapped intentionally
    m_projectionMatrix = glm::ortho(left, right, top, bottom, nearPlane_, farPlane_);
    m_viewProjectionMatrix = m_projectionMatrix * m_viewMatrix;
@@ -152,4 +152,4 @@ Camera::UpdateViewMatrix()
    m_viewProjectionMatrix = m_projectionMatrix * m_viewMatrix;
 }
 
-} // namespace looper
+} // namespace looper::renderer

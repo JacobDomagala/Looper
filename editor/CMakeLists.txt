@@ -2,8 +2,8 @@ set(MODULE_NAME Editor)
 
 project(${MODULE_NAME})
 
-file(GLOB HEADERS "*.hpp")
-file(GLOB SOURCES "*.cpp")
+file(GLOB_RECURSE HEADERS "*.hpp")
+file(GLOB_RECURSE SOURCES "*.cpp")
 
 add_executable(${MODULE_NAME} ${HEADERS} ${SOURCES})
 target_include_directories(${MODULE_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/gui")

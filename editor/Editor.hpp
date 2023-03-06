@@ -1,15 +1,16 @@
 #pragma once
 
-#include "Application.hpp"
-#include "EditorGUI.hpp"
-#include "EditorObject.hpp"
-#include "Game.hpp"
-#include "Level.hpp"
+#include "application.hpp"
+#include "gui/editor_gui.hpp"
+#include "editor_object.hpp"
+#include "game.hpp"
+#include "level.hpp"
 #include "logger.hpp"
-#include "Object.hpp"
-#include "Player.hpp"
-#include "timer.hpp"
-#include "time_step.hpp"
+#include "object.hpp"
+#include "player.hpp"
+#include "utils/time/time_step.hpp"
+#include "utils/time/timer.hpp"
+
 
 #include <glm/matrix.hpp>
 #include <utility>
@@ -17,7 +18,6 @@
 namespace looper {
 
 class Player;
-class Window;
 
 class Editor : public Application
 {
@@ -69,7 +69,7 @@ class Editor : public Application
    AddGameObject(GameObject::TYPE objectType);
 
    void
-   CopyGameObject(const std::shared_ptr<GameObject>& objectToCopy);
+   CopyGameObject(const std::shared_ptr< GameObject >& objectToCopy);
 
    void
    AddObject(Object::TYPE objectType);
@@ -113,8 +113,8 @@ class Editor : public Application
    [[nodiscard]] std::pair< bool, int32_t >
    GetGridData() const;
 
-   [[nodiscard]]
-   time::TimeStep GetRenderTime() const;
+   [[nodiscard]] time::TimeStep
+   GetRenderTime() const;
 
    void
    HandleGameObjectSelected(const std::shared_ptr< GameObject >& newSelectedGameObject,
@@ -179,10 +179,10 @@ class Editor : public Application
    void
    SetMouseOnObject();
 
-   std::unique_ptr< Game > m_game;
-   std::shared_ptr< Level > m_level;
+   std::unique_ptr< Game > m_game = {};
+   std::shared_ptr< Level > m_level = {};
 
-   std::string m_levelFileName;
+   std::string m_levelFileName = {};
 
    bool m_isRunning = true;
    bool m_levelLoaded = false;
@@ -195,25 +195,26 @@ class Editor : public Application
    bool m_animateGameObject = false;
    bool m_movementOnGameObject = false;
    bool m_gameObjectSelected = false;
-   std::shared_ptr< GameObject > m_currentSelectedGameObject;
+   std::shared_ptr< GameObject > m_currentSelectedGameObject = {};
 
-   std::shared_ptr< GameObject > m_copiedGameObject;
+   std::shared_ptr< GameObject > m_copiedGameObject = {};
 
    // Handling of editor objects (drawable objects linked to object in game)
    bool m_movementOnEditorObject = false;
    bool m_editorObjectSelected = false;
-   std::vector< std::shared_ptr< EditorObject > > m_editorObjects;
-   std::shared_ptr< EditorObject > m_currentEditorObjectSelected;
+   std::vector< std::shared_ptr< EditorObject > > m_editorObjects = {};
+   std::shared_ptr< EditorObject > m_currentEditorObjectSelected = {};
 
    bool m_renderPathfinderNodes = true;
 
    bool m_drawGrid = true;
    int32_t m_gridCellSize = 128;
 
-   EditorGUI m_gui;
+   // constructed in initializer list
+   EditorGUI gui_;
 
    bool m_playGame = false;
-   time::TimeStep timeLastFrame_;
+   time::TimeStep timeLastFrame_ = time::TimeStep{};
 };
 
 } // namespace looper

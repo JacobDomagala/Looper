@@ -9,7 +9,7 @@
 
 struct GLFWwindow;
 
-namespace looper {
+namespace looper::renderer {
 
 // NOLINTNEXTLINE
 class Window
@@ -107,4 +107,4 @@ class Window
    static inline bool s_glfwInitalized = false;
 };
 
-} // namespace dgame
+} // namespace looper::renderer

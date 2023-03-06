@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Application.hpp"
-#include "InputManager.hpp"
-#include "Level.hpp"
+#include "application.hpp"
+#include "input_manager.hpp"
+#include "level.hpp"
 #include "logger.hpp"
-#include "Player.hpp"
-#include "timer.hpp"
-#include "Window.hpp"
+#include "player.hpp"
+#include "utils/time/timer.hpp"
+#include "renderer/window/window.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>

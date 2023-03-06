@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Camera.hpp"
+#include "renderer/camera/camera.hpp"
 // #include "Font.hpp"
-#include "InputListener.hpp"
-#include "Level.hpp"
+#include "input_listener.hpp"
+#include "level.hpp"
 #include "logger.hpp"
-#include "timer.hpp"
+#include "utils/time/timer.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
@@ -32,13 +32,13 @@ class Application : public InputListener
    [[nodiscard]] std::shared_ptr< Player >
    GetPlayer();
 
-   [[nodiscard]] Window&
+   [[nodiscard]] renderer::Window&
    GetWindow();
 
    [[nodiscard]] Level&
    GetLevel();
 
-   [[nodiscard]] Camera&
+   [[nodiscard]] renderer::Camera&
    GetCamera();
 
    [[nodiscard]] Timer::milliseconds
@@ -84,8 +84,8 @@ class Application : public InputListener
    std::shared_ptr< Player > m_player = nullptr;
    std::shared_ptr< Level > m_currentLevel = nullptr;
 
-   std::unique_ptr< Window > m_window = nullptr;
-   Camera m_camera = {};
+   std::unique_ptr< renderer::Window > m_window = nullptr;
+   renderer::Camera m_camera = {};
    Timer m_timer = {};
    Timer::milliseconds m_deltaTime = {};
 };

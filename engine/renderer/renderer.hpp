@@ -1,10 +1,8 @@
 #pragma once
 
 #include "shader.hpp"
-
 #include "types.hpp"
 #include "vertex.hpp"
-
 
 #include <glm/glm.hpp>
 #include <vector>
@@ -18,7 +16,7 @@ class Application;
 }
 
 
-namespace looper::render {
+namespace looper::renderer {
 
 class VulkanRenderer
 {
@@ -194,4 +192,4 @@ class VulkanRenderer
    inline static uint32_t m_currentIndex = {};
 };
 
-} // namespace looper::render
+} // namespace shady::renderer

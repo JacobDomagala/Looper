@@ -19,7 +19,7 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup(TARGETS)
 find_package(Vulkan REQUIRED)
 
-target_link_libraries_system (${MODULE_NAME} PUBLIC CONAN_PKG::fmt CONAN_PKG::glfw CONAN_PKG::imgui CONAN_PKG::glm CONAN_PKG::nlohmann_json stb_image)
+target_link_libraries_system(${MODULE_NAME} PUBLIC stb_image CONAN_PKG::fmt CONAN_PKG::glfw CONAN_PKG::imgui CONAN_PKG::glm CONAN_PKG::nlohmann_json)
 target_link_libraries(${MODULE_NAME} PUBLIC project_warnings project_options Vulkan::Vulkan)
 target_compile_features(${MODULE_NAME} PRIVATE cxx_std_20)
 

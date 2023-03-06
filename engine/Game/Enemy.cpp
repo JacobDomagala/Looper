@@ -1,9 +1,9 @@
-#include <Application.hpp>
-#include <Enemy.hpp>
-#include <Game.hpp>
-#include <Level.hpp>
-#include <timer.hpp>
-#include <Weapon.hpp>
+#include <application.hpp>
+#include <enemy.hpp>
+#include <game.hpp>
+#include <level.hpp>
+#include <utils/time/timer.hpp>
+#include <weapon.hpp>
 
 #include <random>
 

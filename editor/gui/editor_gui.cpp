@@ -1,7 +1,7 @@
-#include "EditorGUI.hpp"
-#include "Animatable.hpp"
-#include "Editor.hpp"
-#include "GameObject.hpp"
+#include "editor_gui.hpp"
+#include "animatable.hpp"
+#include "editor.hpp"
+#include "game_object.hpp"
 #include "renderer/shader.hpp"
 #include "renderer/texture.hpp"
 #include "renderer/types.hpp"
@@ -9,10 +9,11 @@
 #include "utils/file_manager.hpp"
 
 #include <GLFW/glfw3.h>
-#include <cstdint>
 #include <fmt/format.h>
 #include <imgui.h>
 #include <imgui_internal.h>
+
+#include <cstdint>
 
 namespace looper {
 
@@ -128,7 +129,7 @@ EditorGUI::Init()
    SetStyle();
 
    PrepareResources();
-   PreparePipeline(render::Data::m_pipelineCache, render::Data::m_renderPass);
+   PreparePipeline(renderer::Data::m_pipelineCache, renderer::Data::m_renderPass);
 }
 
 bool
@@ -160,7 +161,7 @@ EditorGUI::UpdateBuffers()
       m_vertexBuffer.Unmap();
       m_vertexBuffer.Destroy();
 
-      m_vertexBuffer = render::Buffer::CreateBuffer(
+      m_vertexBuffer = renderer::Buffer::CreateBuffer(
          vertexBufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
       m_vertexCount = imDrawData->TotalVtxCount;
       m_vertexBuffer.Map();
@@ -174,7 +175,7 @@ EditorGUI::UpdateBuffers()
       m_indexBuffer.Unmap();
       m_indexBuffer.Destroy();
 
-      m_indexBuffer = render::Buffer::CreateBuffer(
+      m_indexBuffer = renderer::Buffer::CreateBuffer(
          indexBufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
       m_indexCount = imDrawData->TotalIdxCount;
       m_indexBuffer.Map();
@@ -267,28 +268,28 @@ EditorGUI::PrepareResources()
    io.Fonts->GetTexDataAsRGBA32(&fontData, &texWidth, &texHeight);
 
 
-   std::tie(m_fontImage, m_fontMemory) = render::Texture::CreateImage(
+   std::tie(m_fontImage, m_fontMemory) = renderer::Texture::CreateImage(
       static_cast< uint32_t >(texWidth), static_cast< uint32_t >(texHeight), 1,
       VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 
-   m_fontView = render::Texture::CreateImageView(m_fontImage, VK_FORMAT_R8G8B8A8_UNORM,
+   m_fontView = renderer::Texture::CreateImageView(m_fontImage, VK_FORMAT_R8G8B8A8_UNORM,
                                                  VK_IMAGE_ASPECT_COLOR_BIT, 1);
 
 
-   render::Texture::TransitionImageLayout(m_fontImage, VK_IMAGE_LAYOUT_UNDEFINED,
+   renderer::Texture::TransitionImageLayout(m_fontImage, VK_IMAGE_LAYOUT_UNDEFINED,
                                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1);
 
-   render::Texture::CopyBufferToImage(m_fontImage, static_cast< uint32_t >(texWidth),
+   renderer::Texture::CopyBufferToImage(m_fontImage, static_cast< uint32_t >(texWidth),
                                       static_cast< uint32_t >(texHeight), fontData);
 
-   render::Texture::TransitionImageLayout(m_fontImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+   renderer::Texture::TransitionImageLayout(m_fontImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1);
 
    // Font texture Sampler
-   m_sampler = render::Texture::CreateSampler();
+   m_sampler = renderer::Texture::CreateSampler();
 
    // Descriptor pool
    VkDescriptorPoolSize descriptorPoolSize{};
@@ -302,7 +303,7 @@ EditorGUI::PrepareResources()
    descriptorPoolInfo.pPoolSizes = poolSizes.data();
    descriptorPoolInfo.maxSets = 2;
 
-   render::vk_check_error(vkCreateDescriptorPool(render::Data::vk_device, &descriptorPoolInfo,
+   renderer::vk_check_error(vkCreateDescriptorPool(renderer::Data::vk_device, &descriptorPoolInfo,
                                                        nullptr, &m_descriptorPool),
                                 "");
 
@@ -321,7 +322,7 @@ EditorGUI::PrepareResources()
    descriptorSetLayoutCreateInfo.bindingCount = static_cast< uint32_t >(setLayoutBindings.size());
 
 
-   render::vk_check_error(vkCreateDescriptorSetLayout(render::Data::vk_device,
+   renderer::vk_check_error(vkCreateDescriptorSetLayout(renderer::Data::vk_device,
                                                             &descriptorSetLayoutCreateInfo, nullptr,
                                                             &m_descriptorSetLayout),
                                 "");
@@ -334,7 +335,7 @@ EditorGUI::PrepareResources()
    descriptorSetAllocateInfo.descriptorSetCount = 1;
 
 
-   render::vk_check_error(vkAllocateDescriptorSets(render::Data::vk_device,
+   renderer::vk_check_error(vkAllocateDescriptorSets(renderer::Data::vk_device,
                                                          &descriptorSetAllocateInfo,
                                                          &m_descriptorSet),
                                 "");
@@ -353,7 +354,7 @@ EditorGUI::PrepareResources()
    writeDescriptorSet.descriptorCount = 1;
 
    std::vector< VkWriteDescriptorSet > writeDescriptorSets = {writeDescriptorSet};
-   vkUpdateDescriptorSets(render::Data::vk_device,
+   vkUpdateDescriptorSets(renderer::Data::vk_device,
                           static_cast< uint32_t >(writeDescriptorSets.size()),
                           writeDescriptorSets.data(), 0, nullptr);
 }
@@ -375,7 +376,7 @@ EditorGUI::PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPas
 
    pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
    pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRange;
-   render::vk_check_error(vkCreatePipelineLayout(render::Data::vk_device,
+   renderer::vk_check_error(vkCreatePipelineLayout(renderer::Data::vk_device,
                                                        &pipelineLayoutCreateInfo, nullptr,
                                                        &m_pipelineLayout),
                                 "");
@@ -434,7 +435,7 @@ EditorGUI::PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPas
    VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo{};
    pipelineMultisampleStateCreateInfo.sType =
       VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-   pipelineMultisampleStateCreateInfo.rasterizationSamples = render::Data::m_msaaSamples;
+   pipelineMultisampleStateCreateInfo.rasterizationSamples = renderer::Data::m_msaaSamples;
    pipelineMultisampleStateCreateInfo.flags = 0;
 
 
@@ -448,8 +449,8 @@ EditorGUI::PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPas
       static_cast< uint32_t >(dynamicStateEnables.size());
    pipelineDynamicStateCreateInfo.flags = 0;
 
-   auto [vertexInfo, fragmentInfo] = render::VulkanShader::CreateShader(
-      render::Data::vk_device, "vulkan/ui.vert.spv", "vulkan/ui.frag.spv");
+   auto [vertexInfo, fragmentInfo] = renderer::VulkanShader::CreateShader(
+      renderer::Data::vk_device, "vulkan/ui.vert.spv", "vulkan/ui.frag.spv");
    std::array< VkPipelineShaderStageCreateInfo, 2 > shaderStages = {vertexInfo.shaderInfo,
                                                                     fragmentInfo.shaderInfo};
 
@@ -517,7 +518,7 @@ EditorGUI::PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPas
 
    pipelineCreateInfo.pVertexInputState = &pipelineVertexInputStateCreateInfo;
 
-   render::vk_check_error(vkCreateGraphicsPipelines(render::Data::vk_device, pipelineCache, 1,
+   renderer::vk_check_error(vkCreateGraphicsPipelines(renderer::Data::vk_device, pipelineCache, 1,
                                                           &pipelineCreateInfo, nullptr,
                                                           &m_pipeline),
                                 "");
@@ -752,7 +753,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
       auto objectPosition = m_currentlySelectedGameObject->GetPosition();
       auto sprite_size = m_currentlySelectedGameObject->GetSprite().GetSize();
       auto rotation =
-         m_currentlySelectedGameObject->GetSprite().GetRotation(Sprite::RotationType::DEGREES);
+         m_currentlySelectedGameObject->GetSprite().GetRotation(renderer::Sprite::RotationType::DEGREES);
 
       ImGui::InputFloat2("Position", &objectPosition.x);
 
@@ -761,8 +762,8 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          m_currentlySelectedGameObject->SetSize(sprite_size);
       }
 
-      if (ImGui::SliderFloat("Rotate", &rotation, glm::degrees(Sprite::s_ROTATIONRANGE.first),
-                             glm::degrees(Sprite::s_ROTATIONRANGE.second)))
+      if (ImGui::SliderFloat("Rotate", &rotation, glm::degrees(renderer::Sprite::s_ROTATIONRANGE.first),
+                             glm::degrees(renderer::Sprite::s_ROTATIONRANGE.second)))
       {
          m_currentlySelectedGameObject->Rotate(glm::radians(rotation));
       }

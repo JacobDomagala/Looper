@@ -1,11 +1,11 @@
-#include "Sprite.hpp"
-#include "Application.hpp"
+#include "sprite.hpp"
+#include "application.hpp"
 #include "renderer.hpp"
 #include "texture.hpp"
 
 #include <glm/gtx/transform.hpp>
 
-namespace looper {
+namespace looper::renderer {
 
 void
 Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
@@ -28,7 +28,7 @@ void
 Sprite::SetSpriteTextured(const glm::vec3& position, const glm::ivec2& size,
                           const std::string& fileName)
 {
-   texture_ = render::TextureLibrary::GetTexture(fileName)->GetID();
+   texture_ = renderer::TextureLibrary::GetTexture(fileName)->GetID();
 
    m_initialPosition = position;
    m_currentState.m_currentPosition = position;
@@ -51,7 +51,7 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::ivec2& size,
         x (3) [-0.5f, 0.5f]     |     x (2) [0.5f, 0.5f]
 
    */
-   const std::vector< render::Vertex > vtcs = {
+   const std::vector< renderer::Vertex > vtcs = {
       {glm::vec3{-0.5f, -0.5f, 0.0f}, glm::vec2{0.0f, 0.0f}, glm::vec4{}, 1.0f},
       {glm::vec3{0.5f, -0.5f, 0.0f}, glm::vec2{1.0f, 0.0f}, glm::vec4{}, 1.0f},
       {glm::vec3(0.5f, 0.5f, 0.0f), glm::vec2{1.0f, 1.0f}, glm::vec4{}, 1.0f},
@@ -63,11 +63,12 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::ivec2& size,
       * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
       * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
 
-   const std::array< std::string, 3 > txts = {render::TextureLibrary::GetTexture(texture_)->GetName(),
-                                        render::TextureLibrary::GetTexture(texture_)->GetName(),
-                                        render::TextureLibrary::GetTexture(texture_)->GetName()};
+   const std::array< std::string, 3 > txts = {
+      TextureLibrary::GetTexture(texture_)->GetName(),
+      TextureLibrary::GetTexture(texture_)->GetName(),
+      TextureLibrary::GetTexture(texture_)->GetName()};
 
-   rendererIdx_ = render::VulkanRenderer::MeshLoaded(vtcs, txts, transformMat);
+   rendererIdx_ = VulkanRenderer::MeshLoaded(vtcs, txts, transformMat);
 }
 
 void
@@ -102,7 +103,7 @@ Sprite::Render()
    //                    TextureLibrary::GetTexture(m_texture->GetName()), 1.0f,
    //                    m_currentState.m_color);
 
-    if (changed_)
+   if (changed_)
    {
       const glm::mat4 transformMat =
          glm::translate(glm::mat4(1.0f),
@@ -110,10 +111,10 @@ Sprite::Render()
          * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
          * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
 
-      render::VulkanRenderer::SubmitMeshData(rendererIdx_ , transformMat);
+      renderer::VulkanRenderer::SubmitMeshData(rendererIdx_, transformMat);
 
       changed_ = false;
-    }
+   }
 }
 
 glm::vec2
@@ -144,7 +145,7 @@ Sprite::GetOriginalSize() const
 std::string
 Sprite::GetTextureName() const
 {
-   return render::TextureLibrary::GetTexture(texture_)->GetName();
+   return renderer::TextureLibrary::GetTexture(texture_)->GetName();
 }
 
 glm::vec2
@@ -200,10 +201,10 @@ Sprite::SetInitialPosition(const glm::vec2& globalPosition)
    m_initialPosition = glm::vec3(globalPosition, m_initialPosition.z);
 }
 
-const render::Texture*
+const renderer::Texture*
 Sprite::GetTexture() const
 {
-   return render::TextureLibrary::GetTexture(texture_);
+   return renderer::TextureLibrary::GetTexture(texture_);
 }
 
 void
@@ -290,4 +291,4 @@ Sprite::GetTransformedRectangle() const
    return {topRight, topLeft, bottomLeft, bottomRight};
 }
 
-} // namespace looper
+} // namespace looper::renderer

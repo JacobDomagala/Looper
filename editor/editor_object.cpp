@@ -1,7 +1,7 @@
-#include "EditorObject.hpp"
-#include "Animatable.hpp"
-#include "Editor.hpp"
-#include "Enemy.hpp"
+#include "editor_object.hpp"
+#include "animatable.hpp"
+#include "editor.hpp"
+#include "enemy.hpp"
 
 namespace looper {
 
@@ -26,7 +26,7 @@ EditorObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 
    bool collided = false;
 
-   Camera camera = m_editor.GetCamera();
+   renderer::Camera camera = m_editor.GetCamera();
    camera.Rotate(m_sprite.GetRotation(), false);
 
    const auto boundingRectangle = m_sprite.GetTransformedRectangle();
@@ -107,13 +107,13 @@ EditorObject::GetCenteredPosition() const
    return m_centeredPosition;
 }
 
-const Sprite&
+const renderer::Sprite&
 EditorObject::GetSprite() const
 {
    return m_sprite;
 }
 
-Sprite&
+renderer::Sprite&
 EditorObject::GetSprite()
 {
    return m_sprite;
@@ -238,7 +238,7 @@ EditorObject::Rotate(float angle, bool cumulative)
 {
    cumulative ? m_sprite.RotateCumulative(angle) : m_sprite.Rotate(angle);
 
-   auto rotate = m_sprite.GetRotation(Sprite::RotationType::DEGREES);
+   auto rotate = m_sprite.GetRotation(renderer::Sprite::RotationType::DEGREES);
    if (m_hasLinkedObject)
    {
       switch (Object::GetTypeFromID(m_objectID))

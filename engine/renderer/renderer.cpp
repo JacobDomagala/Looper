@@ -1,6 +1,6 @@
 
 #include "renderer.hpp"
-#include "Application.hpp"
+#include "application.hpp"
 #include "buffer.hpp"
 #include "command.hpp"
 #include "logger/logger.hpp"
@@ -21,7 +21,7 @@
 #undef max
 #undef min
 
-namespace looper::render {
+namespace looper::renderer {
 
 size_t currentFrame = 0;
 constexpr int MAX_FRAMES_IN_FLIGHT = 2;
@@ -746,7 +746,7 @@ void
 VulkanRenderer::CreateColorResources()
 {
    std::tie(m_colorImage, m_colorImageMemory) = Texture::CreateImage(
-      Data::m_swapChainExtent.width, Data::m_swapChainExtent.height, 1, render::Data::m_msaaSamples,
+      Data::m_swapChainExtent.width, Data::m_swapChainExtent.height, 1, renderer::Data::m_msaaSamples,
       m_swapChainImageFormat, VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -761,7 +761,7 @@ VulkanRenderer::CreateDepthResources()
    const auto depthFormat = FindDepthFormat();
 
    const auto [depthImage, depthImageMemory] = Texture::CreateImage(
-      Data::m_swapChainExtent.width, Data::m_swapChainExtent.height, 1, render::Data::m_msaaSamples,
+      Data::m_swapChainExtent.width, Data::m_swapChainExtent.height, 1, renderer::Data::m_msaaSamples,
       depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
@@ -923,7 +923,7 @@ VulkanRenderer::CreateDevice()
    Logger::Info("Device found! Using {}", deviceProps.deviceName);
 
    Data::vk_physicalDevice = *device;
-   render::Data::m_msaaSamples = getMaxUsableSampleCount(Data::vk_physicalDevice);
+   renderer::Data::m_msaaSamples = getMaxUsableSampleCount(Data::vk_physicalDevice);
 
    utils::Assert(Data::vk_physicalDevice != VK_NULL_HANDLE, "failed to find a suitable GPU!");
 
@@ -1102,7 +1102,7 @@ VulkanRenderer::CreateRenderPass()
    VkAttachmentDescription colorAttachment = {};
    colorAttachment.format = m_swapChainImageFormat;
    // colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-   colorAttachment.samples = render::Data::m_msaaSamples;
+   colorAttachment.samples = renderer::Data::m_msaaSamples;
    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
    colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -1113,7 +1113,7 @@ VulkanRenderer::CreateRenderPass()
    VkAttachmentDescription depthAttachment = {};
    depthAttachment.format = FindDepthFormat();
    // depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-   depthAttachment.samples = render::Data::m_msaaSamples;
+   depthAttachment.samples = renderer::Data::m_msaaSamples;
    depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
    depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -1170,7 +1170,7 @@ VulkanRenderer::CreateRenderPass()
    renderPassInfo.pDependencies = &dependency;
 
    vk_check_error(
-      vkCreateRenderPass(Data::vk_device, &renderPassInfo, nullptr, &render::Data::m_renderPass),
+      vkCreateRenderPass(Data::vk_device, &renderPassInfo, nullptr, &Data::m_renderPass),
       "failed to create render pass!");
 }
 
@@ -1186,7 +1186,7 @@ VulkanRenderer::CreateFramebuffers()
 
       VkFramebufferCreateInfo framebufferInfo = {};
       framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-      framebufferInfo.renderPass = render::Data::m_renderPass;
+      framebufferInfo.renderPass = renderer::Data::m_renderPass;
       framebufferInfo.attachmentCount = static_cast< uint32_t >(attachments.size());
       framebufferInfo.pAttachments = attachments.data();
       framebufferInfo.width = Data::m_swapChainExtent.width;
@@ -1392,7 +1392,7 @@ VulkanRenderer::CreatePipeline()
    VkPipelineMultisampleStateCreateInfo multisampling = {};
    multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
    multisampling.sampleShadingEnable = VK_FALSE;
-   multisampling.rasterizationSamples = render::Data::m_msaaSamples;
+   multisampling.rasterizationSamples = renderer::Data::m_msaaSamples;
 
    VkPipelineDepthStencilStateCreateInfo depthStencil = {};
    depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
@@ -1449,7 +1449,7 @@ VulkanRenderer::CreatePipeline()
    pipelineInfo.pDepthStencilState = &depthStencil;
    pipelineInfo.pColorBlendState = &colorBlending;
    pipelineInfo.layout = m_pipelineLayout;
-   pipelineInfo.renderPass = render::Data::m_renderPass;
+   pipelineInfo.renderPass = renderer::Data::m_renderPass;
    pipelineInfo.subpass = 0;
    pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
@@ -1473,4 +1473,4 @@ VulkanRenderer::CreatePipelineCache()
                   "");
 }
 
-} // namespace looper::render
+} // namespace shady::renderer

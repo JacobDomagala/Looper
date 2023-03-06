@@ -4,7 +4,7 @@
 #include <utility>
 #include <vulkan/vulkan.h>
 
-namespace looper::render {
+namespace looper::renderer {
 
 struct ShaderInfoWrapper
 {
@@ -31,4 +31,4 @@ class VulkanShader
    CreateShader(VkDevice device, std::string_view vertex, std::string_view fragment);
 };
 
-} // namespace looper::render
+} // namespace shady::renderer

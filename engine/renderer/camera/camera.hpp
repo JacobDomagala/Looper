@@ -6,8 +6,10 @@
 #include <memory>
 
 namespace looper {
-
 class GameObject;
+}
+
+namespace looper::renderer {
 
 class Camera
 {
@@ -95,4 +97,4 @@ class Camera
    glm::mat4 m_viewProjectionMatrix = {};
 };
 
-} // namespace looper
+} // namespace looper::renderer

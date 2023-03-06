@@ -1,5 +1,5 @@
-#include "Animatable.hpp"
-#include "Common.hpp"
+#include "animatable.hpp"
+#include "common.hpp"
 #include "logger.hpp"
 
 #include <algorithm>

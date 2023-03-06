@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Animatable.hpp"
-#include "Common.hpp"
-#include "GameObject.hpp"
-#include "timer.hpp"
-#include "Weapon.hpp"
+#include "animatable.hpp"
+#include "common.hpp"
+#include "game_object.hpp"
+#include "utils/time/timer.hpp"
+#include "weapon.hpp"
 
 #include <deque>
 #include <vector>

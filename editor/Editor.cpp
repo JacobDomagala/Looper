@@ -1,28 +1,26 @@
-#include "Editor.hpp"
-#include "EditorGUI.hpp"
-#include "Enemy.hpp"
+#include "editor.hpp"
+#include "enemy.hpp"
+#include "game.hpp"
+#include "input_manager.hpp"
+#include "renderer/renderer.hpp"
+#include "renderer/window/window.hpp"
+#include "renderer/vulkan_common.hpp"
 #include "utils/file_manager.hpp"
-#include "Game.hpp"
-#include "InputManager.hpp"
-// #include "RenderCommand.hpp"
-#include "renderer.hpp"
-#include "Window.hpp"
-#include "stopwatch.hpp"
+#include "utils/time/stopwatch.hpp"
 
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <vulkan/vulkan.h>
+
 #include <memory>
 #include <set>
 #include <string>
-#include <vulkan/vulkan.h>
-#include "renderer/renderer.hpp"
-#include "renderer/vulkan_common.hpp"
 
 namespace looper {
 
-Editor::Editor(const glm::ivec2& screenSize) : m_gui(*this)
+Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
 {
-   m_window = std::make_unique< Window >(screenSize.x, screenSize.y, "Editor");
+   m_window = std::make_unique< renderer::Window >(screenSize.x, screenSize.y, "Editor");
 
    InputManager::Init(m_window->GetWindowHandle());
    InputManager::RegisterForKeyInput(this);
@@ -32,11 +30,11 @@ Editor::Editor(const glm::ivec2& screenSize) : m_gui(*this)
 
    /*RenderCommand::Init();
    Renderer::Init();*/
-   render::VulkanRenderer::Initialize(m_window->GetWindowHandle());
+   renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle());
 
-   // m_gui.Init();
-   render::VulkanRenderer::CreateRenderPipeline();
-   m_gui.Init();
+   // gui_.Init();
+   renderer::VulkanRenderer::CreateRenderPipeline();
+   gui_.Init();
 
    m_deltaTime = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000.0f));
 }
@@ -192,12 +190,12 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
          if (m_movementOnEditorObject)
          {
             m_currentEditorObjectSelected->Rotate(-angle, true);
-            m_gui.ObjectUpdated(m_currentEditorObjectSelected->GetLinkedObjectID());
+            gui_.ObjectUpdated(m_currentEditorObjectSelected->GetLinkedObjectID());
          }
          else
          {
             m_currentSelectedGameObject->Rotate(-angle, true);
-            m_gui.ObjectUpdated(m_currentSelectedGameObject->GetID());
+            gui_.ObjectUpdated(m_currentSelectedGameObject->GetID());
          }
       }
       else
@@ -217,14 +215,14 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
          if (m_movementOnEditorObject)
          {
             m_currentEditorObjectSelected->Move(m_camera.ConvertToCameraVector(moveBy));
-            m_gui.ObjectUpdated(m_currentEditorObjectSelected->GetLinkedObjectID());
+            gui_.ObjectUpdated(m_currentEditorObjectSelected->GetLinkedObjectID());
          }
          else
          {
             m_currentSelectedGameObject->Move(m_camera.ConvertToCameraVector(moveBy));
             m_currentSelectedGameObject->GetSprite().SetInitialPosition(
                m_currentSelectedGameObject->GetPosition());
-            m_gui.ObjectUpdated(m_currentSelectedGameObject->GetID());
+            gui_.ObjectUpdated(m_currentSelectedGameObject->GetID());
             auto animatable = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
             if (animatable)
             {
@@ -280,7 +278,7 @@ Editor::HandleGameObjectSelected(const std::shared_ptr< GameObject >& newSelecte
          UnselectEditorObject();
       }
 
-      m_gui.GameObjectSelected(m_currentSelectedGameObject);
+      gui_.GameObjectSelected(m_currentSelectedGameObject);
    }
 
    m_movementOnGameObject = !fromGUI;
@@ -311,7 +309,7 @@ Editor::UnselectGameObject()
 {
    m_gameObjectSelected = false;
    m_movementOnGameObject = false;
-   m_gui.GameObjectUnselected();
+   gui_.GameObjectUnselected();
    if (m_currentSelectedGameObject)
    {
       m_currentSelectedGameObject->SetColor({1.0f, 1.0f, 1.0f});
@@ -333,13 +331,13 @@ Editor::HandleEditorObjectSelected(const std::shared_ptr< EditorObject >& newSel
    m_movementOnEditorObject = !fromGUI;
 
    m_currentEditorObjectSelected->SetObjectSelected();
-   m_gui.EditorObjectSelected(newSelectedEditorObject);
+   gui_.EditorObjectSelected(newSelectedEditorObject);
 }
 
 void
 Editor::UnselectEditorObject()
 {
-   m_gui.EditorObjectUnselected();
+   gui_.EditorObjectUnselected();
    m_editorObjectSelected = false;
    m_movementOnEditorObject = false;
    if (m_currentEditorObjectSelected)
@@ -393,7 +391,7 @@ Editor::ActionOnObject(Editor::ACTION action)
 
          if (m_editorObjectSelected && m_currentEditorObjectSelected)
          {
-            m_gui.ObjectDeleted(m_currentEditorObjectSelected->GetLinkedObjectID());
+            gui_.ObjectDeleted(m_currentEditorObjectSelected->GetLinkedObjectID());
             m_editorObjects.erase(std::find(m_editorObjects.begin(), m_editorObjects.end(),
                                             m_currentEditorObjectSelected));
             m_currentEditorObjectSelected->DeleteLinkedObject();
@@ -410,7 +408,7 @@ Editor::ActionOnObject(Editor::ACTION action)
                m_currentLevel->DeleteObject(m_currentSelectedGameObject->GetID());
             }
 
-            m_gui.ObjectDeleted(m_currentSelectedGameObject->GetID());
+            gui_.ObjectDeleted(m_currentSelectedGameObject->GetID());
 
             UnselectGameObject();
          }
@@ -491,7 +489,7 @@ Editor::DrawAnimationPoints()
                                    object->GetLinkedObjectID());
                if (it != animaltionPointIDs.end())
                {
-                  // render::VulkanRenderer::DrawLine(lineStart, object->GetPosition(), {1.0f, 0.0f, 1.0f, 1.0f});
+                  // renderer::VulkanRenderer::DrawLine(lineStart, object->GetPosition(), {1.0f, 0.0f, 1.0f, 1.0f});
                   lineStart = object->GetCenteredPosition();
 
                   object->Render();
@@ -507,7 +505,7 @@ Editor::DrawAnimationPoints()
 // {
 //    constexpr glm::vec4 color = {1.0f, 0.2f, 0.1f, 1.0f};
 
-//    auto drawBoundingBox = [color](const Sprite& sprite) {
+//    auto drawBoundingBox = [color](const renderer::Spriteer::Sprite& sprite) {
 //       const auto rect = sprite.GetTransformedRectangle();
 //       Renderer::DrawLine(rect[0], rect[1], color);
 //       Renderer::DrawLine(rect[1], rect[2], color);
@@ -608,7 +606,7 @@ Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
 
    m_levelLoaded = true;
    m_levelFileName = (LEVELS_DIR / (name + ".dgl")).string();
-   m_gui.LevelLoaded(m_currentLevel);
+   gui_.LevelLoaded(m_currentLevel);
 }
 
 void
@@ -668,9 +666,9 @@ Editor::LoadLevel(const std::string& levelPath)
    m_camera.SetLevelSize(m_currentLevel->GetSize());
 
    m_levelLoaded = true;
-   m_gui.LevelLoaded(m_currentLevel);
+   gui_.LevelLoaded(m_currentLevel);
 
-   render::VulkanRenderer::SetupData();
+   renderer::VulkanRenderer::SetupData();
 }
 
 void
@@ -772,9 +770,9 @@ Editor::LaunchGameLoop()
    // Reinitialize renderer
    // glfwMakeContextCurrent(m_window->GetWindowHandle());
    // RenderCommand::Init();
-   render::VulkanRenderer::Initialize(m_window->GetWindowHandle());
+   renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle());
 
-   m_gui.Init();
+   gui_.Init();
 }
 
 // std::shared_ptr< EditorObject >
@@ -878,13 +876,13 @@ Editor::Update()
       }
    }
 
-   if (m_gui.UpdateUI())
+   if (gui_.UpdateUI())
    {
-      render::VulkanRenderer::CreateCommandBuffers(this);
+      renderer::VulkanRenderer::CreateCommandBuffers(this);
    }
 
-   render::VulkanRenderer::view_mat = m_camera.GetViewMatrix();
-   render::VulkanRenderer::proj_mat = m_camera.GetProjectionMatrix();
+   renderer::VulkanRenderer::view_mat = m_camera.GetViewMatrix();
+   renderer::VulkanRenderer::proj_mat = m_camera.GetProjectionMatrix();
 }
 
 void
@@ -943,7 +941,7 @@ Editor::MainLoop()
       HandleCamera();
       Update();
 
-      render::VulkanRenderer::Draw(this);
+      renderer::VulkanRenderer::Draw(this);
 
       timeLastFrame_ = watch.Stop();
 

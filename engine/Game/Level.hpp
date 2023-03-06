@@ -1,7 +1,7 @@
 #pragma once
 
-#include "PathFinder.hpp"
-#include "Player.hpp"
+#include "path_finder.hpp"
+#include "player.hpp"
 
 #include <glm/glm.hpp>
 #include <unordered_map>
@@ -176,7 +176,7 @@ class Level
       return m_shaderName;
    }
 
-   Sprite&
+   renderer::Sprite&
    GetSprite();
 
    void
@@ -193,7 +193,7 @@ class Level
 
  private:
    Application* m_contextPointer = nullptr;
-   Sprite m_background = {};
+   renderer::Sprite m_background = {};
 
    std::string m_shaderName = "DefaultShader";
    std::shared_ptr< Player > m_player = nullptr;

@@ -1,7 +1,7 @@
-#include <Enemy.hpp>
-#include <Game.hpp>
-#include <Player.hpp>
-#include <Window.hpp>
+#include <enemy.hpp>
+#include <game.hpp>
+#include <player.hpp>
+#include <renderer/window/window.hpp>
 
 namespace looper {
 
