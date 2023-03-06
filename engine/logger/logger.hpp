@@ -3,12 +3,11 @@
 #include "formatter_types.hpp"
 #include "utils/time/timer.hpp"
 
-
 #include <fmt/color.h>
-#include <stdint.h>
+
+#include <cstdint>
 #include <string_view>
 #include <unordered_map>
-
 #if defined(_WIN32)
 #include <Windows.h>
 #endif //  WIN

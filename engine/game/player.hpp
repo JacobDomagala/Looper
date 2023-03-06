@@ -11,7 +11,6 @@
 
 namespace looper {
 
-class Window;
 class Enemy;
 
 class Player : public GameObject

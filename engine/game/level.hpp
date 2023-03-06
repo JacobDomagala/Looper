@@ -10,7 +10,6 @@ namespace looper {
 
 class Application;
 class GameObject;
-class Window;
 class Game;
 
 class Level

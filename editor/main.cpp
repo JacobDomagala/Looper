@@ -1,5 +1,5 @@
 
-#include "Editor.hpp"
+#include "editor.hpp"
 
 int
 main(int /* argc */, char** /* argv */)

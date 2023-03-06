@@ -12,7 +12,6 @@ namespace looper {
 
 class Application;
 class Game;
-class Window;
 
 class GameObject : public Object
 {

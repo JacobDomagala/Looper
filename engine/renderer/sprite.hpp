@@ -7,14 +7,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 
-
-namespace looper {
-class Application;
-}
-
 namespace looper::renderer {
-
-class Window;
 
 class Sprite
 {

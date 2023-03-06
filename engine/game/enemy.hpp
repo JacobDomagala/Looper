@@ -12,7 +12,6 @@
 namespace looper {
 
 class Application;
-class Window;
 
 class Enemy : public GameObject, public Animatable
 {

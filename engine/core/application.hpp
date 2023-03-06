@@ -11,6 +11,10 @@
 #include <glm/gtx/transform.hpp>
 #include <memory>
 
+namespace looper::renderer {
+class Window;
+}
+
 namespace looper {
 
 class Player;
