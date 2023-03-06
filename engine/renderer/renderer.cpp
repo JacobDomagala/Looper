@@ -514,8 +514,7 @@ void
 VulkanRenderer::CreateIndexBuffer()
 {
    constexpr uint32_t indicesPerMesh = 6;
-   using indices_vec_size_t = std::vector<uint32_t>::size_type;
-   indices.resize(static_cast<indices_vec_size_t>(m_numMeshes * indicesPerMesh));
+   indices.resize(static_cast<std::size_t>(m_numMeshes * indicesPerMesh));
 
    uint32_t offset = 0;
    for (uint32_t i = 0; i < indices.size(); i += indicesPerMesh)

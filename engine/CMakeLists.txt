@@ -5,12 +5,12 @@ file(GLOB_RECURSE HEADERS "*.hpp")
 file(GLOB_RECURSE SOURCES "*.cpp")
 
 add_library(${MODULE_NAME} STATIC ${SOURCES} ${HEADERS})
-target_include_directories(${MODULE_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/Common"
-                                          "${CMAKE_CURRENT_SOURCE_DIR}/Core" "${CMAKE_CURRENT_SOURCE_DIR}/Game"
-                                          "${CMAKE_CURRENT_SOURCE_DIR}/Input" "${CMAKE_CURRENT_SOURCE_DIR}/logger"
+target_include_directories(${MODULE_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/common"
+                                          "${CMAKE_CURRENT_SOURCE_DIR}/core" "${CMAKE_CURRENT_SOURCE_DIR}/game"
+                                          "${CMAKE_CURRENT_SOURCE_DIR}/input" "${CMAKE_CURRENT_SOURCE_DIR}/logger"
                                           "${CMAKE_CURRENT_SOURCE_DIR}/renderer"
-                                          "${CMAKE_CURRENT_SOURCE_DIR}/Scene" "${CMAKE_CURRENT_SOURCE_DIR}/utils"
-                                          "${CMAKE_CURRENT_SOURCE_DIR}/Time" "${CMAKE_CURRENT_SOURCE_DIR}/Window")
+                                          "${CMAKE_CURRENT_SOURCE_DIR}/scene" "${CMAKE_CURRENT_SOURCE_DIR}/utils"
+                                          "${CMAKE_CURRENT_SOURCE_DIR}/time" "${CMAKE_CURRENT_SOURCE_DIR}/window")
 
 
 
