@@ -132,16 +132,10 @@ EditorGUI::Init()
    PreparePipeline(renderer::Data::m_pipelineCache, renderer::Data::m_renderPass);
 }
 
-bool
+void
 EditorGUI::UpdateBuffers()
 {
    ImDrawData* imDrawData = ImGui::GetDrawData();
-   bool updateCmdBuffers = false;
-
-   if (!imDrawData)
-   {
-      return false;
-   };
 
    // Note: Alignment is done inside buffer creation
    const VkDeviceSize vertexBufferSize =
@@ -150,9 +144,9 @@ EditorGUI::UpdateBuffers()
       static_cast< uint32_t >(imDrawData->TotalIdxCount) * sizeof(ImDrawIdx);
 
    // Update buffers only if vertex or index count has been changed compared to current buffer size
-   if ((vertexBufferSize == 0) || (indexBufferSize == 0))
+   if (!imDrawData or !vertexBufferSize or !indexBufferSize)
    {
-      return false;
+      return;
    }
 
    // Vertex buffer
@@ -165,8 +159,6 @@ EditorGUI::UpdateBuffers()
          vertexBufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
       m_vertexCount = imDrawData->TotalVtxCount;
       m_vertexBuffer.Map();
-
-      updateCmdBuffers = true;
    }
 
    // Index buffer
@@ -179,8 +171,6 @@ EditorGUI::UpdateBuffers()
          indexBufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
       m_indexCount = imDrawData->TotalIdxCount;
       m_indexBuffer.Map();
-
-      updateCmdBuffers = true;
    }
 
    // Upload data
@@ -201,8 +191,6 @@ EditorGUI::UpdateBuffers()
    // Flush to make writes visible to GPU
    m_vertexBuffer.Flush();
    m_indexBuffer.Flush();
-
-   return updateCmdBuffers;
 }
 
 void
@@ -212,7 +200,7 @@ EditorGUI::Render(VkCommandBuffer commandBuffer)
    int32_t vertexOffset = 0;
    uint32_t indexOffset = 0;
 
-   if ((!imDrawData) || (imDrawData->CmdListsCount == 0))
+   if (!imDrawData or !imDrawData->CmdListsCount)
    {
       return;
    }
@@ -877,7 +865,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
    ImGui::End();
 }
 
-bool
+void
 EditorGUI::UpdateUI()
 {
    ImGuiIO& io = ImGui::GetIO();
@@ -914,7 +902,7 @@ EditorGUI::UpdateUI()
 
    ImGui::Render();
 
-   return UpdateBuffers();
+   UpdateBuffers();
 }
 
 void

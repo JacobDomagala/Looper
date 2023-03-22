@@ -876,11 +876,8 @@ Editor::Update()
       }
    }
 
-   if (gui_.UpdateUI())
-   {
-      renderer::VulkanRenderer::CreateCommandBuffers(this);
-   }
-
+   gui_.UpdateUI();
+   
    renderer::VulkanRenderer::view_mat = m_camera.GetViewMatrix();
    renderer::VulkanRenderer::proj_mat = m_camera.GetProjectionMatrix();
 }

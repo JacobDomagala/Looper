@@ -37,7 +37,7 @@ class EditorGUI
    static void
    Shutdown();
 
-   bool
+   void
    UpdateUI();
 
    void
@@ -64,7 +64,7 @@ class EditorGUI
    static bool
    IsBlockingEvents();
 
-   static bool
+   static void
    UpdateBuffers();
 
    static void
