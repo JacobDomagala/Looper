@@ -810,8 +810,10 @@ VulkanRenderer::FindDepthFormat()
 // }
 
 void
-VulkanRenderer::Draw(Application* /*app*/)
+VulkanRenderer::Draw(Application* app)
 {
+   CreateCommandBuffers(app);
+
    vkWaitForFences(Data::vk_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
    uint32_t imageIndex = {};
@@ -819,7 +821,7 @@ VulkanRenderer::Draw(Application* /*app*/)
                          m_imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
    UpdateUniformBuffer(imageIndex);
-   // CreateCommandBuffers(app);
+   
    if (m_imagesInFlight[imageIndex] != VK_NULL_HANDLE)
    {
       vkWaitForFences(Data::vk_device, 1, &m_imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
@@ -1286,12 +1288,12 @@ VulkanRenderer::CreateCommandBuffers(Application* app)
                                  m_pipelineLayout, 0, 1, &m_descriptorSets[i], 0, nullptr);
 
 
-         // vkCmdDrawIndexedIndirectCount(m_commandBuffers[i], m_indirectDrawsBuffer, 0,
-         //                               m_indirectDrawsBuffer,
-         //                               sizeof(VkDrawIndexedIndirectCommand) * m_numMeshes,
-         //                               m_numMeshes, sizeof(VkDrawIndexedIndirectCommand));
+          //vkCmdDrawIndexedIndirectCount(m_commandBuffers[i], m_indirectDrawsBuffer, 0,
+          //                              m_indirectDrawsBuffer,
+          //                              sizeof(VkDrawIndexedIndirectCommand) * m_numMeshes,
+          //                              m_numMeshes, sizeof(VkDrawIndexedIndirectCommand));
 
-         vkCmdDrawIndexed(m_commandBuffers[i], static_cast< uint32_t >(indices.size()), 1, 0, 0, 0);
+          vkCmdDrawIndexed(m_commandBuffers[i], static_cast< uint32_t >(indices.size()), 1, 0, 0, 0);
       }
       // Final composition as full screen quad
 
