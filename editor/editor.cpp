@@ -419,10 +419,10 @@ Editor::ActionOnObject(Editor::ACTION action)
 void
 Editor::Render(VkCommandBuffer cmdBuffer)
 {
+   Update();
+
    if (m_levelLoaded)
    {
-      //render::VulkanRenderer::BeginScene(/*m_camera*/);
-
       m_currentLevel->GetSprite().Render();
       DrawBackgroundObjects();
       m_currentLevel->RenderGameObjects();
@@ -654,7 +654,7 @@ Editor::LoadLevel(const std::string& levelPath)
          {
             auto editorObject = std::make_shared< EditorObject >(
                *this, point.m_end, glm::ivec2(20, 20), "NodeSprite.png", point.GetID());
-            editorObject->SetName("Animationpoint" + object->GetName());
+            editorObject->SetName("AnimationPoint" + object->GetName());
 
             m_editorObjects.push_back(editorObject);
          }
@@ -936,7 +936,6 @@ Editor::MainLoop()
       InputManager::PollEvents();
 
       HandleCamera();
-      Update();
 
       renderer::VulkanRenderer::Draw(this);
 
