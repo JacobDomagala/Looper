@@ -132,16 +132,16 @@ EditorGUI::Init()
    PreparePipeline(renderer::Data::m_pipelineCache, renderer::Data::m_renderPass);
 }
 
-bool
+void
 EditorGUI::UpdateBuffers()
 {
    ImDrawData* imDrawData = ImGui::GetDrawData();
-   bool updateCmdBuffers = false;
 
-   if (!imDrawData)
+   // Update buffers only if vertex or index count has been changed compared to current buffer size
+   if (!imDrawData or !imDrawData->TotalVtxCount or !imDrawData->TotalIdxCount)
    {
-      return false;
-   };
+      return;
+   }
 
    // Note: Alignment is done inside buffer creation
    const VkDeviceSize vertexBufferSize =
@@ -149,43 +149,37 @@ EditorGUI::UpdateBuffers()
    const VkDeviceSize indexBufferSize =
       static_cast< uint32_t >(imDrawData->TotalIdxCount) * sizeof(ImDrawIdx);
 
-   // Update buffers only if vertex or index count has been changed compared to current buffer size
-   if ((vertexBufferSize == 0) || (indexBufferSize == 0))
-   {
-      return false;
-   }
+   const auto currentFrame = renderer::Data::currentFrame_;
 
    // Vertex buffer
-   if ((m_vertexBuffer.m_buffer == VK_NULL_HANDLE) || (m_vertexCount != imDrawData->TotalVtxCount))
+   if ((m_vertexBuffer[currentFrame].m_buffer == VK_NULL_HANDLE)
+       || (m_vertexCount != imDrawData->TotalVtxCount))
    {
-      m_vertexBuffer.Unmap();
-      m_vertexBuffer.Destroy();
+      m_vertexBuffer[currentFrame].Unmap();
+      m_vertexBuffer[currentFrame].Destroy();
 
-      m_vertexBuffer = renderer::Buffer::CreateBuffer(
+      m_vertexBuffer[currentFrame] = renderer::Buffer::CreateBuffer(
          vertexBufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
       m_vertexCount = imDrawData->TotalVtxCount;
-      m_vertexBuffer.Map();
-
-      updateCmdBuffers = true;
+      m_vertexBuffer[currentFrame].Map();
    }
 
    // Index buffer
-   if ((m_indexBuffer.m_buffer == VK_NULL_HANDLE) || (m_indexCount < imDrawData->TotalIdxCount))
+   if ((m_indexBuffer[currentFrame].m_buffer == VK_NULL_HANDLE)
+       || (m_indexCount < imDrawData->TotalIdxCount))
    {
-      m_indexBuffer.Unmap();
-      m_indexBuffer.Destroy();
+      m_indexBuffer[currentFrame].Unmap();
+      m_indexBuffer[currentFrame].Destroy();
 
-      m_indexBuffer = renderer::Buffer::CreateBuffer(
+      m_indexBuffer[currentFrame] = renderer::Buffer::CreateBuffer(
          indexBufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
       m_indexCount = imDrawData->TotalIdxCount;
-      m_indexBuffer.Map();
-
-      updateCmdBuffers = true;
+      m_indexBuffer[currentFrame].Map();
    }
 
    // Upload data
-   auto* vtxDst = static_cast< ImDrawVert* >(m_vertexBuffer.m_mappedMemory);
-   auto* idxDst = static_cast< ImDrawIdx* >(m_indexBuffer.m_mappedMemory);
+   auto* vtxDst = static_cast< ImDrawVert* >(m_vertexBuffer[currentFrame].m_mappedMemory);
+   auto* idxDst = static_cast< ImDrawIdx* >(m_indexBuffer[currentFrame].m_mappedMemory);
 
    for (int n = 0; n < imDrawData->CmdListsCount; n++)
    {
@@ -199,10 +193,8 @@ EditorGUI::UpdateBuffers()
    }
 
    // Flush to make writes visible to GPU
-   m_vertexBuffer.Flush();
-   m_indexBuffer.Flush();
-
-   return updateCmdBuffers;
+   m_vertexBuffer[currentFrame].Flush();
+   m_indexBuffer[currentFrame].Flush();
 }
 
 void
@@ -212,12 +204,13 @@ EditorGUI::Render(VkCommandBuffer commandBuffer)
    int32_t vertexOffset = 0;
    uint32_t indexOffset = 0;
 
-   if ((!imDrawData) || (imDrawData->CmdListsCount == 0))
+   if (!imDrawData or !imDrawData->CmdListsCount)
    {
       return;
    }
 
    const ImGuiIO& io = ImGui::GetIO();
+   const auto currentFrame = renderer::Data::currentFrame_;
 
    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
@@ -229,8 +222,10 @@ EditorGUI::Render(VkCommandBuffer commandBuffer)
                       sizeof(PushConstBlock), &m_pushConstant);
 
    std::array< VkDeviceSize, 1 > offsets = {0};
-   vkCmdBindVertexBuffers(commandBuffer, 0, 1, &m_vertexBuffer.m_buffer, offsets.data());
-   vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer.m_buffer, 0, VK_INDEX_TYPE_UINT16);
+   vkCmdBindVertexBuffers(commandBuffer, 0, 1, &m_vertexBuffer[currentFrame].m_buffer,
+                          offsets.data());
+   vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer[currentFrame].m_buffer, 0,
+                        VK_INDEX_TYPE_UINT16);
 
    for (int32_t i = 0; i < imDrawData->CmdListsCount; i++)
    {
@@ -276,17 +271,17 @@ EditorGUI::PrepareResources()
 
 
    m_fontView = renderer::Texture::CreateImageView(m_fontImage, VK_FORMAT_R8G8B8A8_UNORM,
-                                                 VK_IMAGE_ASPECT_COLOR_BIT, 1);
+                                                   VK_IMAGE_ASPECT_COLOR_BIT, 1);
 
 
    renderer::Texture::TransitionImageLayout(m_fontImage, VK_IMAGE_LAYOUT_UNDEFINED,
-                                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1);
+                                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1);
 
    renderer::Texture::CopyBufferToImage(m_fontImage, static_cast< uint32_t >(texWidth),
-                                      static_cast< uint32_t >(texHeight), fontData);
+                                        static_cast< uint32_t >(texHeight), fontData);
 
    renderer::Texture::TransitionImageLayout(m_fontImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1);
+                                            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1);
 
    // Font texture Sampler
    m_sampler = renderer::Texture::CreateSampler();
@@ -304,8 +299,8 @@ EditorGUI::PrepareResources()
    descriptorPoolInfo.maxSets = 2;
 
    renderer::vk_check_error(vkCreateDescriptorPool(renderer::Data::vk_device, &descriptorPoolInfo,
-                                                       nullptr, &m_descriptorPool),
-                                "");
+                                                   nullptr, &m_descriptorPool),
+                            "");
 
    // Descriptor set layout
    VkDescriptorSetLayoutBinding setLayoutBinding{};
@@ -323,9 +318,9 @@ EditorGUI::PrepareResources()
 
 
    renderer::vk_check_error(vkCreateDescriptorSetLayout(renderer::Data::vk_device,
-                                                            &descriptorSetLayoutCreateInfo, nullptr,
-                                                            &m_descriptorSetLayout),
-                                "");
+                                                        &descriptorSetLayoutCreateInfo, nullptr,
+                                                        &m_descriptorSetLayout),
+                            "");
 
    // Descriptor set
    VkDescriptorSetAllocateInfo descriptorSetAllocateInfo{};
@@ -336,9 +331,8 @@ EditorGUI::PrepareResources()
 
 
    renderer::vk_check_error(vkAllocateDescriptorSets(renderer::Data::vk_device,
-                                                         &descriptorSetAllocateInfo,
-                                                         &m_descriptorSet),
-                                "");
+                                                     &descriptorSetAllocateInfo, &m_descriptorSet),
+                            "");
 
    VkDescriptorImageInfo descriptorImageInfo{};
    descriptorImageInfo.sampler = m_sampler;
@@ -357,6 +351,10 @@ EditorGUI::PrepareResources()
    vkUpdateDescriptorSets(renderer::Data::vk_device,
                           static_cast< uint32_t >(writeDescriptorSets.size()),
                           writeDescriptorSets.data(), 0, nullptr);
+
+
+   m_vertexBuffer.resize(renderer::Data::MAX_FRAMES_IN_FLIGHT);
+   m_indexBuffer.resize(renderer::Data::MAX_FRAMES_IN_FLIGHT);
 }
 
 void
@@ -377,9 +375,9 @@ EditorGUI::PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPas
    pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
    pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRange;
    renderer::vk_check_error(vkCreatePipelineLayout(renderer::Data::vk_device,
-                                                       &pipelineLayoutCreateInfo, nullptr,
-                                                       &m_pipelineLayout),
-                                "");
+                                                   &pipelineLayoutCreateInfo, nullptr,
+                                                   &m_pipelineLayout),
+                            "");
 
    // Setup graphics pipeline for UI rendering
    VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo{};
@@ -519,9 +517,8 @@ EditorGUI::PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPas
    pipelineCreateInfo.pVertexInputState = &pipelineVertexInputStateCreateInfo;
 
    renderer::vk_check_error(vkCreateGraphicsPipelines(renderer::Data::vk_device, pipelineCache, 1,
-                                                          &pipelineCreateInfo, nullptr,
-                                                          &m_pipeline),
-                                "");
+                                                      &pipelineCreateInfo, nullptr, &m_pipeline),
+                            "");
 }
 
 void
@@ -752,8 +749,8 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
    {
       auto objectPosition = m_currentlySelectedGameObject->GetPosition();
       auto sprite_size = m_currentlySelectedGameObject->GetSprite().GetSize();
-      auto rotation =
-         m_currentlySelectedGameObject->GetSprite().GetRotation(renderer::Sprite::RotationType::DEGREES);
+      auto rotation = m_currentlySelectedGameObject->GetSprite().GetRotation(
+         renderer::Sprite::RotationType::DEGREES);
 
       ImGui::InputFloat2("Position", &objectPosition.x);
 
@@ -762,7 +759,8 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          m_currentlySelectedGameObject->SetSize(sprite_size);
       }
 
-      if (ImGui::SliderFloat("Rotate", &rotation, glm::degrees(renderer::Sprite::s_ROTATIONRANGE.first),
+      if (ImGui::SliderFloat("Rotate", &rotation,
+                             glm::degrees(renderer::Sprite::s_ROTATIONRANGE.first),
                              glm::degrees(renderer::Sprite::s_ROTATIONRANGE.second)))
       {
          m_currentlySelectedGameObject->Rotate(glm::radians(rotation));
@@ -877,7 +875,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
    ImGui::End();
 }
 
-bool
+void
 EditorGUI::UpdateUI()
 {
    ImGuiIO& io = ImGui::GetIO();
@@ -914,7 +912,7 @@ EditorGUI::UpdateUI()
 
    ImGui::Render();
 
-   return UpdateBuffers();
+   UpdateBuffers();
 }
 
 void

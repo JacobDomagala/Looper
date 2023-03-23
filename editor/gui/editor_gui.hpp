@@ -37,7 +37,7 @@ class EditorGUI
    static void
    Shutdown();
 
-   bool
+   void
    UpdateUI();
 
    void
@@ -64,7 +64,7 @@ class EditorGUI
    static bool
    IsBlockingEvents();
 
-   static bool
+   static void
    UpdateBuffers();
 
    static void
@@ -117,8 +117,8 @@ class EditorGUI
    inline static uint32_t m_subpass = 0;
 
    inline static PushConstBlock m_pushConstant = {};
-   inline static renderer::Buffer m_vertexBuffer = {};
-   inline static renderer::Buffer m_indexBuffer = {};
+   inline static std::vector<renderer::Buffer> m_vertexBuffer = {};
+   inline static std::vector<renderer::Buffer> m_indexBuffer = {};
    inline static int32_t m_vertexCount = 0;
    inline static int32_t m_indexCount = 0;
 };
