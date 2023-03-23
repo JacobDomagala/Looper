@@ -41,7 +41,8 @@ struct Data
    inline static VkRenderPass m_renderPass = {};
    inline static VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
    inline static VkExtent2D m_swapChainExtent = {};
-
+   inline static uint32_t currentFrame_ = {};
+   inline static const uint32_t MAX_FRAMES_IN_FLIGHT = 3;
 };
 
 uint32_t

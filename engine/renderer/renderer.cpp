@@ -23,9 +23,6 @@
 
 namespace looper::renderer {
 
-size_t currentFrame = 0;
-constexpr int MAX_FRAMES_IN_FLIGHT = 2;
-
 struct UniformBufferObject
 {
    alignas(16) glm::mat4 proj = {};
@@ -559,7 +556,7 @@ VulkanRenderer::CreateUniformBuffers()
    const VkDeviceSize bufferSize = sizeof(UniformBufferObject);
    const VkDeviceSize SSBObufferSize = perInstance.size() * sizeof(PerInstanceBuffer);
 
-   const auto swapchainImagesSize = m_swapChainImages.size();
+   const auto swapchainImagesSize = Data::MAX_FRAMES_IN_FLIGHT; // m_swapChainImages.size();
 
    m_uniformBuffers.resize(swapchainImagesSize);
    m_uniformBuffersMemory.resize(swapchainImagesSize);
@@ -602,15 +599,16 @@ VulkanRenderer::CreateDescriptorPool()
 void
 VulkanRenderer::CreateDescriptorSets()
 {
-   std::vector< VkDescriptorSetLayout > layouts(m_swapChainImages.size(), m_descriptorSetLayout);
+   const auto size = Data::MAX_FRAMES_IN_FLIGHT;
+   std::vector< VkDescriptorSetLayout > layouts(size, m_descriptorSetLayout);
 
    VkDescriptorSetAllocateInfo allocInfo = {};
    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
    allocInfo.descriptorPool = m_descriptorPool;
-   allocInfo.descriptorSetCount = static_cast< uint32_t >(m_swapChainImages.size());
+   allocInfo.descriptorSetCount = static_cast< uint32_t >(size);
    allocInfo.pSetLayouts = layouts.data();
 
-   m_descriptorSets.resize(m_swapChainImages.size());
+   m_descriptorSets.resize(size);
    vk_check_error(vkAllocateDescriptorSets(Data::vk_device, &allocInfo, m_descriptorSets.data()),
                   "Failed to allocate descriptor sets!");
 
@@ -618,7 +616,7 @@ VulkanRenderer::CreateDescriptorSets()
       TextureLibrary::GetTexture(TextureType::DIFFUSE_MAP, "Default128.png")
          ->GetImageViewAndSampler();
 
-   for (size_t i = 0; i < m_swapChainImages.size(); i++)
+   for (size_t i = 0; i < size; i++)
    {
       VkDescriptorBufferInfo bufferInfo{};
       bufferInfo.buffer = m_uniformBuffers[i];
@@ -812,61 +810,52 @@ VulkanRenderer::FindDepthFormat()
 void
 VulkanRenderer::Draw(Application* app)
 {
-   CreateCommandBuffers(app);
-
-   vkWaitForFences(Data::vk_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+   
+   vkWaitForFences(Data::vk_device, 1, &m_inFlightFences[Data::currentFrame_], VK_TRUE, UINT64_MAX);
 
    uint32_t imageIndex = {};
    vkAcquireNextImageKHR(Data::vk_device, m_swapChain, UINT64_MAX,
-                         m_imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+                         m_imageAvailableSemaphores[Data::currentFrame_], VK_NULL_HANDLE,
+                         &imageIndex);
 
-   UpdateUniformBuffer(imageIndex);
+
+   CreateCommandBuffers(app, imageIndex);
+   UpdateUniformBuffer(Data::currentFrame_);
    
-   if (m_imagesInFlight[imageIndex] != VK_NULL_HANDLE)
-   {
-      vkWaitForFences(Data::vk_device, 1, &m_imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
-   }
-   m_imagesInFlight[imageIndex] = m_inFlightFences[currentFrame];
-
    VkSubmitInfo submitInfo = {};
    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-   auto waitSemaphores = std::to_array({m_imageAvailableSemaphores[currentFrame]});
    auto waitStages = std::to_array<const VkPipelineStageFlags>({VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT});
    submitInfo.waitSemaphoreCount = 1;
-   submitInfo.pWaitSemaphores = waitSemaphores.data();
+   submitInfo.pWaitSemaphores = &m_imageAvailableSemaphores[Data::currentFrame_];
    submitInfo.pWaitDstStageMask = waitStages.data();
 
    submitInfo.commandBufferCount = 1;
-   submitInfo.pCommandBuffers = &m_commandBuffers[imageIndex];
+   submitInfo.pCommandBuffers = &m_commandBuffers[Data::currentFrame_];
 
-   auto signalSemaphores = std::to_array({m_renderFinishedSemaphores[currentFrame]});
    submitInfo.signalSemaphoreCount = 1;
-   submitInfo.pSignalSemaphores = signalSemaphores.data();
+   submitInfo.pSignalSemaphores = &m_renderFinishedSemaphores[Data::currentFrame_];
 
-   vkResetFences(Data::vk_device, 1, &m_inFlightFences[currentFrame]);
+   vkResetFences(Data::vk_device, 1, &m_inFlightFences[Data::currentFrame_]);
 
    vk_check_error(
-      vkQueueSubmit(Data::vk_graphicsQueue, 1, &submitInfo, m_inFlightFences[currentFrame]),
+      vkQueueSubmit(Data::vk_graphicsQueue, 1, &submitInfo, m_inFlightFences[Data::currentFrame_]),
       "failed to submit draw command buffer!");
 
    VkPresentInfoKHR presentInfo = {};
    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
    presentInfo.waitSemaphoreCount = 1;
-   presentInfo.pWaitSemaphores = signalSemaphores.data();
+   presentInfo.pWaitSemaphores = &m_renderFinishedSemaphores[Data::currentFrame_];
 
-   auto swapChains = std::to_array({m_swapChain});
    presentInfo.swapchainCount = 1;
-   presentInfo.pSwapchains = swapChains.data();
+   presentInfo.pSwapchains = &m_swapChain;
 
    presentInfo.pImageIndices = &imageIndex;
 
    vkQueuePresentKHR(m_presentQueue, &presentInfo);
 
-   currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-
-   vkDeviceWaitIdle(Data::vk_device);
+   Data::currentFrame_ = std::min(Data::currentFrame_ + 1, Data::MAX_FRAMES_IN_FLIGHT - 1);
 }
 
 void
@@ -1216,11 +1205,11 @@ VulkanRenderer::CreateCommandPool()
 }
 
 void
-VulkanRenderer::CreateCommandBuffers(Application* app)
+VulkanRenderer::CreateCommandBuffers(Application* app, uint32_t imageIndex)
 {
    if (m_commandBuffers.empty())
    {
-      m_commandBuffers.resize(m_swapChainFramebuffers.size());
+      m_commandBuffers.resize(Data::MAX_FRAMES_IN_FLIGHT);
 
       VkCommandBufferAllocateInfo allocInfo{};
       allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -1232,7 +1221,8 @@ VulkanRenderer::CreateCommandBuffers(Application* app)
                      "failed to allocate command buffers!");
    }
 
-   for (uint32_t i = 0; i < m_commandBuffers.size(); ++i)
+   uint32_t i = Data::currentFrame_;
+   // for (uint32_t i = 0; i < m_commandBuffers.size(); ++i)
    {
       VkCommandBufferBeginInfo beginInfo = {};
       beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -1249,7 +1239,7 @@ VulkanRenderer::CreateCommandBuffers(Application* app)
       renderPassInfo.clearValueCount = static_cast< uint32_t >(clearValues.size());
       renderPassInfo.pClearValues = clearValues.data();
 
-      renderPassInfo.framebuffer = m_swapChainFramebuffers[i];
+      renderPassInfo.framebuffer = m_swapChainFramebuffers[imageIndex];
 
       vk_check_error(vkBeginCommandBuffer(m_commandBuffers[i], &beginInfo), "");
 
@@ -1295,16 +1285,10 @@ VulkanRenderer::CreateCommandBuffers(Application* app)
 
           vkCmdDrawIndexed(m_commandBuffers[i], static_cast< uint32_t >(indices.size()), 1, 0, 0, 0);
       }
-      // Final composition as full screen quad
 
-
-      /*
-       * TODO: This is only teporarly here, fix in future!
-       */
       app->Render(m_commandBuffers[i]);
 
       vkCmdEndRenderPass(m_commandBuffers[i]);
-
       vk_check_error(vkEndCommandBuffer(m_commandBuffers[i]), "");
    }
 }
@@ -1312,9 +1296,9 @@ VulkanRenderer::CreateCommandBuffers(Application* app)
 void
 VulkanRenderer::CreateSyncObjects()
 {
-   m_imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-   m_renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-   m_inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+   m_imageAvailableSemaphores.resize(Data::MAX_FRAMES_IN_FLIGHT);
+   m_renderFinishedSemaphores.resize(Data::MAX_FRAMES_IN_FLIGHT);
+   m_inFlightFences.resize(Data::MAX_FRAMES_IN_FLIGHT);
    m_imagesInFlight.resize(m_swapChainImages.size(), VK_NULL_HANDLE);
 
    VkSemaphoreCreateInfo semaphoreInfo = {};
@@ -1324,7 +1308,7 @@ VulkanRenderer::CreateSyncObjects()
    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+   for (size_t i = 0; i < Data::MAX_FRAMES_IN_FLIGHT; i++)
    {
       vk_check_error(vkCreateSemaphore(Data::vk_device, &semaphoreInfo, nullptr,
                                        &m_imageAvailableSemaphores[i]),

@@ -56,7 +56,7 @@ class VulkanRenderer
    SetupData();
 
    static void
-   CreateCommandBuffers(Application* app);
+   CreateCommandBuffers(Application* app, uint32_t imageIndex);
 
    inline static glm::mat4 view_mat = {};
    inline static glm::mat4 proj_mat = {};
