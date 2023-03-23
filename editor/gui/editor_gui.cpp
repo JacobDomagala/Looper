@@ -137,50 +137,49 @@ EditorGUI::UpdateBuffers()
 {
    ImDrawData* imDrawData = ImGui::GetDrawData();
 
+   // Update buffers only if vertex or index count has been changed compared to current buffer size
+   if (!imDrawData or !imDrawData->TotalVtxCount or !imDrawData->TotalIdxCount)
+   {
+      return;
+   }
+
    // Note: Alignment is done inside buffer creation
    const VkDeviceSize vertexBufferSize =
       static_cast< uint32_t >(imDrawData->TotalVtxCount) * sizeof(ImDrawVert);
    const VkDeviceSize indexBufferSize =
       static_cast< uint32_t >(imDrawData->TotalIdxCount) * sizeof(ImDrawIdx);
 
-   // Update buffers only if vertex or index count has been changed compared to current buffer size
-   if (!imDrawData or !vertexBufferSize or !indexBufferSize)
-   {
-      return;
-   }
-
-   // get this from renderer::common
-   uint32_t nextFrame = renderer::Data::currentFrame_;
+   const auto currentFrame = renderer::Data::currentFrame_;
 
    // Vertex buffer
-   if ((m_vertexBuffer[nextFrame].m_buffer == VK_NULL_HANDLE)
+   if ((m_vertexBuffer[currentFrame].m_buffer == VK_NULL_HANDLE)
        || (m_vertexCount != imDrawData->TotalVtxCount))
    {
-      m_vertexBuffer[nextFrame].Unmap();
-      m_vertexBuffer[nextFrame].Destroy();
+      m_vertexBuffer[currentFrame].Unmap();
+      m_vertexBuffer[currentFrame].Destroy();
 
-      m_vertexBuffer[nextFrame] = renderer::Buffer::CreateBuffer(
+      m_vertexBuffer[currentFrame] = renderer::Buffer::CreateBuffer(
          vertexBufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
       m_vertexCount = imDrawData->TotalVtxCount;
-      m_vertexBuffer[nextFrame].Map();
+      m_vertexBuffer[currentFrame].Map();
    }
 
    // Index buffer
-   if ((m_indexBuffer[nextFrame].m_buffer == VK_NULL_HANDLE)
+   if ((m_indexBuffer[currentFrame].m_buffer == VK_NULL_HANDLE)
        || (m_indexCount < imDrawData->TotalIdxCount))
    {
-      m_indexBuffer[nextFrame].Unmap();
-      m_indexBuffer[nextFrame].Destroy();
+      m_indexBuffer[currentFrame].Unmap();
+      m_indexBuffer[currentFrame].Destroy();
 
-      m_indexBuffer[nextFrame] = renderer::Buffer::CreateBuffer(
+      m_indexBuffer[currentFrame] = renderer::Buffer::CreateBuffer(
          indexBufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
       m_indexCount = imDrawData->TotalIdxCount;
-      m_indexBuffer[nextFrame].Map();
+      m_indexBuffer[currentFrame].Map();
    }
 
    // Upload data
-   auto* vtxDst = static_cast< ImDrawVert* >(m_vertexBuffer[nextFrame].m_mappedMemory);
-   auto* idxDst = static_cast< ImDrawIdx* >(m_indexBuffer[nextFrame].m_mappedMemory);
+   auto* vtxDst = static_cast< ImDrawVert* >(m_vertexBuffer[currentFrame].m_mappedMemory);
+   auto* idxDst = static_cast< ImDrawIdx* >(m_indexBuffer[currentFrame].m_mappedMemory);
 
    for (int n = 0; n < imDrawData->CmdListsCount; n++)
    {
@@ -194,8 +193,8 @@ EditorGUI::UpdateBuffers()
    }
 
    // Flush to make writes visible to GPU
-   m_vertexBuffer[nextFrame].Flush();
-   m_indexBuffer[nextFrame].Flush();
+   m_vertexBuffer[currentFrame].Flush();
+   m_indexBuffer[currentFrame].Flush();
 }
 
 void
@@ -211,7 +210,7 @@ EditorGUI::Render(VkCommandBuffer commandBuffer)
    }
 
    const ImGuiIO& io = ImGui::GetIO();
-   uint32_t currentFrame = renderer::Data::currentFrame_;
+   const auto currentFrame = renderer::Data::currentFrame_;
 
    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
