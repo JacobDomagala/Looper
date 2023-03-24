@@ -693,7 +693,9 @@ EditorGUI::RenderLevelMenu() // NOLINT
                static_cast< double >(cameraPos.y));
 
    const auto cameraZoom = m_parent.GetCamera().GetZoomLevel();
-   ImGui::Text("Camera Zoom %f", static_cast< double >(cameraZoom));
+   const auto cameraRotation = m_parent.GetCamera().GetRotation();
+   ImGui::Text("Camera Zoom %f Camera Rotation %f", static_cast< double >(cameraZoom),
+               static_cast< double >(cameraRotation));
 
    const auto cursorOpengGLPos = m_parent.ScreenToGlobal(InputManager::GetMousePos());
    // const auto cursorOpengGLPos = InputManager::GetMousePos();
