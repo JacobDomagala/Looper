@@ -142,7 +142,7 @@ Camera::ConvertToCameraVector(const glm::vec3& conventionalVector) const
    const auto xAxesVector = glm::cross(m_lookAtDirection, m_upVector);
    const auto yAxesVector = m_upVector;
 
-   return conventionalVector.x * -xAxesVector + conventionalVector.y * yAxesVector;
+   return conventionalVector.x * xAxesVector + conventionalVector.y * -yAxesVector;
 }
 
 void

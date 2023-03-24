@@ -179,8 +179,8 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
       // otherwise
       const auto movementVector = currentCursorPos - m_lastCursorPosition;
 
-      constexpr auto maxRotationAngle = 0.025f;
-      const auto angle = glm::clamp(axis.x > 0 ? movementVector.x : -movementVector.y,
+      constexpr auto maxRotationAngle = 0.02f;
+      const auto angle = glm::clamp(axis.x > 0 ? movementVector.x : movementVector.y,
                                     -maxRotationAngle, maxRotationAngle);
 
       if (m_movementOnEditorObject || m_movementOnGameObject)
@@ -206,7 +206,7 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
    // Move camera (or currently selected Object)
    else
    {
-      const auto& moveBy = glm::vec3(axis.x, axis.y, 0.0f);
+      const auto moveBy = glm::vec3(axis, 0.0f);
 
       if (m_movementOnEditorObject || m_movementOnGameObject)
       {
@@ -233,7 +233,7 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
       }
       else
       {
-         m_camera.Move(-moveBy);
+         m_camera.Move(moveBy);
       }
    }
 
