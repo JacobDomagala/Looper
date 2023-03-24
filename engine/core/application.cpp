@@ -58,14 +58,7 @@ Application::GlobalToScreen(const glm::vec2& globalPos) const
    // convert to <0, 1>
    auto returnPos = (projectedPosition + glm::vec2(1.0f, 1.0f)) / 2.0f;
 
-   // convert to <0, WIDTH>, <0, HEIGHT>
-   // with y = 0 in top left corner
-   const auto windowSize = GetWindowSize();
-   returnPos.x *= windowSize.x;
-   returnPos.y *= -windowSize.y;
-   returnPos.y += windowSize.y;
-
-   return returnPos;
+   return returnPos * GetWindowSize();
 }
 
 glm::vec2
