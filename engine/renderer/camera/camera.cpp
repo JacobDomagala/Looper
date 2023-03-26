@@ -75,9 +75,19 @@ Camera::Move(const glm::vec3& conventionalVector)
 void
 Camera::Rotate(float angle, bool cumulative)
 {
-   m_upVector = glm::rotateZ(m_upVector, angle);
+   if (cumulative)
+   {
+      m_rotationValue += angle;
+   }
+   else
+   {
+      m_upVector = glm::rotateZ(m_upVector, -m_rotationValue);
+      UpdateViewMatrix();
 
-   cumulative ? m_rotationValue += angle : m_rotationValue = angle;
+      m_rotationValue = angle;
+   }
+   
+   m_upVector = glm::rotateZ(m_upVector, angle);
 
    UpdateViewMatrix();
 }
@@ -142,7 +152,7 @@ Camera::ConvertToCameraVector(const glm::vec3& conventionalVector) const
    const auto xAxesVector = glm::cross(m_lookAtDirection, m_upVector);
    const auto yAxesVector = m_upVector;
 
-   return conventionalVector.x * -xAxesVector + conventionalVector.y * yAxesVector;
+   return conventionalVector.x * xAxesVector + conventionalVector.y * -yAxesVector;
 }
 
 void

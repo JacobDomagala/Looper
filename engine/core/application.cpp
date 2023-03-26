@@ -58,14 +58,7 @@ Application::GlobalToScreen(const glm::vec2& globalPos) const
    // convert to <0, 1>
    auto returnPos = (projectedPosition + glm::vec2(1.0f, 1.0f)) / 2.0f;
 
-   // convert to <0, WIDTH>, <0, HEIGHT>
-   // with y = 0 in top left corner
-   const auto windowSize = GetWindowSize();
-   returnPos.x *= windowSize.x;
-   returnPos.y *= -windowSize.y;
-   returnPos.y += windowSize.y;
-
-   return returnPos;
+   return returnPos * GetWindowSize();
 }
 
 glm::vec2
@@ -74,13 +67,14 @@ Application::ScreenToGlobal(const glm::vec2& screenPos) const
    const auto windowCenterScreen = GetWindowSize() / 2.0f;
    const auto zoomRatio = (GetWindowSize() / (2.0f + GetZoomLevel())) / windowCenterScreen;
 
-   // Compute distance from ceneter of screen to 'screenPos' value
+   // Compute distance from center of screen to 'screenPos' value
    // Remember to multiply it by the current zoomRatio
-   const auto distanceToObject = (screenPos - windowCenterScreen) * zoomRatio;
+   const auto distanceToObject =
+      (screenPos - windowCenterScreen) * zoomRatio;
 
    // Rotate vector according to current camera's rotation
    const auto rotatedDistanceToObject =
-      glm::rotateZ(glm::vec3(distanceToObject, 0.0f), m_camera.GetRotation());
+      glm::rotateZ(glm::vec3(distanceToObject.x, -distanceToObject.y, 0.0f), m_camera.GetRotation());
 
    // Compute global position by adding computed distance to camera position (which is located in
    // the center of the screen)

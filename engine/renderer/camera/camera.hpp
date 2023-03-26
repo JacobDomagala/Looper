@@ -14,12 +14,16 @@ namespace looper::renderer {
 class Camera
 {
  public:
+   static constexpr inline glm::vec3 originalLookAt = {0.0f, 0.0f, -1.0f};
+   static constexpr inline glm::vec3 originalUpVec = {0.0f, 1.0f, 0.0f};
+
+ public:
    Camera() = default;
 
    void
    Create(const glm::vec3& position, const glm::ivec2& windowSize,
-          const glm::vec3& lookAt = {0.0f, 0.0f, -1.0f},
-          const glm::vec3& upVec = {0.0f, 1.0f, 0.0f}, float cameraSpeed = 5.0f);
+          const glm::vec3& lookAt = originalLookAt, const glm::vec3& upVec = originalUpVec,
+          float cameraSpeed = 5.0f);
 
    void
    SetLevelSize(const glm::vec2& size);

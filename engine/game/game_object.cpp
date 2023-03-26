@@ -1,14 +1,14 @@
 #include "game_object.hpp"
 #include "application.hpp"
 #include "game.hpp"
+#include "renderer/camera/collision_camera.hpp"
 #include "renderer/window/window.hpp"
 
 namespace looper {
 
 GameObject::GameObject(Application& application, const glm::vec2& position, const glm::ivec2& size,
                        const std::string& sprite, Object::TYPE type)
-   : Object(type),
-     m_appHandle(application)
+   : Object(type), m_appHandle(application)
 {
    m_sprite.SetSpriteTextured(position, size, sprite);
    m_currentGameObjectState.m_position = position;
@@ -21,35 +21,8 @@ GameObject::GameObject(Application& application, const glm::vec2& position, cons
 bool
 GameObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 {
-   bool collided = false;
-
-   renderer::Camera camera = m_appHandle.GetCamera();
-   camera.Rotate(m_sprite.GetRotation(), false);
-
-   const auto boundingRectangle = m_sprite.GetTransformedRectangle();
-
-   const auto transformed0 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[0], 0.0f, 1.0f);
-   const auto transformed1 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[1], 0.0f, 1.0f);
-   // const auto transformed2 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[2],
-   // 0.0f, 1.0f);
-   const auto transformed3 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[3], 0.0f, 1.0f);
-
-   const auto minX = transformed1.x;
-   const auto maxX = transformed0.x;
-   const auto minY = transformed3.y;
-   const auto maxY = transformed0.y;
-
-   const auto globalPosition =
-      camera.GetViewMatrix() * glm::vec4(m_appHandle.ScreenToGlobal(screenPosition), 0.0f, 1.0f);
-
-   // If 'screenPosition' is inside 'object' sprite (rectangle)
-   if (globalPosition.x >= minX && globalPosition.x <= maxX && globalPosition.y <= maxY
-       && globalPosition.y >= minY)
-   {
-      collided = true;
-   }
-
-   return collided;
+   const renderer::CollisionCamera camera(m_appHandle.GetCamera().GetPosition(), this);
+   return camera.CheckCollision(m_appHandle.ScreenToGlobal(screenPosition));
 }
 
 glm::vec2
