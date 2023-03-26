@@ -3,8 +3,8 @@
 #include "game.hpp"
 #include "input_manager.hpp"
 #include "renderer/renderer.hpp"
-#include "renderer/window/window.hpp"
 #include "renderer/vulkan_common.hpp"
+#include "renderer/window/window.hpp"
 #include "utils/file_manager.hpp"
 #include "utils/time/stopwatch.hpp"
 
@@ -51,33 +51,33 @@ Editor::HandleCamera()
    m_timer.ToggleTimer();
    m_deltaTime = m_timer.GetMsDeltaTime();
 
-    auto cameraMoveBy = glm::vec2();
+   auto cameraMoveBy = glm::vec2();
 
-    if (!EditorGUI::IsBlockingEvents() && m_levelLoaded)
-    {
-       if (InputManager::CheckKeyPressed(GLFW_KEY_W))
-       {
-          cameraMoveBy += glm::vec2(0.0f, -1.0f);
-       }
-       if (InputManager::CheckKeyPressed(GLFW_KEY_S))
-       {
-          cameraMoveBy += glm::vec2(0.0f, 1.0f);
-       }
-       if (InputManager::CheckKeyPressed(GLFW_KEY_A))
-       {
-          cameraMoveBy += glm::vec2(-1.0f, 0.0f);
-       }
-       if (InputManager::CheckKeyPressed(GLFW_KEY_D))
-       {
-          cameraMoveBy += glm::vec2(1.0f, 0);
-       }
-       if (InputManager::CheckKeyPressed(GLFW_KEY_SPACE))
-       {
-          m_camera.SetCameraAtPosition({0.0f, 0.0f, 0.0f});
-       }
+   if (!EditorGUI::IsBlockingEvents() && m_levelLoaded)
+   {
+      if (InputManager::CheckKeyPressed(GLFW_KEY_W))
+      {
+         cameraMoveBy += glm::vec2(0.0f, -1.0f);
+      }
+      if (InputManager::CheckKeyPressed(GLFW_KEY_S))
+      {
+         cameraMoveBy += glm::vec2(0.0f, 1.0f);
+      }
+      if (InputManager::CheckKeyPressed(GLFW_KEY_A))
+      {
+         cameraMoveBy += glm::vec2(-1.0f, 0.0f);
+      }
+      if (InputManager::CheckKeyPressed(GLFW_KEY_D))
+      {
+         cameraMoveBy += glm::vec2(1.0f, 0);
+      }
+      if (InputManager::CheckKeyPressed(GLFW_KEY_SPACE))
+      {
+         m_camera.SetCameraAtPosition({0.0f, 0.0f, 0.0f});
+      }
 
-       m_camera.Move(glm::vec3(cameraMoveBy, 0.0f));
-    }
+      m_camera.Move(glm::vec3(cameraMoveBy, 0.0f));
+   }
 }
 
 void
@@ -97,7 +97,6 @@ Editor::KeyCallback(const KeyEvent& event)
    }
    else if (event.m_action == GLFW_RELEASE)
    {
-
       if (m_gameObjectSelected && event.m_key == GLFW_KEY_C)
       {
          Logger::Info("Copy object!");
@@ -179,9 +178,15 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
       // otherwise
       const auto movementVector = currentCursorPos - m_lastCursorPosition;
 
+      // Compute the bigger factor (magnitute hence abs())
+      // Go with `-movementVector.x` because it feels right
+      const auto movementVal = std::abs(movementVector.x) > std::abs(movementVector.y)
+                                  ? -movementVector.x
+                                  : movementVector.y;
+
       constexpr auto maxRotationAngle = 0.02f;
-      const auto angle = glm::clamp(axis.x > 0 ? movementVector.x : movementVector.y,
-                                    -maxRotationAngle, maxRotationAngle);
+
+      const auto angle = glm::clamp(movementVal, -maxRotationAngle, maxRotationAngle);
 
       if (m_movementOnEditorObject || m_movementOnGameObject)
       {
@@ -257,7 +262,8 @@ Editor::SetMouseOnObject()
 }
 
 void
-Editor::HandleGameObjectSelected(const std::shared_ptr< GameObject >& newSelectedGameObject, bool fromGUI)
+Editor::HandleGameObjectSelected(const std::shared_ptr< GameObject >& newSelectedGameObject,
+                                 bool fromGUI)
 {
    if (m_currentSelectedGameObject != newSelectedGameObject)
    {
@@ -429,10 +435,10 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 
       DrawEditorObjects();
       DrawAnimationPoints();
-      //DrawBoundingBoxes();
-      //DrawGrid();
+      // DrawBoundingBoxes();
+      // DrawGrid();
 
-      //render::VulkanRenderer::EndScene();
+      // render::VulkanRenderer::EndScene();
    }
 
    EditorGUI::Render(cmdBuffer);
@@ -489,7 +495,8 @@ Editor::DrawAnimationPoints()
                                    object->GetLinkedObjectID());
                if (it != animaltionPointIDs.end())
                {
-                  // renderer::VulkanRenderer::DrawLine(lineStart, object->GetPosition(), {1.0f, 0.0f, 1.0f, 1.0f});
+                  // renderer::VulkanRenderer::DrawLine(lineStart, object->GetPosition(), {1.0f,
+                  // 0.0f, 1.0f, 1.0f});
                   lineStart = object->GetCenteredPosition();
 
                   object->Render();
@@ -685,7 +692,7 @@ Editor::AddGameObject(GameObject::TYPE objectType)
 }
 
 void
-Editor::CopyGameObject(const std::shared_ptr<GameObject>& objectToCopy)
+Editor::CopyGameObject(const std::shared_ptr< GameObject >& objectToCopy)
 {
    // For now we only copy type/size/collision/sprite
 
@@ -877,7 +884,7 @@ Editor::Update()
    }
 
    gui_.UpdateUI();
-   
+
    renderer::VulkanRenderer::view_mat = m_camera.GetViewMatrix();
    renderer::VulkanRenderer::proj_mat = m_camera.GetProjectionMatrix();
 }
