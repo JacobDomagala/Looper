@@ -358,7 +358,7 @@ Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
 {
    auto newSelectedEditorObject =
       std::find_if(m_editorObjects.begin(), m_editorObjects.end(), [cursorPosition](auto& object) {
-         return object->IsVisible() && object->CheckIfCollidedScreenPosion(cursorPosition);
+        return object->IsVisible() && object->CheckIfCollidedScreenPosion(cursorPosition);
       });
 
    if (newSelectedEditorObject != m_editorObjects.end())
