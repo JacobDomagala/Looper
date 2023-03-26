@@ -14,8 +14,8 @@ namespace looper::renderer {
 class Camera
 {
  public:
-   static inline glm::vec3 originalLookAt = {0.0f, 0.0f, -1.0f};
-   static inline glm::vec3 originalUpVec = {0.0f, 1.0f, 0.0f};
+   static constexpr inline glm::vec3 originalLookAt = {0.0f, 0.0f, -1.0f};
+   static constexpr inline glm::vec3 originalUpVec = {0.0f, 1.0f, 0.0f};
 
  public:
    Camera() = default;

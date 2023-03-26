@@ -9,15 +9,15 @@ namespace looper::renderer {
 
 CollisionCamera::CollisionCamera(const glm::vec3& position, const GameObject* obj)
    : position_(position),
-     lookAtDirection_(Camera::originalLookAt),
      upVector_(Camera::originalUpVec),
+     lookAtDirection_(Camera::originalLookAt),
      object_(obj)
 {
    Rotate(object_->GetSprite().GetRotation());
 }
 
 bool
-CollisionCamera::CheckCollision(const glm::vec2& globalVec)
+CollisionCamera::CheckCollision(const glm::vec2& globalVec) const
 {
    bool collided = false;
 

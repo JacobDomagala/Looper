@@ -13,8 +13,8 @@ class CollisionCamera
  public:
    CollisionCamera(const glm::vec3& position, const GameObject* obj);
 
-   bool
-   CheckCollision(const glm::vec2& globalVec);
+   [[nodiscard]] bool
+   CheckCollision(const glm::vec2& globalVec) const;
 
  private:
    void

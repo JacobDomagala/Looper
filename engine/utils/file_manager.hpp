@@ -12,12 +12,12 @@
 namespace looper {
 
 // NOLINTBEGIN
-const std::filesystem::path ROOT_DIR = std::filesystem::path(std::string(CMAKE_ROOT_DIR));
-const std::filesystem::path ASSETS_DIR = ROOT_DIR / "assets" / "";
-const std::filesystem::path LEVELS_DIR = ASSETS_DIR / "levels" / "";
-const std::filesystem::path FONTS_DIR = ASSETS_DIR / "fonts" / "";
-const std::filesystem::path SHADERS_DIR = ASSETS_DIR / "shaders" / "";
-const std::filesystem::path IMAGES_DIR = ASSETS_DIR / "images" / "";
+const auto ROOT_DIR = std::filesystem::path(std::string(CMAKE_ROOT_DIR));
+const auto ASSETS_DIR = ROOT_DIR / "assets" / "";
+const auto LEVELS_DIR = ASSETS_DIR / "levels" / "";
+const auto FONTS_DIR = ASSETS_DIR / "fonts" / "";
+const auto SHADERS_DIR = ASSETS_DIR / "shaders" / "";
+const auto IMAGES_DIR = ASSETS_DIR / "images" / "";
 // NOLINTEND
 class FileManager
 {
