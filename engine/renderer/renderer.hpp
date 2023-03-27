@@ -39,17 +39,11 @@ class VulkanRenderer
    static void
    SubmitMeshData(const uint32_t idx, const glm::mat4& modelMat);
 
-   static void
-   BeginScene()
+   [[nodiscard]]
+   static uint32_t 
+   GetNumMeshes()
    {
-   }
-   static void
-   EndScene()
-   {
-   }
-   static void
-   DrawQuad()
-   {
+      return m_numMeshes;
    }
 
    static void
@@ -153,11 +147,7 @@ class VulkanRenderer
 
    inline static VkDescriptorSetLayout m_descriptorSetLayout = {};
    inline static VkDescriptorPool m_descriptorPool = {};
-   inline static std::vector< VkDescriptorSet > m_descriptorSets = {};
-
-   inline static VkPipelineLayout m_pipelineLayout = {};
-   inline static VkPipeline m_graphicsPipeline = {};
-
+   
 
    inline static std::vector< VkCommandBuffer > m_commandBuffers = {};
 
@@ -165,11 +155,6 @@ class VulkanRenderer
    inline static std::vector< VkSemaphore > m_renderFinishedSemaphores = {};
    inline static std::vector< VkFence > m_inFlightFences = {};
    inline static std::vector< VkFence > m_imagesInFlight = {};
-
-   inline static VkBuffer m_vertexBuffer = {};
-   inline static VkDeviceMemory m_vertexBufferMemory = {};
-   inline static VkBuffer m_indexBuffer = {};
-   inline static VkDeviceMemory m_indexBufferMemory = {};
 
    inline static std::vector< VkBuffer > m_uniformBuffers = {};
    inline static std::vector< VkDeviceMemory > m_uniformBuffersMemory = {};

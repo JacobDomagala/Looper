@@ -24,7 +24,6 @@ Game::MainLoop()
       while (IsRunning() && (singleFrameTimer > TARGET_TIME))
       {
          m_window->Clear();
-         renderer::VulkanRenderer::BeginScene(/*_camera*/);
          const auto dt = Timer::milliseconds(static_cast< long >(
             TARGET_TIME * 1000.0f * static_cast< float >(Timer::AreTimersRunning())));
          ProcessInput(dt);
@@ -42,7 +41,6 @@ Game::MainLoop()
          ++m_frames;
          m_frameTimer += singleFrameTimer;
          // singleFrameTimer = 0.0f;
-         renderer::VulkanRenderer::EndScene();
 
          singleFrameTimer -= TARGET_TIME;
 
