@@ -468,11 +468,11 @@ VulkanRenderer::CreateVertexBuffer()
    memcpy(data, vertices.data(), bufferSize);
    vkUnmapMemory(Data::vk_device, stagingBufferMemory);
 
-   Buffer::CreateBuffer(bufferSize,
-                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer, m_vertexBufferMemory);
+   Buffer::CreateBuffer(
+      bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, Data::vertexBuffer_, Data::vertexBufferMemory_);
 
-   Buffer::CopyBuffer(stagingBuffer, m_vertexBuffer, bufferSize);
+   Buffer::CopyBuffer(stagingBuffer, Data::vertexBuffer_, bufferSize);
 
    vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
    vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
@@ -540,11 +540,11 @@ VulkanRenderer::CreateIndexBuffer()
    memcpy(data, indices.data(), bufferSize);
    vkUnmapMemory(Data::vk_device, stagingBufferMemory);
 
-   Buffer::CreateBuffer(bufferSize,
-                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indexBuffer, m_indexBufferMemory);
+   Buffer::CreateBuffer(
+      bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, Data::indexBuffer_, Data::indexBufferMemory_);
 
-   Buffer::CopyBuffer(stagingBuffer, m_indexBuffer, bufferSize);
+   Buffer::CopyBuffer(stagingBuffer, Data::indexBuffer_, bufferSize);
 
    vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
    vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
@@ -607,9 +607,10 @@ VulkanRenderer::CreateDescriptorSets()
    allocInfo.descriptorSetCount = static_cast< uint32_t >(size);
    allocInfo.pSetLayouts = layouts.data();
 
-   m_descriptorSets.resize(size);
-   vk_check_error(vkAllocateDescriptorSets(Data::vk_device, &allocInfo, m_descriptorSets.data()),
-                  "Failed to allocate descriptor sets!");
+   Data::descriptorSets_.resize(size);
+   vk_check_error(
+      vkAllocateDescriptorSets(Data::vk_device, &allocInfo, Data::descriptorSets_.data()),
+      "Failed to allocate descriptor sets!");
 
    const auto [imageView, sampler] =
       TextureLibrary::GetTexture(TextureType::DIFFUSE_MAP, "Default128.png")
@@ -647,7 +648,7 @@ VulkanRenderer::CreateDescriptorSets()
       std::array< VkWriteDescriptorSet, 4 > descriptorWrites = {};
 
       descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      descriptorWrites[0].dstSet = m_descriptorSets[i];
+      descriptorWrites[0].dstSet = Data::descriptorSets_[i];
       descriptorWrites[0].dstBinding = 0;
       descriptorWrites[0].dstArrayElement = 0;
       descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -655,7 +656,7 @@ VulkanRenderer::CreateDescriptorSets()
       descriptorWrites[0].pBufferInfo = &bufferInfo;
 
       descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      descriptorWrites[1].dstSet = m_descriptorSets[i];
+      descriptorWrites[1].dstSet = Data::descriptorSets_[i];
       descriptorWrites[1].dstBinding = 1;
       descriptorWrites[1].dstArrayElement = 0;
       descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -666,7 +667,7 @@ VulkanRenderer::CreateDescriptorSets()
       samplerInfo.sampler = sampler;
 
       descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      descriptorWrites[2].dstSet = m_descriptorSets[i];
+      descriptorWrites[2].dstSet = Data::descriptorSets_[i];
       descriptorWrites[2].dstBinding = 2;
       descriptorWrites[2].dstArrayElement = 0;
       descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
@@ -674,7 +675,7 @@ VulkanRenderer::CreateDescriptorSets()
       descriptorWrites[2].pImageInfo = &samplerInfo;
 
       descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      descriptorWrites[3].dstSet = m_descriptorSets[i];
+      descriptorWrites[3].dstSet = Data::descriptorSets_[i];
       descriptorWrites[3].dstBinding = 3;
       descriptorWrites[3].dstArrayElement = 0;
       descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
@@ -711,7 +712,6 @@ VulkanRenderer::CreateRenderPipeline()
    CreateDepthResources();
    CreateFramebuffers();
    CreatePipelineCache();
-   // CreateCommandBuffers();
    CreateSyncObjects();
 }
 
@@ -814,7 +814,6 @@ VulkanRenderer::Draw(Application* app)
    vkAcquireNextImageKHR(Data::vk_device, m_swapChain, UINT64_MAX,
                          m_imageAvailableSemaphores[Data::currentFrame_], VK_NULL_HANDLE,
                          &imageIndex);
-
 
    CreateCommandBuffers(app, imageIndex);
    UpdateUniformBuffer(Data::currentFrame_);
@@ -1238,7 +1237,8 @@ VulkanRenderer::CreateCommandBuffers(Application* app, uint32_t imageIndex)
 
    vk_check_error(vkBeginCommandBuffer(m_commandBuffers[Data::currentFrame_], &beginInfo), "");
 
-   vkCmdBeginRenderPass(m_commandBuffers[Data::currentFrame_], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+   vkCmdBeginRenderPass(m_commandBuffers[Data::currentFrame_], &renderPassInfo,
+                        VK_SUBPASS_CONTENTS_INLINE);
 
    VkViewport viewport = {};
    viewport.width = static_cast< float >(Data::m_swapChainExtent.width);
@@ -1255,30 +1255,6 @@ VulkanRenderer::CreateCommandBuffers(Application* app, uint32_t imageIndex)
    scissor.offset.y = 0;
 
    vkCmdSetScissor(m_commandBuffers[Data::currentFrame_], 0, 1, &scissor);
-
-   if (isLoaded_)
-   {
-      /*  vkCmdBindDescriptorSets(m_commandBuffers[Data::currentFrame_], VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                m_pipelineLayout, 0, 1, m_descriptorSets.data(), 0, nullptr);*/
-
-      vkCmdBindPipeline(m_commandBuffers[Data::currentFrame_], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
-
-      auto offsets = std::to_array< const VkDeviceSize >({0});
-      vkCmdBindVertexBuffers(m_commandBuffers[Data::currentFrame_], 0, 1, &m_vertexBuffer, offsets.data());
-
-      vkCmdBindIndexBuffer(m_commandBuffers[Data::currentFrame_], m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
-      vkCmdBindDescriptorSets(m_commandBuffers[Data::currentFrame_], VK_PIPELINE_BIND_POINT_GRAPHICS,
-                              m_pipelineLayout, 0, 1, &m_descriptorSets[Data::currentFrame_], 0, nullptr);
-
-
-      // vkCmdDrawIndexedIndirectCount(m_commandBuffers[Data::currentFrame_], m_indirectDrawsBuffer, 0,
-      //                               m_indirectDrawsBuffer,
-      //                               sizeof(VkDrawIndexedIndirectCommand) * m_numMeshes,
-      //                               m_numMeshes, sizeof(VkDrawIndexedIndirectCommand));
-
-      vkCmdDrawIndexed(m_commandBuffers[Data::currentFrame_], static_cast< uint32_t >(indices.size()), 1, 0, 0, 0);
-   }
 
    app->Render(m_commandBuffers[Data::currentFrame_]);
 
@@ -1376,7 +1352,7 @@ VulkanRenderer::CreatePipeline()
    depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
    depthStencil.depthTestEnable = VK_TRUE;
    depthStencil.depthWriteEnable = VK_TRUE;
-   depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+   depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
    depthStencil.depthBoundsTestEnable = VK_FALSE;
    depthStencil.minDepthBounds = 0.0f;
    depthStencil.maxDepthBounds = 1.0f;
@@ -1412,7 +1388,7 @@ VulkanRenderer::CreatePipeline()
    pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
 
    vk_check_error(
-      vkCreatePipelineLayout(Data::vk_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout),
+      vkCreatePipelineLayout(Data::vk_device, &pipelineLayoutInfo, nullptr, &Data::pipelineLayout_),
       "failed to create pipeline layout!");
 
    VkGraphicsPipelineCreateInfo pipelineInfo{};
@@ -1426,14 +1402,14 @@ VulkanRenderer::CreatePipeline()
    pipelineInfo.pMultisampleState = &multisampling;
    pipelineInfo.pDepthStencilState = &depthStencil;
    pipelineInfo.pColorBlendState = &colorBlending;
-   pipelineInfo.layout = m_pipelineLayout;
+   pipelineInfo.layout = Data::pipelineLayout_;
    pipelineInfo.renderPass = renderer::Data::m_renderPass;
    pipelineInfo.subpass = 0;
    pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
 
    vk_check_error(vkCreateGraphicsPipelines(Data::vk_device, VK_NULL_HANDLE, 1, &pipelineInfo,
-                                            nullptr, &m_graphicsPipeline),
+                                            nullptr, &Data::graphicsPipeline_),
                   "failed to create graphics pipeline!");
 
    // Shader info can be destroyed after the pipeline is created

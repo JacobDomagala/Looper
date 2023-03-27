@@ -4,6 +4,7 @@
 
 #include <vulkan/vulkan.h>
 #include <array>
+#include <vector>
 #include <string_view>
 #include <fmt/format.h>
 #include <vulkan/vulkan_core.h>
@@ -42,6 +43,13 @@ struct Data
    inline static VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
    inline static VkExtent2D m_swapChainExtent = {};
    inline static uint32_t currentFrame_ = {};
+   inline static std::vector< VkDescriptorSet > descriptorSets_ = {};
+   inline static VkPipeline graphicsPipeline_ = {};
+   inline static VkPipelineLayout pipelineLayout_ = {};
+   inline static VkBuffer vertexBuffer_ = {};
+   inline static VkDeviceMemory vertexBufferMemory_ = {};
+   inline static VkBuffer indexBuffer_ = {};
+   inline static VkDeviceMemory indexBufferMemory_ = {};
    inline static const uint32_t MAX_FRAMES_IN_FLIGHT = 3;
 };
 

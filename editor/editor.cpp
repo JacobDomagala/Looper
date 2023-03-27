@@ -358,7 +358,7 @@ Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
 {
    auto newSelectedEditorObject =
       std::find_if(m_editorObjects.begin(), m_editorObjects.end(), [cursorPosition](auto& object) {
-        return object->IsVisible() && object->CheckIfCollidedScreenPosion(cursorPosition);
+         return object->IsVisible() && object->CheckIfCollidedScreenPosion(cursorPosition);
       });
 
    if (newSelectedEditorObject != m_editorObjects.end())
@@ -425,20 +425,29 @@ Editor::ActionOnObject(Editor::ACTION action)
 void
 Editor::Render(VkCommandBuffer cmdBuffer)
 {
-   Update();
-
    if (m_levelLoaded)
    {
       m_currentLevel->GetSprite().Render();
       DrawBackgroundObjects();
       m_currentLevel->RenderGameObjects();
+      vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                        renderer::Data::graphicsPipeline_);
+
+      auto offsets = std::to_array< const VkDeviceSize >({0});
+      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::Data::vertexBuffer_, offsets.data());
+
+      vkCmdBindIndexBuffer(cmdBuffer, renderer::Data::indexBuffer_, 0, VK_INDEX_TYPE_UINT32);
+
+      vkCmdBindDescriptorSets(
+         cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::pipelineLayout_, 0, 1,
+         &renderer::Data::descriptorSets_[renderer::Data::currentFrame_], 0, nullptr);
+
+      vkCmdDrawIndexed(cmdBuffer, numObjects_ * 6, 1, 0, 0, 0);
 
       DrawEditorObjects();
       DrawAnimationPoints();
       // DrawBoundingBoxes();
       // DrawGrid();
-
-      // render::VulkanRenderer::EndScene();
    }
 
    EditorGUI::Render(cmdBuffer);
@@ -576,6 +585,12 @@ Editor::GetRenderTime() const
    return timeLastFrame_;
 }
 
+std::pair< uint32_t, uint32_t >
+Editor::GetRenderOffsets() const
+{
+   return {numObjects_, numPathfinderNodes_};
+}
+
 void
 Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
 {
@@ -630,6 +645,9 @@ Editor::LoadLevel(const std::string& levelPath)
    m_levelFileName = levelPath;
    m_currentLevel = std::make_shared< Level >();
    m_currentLevel->Load(this, levelPath);
+
+   numObjects_ = renderer::VulkanRenderer::GetNumMeshes();
+
 
    // Populate editor objects
    const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
@@ -943,6 +961,7 @@ Editor::MainLoop()
       InputManager::PollEvents();
 
       HandleCamera();
+      Update();
 
       renderer::VulkanRenderer::Draw(this);
 

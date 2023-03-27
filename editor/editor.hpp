@@ -116,6 +116,9 @@ class Editor : public Application
    [[nodiscard]] time::TimeStep
    GetRenderTime() const;
 
+   [[nodiscard]] std::pair<uint32_t, uint32_t>
+   GetRenderOffsets() const;
+
    void
    HandleGameObjectSelected(const std::shared_ptr< GameObject >& newSelectedGameObject,
                             bool fromGUI = false);
@@ -207,6 +210,9 @@ class Editor : public Application
 
    bool m_renderPathfinderNodes = true;
 
+   uint32_t numObjects_ = {};
+   uint32_t numPathfinderNodes_= {};
+   
    bool m_drawGrid = true;
    int32_t m_gridCellSize = 128;
 
