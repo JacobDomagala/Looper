@@ -200,6 +200,8 @@ EditorGUI::UpdateBuffers()
 void
 EditorGUI::Render(VkCommandBuffer commandBuffer)
 {
+   UpdateBuffers();
+
    ImDrawData* imDrawData = ImGui::GetDrawData();
    int32_t vertexOffset = 0;
    uint32_t indexOffset = 0;
@@ -914,8 +916,6 @@ EditorGUI::UpdateUI()
    }
 
    ImGui::Render();
-
-   UpdateBuffers();
 }
 
 void

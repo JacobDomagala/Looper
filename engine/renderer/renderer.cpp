@@ -468,9 +468,9 @@ VulkanRenderer::CreateVertexBuffer()
    memcpy(data, vertices.data(), bufferSize);
    vkUnmapMemory(Data::vk_device, stagingBufferMemory);
 
-   Buffer::CreateBuffer(bufferSize,
-                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, Data::vertexBuffer_, Data::vertexBufferMemory_);
+   Buffer::CreateBuffer(
+      bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, Data::vertexBuffer_, Data::vertexBufferMemory_);
 
    Buffer::CopyBuffer(stagingBuffer, Data::vertexBuffer_, bufferSize);
 
@@ -540,9 +540,9 @@ VulkanRenderer::CreateIndexBuffer()
    memcpy(data, indices.data(), bufferSize);
    vkUnmapMemory(Data::vk_device, stagingBufferMemory);
 
-   Buffer::CreateBuffer(bufferSize,
-                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, Data::indexBuffer_, Data::indexBufferMemory_);
+   Buffer::CreateBuffer(
+      bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, Data::indexBuffer_, Data::indexBufferMemory_);
 
    Buffer::CopyBuffer(stagingBuffer, Data::indexBuffer_, bufferSize);
 
@@ -608,8 +608,9 @@ VulkanRenderer::CreateDescriptorSets()
    allocInfo.pSetLayouts = layouts.data();
 
    Data::descriptorSets_.resize(size);
-   vk_check_error(vkAllocateDescriptorSets(Data::vk_device, &allocInfo, Data::descriptorSets_.data()),
-                  "Failed to allocate descriptor sets!");
+   vk_check_error(
+      vkAllocateDescriptorSets(Data::vk_device, &allocInfo, Data::descriptorSets_.data()),
+      "Failed to allocate descriptor sets!");
 
    const auto [imageView, sampler] =
       TextureLibrary::GetTexture(TextureType::DIFFUSE_MAP, "Default128.png")
@@ -711,7 +712,6 @@ VulkanRenderer::CreateRenderPipeline()
    CreateDepthResources();
    CreateFramebuffers();
    CreatePipelineCache();
-   // CreateCommandBuffers();
    CreateSyncObjects();
 }
 
@@ -814,7 +814,6 @@ VulkanRenderer::Draw(Application* app)
    vkAcquireNextImageKHR(Data::vk_device, m_swapChain, UINT64_MAX,
                          m_imageAvailableSemaphores[Data::currentFrame_], VK_NULL_HANDLE,
                          &imageIndex);
-
 
    CreateCommandBuffers(app, imageIndex);
    UpdateUniformBuffer(Data::currentFrame_);
@@ -1238,7 +1237,8 @@ VulkanRenderer::CreateCommandBuffers(Application* app, uint32_t imageIndex)
 
    vk_check_error(vkBeginCommandBuffer(m_commandBuffers[Data::currentFrame_], &beginInfo), "");
 
-   vkCmdBeginRenderPass(m_commandBuffers[Data::currentFrame_], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+   vkCmdBeginRenderPass(m_commandBuffers[Data::currentFrame_], &renderPassInfo,
+                        VK_SUBPASS_CONTENTS_INLINE);
 
    VkViewport viewport = {};
    viewport.width = static_cast< float >(Data::m_swapChainExtent.width);
@@ -1255,32 +1255,6 @@ VulkanRenderer::CreateCommandBuffers(Application* app, uint32_t imageIndex)
    scissor.offset.y = 0;
 
    vkCmdSetScissor(m_commandBuffers[Data::currentFrame_], 0, 1, &scissor);
-
-   if (isLoaded_)
-   {
-      /*  vkCmdBindDescriptorSets(m_commandBuffers[Data::currentFrame_], VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                Data::pipelineLayout_, 0, 1, Data::descriptorSets_.data(), 0, nullptr);*/
-
-      vkCmdBindPipeline(m_commandBuffers[Data::currentFrame_], VK_PIPELINE_BIND_POINT_GRAPHICS, Data::graphicsPipeline_);
-
-      auto offsets = std::to_array< const VkDeviceSize >({0});
-      vkCmdBindVertexBuffers(m_commandBuffers[Data::currentFrame_], 0, 1, &Data::vertexBuffer_, offsets.data());
-
-      vkCmdBindIndexBuffer(m_commandBuffers[Data::currentFrame_], Data::indexBuffer_, 0, VK_INDEX_TYPE_UINT32);
-
-      vkCmdBindDescriptorSets(m_commandBuffers[Data::currentFrame_], VK_PIPELINE_BIND_POINT_GRAPHICS,
-                              Data::pipelineLayout_, 0, 1, &Data::descriptorSets_[Data::currentFrame_], 0, nullptr);
-
-
-       //vkCmdDrawIndexedIndirectCount(m_commandBuffers[Data::currentFrame_], m_indirectDrawsBuffer, 0,
-       //                              m_indirectDrawsBuffer,
-       //                              sizeof(VkDrawIndexedIndirectCommand) * m_numMeshes,
-       //                              m_numMeshes, sizeof(VkDrawIndexedIndirectCommand));
-      
-      
-      // vkCmdDrawIndexed(m_commandBuffers[Data::currentFrame_], 128, 1, 0, 0, 0);
-      // vkCmdDrawIndexed(m_commandBuffers[Data::currentFrame_], static_cast< uint32_t >(indices.size()), 1, 0, 0, 0);
-   }
 
    app->Render(m_commandBuffers[Data::currentFrame_]);
 
@@ -1374,15 +1348,6 @@ VulkanRenderer::CreatePipeline()
    multisampling.sampleShadingEnable = VK_FALSE;
    multisampling.rasterizationSamples = renderer::Data::m_msaaSamples;
 
-   /*
-   *     VK_COMPARE_OP_LESS = 1,
-    VK_COMPARE_OP_EQUAL = 2,
-    VK_COMPARE_OP_LESS_OR_EQUAL = 3,
-    VK_COMPARE_OP_GREATER = 4,
-    VK_COMPARE_OP_NOT_EQUAL = 5,
-    VK_COMPARE_OP_GREATER_OR_EQUAL = 6,
-    VK_COMPARE_OP_ALWAYS = 7,
-   */
    VkPipelineDepthStencilStateCreateInfo depthStencil = {};
    depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
    depthStencil.depthTestEnable = VK_TRUE;
