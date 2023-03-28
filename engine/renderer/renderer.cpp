@@ -1294,7 +1294,7 @@ void
 VulkanRenderer::CreatePipeline()
 {
    auto [vertexInfo, fragmentInfo] =
-      VulkanShader::CreateShader(Data::vk_device, "vulkan/vert.spv", "vulkan/frag.spv");
+      VulkanShader::CreateShader(Data::vk_device, "vert.spv", "frag.spv");
    auto shaderStages = std::to_array({vertexInfo.shaderInfo, fragmentInfo.shaderInfo});
 
    VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
