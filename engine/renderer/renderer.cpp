@@ -30,15 +30,6 @@ struct UniformBufferObject
    glm::vec4 cameraPos = {};
 };
 
-struct PerInstanceBuffer
-{
-   alignas(16) glm::mat4 model = {};
-   int32_t diffuse = {};
-};
-
-std::vector< PerInstanceBuffer > perInstance = {};
-std::vector< Vertex > vertices = {};
-std::vector< uint32_t > indices = {};
 // std::array< std::pair<std::string, VkImageView, 256 > imageViews;
 static int32_t currTexIdx = 0;
 std::unordered_map< std::string, std::pair< int32_t, VkImageView > > textures = {};
