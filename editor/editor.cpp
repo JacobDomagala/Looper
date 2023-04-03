@@ -28,12 +28,9 @@ Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
    InputManager::RegisterForMouseButtonInput(this);
    InputManager::RegisterForMouseMovementInput(this);
 
-   /*RenderCommand::Init();
-   Renderer::Init();*/
-   renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle());
+   renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle(),
+                                        renderer::ApplicationType::EDITOR);
 
-   // gui_.Init();
-   renderer::VulkanRenderer::CreateRenderPipeline();
    gui_.Init();
 
    m_deltaTime = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000.0f));
@@ -434,15 +431,30 @@ Editor::Render(VkCommandBuffer cmdBuffer)
                         renderer::Data::graphicsPipeline_);
 
       auto offsets = std::to_array< const VkDeviceSize >({0});
-      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::Data::vertexBuffer_, offsets.data());
+      vkCmdBindVertexBuffers(
+         cmdBuffer, 0, 1,
+         &renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()]
+             .vertexBuffer,
+         offsets.data());
 
-      vkCmdBindIndexBuffer(cmdBuffer, renderer::Data::indexBuffer_, 0, VK_INDEX_TYPE_UINT32);
+      vkCmdBindIndexBuffer(
+         cmdBuffer,
+         renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()]
+            .indexBuffer,
+         0, VK_INDEX_TYPE_UINT32);
 
       vkCmdBindDescriptorSets(
          cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::pipelineLayout_, 0, 1,
          &renderer::Data::descriptorSets_[renderer::Data::currentFrame_], 0, nullptr);
 
-      vkCmdDrawIndexed(cmdBuffer, numObjects_ * 6, 1, 0, 0, 0);
+      //const auto numObjects =
+      //   renderer::VulkanRenderer::GetNumMeshes(renderer::ApplicationType::EDITOR);
+      //numObjects_ = numObjects.second - numObjects.first;
+      vkCmdDrawIndexed(
+         cmdBuffer,
+         renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()].numMeshes
+            * 6,
+         1, 0, 0, 0);
 
       DrawEditorObjects();
       DrawAnimationPoints();
@@ -642,49 +654,48 @@ Editor::LoadLevel(const std::string& levelPath)
       m_editorObjects.clear();
    }
 
+   renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::EDITOR);
+
    m_levelFileName = levelPath;
    m_currentLevel = std::make_shared< Level >();
    m_currentLevel->Load(this, levelPath);
 
-   numObjects_ = renderer::VulkanRenderer::GetNumMeshes();
+   //// Populate editor objects
+   //const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
+   //std::transform(pathfinderNodes.begin(), pathfinderNodes.end(),
+   //               std::back_inserter(m_editorObjects), [this](const auto& node) {
+   //                  const auto tileSize = m_currentLevel->GetTileSize();
 
+   //                  auto pathfinderNode = std::make_shared< EditorObject >(
+   //                     *this, node.m_position, glm::ivec2(tileSize, tileSize), "white.png",
+   //                     node.GetID());
 
-   // Populate editor objects
-   const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
-   std::transform(pathfinderNodes.begin(), pathfinderNodes.end(),
-                  std::back_inserter(m_editorObjects), [this](const auto& node) {
-                     const auto tileSize = m_currentLevel->GetTileSize();
+   //                  pathfinderNode->SetIsBackground(true);
+   //                  pathfinderNode->SetVisible(m_renderPathfinderNodes);
+   //                  pathfinderNode->SetColor(glm::vec3{1.0f, 1.0f, 1.0f});
 
-                     auto pathfinderNode = std::make_shared< EditorObject >(
-                        *this, node.m_position, glm::ivec2(tileSize, tileSize), "white.png",
-                        node.GetID());
+   //                  return pathfinderNode;
+   //               });
 
-                     pathfinderNode->SetIsBackground(true);
-                     pathfinderNode->SetVisible(m_renderPathfinderNodes);
-                     pathfinderNode->SetColor(glm::vec3{1.0f, 1.0f, 1.0f});
+   //const auto& gameObjects = m_currentLevel->GetObjects();
+   //for (const auto& object : gameObjects)
+   //{
+   //   const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(object);
 
-                     return pathfinderNode;
-                  });
+   //   if (animatablePtr)
+   //   {
+   //      const auto& animationPoints = animatablePtr->GetAnimationKeypoints();
 
-   const auto& gameObjects = m_currentLevel->GetObjects();
-   for (const auto& object : gameObjects)
-   {
-      const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(object);
+   //      for (const auto& point : animationPoints)
+   //      {
+   //         auto editorObject = std::make_shared< EditorObject >(
+   //            *this, point.m_end, glm::ivec2(20, 20), "NodeSprite.png", point.GetID());
+   //         editorObject->SetName("AnimationPoint" + object->GetName());
 
-      if (animatablePtr)
-      {
-         const auto& animationPoints = animatablePtr->GetAnimationKeypoints();
-
-         for (const auto& point : animationPoints)
-         {
-            auto editorObject = std::make_shared< EditorObject >(
-               *this, point.m_end, glm::ivec2(20, 20), "NodeSprite.png", point.GetID());
-            editorObject->SetName("AnimationPoint" + object->GetName());
-
-            m_editorObjects.push_back(editorObject);
-         }
-      }
-   }
+   //         m_editorObjects.push_back(editorObject);
+   //      }
+   //   }
+   //}
 
    m_camera.Create(glm::vec3(m_currentLevel->GetPlayer()->GetPosition(), 0.0f),
                    m_window->GetSize());
@@ -782,22 +793,25 @@ Editor::LaunchGameLoop()
 {
    // Clear rednerer data
    // Renderer::Shutdown();
-   EditorGUI::Shutdown();
+   // EditorGUI::Shutdown();
 
    m_game = std::make_unique< Game >();
    m_game->Init("GameInit.txt");
    m_game->LoadLevel(m_levelFileName);
+
+   // Create game-thread and run it inside
    m_game->MainLoop();
    m_game.reset();
 
    m_playGame = false;
-
+   renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::EDITOR);
+   renderer::VulkanRenderer::SetupData();
    // Reinitialize renderer
    // glfwMakeContextCurrent(m_window->GetWindowHandle());
    // RenderCommand::Init();
-   renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle());
+   // renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle());
 
-   gui_.Init();
+   // gui_.Init();
 }
 
 // std::shared_ptr< EditorObject >

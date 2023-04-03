@@ -450,7 +450,7 @@ EditorGUI::PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPas
    pipelineDynamicStateCreateInfo.flags = 0;
 
    auto [vertexInfo, fragmentInfo] = renderer::VulkanShader::CreateShader(
-      renderer::Data::vk_device, "vulkan/ui.vert.spv", "vulkan/ui.frag.spv");
+      renderer::Data::vk_device, "ui.vert.spv", "ui.frag.spv");
    std::array< VkPipelineShaderStageCreateInfo, 2 > shaderStages = {vertexInfo.shaderInfo,
                                                                     fragmentInfo.shaderInfo};
 

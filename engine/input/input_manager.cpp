@@ -3,12 +3,31 @@
 
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <algorithm>
 
 namespace looper {
 
+template < typename ListenerType >
 void
-InputManager::InternalKeyCallback(GLFWwindow* /*window*/, int32_t key, int32_t scancode, int32_t action,
-                                  int32_t mods)
+TRemoveListener(std::vector< ListenerType* >& listeners, ListenerType* listener)
+{
+   auto foundListener =
+      std::find_if(listeners.begin(), listeners.end(), [listener](const auto& registeredListener) {
+         return listener == registeredListener;
+      });
+   if (foundListener != listeners.end())
+   {
+      listeners.erase(foundListener);
+   }
+   else
+   {
+      Logger::Debug("Listener not found!");
+   }
+}
+
+void
+InputManager::InternalKeyCallback(GLFWwindow* /*window*/, int32_t key, int32_t scancode,
+                                  int32_t action, int32_t mods)
 {
    Logger::Trace("GLFW key {} {} scan code - {}", action, key, scancode);
 
@@ -18,7 +37,8 @@ InputManager::InternalKeyCallback(GLFWwindow* /*window*/, int32_t key, int32_t s
 }
 
 void
-InputManager::InternalMouseButtonCallback(GLFWwindow* /*window*/, int32_t button, int32_t action, int32_t mods)
+InputManager::InternalMouseButtonCallback(GLFWwindow* /*window*/, int32_t button, int32_t action,
+                                          int32_t mods)
 {
    Logger::Trace("GLFW mouse button {} {} {}", button, action, mods);
    s_mouseButtonMap[button] = action;
@@ -121,6 +141,24 @@ void
 InputManager::RegisterForMouseScrollInput(InputListener* listener)
 {
    s_mouseScrollListeners.push_back(listener);
+}
+
+void
+InputManager::RegisterForInput(InputListener* listener)
+{
+   RegisterForKeyInput(listener);
+   RegisterForMouseButtonInput(listener);
+   RegisterForMouseMovementInput(listener);
+   RegisterForMouseScrollInput(listener);
+}
+
+void
+InputManager::UnregisterFromInput(InputListener* listener)
+{
+   TRemoveListener(s_keyListeners, listener);
+   TRemoveListener(s_mouseButtonListeners, listener);
+   TRemoveListener(s_mouseMovementListeners, listener);
+   TRemoveListener(s_mouseScrollListeners, listener);
 }
 
 void

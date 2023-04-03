@@ -3,6 +3,7 @@
 #include "utils/file_manager.hpp"
 // #include "RenderCommand.hpp"
 #include "renderer.hpp"
+#include "renderer/vulkan_common.hpp"
 #include "renderer/window/window.hpp"
 
 #include <GLFW/glfw3.h>
@@ -47,6 +48,8 @@ Game::MainLoop()
          InputManager::PollEvents();
       }
    }
+
+   InputManager::UnregisterFromInput(this);
 }
 
 void
@@ -63,12 +66,8 @@ Game::Init(const std::string& configFile)
 
    m_window = std::make_unique< renderer::Window >(WIDTH, HEIGHT, "WindowTitle");
 
-   // RenderCommand::Init();
-   // RenderCommand::SetClearColor({1.0f, 0.2f, 0.3f, 1.0f});
-   renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle());
-   // RenderCommand::SetViewport(0, 0, WIDTH, HEIGHT);
-
-   // m_frameBuffer.SetUp();
+   renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle(),
+                                        renderer::ApplicationType::GAME);
 
    while (!initFile.eof())
    {
@@ -92,19 +91,21 @@ Game::Init(const std::string& configFile)
    initFile.close();
 
    InputManager::Init(m_window->GetWindowHandle());
+   InputManager::RegisterForInput(this);
 
    // LoadLevel(m_levels[0]);
+   LoadLevel((LEVELS_DIR / "TestLevel" / "TestLevel.dgl").string());
    m_state = GameState::GAME;
    m_initialized = true;
 }
 
-//glm::vec2
-//Game::CheckBulletCollision(const glm::vec2& positon, float range)
+// glm::vec2
+// Game::CheckBulletCollision(const glm::vec2& positon, float range)
 //{
-//   return m_currentLevel->GetCollidedPosition(
-//      positon, glm::clamp(positon + range, glm::vec2{0.0f, 0.0f},
-//                          static_cast< glm::vec2 >(m_currentLevel->GetSize())));
-//}
+//    return m_currentLevel->GetCollidedPosition(
+//       positon, glm::clamp(positon + range, glm::vec2{0.0f, 0.0f},
+//                           static_cast< glm::vec2 >(m_currentLevel->GetSize())));
+// }
 
 void
 Game::MoveGameObject(GameObject* gameObject, const glm::vec2& moveBy) const
@@ -122,8 +123,8 @@ Game::KeyEvents() // NOLINT
 {
    const auto floatDeltaTime = static_cast< float >(m_deltaTime.count());
    // Camera movement is disabled
-   const auto cameraMovement = 0.0f * floatDeltaTime;
-   const auto playerMovement = 0.5f * floatDeltaTime;
+   const auto cameraMovement = 0.00025f * floatDeltaTime;
+   const auto playerMovement = 0.025f * floatDeltaTime;
 
    auto playerMoveBy = glm::vec2();
    auto cameraMoveBy = glm::vec2();
@@ -164,13 +165,13 @@ Game::KeyEvents() // NOLINT
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_W))
       {
-         playerMoveBy += glm::vec2(0, -playerMovement);
-         cameraMoveBy += glm::vec2(0, cameraMovement);
+         playerMoveBy += glm::vec2(0, playerMovement);
+         cameraMoveBy += glm::vec2(0, -cameraMovement);
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_S))
       {
-         playerMoveBy += glm::vec2(0, playerMovement);
-         cameraMoveBy += glm::vec2(0, -cameraMovement);
+         playerMoveBy += glm::vec2(0, -playerMovement);
+         cameraMoveBy += glm::vec2(0, cameraMovement);
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_A))
       {
@@ -215,13 +216,14 @@ Game::MouseEvents()
    if (!m_reverse)
    {
       // value to control how fast should camera move
-      constexpr int32_t multiplier = 3;
+      constexpr int32_t multiplier = 1;
 
       // cursor's position from center of the screen to trigger camera movement
       constexpr float borderValue = 0.5f;
+      constexpr float modifier = 0.1f;
 
-      const auto cameraMovement = floorf(static_cast< float >(m_deltaTime.count()));
-      auto cameraMoveBy = glm::ivec2();
+      const auto cameraMovement = modifier * floorf(static_cast< float >(m_deltaTime.count()));
+      auto cameraMoveBy = glm::vec2();
       const auto cursor = m_window->GetCursorNormalized();
 
       if (cursor.x > borderValue)
@@ -280,12 +282,16 @@ Game::RenderSecondPass()
 void
 Game::LoadLevel(const std::string& pathToLevel)
 {
+   renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::GAME);
+
    m_currentLevel = std::make_shared< Level >();
    m_currentLevel->Load(this, pathToLevel);
    m_player = m_currentLevel->GetPlayer();
 
    m_camera.Create(glm::vec3(m_player->GetCenteredPosition(), 0.0f), m_window->GetSize());
    m_camera.SetLevelSize(m_currentLevel->GetSize());
+
+   renderer::VulkanRenderer::SetupData();
 }
 
 glm::vec2
@@ -346,6 +352,9 @@ Game::ProcessInput(Timer::milliseconds deltaTime)
 
    HandleReverseLogic();
    UpdateGameState();
+
+   renderer::VulkanRenderer::view_mat = m_camera.GetViewMatrix();
+   renderer::VulkanRenderer::proj_mat = m_camera.GetProjectionMatrix();
 }
 
 bool
@@ -382,10 +391,33 @@ Game::HandleReverseLogic()
 }
 
 void
-Game::Render(VkCommandBuffer /*cmdBuffer*/)
+Game::Render(VkCommandBuffer cmdBuffer)
 {
    RenderFirstPass();
    RenderSecondPass();
+
+   vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::graphicsPipeline_);
+
+   auto offsets = std::to_array< const VkDeviceSize >({0});
+   vkCmdBindVertexBuffers(
+      cmdBuffer, 0, 1,
+      &renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()].vertexBuffer,
+      offsets.data());
+
+   vkCmdBindIndexBuffer(
+      cmdBuffer,
+      renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()].indexBuffer, 0,
+      VK_INDEX_TYPE_UINT32);
+
+   vkCmdBindDescriptorSets(
+      cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::pipelineLayout_, 0, 1,
+      &renderer::Data::descriptorSets_[renderer::Data::currentFrame_], 0, nullptr);
+
+   //const auto numObjects = renderer::VulkanRenderer::GetNumMeshes(renderer::ApplicationType::GAME);
+   //numObjects_ = numObjects.second - numObjects.first;
+   vkCmdDrawIndexed(
+      cmdBuffer, renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()].numMeshes * 6,
+      1, 0, 0, 0);
 }
 
 } // namespace looper

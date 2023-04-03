@@ -1,14 +1,17 @@
 #pragma once
 
+#include "types.hpp"
 #include "utils/assert.hpp"
+#include "vertex.hpp"
 
-#include <vulkan/vulkan.h>
 #include <array>
-#include <vector>
-#include <string_view>
 #include <fmt/format.h>
-#include <vulkan/vulkan_core.h>
+#include <string_view>
+#include <unordered_map>
+#include <vector>
 #include <vulkan/vk_enum_string_helper.h>
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
 
 namespace looper::renderer {
 
@@ -22,9 +25,32 @@ vk_check_error(VkResult vkResult, std::string_view errorMessage)
    }
 }
 
+static constexpr uint32_t indicesPerMesh = 6;
 static constexpr bool ENABLE_VALIDATION = true;
 static constexpr std::array< const char*, 1 > VALIDATION_LAYERS = {"VK_LAYER_KHRONOS_validation"};
 static constexpr std::array< const char*, 1 > DEVICE_EXTENSIONS = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+struct RenderData
+{
+   std::vector< Vertex > vertices = {};
+   std::vector< IndexType > indices = {};
+   std::vector< PerInstanceBuffer > perInstance = {};
+   VkBuffer vertexBuffer = {};
+   VkDeviceMemory vertexBufferMemory = {};
+   VkBuffer indexBuffer = {};
+   VkDeviceMemory indexBufferMemory = {};
+   std::vector< VkBuffer > uniformBuffers = {};
+   std::vector< VkDeviceMemory > uniformBuffersMemory = {};
+   std::vector< VkBuffer > ssbo = {};
+   std::vector< VkDeviceMemory > ssboMemory = {};
+   VkSurfaceKHR surface = {};
+   VkSwapchainKHR swapChain = {};
+   std::vector< VkImage > swapChainImages = {};
+   std::vector< VkImageView > swapChainImageViews = {};
+   std::vector< VkFramebuffer > swapChainFramebuffers = {};
+   VkFormat swapChainImageFormat = {};
+   uint32_t numMeshes = {};
+};
 
 /*
  * This is storage for common Vulkan objects that are needed for numerous
@@ -46,14 +72,23 @@ struct Data
    inline static std::vector< VkDescriptorSet > descriptorSets_ = {};
    inline static VkPipeline graphicsPipeline_ = {};
    inline static VkPipelineLayout pipelineLayout_ = {};
-   inline static VkBuffer vertexBuffer_ = {};
-   inline static VkDeviceMemory vertexBufferMemory_ = {};
-   inline static VkBuffer indexBuffer_ = {};
-   inline static VkDeviceMemory indexBufferMemory_ = {};
+
+   //inline static VkBuffer editorVertexBuffer_ = {};
+   //inline static VkDeviceMemory editorVertexBufferMemory_ = {};
+   //inline static VkBuffer gameVertexBuffer_ = {};
+   //inline static VkDeviceMemory gameVertexBufferMemory_ = {};
+
+   //inline static VkBuffer editorIndexBuffer_ = {};
+   //inline static VkDeviceMemory editorIndexBufferMemory_ = {};
+   //inline static VkBuffer gameIndexBuffer_ = {};
+   //inline static VkDeviceMemory gameIndexBufferMemory_ = {};
+
+   inline static std::unordered_map< ApplicationType, RenderData > renderData_ = {};
+
    inline static const uint32_t MAX_FRAMES_IN_FLIGHT = 3;
 };
 
 uint32_t
 FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-} // namespace shady::renderer
+} // namespace looper::renderer

@@ -210,7 +210,6 @@ class Editor : public Application
 
    bool m_renderPathfinderNodes = true;
 
-   uint32_t numObjects_ = {};
    uint32_t numPathfinderNodes_= {};
    
    bool m_drawGrid = true;

@@ -92,6 +92,7 @@ class Application : public InputListener
    renderer::Camera m_camera = {};
    Timer m_timer = {};
    Timer::milliseconds m_deltaTime = {};
+   uint32_t numObjects_ = {};
 };
 
 

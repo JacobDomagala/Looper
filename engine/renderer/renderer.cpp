@@ -30,16 +30,6 @@ struct UniformBufferObject
    glm::vec4 cameraPos = {};
 };
 
-struct PerInstanceBuffer
-{
-   alignas(16) glm::mat4 model = {};
-   int32_t diffuse = {};
-};
-
-std::vector< PerInstanceBuffer > perInstance = {};
-std::vector< Vertex > vertices = {};
-std::vector< uint32_t > indices = {};
-// std::array< std::pair<std::string, VkImageView, 256 > imageViews;
 static int32_t currTexIdx = 0;
 std::unordered_map< std::string, std::pair< int32_t, VkImageView > > textures = {};
 std::vector< VkImageView > texturesVec = {};
@@ -48,9 +38,12 @@ uint32_t
 VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureMaps& textures_in,
                            const glm::mat4& modelMat)
 {
-   std::copy(vertices_in.begin(), vertices_in.end(), std::back_inserter(vertices));
+   auto& vertices = Data::renderData_[boundApplication_].vertices;
+
+   std::copy(vertices_in.begin(), vertices_in.end(),
+             std::back_inserter(Data::renderData_[boundApplication_].vertices));
    std::transform(vertices.end() - 4, vertices.end(), vertices.end() - 4, [](auto& vtx) {
-      vtx.m_drawID = static_cast< float >(VulkanRenderer::m_numMeshes);
+      vtx.m_drawID = static_cast< float >(Data::renderData_[boundApplication_].numMeshes);
       return vtx;
    });
 
@@ -63,7 +56,8 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
    newModel.firstInstance = 0;
    newModel.instanceCount = 1;
    newModel.vertexOffset = static_cast< int32_t >(m_currentVertex);
-   m_renderCommands.push_back(newModel);
+   // TODO: If we go back to indirect draw, this also should be updated to editor/game
+   // m_renderCommands.push_back(newModel);
 
    m_currentVertex += static_cast< uint32_t >(vertices_in.size());
    m_currentIndex += static_cast< uint32_t >(6);
@@ -101,10 +95,10 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
       }
    }
 
-   perInstance.push_back(newInstance);
+   Data::renderData_[boundApplication_].perInstance.push_back(newInstance);
 
-   auto currentMeshIdx = m_numMeshes;
-   ++m_numMeshes;
+   auto currentMeshIdx = Data::renderData_[boundApplication_].numMeshes;
+   ++Data::renderData_[boundApplication_].numMeshes;
 
    return currentMeshIdx;
 }
@@ -112,7 +106,7 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
 void
 VulkanRenderer::SubmitMeshData(const uint32_t idx, const glm::mat4& modelMat)
 {
-   perInstance.at(idx).model = modelMat;
+   Data::renderData_[boundApplication_].perInstance.at(idx).model = modelMat;
 }
 
 struct QueueFamilyIndices
@@ -455,6 +449,7 @@ chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* windo
 void
 VulkanRenderer::CreateVertexBuffer()
 {
+   auto& vertices = Data::renderData_[boundApplication_].vertices;
    const VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
 
    VkBuffer stagingBuffer = {};
@@ -470,9 +465,10 @@ VulkanRenderer::CreateVertexBuffer()
 
    Buffer::CreateBuffer(
       bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, Data::vertexBuffer_, Data::vertexBufferMemory_);
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, Data::renderData_[boundApplication_].vertexBuffer,
+      Data::renderData_[boundApplication_].vertexBufferMemory);
 
-   Buffer::CopyBuffer(stagingBuffer, Data::vertexBuffer_, bufferSize);
+   Buffer::CopyBuffer(stagingBuffer, Data::renderData_[boundApplication_].vertexBuffer, bufferSize);
 
    vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
    vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
@@ -486,19 +482,21 @@ VulkanRenderer::SetupData()
    CreateIndexBuffer();
    CreateUniformBuffers();
 
-   const auto commandsSize = m_renderCommands.size() * sizeof(VkDrawIndexedIndirectCommand);
+   // Indirect render stuff
+   // const auto commandsSize = m_renderCommands.size() * sizeof(VkDrawIndexedIndirectCommand);
 
-   ////  Commands + draw count
-   const VkDeviceSize bufferSize = commandsSize + sizeof(uint32_t);
+   //////  Commands + draw count
+   // const VkDeviceSize bufferSize = commandsSize + sizeof(uint32_t);
 
-   Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        m_indirectDrawsBuffer, m_indirectDrawsBufferMemory);
+   // Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
+   //                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+   //                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_indirectDrawsBuffer,
+   //                      m_indirectDrawsBufferMemory);
 
-   void* data = nullptr;
-   vkMapMemory(Data::vk_device, m_indirectDrawsBufferMemory, 0, bufferSize, 0, &data);
-   memcpy(data, m_renderCommands.data(), static_cast< size_t >(bufferSize));
-   memcpy(static_cast< uint8_t* >(data) + commandsSize, &m_numMeshes, sizeof(uint32_t));
+   // void* data = nullptr;
+   // vkMapMemory(Data::vk_device, m_indirectDrawsBufferMemory, 0, bufferSize, 0, &data);
+   // memcpy(data, m_renderCommands.data(), static_cast< size_t >(bufferSize));
+   // memcpy(static_cast< uint8_t* >(data) + commandsSize, &m_numMeshes, sizeof(uint32_t));
 
    CreateRenderPipeline();
    CreateDescriptorPool();
@@ -510,8 +508,9 @@ VulkanRenderer::SetupData()
 void
 VulkanRenderer::CreateIndexBuffer()
 {
-   constexpr uint32_t indicesPerMesh = 6;
-   indices.resize(static_cast< size_t >(m_numMeshes) * static_cast< size_t >(indicesPerMesh));
+   auto& indices = Data::renderData_[boundApplication_].indices;
+   indices.resize(static_cast< size_t >(Data::renderData_[boundApplication_].numMeshes)
+                  * static_cast< size_t >(indicesPerMesh));
 
    uint32_t offset = 0;
    for (uint32_t i = 0; i < indices.size(); i += indicesPerMesh)
@@ -542,9 +541,10 @@ VulkanRenderer::CreateIndexBuffer()
 
    Buffer::CreateBuffer(
       bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, Data::indexBuffer_, Data::indexBufferMemory_);
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, Data::renderData_[boundApplication_].indexBuffer,
+      Data::renderData_[boundApplication_].indexBufferMemory);
 
-   Buffer::CopyBuffer(stagingBuffer, Data::indexBuffer_, bufferSize);
+   Buffer::CopyBuffer(stagingBuffer, Data::renderData_[boundApplication_].indexBuffer, bufferSize);
 
    vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
    vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
@@ -554,26 +554,29 @@ void
 VulkanRenderer::CreateUniformBuffers()
 {
    const VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-   const VkDeviceSize SSBObufferSize = perInstance.size() * sizeof(PerInstanceBuffer);
+   const VkDeviceSize SSBObufferSize =
+      Data::renderData_[boundApplication_].perInstance.size() * sizeof(PerInstanceBuffer);
 
    const auto swapchainImagesSize = Data::MAX_FRAMES_IN_FLIGHT; // m_swapChainImages.size();
 
-   m_uniformBuffers.resize(swapchainImagesSize);
-   m_uniformBuffersMemory.resize(swapchainImagesSize);
-   m_ssbo.resize(swapchainImagesSize);
-   m_ssboMemory.resize(swapchainImagesSize);
+   Data::renderData_[boundApplication_].uniformBuffers.resize(swapchainImagesSize);
+   Data::renderData_[boundApplication_].uniformBuffersMemory.resize(swapchainImagesSize);
+   Data::renderData_[boundApplication_].ssbo.resize(swapchainImagesSize);
+   Data::renderData_[boundApplication_].ssboMemory.resize(swapchainImagesSize);
 
    for (size_t i = 0; i < swapchainImagesSize; i++)
    {
       Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
                               | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                           m_uniformBuffers[i], m_uniformBuffersMemory[i]);
+                           Data::renderData_[boundApplication_].uniformBuffers[i],
+                           Data::renderData_[boundApplication_].uniformBuffersMemory[i]);
 
       Buffer::CreateBuffer(SSBObufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
                               | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                           m_ssbo[i], m_ssboMemory[i]);
+                           Data::renderData_[boundApplication_].ssbo[i],
+                           Data::renderData_[boundApplication_].ssboMemory[i]);
    }
 }
 void
@@ -581,15 +584,18 @@ VulkanRenderer::CreateDescriptorPool()
 {
    std::array< VkDescriptorPoolSize, 2 > poolSizes{};
    poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-   poolSizes[0].descriptorCount = static_cast< uint32_t >(m_swapChainImages.size());
+   poolSizes[0].descriptorCount =
+      static_cast< uint32_t >(Data::renderData_[boundApplication_].swapChainImages.size());
    poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-   poolSizes[1].descriptorCount = static_cast< uint32_t >(m_swapChainImages.size());
+   poolSizes[1].descriptorCount =
+      static_cast< uint32_t >(Data::renderData_[boundApplication_].swapChainImages.size());
 
    VkDescriptorPoolCreateInfo poolInfo = {};
    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
    poolInfo.poolSizeCount = static_cast< uint32_t >(poolSizes.size());
    poolInfo.pPoolSizes = poolSizes.data();
-   poolInfo.maxSets = static_cast< uint32_t >(m_swapChainImages.size());
+   poolInfo.maxSets =
+      static_cast< uint32_t >(Data::renderData_[boundApplication_].swapChainImages.size());
 
    vk_check_error(vkCreateDescriptorPool(Data::vk_device, &poolInfo, nullptr, &m_descriptorPool),
                   "Failed to create descriptor pool!");
@@ -619,15 +625,16 @@ VulkanRenderer::CreateDescriptorSets()
    for (size_t i = 0; i < size; i++)
    {
       VkDescriptorBufferInfo bufferInfo{};
-      bufferInfo.buffer = m_uniformBuffers[i];
+      bufferInfo.buffer = Data::renderData_[boundApplication_].uniformBuffers[i];
       bufferInfo.offset = 0;
       bufferInfo.range = sizeof(UniformBufferObject);
 
 
       VkDescriptorBufferInfo instanceBufferInfo = {};
-      instanceBufferInfo.buffer = m_ssbo[i];
+      instanceBufferInfo.buffer = Data::renderData_[boundApplication_].ssbo[i];
       instanceBufferInfo.offset = 0;
-      instanceBufferInfo.range = perInstance.size() * sizeof(PerInstanceBuffer);
+      instanceBufferInfo.range =
+         Data::renderData_[boundApplication_].perInstance.size() * sizeof(PerInstanceBuffer);
 
       VkDescriptorImageInfo imageInfo = {};
       imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -688,18 +695,31 @@ VulkanRenderer::CreateDescriptorSets()
 }
 
 void
-VulkanRenderer::Initialize(GLFWwindow* windowHandle)
+VulkanRenderer::Initialize(GLFWwindow* windowHandle, ApplicationType type)
 {
-   CreateInstance();
+   SetAppMarker(type);
 
-   utils::Assert(glfwCreateWindowSurface(Data::vk_instance, windowHandle, nullptr, &m_surface)
+   if (not initialized_)
+   {
+      CreateInstance();
+   }
+
+
+   utils::Assert(glfwCreateWindowSurface(Data::vk_instance, windowHandle, nullptr,
+                                         &Data::renderData_[boundApplication_].surface)
                     == VK_SUCCESS,
                  "failed to create window surface!");
+   if (not initialized_)
+   {
+      CreateDevice();
+   }
 
-   CreateDevice();
    CreateSwapchain(windowHandle);
    CreateImageViews();
    CreateCommandPool();
+   CreateRenderPipeline();
+
+   initialized_ = true;
 }
 
 void
@@ -718,7 +738,8 @@ VulkanRenderer::CreateRenderPipeline()
 void
 VulkanRenderer::UpdateUniformBuffer(uint32_t currentImage)
 {
-   if (!m_uniformBuffersMemory.empty() and !m_ssboMemory.empty())
+   if (!Data::renderData_[boundApplication_].uniformBuffersMemory.empty()
+       and !Data::renderData_[boundApplication_].ssboMemory.empty())
    {
       UniformBufferObject ubo = {};
 
@@ -726,15 +747,21 @@ VulkanRenderer::UpdateUniformBuffer(uint32_t currentImage)
       ubo.proj = proj_mat;
 
       void* data = nullptr;
-      vkMapMemory(Data::vk_device, m_uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
+      vkMapMemory(Data::vk_device,
+                  Data::renderData_[boundApplication_].uniformBuffersMemory[currentImage], 0,
+                  sizeof(ubo), 0, &data);
       memcpy(data, &ubo, sizeof(ubo));
-      vkUnmapMemory(Data::vk_device, m_uniformBuffersMemory[currentImage]);
+      vkUnmapMemory(Data::vk_device,
+                    Data::renderData_[boundApplication_].uniformBuffersMemory[currentImage]);
 
       void* data2 = nullptr;
-      vkMapMemory(Data::vk_device, m_ssboMemory[currentImage], 0,
-                  perInstance.size() * sizeof(PerInstanceBuffer), 0, &data2);
-      memcpy(data2, perInstance.data(), perInstance.size() * sizeof(PerInstanceBuffer));
-      vkUnmapMemory(Data::vk_device, m_ssboMemory[currentImage]);
+      vkMapMemory(Data::vk_device, Data::renderData_[boundApplication_].ssboMemory[currentImage], 0,
+                  Data::renderData_[boundApplication_].perInstance.size()
+                     * sizeof(PerInstanceBuffer),
+                  0, &data2);
+      memcpy(data2, Data::renderData_[boundApplication_].perInstance.data(),
+             Data::renderData_[boundApplication_].perInstance.size() * sizeof(PerInstanceBuffer));
+      vkUnmapMemory(Data::vk_device, Data::renderData_[boundApplication_].ssboMemory[currentImage]);
    }
 }
 
@@ -743,12 +770,14 @@ VulkanRenderer::CreateColorResources()
 {
    std::tie(m_colorImage, m_colorImageMemory) = Texture::CreateImage(
       Data::m_swapChainExtent.width, Data::m_swapChainExtent.height, 1,
-      renderer::Data::m_msaaSamples, m_swapChainImageFormat, VK_IMAGE_TILING_OPTIMAL,
+      renderer::Data::m_msaaSamples, Data::renderData_[boundApplication_].swapChainImageFormat,
+      VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-   m_colorImageView =
-      Texture::CreateImageView(m_colorImage, m_swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+   m_colorImageView = Texture::CreateImageView(
+      m_colorImage, Data::renderData_[boundApplication_].swapChainImageFormat,
+      VK_IMAGE_ASPECT_COLOR_BIT, 1);
 }
 
 void
@@ -811,9 +840,9 @@ VulkanRenderer::Draw(Application* app)
    vkWaitForFences(Data::vk_device, 1, &m_inFlightFences[Data::currentFrame_], VK_TRUE, UINT64_MAX);
 
    uint32_t imageIndex = {};
-   vkAcquireNextImageKHR(Data::vk_device, m_swapChain, UINT64_MAX,
-                         m_imageAvailableSemaphores[Data::currentFrame_], VK_NULL_HANDLE,
-                         &imageIndex);
+   vkAcquireNextImageKHR(Data::vk_device, Data::renderData_[boundApplication_].swapChain,
+                         UINT64_MAX, m_imageAvailableSemaphores[Data::currentFrame_],
+                         VK_NULL_HANDLE, &imageIndex);
 
    CreateCommandBuffers(app, imageIndex);
    UpdateUniformBuffer(Data::currentFrame_);
@@ -846,7 +875,7 @@ VulkanRenderer::Draw(Application* app)
    presentInfo.pWaitSemaphores = &m_renderFinishedSemaphores[Data::currentFrame_];
 
    presentInfo.swapchainCount = 1;
-   presentInfo.pSwapchains = &m_swapChain;
+   presentInfo.pSwapchains = &Data::renderData_[boundApplication_].swapChain;
 
    presentInfo.pImageIndices = &imageIndex;
 
@@ -901,7 +930,7 @@ VulkanRenderer::CreateDevice()
    vkEnumeratePhysicalDevices(Data::vk_instance, &deviceCount, devices.data());
 
    const auto device = std::find_if(devices.begin(), devices.end(), [](const auto& device) {
-      return isDeviceSuitable(device, m_surface);
+      return isDeviceSuitable(device, Data::renderData_[boundApplication_].surface);
    });
 
    utils::Assert(device != devices.end(), "Unable to find suitable device!");
@@ -915,7 +944,8 @@ VulkanRenderer::CreateDevice()
 
    utils::Assert(Data::vk_physicalDevice != VK_NULL_HANDLE, "failed to find a suitable GPU!");
 
-   const auto indices_ = findQueueFamilies(Data::vk_physicalDevice, m_surface);
+   const auto indices_ =
+      findQueueFamilies(Data::vk_physicalDevice, Data::renderData_[boundApplication_].surface);
 
    std::vector< VkDeviceQueueCreateInfo > queueCreateInfos = {};
    const std::set< uint32_t > uniqueQueueFamilies = {indices_.GetGraphics(), indices_.GetPresent()};
@@ -973,7 +1003,8 @@ VulkanRenderer::CreateDevice()
 void
 VulkanRenderer::CreateSwapchain(GLFWwindow* windowHandle)
 {
-   const auto swapChainSupport = querySwapChainSupport(Data::vk_physicalDevice, m_surface);
+   const auto swapChainSupport =
+      querySwapChainSupport(Data::vk_physicalDevice, Data::renderData_[boundApplication_].surface);
    const auto surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
    const auto presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
    const auto extent = chooseSwapExtent(swapChainSupport.capabilities, windowHandle);
@@ -987,7 +1018,7 @@ VulkanRenderer::CreateSwapchain(GLFWwindow* windowHandle)
 
    VkSwapchainCreateInfoKHR swapChainCreateInfo = {};
    swapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-   swapChainCreateInfo.surface = m_surface;
+   swapChainCreateInfo.surface = Data::renderData_[boundApplication_].surface;
 
    swapChainCreateInfo.minImageCount = imageCount;
    swapChainCreateInfo.imageFormat = surfaceFormat.format;
@@ -996,7 +1027,8 @@ VulkanRenderer::CreateSwapchain(GLFWwindow* windowHandle)
    swapChainCreateInfo.imageArrayLayers = 1;
    swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-   const auto indicesSecond = findQueueFamilies(Data::vk_physicalDevice, m_surface);
+   const auto indicesSecond =
+      findQueueFamilies(Data::vk_physicalDevice, Data::renderData_[boundApplication_].surface);
    const auto queueFamilyIndices =
       std::to_array({indicesSecond.GetGraphics(), indicesSecond.GetPresent()});
 
@@ -1016,27 +1048,32 @@ VulkanRenderer::CreateSwapchain(GLFWwindow* windowHandle)
    swapChainCreateInfo.presentMode = presentMode;
    swapChainCreateInfo.clipped = VK_TRUE;
 
-   vk_check_error(
-      vkCreateSwapchainKHR(Data::vk_device, &swapChainCreateInfo, nullptr, &m_swapChain),
-      "failed to create swap chain!");
+   vk_check_error(vkCreateSwapchainKHR(Data::vk_device, &swapChainCreateInfo, nullptr,
+                                       &Data::renderData_[boundApplication_].swapChain),
+                  "failed to create swap chain!");
 
-   vkGetSwapchainImagesKHR(Data::vk_device, m_swapChain, &imageCount, nullptr);
-   m_swapChainImages.resize(imageCount);
-   vkGetSwapchainImagesKHR(Data::vk_device, m_swapChain, &imageCount, m_swapChainImages.data());
+   vkGetSwapchainImagesKHR(Data::vk_device, Data::renderData_[boundApplication_].swapChain,
+                           &imageCount, nullptr);
+   Data::renderData_[boundApplication_].swapChainImages.resize(imageCount);
+   vkGetSwapchainImagesKHR(Data::vk_device, Data::renderData_[boundApplication_].swapChain,
+                           &imageCount,
+                           Data::renderData_[boundApplication_].swapChainImages.data());
 
-   m_swapChainImageFormat = surfaceFormat.format;
+   Data::renderData_[boundApplication_].swapChainImageFormat = surfaceFormat.format;
    Data::m_swapChainExtent = extent;
 }
 
 void
 VulkanRenderer::CreateImageViews()
 {
-   m_swapChainImageViews.resize(m_swapChainImages.size());
+   Data::renderData_[boundApplication_].swapChainImageViews.resize(
+      Data::renderData_[boundApplication_].swapChainImages.size());
 
-   for (uint32_t i = 0; i < m_swapChainImages.size(); i++)
+   for (uint32_t i = 0; i < Data::renderData_[boundApplication_].swapChainImages.size(); i++)
    {
-      m_swapChainImageViews[i] = Texture::CreateImageView(
-         m_swapChainImages[i], m_swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+      Data::renderData_[boundApplication_].swapChainImageViews[i] = Texture::CreateImageView(
+         Data::renderData_[boundApplication_].swapChainImages[i],
+         Data::renderData_[boundApplication_].swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
    }
 }
 
@@ -1088,7 +1125,7 @@ void
 VulkanRenderer::CreateRenderPass()
 {
    VkAttachmentDescription colorAttachment = {};
-   colorAttachment.format = m_swapChainImageFormat;
+   colorAttachment.format = Data::renderData_[boundApplication_].swapChainImageFormat;
    // colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
    colorAttachment.samples = renderer::Data::m_msaaSamples;
    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -1110,7 +1147,7 @@ VulkanRenderer::CreateRenderPass()
    depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
    VkAttachmentDescription colorAttachmentResolve = {};
-   colorAttachmentResolve.format = m_swapChainImageFormat;
+   colorAttachmentResolve.format = Data::renderData_[boundApplication_].swapChainImageFormat;
    colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
    colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
    colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -1165,12 +1202,14 @@ VulkanRenderer::CreateRenderPass()
 void
 VulkanRenderer::CreateFramebuffers()
 {
-   m_swapChainFramebuffers.resize(m_swapChainImageViews.size());
+   Data::renderData_[boundApplication_].swapChainFramebuffers.resize(
+      Data::renderData_[boundApplication_].swapChainImageViews.size());
 
-   for (size_t i = 0; i < m_swapChainImageViews.size(); i++)
+   for (size_t i = 0; i < Data::renderData_[boundApplication_].swapChainImageViews.size(); i++)
    {
-      std::array< VkImageView, 3 > attachments = {m_colorImageView, m_depthImageView,
-                                                  m_swapChainImageViews[i]};
+      std::array< VkImageView, 3 > attachments = {
+         m_colorImageView, m_depthImageView,
+         Data::renderData_[boundApplication_].swapChainImageViews[i]};
 
       VkFramebufferCreateInfo framebufferInfo = {};
       framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -1181,16 +1220,18 @@ VulkanRenderer::CreateFramebuffers()
       framebufferInfo.height = Data::m_swapChainExtent.height;
       framebufferInfo.layers = 1;
 
-      vk_check_error(vkCreateFramebuffer(Data::vk_device, &framebufferInfo, nullptr,
-                                         &m_swapChainFramebuffers[i]),
-                     "Failed to create framebuffer!");
+      vk_check_error(
+         vkCreateFramebuffer(Data::vk_device, &framebufferInfo, nullptr,
+                             &Data::renderData_[boundApplication_].swapChainFramebuffers[i]),
+         "Failed to create framebuffer!");
    }
 }
 
 void
 VulkanRenderer::CreateCommandPool()
 {
-   auto queueFamilyIndicesTwo = findQueueFamilies(Data::vk_physicalDevice, m_surface);
+   auto queueFamilyIndicesTwo =
+      findQueueFamilies(Data::vk_physicalDevice, Data::renderData_[boundApplication_].surface);
 
    VkCommandPoolCreateInfo poolInfo = {};
    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -1233,7 +1274,8 @@ VulkanRenderer::CreateCommandBuffers(Application* app, uint32_t imageIndex)
    renderPassInfo.clearValueCount = static_cast< uint32_t >(clearValues.size());
    renderPassInfo.pClearValues = clearValues.data();
 
-   renderPassInfo.framebuffer = m_swapChainFramebuffers[imageIndex];
+   renderPassInfo.framebuffer =
+      Data::renderData_[boundApplication_].swapChainFramebuffers[imageIndex];
 
    vk_check_error(vkBeginCommandBuffer(m_commandBuffers[Data::currentFrame_], &beginInfo), "");
 
@@ -1268,7 +1310,8 @@ VulkanRenderer::CreateSyncObjects()
    m_imageAvailableSemaphores.resize(Data::MAX_FRAMES_IN_FLIGHT);
    m_renderFinishedSemaphores.resize(Data::MAX_FRAMES_IN_FLIGHT);
    m_inFlightFences.resize(Data::MAX_FRAMES_IN_FLIGHT);
-   m_imagesInFlight.resize(m_swapChainImages.size(), VK_NULL_HANDLE);
+   m_imagesInFlight.resize(Data::renderData_[boundApplication_].swapChainImages.size(),
+                           VK_NULL_HANDLE);
 
    VkSemaphoreCreateInfo semaphoreInfo = {};
    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -1294,7 +1337,7 @@ void
 VulkanRenderer::CreatePipeline()
 {
    auto [vertexInfo, fragmentInfo] =
-      VulkanShader::CreateShader(Data::vk_device, "vulkan/vert.spv", "vulkan/frag.spv");
+      VulkanShader::CreateShader(Data::vk_device, "vert.spv", "frag.spv");
    auto shaderStages = std::to_array({vertexInfo.shaderInfo, fragmentInfo.shaderInfo});
 
    VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
