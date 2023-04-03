@@ -28,12 +28,9 @@ Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
    InputManager::RegisterForMouseButtonInput(this);
    InputManager::RegisterForMouseMovementInput(this);
 
-   /*RenderCommand::Init();
-   Renderer::Init();*/
-   renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle());
+   renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle(),
+                                        renderer::ApplicationType::EDITOR);
 
-   // gui_.Init();
-   renderer::VulkanRenderer::CreateRenderPipeline();
    gui_.Init();
 
    m_deltaTime = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000.0f));

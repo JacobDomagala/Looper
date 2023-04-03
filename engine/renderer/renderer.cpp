@@ -30,15 +30,6 @@ struct UniformBufferObject
    glm::vec4 cameraPos = {};
 };
 
-//std::vector< PerInstanceBuffer > editorPerInstance = {};
-//std::vector< PerInstanceBuffer > gamePerInstance = {};
-//
-//std::vector< Vertex > editorVertices = {};
-//std::vector< Vertex > gameVertices = {};
-//
-//std::vector< uint32_t > editorIndices = {};
-//std::vector< uint32_t > gameIndices = {};
-// std::array< std::pair<std::string, VkImageView, 256 > imageViews;
 static int32_t currTexIdx = 0;
 std::unordered_map< std::string, std::pair< int32_t, VkImageView > > textures = {};
 std::vector< VkImageView > texturesVec = {};
@@ -593,15 +584,18 @@ VulkanRenderer::CreateDescriptorPool()
 {
    std::array< VkDescriptorPoolSize, 2 > poolSizes{};
    poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-   poolSizes[0].descriptorCount = static_cast< uint32_t >(m_swapChainImages.size());
+   poolSizes[0].descriptorCount =
+      static_cast< uint32_t >(Data::renderData_[boundApplication_].swapChainImages.size());
    poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-   poolSizes[1].descriptorCount = static_cast< uint32_t >(m_swapChainImages.size());
+   poolSizes[1].descriptorCount =
+      static_cast< uint32_t >(Data::renderData_[boundApplication_].swapChainImages.size());
 
    VkDescriptorPoolCreateInfo poolInfo = {};
    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
    poolInfo.poolSizeCount = static_cast< uint32_t >(poolSizes.size());
    poolInfo.pPoolSizes = poolSizes.data();
-   poolInfo.maxSets = static_cast< uint32_t >(m_swapChainImages.size());
+   poolInfo.maxSets =
+      static_cast< uint32_t >(Data::renderData_[boundApplication_].swapChainImages.size());
 
    vk_check_error(vkCreateDescriptorPool(Data::vk_device, &poolInfo, nullptr, &m_descriptorPool),
                   "Failed to create descriptor pool!");
@@ -701,18 +695,31 @@ VulkanRenderer::CreateDescriptorSets()
 }
 
 void
-VulkanRenderer::Initialize(GLFWwindow* windowHandle)
+VulkanRenderer::Initialize(GLFWwindow* windowHandle, ApplicationType type)
 {
-   CreateInstance();
+   SetAppMarker(type);
 
-   utils::Assert(glfwCreateWindowSurface(Data::vk_instance, windowHandle, nullptr, &m_surface)
+   if (not initialized_)
+   {
+      CreateInstance();
+   }
+
+
+   utils::Assert(glfwCreateWindowSurface(Data::vk_instance, windowHandle, nullptr,
+                                         &Data::renderData_[boundApplication_].surface)
                     == VK_SUCCESS,
                  "failed to create window surface!");
+   if (not initialized_)
+   {
+      CreateDevice();
+   }
 
-   CreateDevice();
    CreateSwapchain(windowHandle);
    CreateImageViews();
    CreateCommandPool();
+   CreateRenderPipeline();
+
+   initialized_ = true;
 }
 
 void
@@ -754,8 +761,7 @@ VulkanRenderer::UpdateUniformBuffer(uint32_t currentImage)
                   0, &data2);
       memcpy(data2, Data::renderData_[boundApplication_].perInstance.data(),
              Data::renderData_[boundApplication_].perInstance.size() * sizeof(PerInstanceBuffer));
-      vkUnmapMemory(Data::vk_device,
-                    Data::renderData_[boundApplication_].ssboMemory[currentImage]);
+      vkUnmapMemory(Data::vk_device, Data::renderData_[boundApplication_].ssboMemory[currentImage]);
    }
 }
 
@@ -764,12 +770,14 @@ VulkanRenderer::CreateColorResources()
 {
    std::tie(m_colorImage, m_colorImageMemory) = Texture::CreateImage(
       Data::m_swapChainExtent.width, Data::m_swapChainExtent.height, 1,
-      renderer::Data::m_msaaSamples, m_swapChainImageFormat, VK_IMAGE_TILING_OPTIMAL,
+      renderer::Data::m_msaaSamples, Data::renderData_[boundApplication_].swapChainImageFormat,
+      VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-   m_colorImageView =
-      Texture::CreateImageView(m_colorImage, m_swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+   m_colorImageView = Texture::CreateImageView(
+      m_colorImage, Data::renderData_[boundApplication_].swapChainImageFormat,
+      VK_IMAGE_ASPECT_COLOR_BIT, 1);
 }
 
 void
@@ -832,9 +840,9 @@ VulkanRenderer::Draw(Application* app)
    vkWaitForFences(Data::vk_device, 1, &m_inFlightFences[Data::currentFrame_], VK_TRUE, UINT64_MAX);
 
    uint32_t imageIndex = {};
-   vkAcquireNextImageKHR(Data::vk_device, m_swapChain, UINT64_MAX,
-                         m_imageAvailableSemaphores[Data::currentFrame_], VK_NULL_HANDLE,
-                         &imageIndex);
+   vkAcquireNextImageKHR(Data::vk_device, Data::renderData_[boundApplication_].swapChain,
+                         UINT64_MAX, m_imageAvailableSemaphores[Data::currentFrame_],
+                         VK_NULL_HANDLE, &imageIndex);
 
    CreateCommandBuffers(app, imageIndex);
    UpdateUniformBuffer(Data::currentFrame_);
@@ -867,7 +875,7 @@ VulkanRenderer::Draw(Application* app)
    presentInfo.pWaitSemaphores = &m_renderFinishedSemaphores[Data::currentFrame_];
 
    presentInfo.swapchainCount = 1;
-   presentInfo.pSwapchains = &m_swapChain;
+   presentInfo.pSwapchains = &Data::renderData_[boundApplication_].swapChain;
 
    presentInfo.pImageIndices = &imageIndex;
 
@@ -922,7 +930,7 @@ VulkanRenderer::CreateDevice()
    vkEnumeratePhysicalDevices(Data::vk_instance, &deviceCount, devices.data());
 
    const auto device = std::find_if(devices.begin(), devices.end(), [](const auto& device) {
-      return isDeviceSuitable(device, m_surface);
+      return isDeviceSuitable(device, Data::renderData_[boundApplication_].surface);
    });
 
    utils::Assert(device != devices.end(), "Unable to find suitable device!");
@@ -936,7 +944,8 @@ VulkanRenderer::CreateDevice()
 
    utils::Assert(Data::vk_physicalDevice != VK_NULL_HANDLE, "failed to find a suitable GPU!");
 
-   const auto indices_ = findQueueFamilies(Data::vk_physicalDevice, m_surface);
+   const auto indices_ =
+      findQueueFamilies(Data::vk_physicalDevice, Data::renderData_[boundApplication_].surface);
 
    std::vector< VkDeviceQueueCreateInfo > queueCreateInfos = {};
    const std::set< uint32_t > uniqueQueueFamilies = {indices_.GetGraphics(), indices_.GetPresent()};
@@ -994,7 +1003,8 @@ VulkanRenderer::CreateDevice()
 void
 VulkanRenderer::CreateSwapchain(GLFWwindow* windowHandle)
 {
-   const auto swapChainSupport = querySwapChainSupport(Data::vk_physicalDevice, m_surface);
+   const auto swapChainSupport =
+      querySwapChainSupport(Data::vk_physicalDevice, Data::renderData_[boundApplication_].surface);
    const auto surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
    const auto presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
    const auto extent = chooseSwapExtent(swapChainSupport.capabilities, windowHandle);
@@ -1008,7 +1018,7 @@ VulkanRenderer::CreateSwapchain(GLFWwindow* windowHandle)
 
    VkSwapchainCreateInfoKHR swapChainCreateInfo = {};
    swapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-   swapChainCreateInfo.surface = m_surface;
+   swapChainCreateInfo.surface = Data::renderData_[boundApplication_].surface;
 
    swapChainCreateInfo.minImageCount = imageCount;
    swapChainCreateInfo.imageFormat = surfaceFormat.format;
@@ -1017,7 +1027,8 @@ VulkanRenderer::CreateSwapchain(GLFWwindow* windowHandle)
    swapChainCreateInfo.imageArrayLayers = 1;
    swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-   const auto indicesSecond = findQueueFamilies(Data::vk_physicalDevice, m_surface);
+   const auto indicesSecond =
+      findQueueFamilies(Data::vk_physicalDevice, Data::renderData_[boundApplication_].surface);
    const auto queueFamilyIndices =
       std::to_array({indicesSecond.GetGraphics(), indicesSecond.GetPresent()});
 
@@ -1037,27 +1048,32 @@ VulkanRenderer::CreateSwapchain(GLFWwindow* windowHandle)
    swapChainCreateInfo.presentMode = presentMode;
    swapChainCreateInfo.clipped = VK_TRUE;
 
-   vk_check_error(
-      vkCreateSwapchainKHR(Data::vk_device, &swapChainCreateInfo, nullptr, &m_swapChain),
-      "failed to create swap chain!");
+   vk_check_error(vkCreateSwapchainKHR(Data::vk_device, &swapChainCreateInfo, nullptr,
+                                       &Data::renderData_[boundApplication_].swapChain),
+                  "failed to create swap chain!");
 
-   vkGetSwapchainImagesKHR(Data::vk_device, m_swapChain, &imageCount, nullptr);
-   m_swapChainImages.resize(imageCount);
-   vkGetSwapchainImagesKHR(Data::vk_device, m_swapChain, &imageCount, m_swapChainImages.data());
+   vkGetSwapchainImagesKHR(Data::vk_device, Data::renderData_[boundApplication_].swapChain,
+                           &imageCount, nullptr);
+   Data::renderData_[boundApplication_].swapChainImages.resize(imageCount);
+   vkGetSwapchainImagesKHR(Data::vk_device, Data::renderData_[boundApplication_].swapChain,
+                           &imageCount,
+                           Data::renderData_[boundApplication_].swapChainImages.data());
 
-   m_swapChainImageFormat = surfaceFormat.format;
+   Data::renderData_[boundApplication_].swapChainImageFormat = surfaceFormat.format;
    Data::m_swapChainExtent = extent;
 }
 
 void
 VulkanRenderer::CreateImageViews()
 {
-   m_swapChainImageViews.resize(m_swapChainImages.size());
+   Data::renderData_[boundApplication_].swapChainImageViews.resize(
+      Data::renderData_[boundApplication_].swapChainImages.size());
 
-   for (uint32_t i = 0; i < m_swapChainImages.size(); i++)
+   for (uint32_t i = 0; i < Data::renderData_[boundApplication_].swapChainImages.size(); i++)
    {
-      m_swapChainImageViews[i] = Texture::CreateImageView(
-         m_swapChainImages[i], m_swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+      Data::renderData_[boundApplication_].swapChainImageViews[i] = Texture::CreateImageView(
+         Data::renderData_[boundApplication_].swapChainImages[i],
+         Data::renderData_[boundApplication_].swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
    }
 }
 
@@ -1109,7 +1125,7 @@ void
 VulkanRenderer::CreateRenderPass()
 {
    VkAttachmentDescription colorAttachment = {};
-   colorAttachment.format = m_swapChainImageFormat;
+   colorAttachment.format = Data::renderData_[boundApplication_].swapChainImageFormat;
    // colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
    colorAttachment.samples = renderer::Data::m_msaaSamples;
    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -1131,7 +1147,7 @@ VulkanRenderer::CreateRenderPass()
    depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
    VkAttachmentDescription colorAttachmentResolve = {};
-   colorAttachmentResolve.format = m_swapChainImageFormat;
+   colorAttachmentResolve.format = Data::renderData_[boundApplication_].swapChainImageFormat;
    colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
    colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
    colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -1186,12 +1202,14 @@ VulkanRenderer::CreateRenderPass()
 void
 VulkanRenderer::CreateFramebuffers()
 {
-   m_swapChainFramebuffers.resize(m_swapChainImageViews.size());
+   Data::renderData_[boundApplication_].swapChainFramebuffers.resize(
+      Data::renderData_[boundApplication_].swapChainImageViews.size());
 
-   for (size_t i = 0; i < m_swapChainImageViews.size(); i++)
+   for (size_t i = 0; i < Data::renderData_[boundApplication_].swapChainImageViews.size(); i++)
    {
-      std::array< VkImageView, 3 > attachments = {m_colorImageView, m_depthImageView,
-                                                  m_swapChainImageViews[i]};
+      std::array< VkImageView, 3 > attachments = {
+         m_colorImageView, m_depthImageView,
+         Data::renderData_[boundApplication_].swapChainImageViews[i]};
 
       VkFramebufferCreateInfo framebufferInfo = {};
       framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -1202,16 +1220,18 @@ VulkanRenderer::CreateFramebuffers()
       framebufferInfo.height = Data::m_swapChainExtent.height;
       framebufferInfo.layers = 1;
 
-      vk_check_error(vkCreateFramebuffer(Data::vk_device, &framebufferInfo, nullptr,
-                                         &m_swapChainFramebuffers[i]),
-                     "Failed to create framebuffer!");
+      vk_check_error(
+         vkCreateFramebuffer(Data::vk_device, &framebufferInfo, nullptr,
+                             &Data::renderData_[boundApplication_].swapChainFramebuffers[i]),
+         "Failed to create framebuffer!");
    }
 }
 
 void
 VulkanRenderer::CreateCommandPool()
 {
-   auto queueFamilyIndicesTwo = findQueueFamilies(Data::vk_physicalDevice, m_surface);
+   auto queueFamilyIndicesTwo =
+      findQueueFamilies(Data::vk_physicalDevice, Data::renderData_[boundApplication_].surface);
 
    VkCommandPoolCreateInfo poolInfo = {};
    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -1254,7 +1274,8 @@ VulkanRenderer::CreateCommandBuffers(Application* app, uint32_t imageIndex)
    renderPassInfo.clearValueCount = static_cast< uint32_t >(clearValues.size());
    renderPassInfo.pClearValues = clearValues.data();
 
-   renderPassInfo.framebuffer = m_swapChainFramebuffers[imageIndex];
+   renderPassInfo.framebuffer =
+      Data::renderData_[boundApplication_].swapChainFramebuffers[imageIndex];
 
    vk_check_error(vkBeginCommandBuffer(m_commandBuffers[Data::currentFrame_], &beginInfo), "");
 
@@ -1289,7 +1310,8 @@ VulkanRenderer::CreateSyncObjects()
    m_imageAvailableSemaphores.resize(Data::MAX_FRAMES_IN_FLIGHT);
    m_renderFinishedSemaphores.resize(Data::MAX_FRAMES_IN_FLIGHT);
    m_inFlightFences.resize(Data::MAX_FRAMES_IN_FLIGHT);
-   m_imagesInFlight.resize(m_swapChainImages.size(), VK_NULL_HANDLE);
+   m_imagesInFlight.resize(Data::renderData_[boundApplication_].swapChainImages.size(),
+                           VK_NULL_HANDLE);
 
    VkSemaphoreCreateInfo semaphoreInfo = {};
    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;

@@ -43,8 +43,15 @@ struct RenderData
    std::vector< VkDeviceMemory > uniformBuffersMemory = {};
    std::vector< VkBuffer > ssbo = {};
    std::vector< VkDeviceMemory > ssboMemory = {};
+   VkSurfaceKHR surface = {};
+   VkSwapchainKHR swapChain = {};
+   std::vector< VkImage > swapChainImages = {};
+   std::vector< VkImageView > swapChainImageViews = {};
+   std::vector< VkFramebuffer > swapChainFramebuffers = {};
+   VkFormat swapChainImageFormat = {};
    uint32_t numMeshes = {};
 };
+
 /*
  * This is storage for common Vulkan objects that are needed for numerous
  * function calls. All these fields are assigned by VulkanRenderer on Init

@@ -17,17 +17,11 @@ class Application;
 
 namespace looper::renderer {
 
-enum class MarkerType
-{
-   BEGIN,
-   END
-};
-
 class VulkanRenderer
 {
  public:
    static void
-   Initialize(GLFWwindow* windowHandle);
+   Initialize(GLFWwindow* windowHandle, ApplicationType type);
 
    static void
    CreateRenderPipeline();
@@ -42,52 +36,17 @@ class VulkanRenderer
    static void
    SubmitMeshData(const uint32_t idx, const glm::mat4& modelMat);
 
-   //static void
-   //SetMeshesMarker(ApplicationType type, MarkerType markerType)
-   //{
-   //   switch (type)
-   //   {
-   //      case ApplicationType::EDITOR: {
-   //         markerType == MarkerType::BEGIN ? numEditorObjs_.first = m_numMeshes
-   //                                         : numEditorObjs_.second = m_numMeshes;
-   //      }
-   //      break;
-   //      case ApplicationType::GAME: {
-   //         markerType == MarkerType::BEGIN ? numGameObjs_.first = m_numMeshes
-   //                                         : numGameObjs_.second = m_numMeshes;
-   //      }
-   //      break;
-   //   }
-   //}
-
    static void
    SetAppMarker(ApplicationType type)
    {
       boundApplication_ = type;
    }
 
-   [[nodiscard]]
-   static ApplicationType
+   [[nodiscard]] static ApplicationType
    GetCurrentlyBoundType()
    {
       return boundApplication_;
    }
-
-   //[[nodiscard]] static std::pair < uint32_t, uint32_t>
-   //GetNumMeshes(ApplicationType type)
-   //{
-   //   switch (type)
-   //   {
-   //      case ApplicationType::EDITOR: {
-   //         return numEditorObjs_;
-   //      }
-   //      break;
-   //      case ApplicationType::GAME: {
-   //         return numGameObjs_;
-   //      }
-   //      break;
-   //   }
-   //}
 
    static void
    SetupData();
@@ -165,30 +124,15 @@ class VulkanRenderer
    static VkFormat
    FindDepthFormat();
 
-   // static bool
-   // HasStencilComponent(VkFormat format);
-
-   //inline static uint32_t m_numMeshes = {};
-   //inline static std::pair< uint32_t, uint32_t > numEditorObjs_ = {};
-   //inline static std::pair< uint32_t, uint32_t > numGameObjs_ = {};
-
-   inline static ApplicationType boundApplication_ = {};
-
  private:
+   inline static bool initialized_ = false;
    inline static bool isLoaded_ = false;
    inline static VkDebugUtilsMessengerCreateInfoEXT m_debugCreateInfo = {};
    inline static VkDebugUtilsMessengerEXT m_debugMessenger = {};
-   inline static VkSurfaceKHR m_surface = {};
 
    inline static VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
    inline static VkQueue m_presentQueue = {};
-
-   inline static VkSwapchainKHR m_swapChain = {};
-   inline static std::vector< VkImage > m_swapChainImages = {};
-   inline static std::vector< VkImageView > m_swapChainImageViews = {};
-   inline static std::vector< VkFramebuffer > m_swapChainFramebuffers = {};
-   inline static VkFormat m_swapChainImageFormat = {};
 
    inline static VkRenderPass m_renderPass = {};
 
@@ -203,11 +147,7 @@ class VulkanRenderer
    inline static std::vector< VkFence > m_inFlightFences = {};
    inline static std::vector< VkFence > m_imagesInFlight = {};
 
-   //inline static std::vector< VkBuffer > m_uniformBuffers = {};
-   //inline static std::vector< VkDeviceMemory > m_uniformBuffersMemory = {};
-
-   //inline static std::vector< VkBuffer > m_ssbo = {};
-   //inline static std::vector< VkDeviceMemory > m_ssboMemory = {};
+   inline static ApplicationType boundApplication_ = {};
 
    inline static VkImage m_depthImage = {};
    inline static VkDeviceMemory m_depthImageMemory = {};

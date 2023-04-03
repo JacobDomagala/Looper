@@ -66,9 +66,8 @@ Game::Init(const std::string& configFile)
 
    m_window = std::make_unique< renderer::Window >(WIDTH, HEIGHT, "WindowTitle");
 
-
-   // renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle());
-   // renderer::VulkanRenderer::CreateRenderPipeline();
+   renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle(),
+                                        renderer::ApplicationType::GAME);
 
    while (!initFile.eof())
    {
