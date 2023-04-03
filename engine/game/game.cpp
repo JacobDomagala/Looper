@@ -48,6 +48,8 @@ Game::MainLoop()
          InputManager::PollEvents();
       }
    }
+
+   InputManager::UnregisterFromInput(this);
 }
 
 void
@@ -65,8 +67,8 @@ Game::Init(const std::string& configFile)
    m_window = std::make_unique< renderer::Window >(WIDTH, HEIGHT, "WindowTitle");
 
 
-   renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle());
-   renderer::VulkanRenderer::CreateRenderPipeline();
+   // renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle());
+   // renderer::VulkanRenderer::CreateRenderPipeline();
 
    while (!initFile.eof())
    {
@@ -90,14 +92,10 @@ Game::Init(const std::string& configFile)
    initFile.close();
 
    InputManager::Init(m_window->GetWindowHandle());
-   InputManager::RegisterForKeyInput(this);
-   InputManager::RegisterForMouseScrollInput(this);
-   InputManager::RegisterForMouseButtonInput(this);
-   InputManager::RegisterForMouseMovementInput(this);
+   InputManager::RegisterForInput(this);
 
    // LoadLevel(m_levels[0]);
    LoadLevel((LEVELS_DIR / "TestLevel" / "TestLevel.dgl").string());
-   renderer::VulkanRenderer::SetupData();
    m_state = GameState::GAME;
    m_initialized = true;
 }
@@ -290,6 +288,8 @@ Game::LoadLevel(const std::string& pathToLevel)
 
    m_camera.Create(glm::vec3(m_player->GetCenteredPosition(), 0.0f), m_window->GetSize());
    m_camera.SetLevelSize(m_currentLevel->GetSize());
+
+   renderer::VulkanRenderer::SetupData();
 }
 
 glm::vec2

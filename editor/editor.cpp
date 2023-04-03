@@ -782,11 +782,13 @@ Editor::LaunchGameLoop()
 {
    // Clear rednerer data
    // Renderer::Shutdown();
-   EditorGUI::Shutdown();
+   // EditorGUI::Shutdown();
 
    m_game = std::make_unique< Game >();
    m_game->Init("GameInit.txt");
    m_game->LoadLevel(m_levelFileName);
+   
+   // Create game-thread and run it inside
    m_game->MainLoop();
    m_game.reset();
 
@@ -795,9 +797,9 @@ Editor::LaunchGameLoop()
    // Reinitialize renderer
    // glfwMakeContextCurrent(m_window->GetWindowHandle());
    // RenderCommand::Init();
-   renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle());
+   // renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle());
 
-   gui_.Init();
+   // gui_.Init();
 }
 
 // std::shared_ptr< EditorObject >

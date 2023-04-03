@@ -29,6 +29,12 @@ class InputManager
    static void
    RegisterForMouseScrollInput(InputListener* listener);
 
+   static void
+   RegisterForInput(InputListener* listener);
+
+   static void
+   UnregisterFromInput(InputListener* listener);
+
    // @brief Polling function to check if key is currenty pressed
    // @param action Key in which user is interested
    // @return True if key is pressed, False otherwise
