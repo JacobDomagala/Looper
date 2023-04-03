@@ -30,10 +30,14 @@ struct UniformBufferObject
    glm::vec4 cameraPos = {};
 };
 
-
-std::vector< PerInstanceBuffer > perInstance = {};
-std::vector< Vertex > vertices = {};
-std::vector< uint32_t > indices = {};
+//std::vector< PerInstanceBuffer > editorPerInstance = {};
+//std::vector< PerInstanceBuffer > gamePerInstance = {};
+//
+//std::vector< Vertex > editorVertices = {};
+//std::vector< Vertex > gameVertices = {};
+//
+//std::vector< uint32_t > editorIndices = {};
+//std::vector< uint32_t > gameIndices = {};
 // std::array< std::pair<std::string, VkImageView, 256 > imageViews;
 static int32_t currTexIdx = 0;
 std::unordered_map< std::string, std::pair< int32_t, VkImageView > > textures = {};
@@ -43,9 +47,12 @@ uint32_t
 VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureMaps& textures_in,
                            const glm::mat4& modelMat)
 {
-   std::copy(vertices_in.begin(), vertices_in.end(), std::back_inserter(vertices));
+   auto& vertices = Data::renderData_[boundApplication_].vertices;
+
+   std::copy(vertices_in.begin(), vertices_in.end(),
+             std::back_inserter(Data::renderData_[boundApplication_].vertices));
    std::transform(vertices.end() - 4, vertices.end(), vertices.end() - 4, [](auto& vtx) {
-      vtx.m_drawID = static_cast< float >(VulkanRenderer::m_numMeshes);
+      vtx.m_drawID = static_cast< float >(Data::renderData_[boundApplication_].numMeshes);
       return vtx;
    });
 
@@ -58,7 +65,8 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
    newModel.firstInstance = 0;
    newModel.instanceCount = 1;
    newModel.vertexOffset = static_cast< int32_t >(m_currentVertex);
-   m_renderCommands.push_back(newModel);
+   // TODO: If we go back to indirect draw, this also should be updated to editor/game
+   // m_renderCommands.push_back(newModel);
 
    m_currentVertex += static_cast< uint32_t >(vertices_in.size());
    m_currentIndex += static_cast< uint32_t >(6);
@@ -96,10 +104,10 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
       }
    }
 
-   perInstance.push_back(newInstance);
+   Data::renderData_[boundApplication_].perInstance.push_back(newInstance);
 
-   auto currentMeshIdx = m_numMeshes;
-   ++m_numMeshes;
+   auto currentMeshIdx = Data::renderData_[boundApplication_].numMeshes;
+   ++Data::renderData_[boundApplication_].numMeshes;
 
    return currentMeshIdx;
 }
@@ -107,7 +115,7 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
 void
 VulkanRenderer::SubmitMeshData(const uint32_t idx, const glm::mat4& modelMat)
 {
-   perInstance.at(idx).model = modelMat;
+   Data::renderData_[boundApplication_].perInstance.at(idx).model = modelMat;
 }
 
 struct QueueFamilyIndices
@@ -450,6 +458,7 @@ chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* windo
 void
 VulkanRenderer::CreateVertexBuffer()
 {
+   auto& vertices = Data::renderData_[boundApplication_].vertices;
    const VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
 
    VkBuffer stagingBuffer = {};
@@ -465,9 +474,10 @@ VulkanRenderer::CreateVertexBuffer()
 
    Buffer::CreateBuffer(
       bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, Data::vertexBuffer_, Data::vertexBufferMemory_);
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, Data::renderData_[boundApplication_].vertexBuffer,
+      Data::renderData_[boundApplication_].vertexBufferMemory);
 
-   Buffer::CopyBuffer(stagingBuffer, Data::vertexBuffer_, bufferSize);
+   Buffer::CopyBuffer(stagingBuffer, Data::renderData_[boundApplication_].vertexBuffer, bufferSize);
 
    vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
    vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
@@ -481,19 +491,21 @@ VulkanRenderer::SetupData()
    CreateIndexBuffer();
    CreateUniformBuffers();
 
-   const auto commandsSize = m_renderCommands.size() * sizeof(VkDrawIndexedIndirectCommand);
+   // Indirect render stuff
+   // const auto commandsSize = m_renderCommands.size() * sizeof(VkDrawIndexedIndirectCommand);
 
-   ////  Commands + draw count
-   const VkDeviceSize bufferSize = commandsSize + sizeof(uint32_t);
+   //////  Commands + draw count
+   // const VkDeviceSize bufferSize = commandsSize + sizeof(uint32_t);
 
-   Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        m_indirectDrawsBuffer, m_indirectDrawsBufferMemory);
+   // Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
+   //                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+   //                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_indirectDrawsBuffer,
+   //                      m_indirectDrawsBufferMemory);
 
-   void* data = nullptr;
-   vkMapMemory(Data::vk_device, m_indirectDrawsBufferMemory, 0, bufferSize, 0, &data);
-   memcpy(data, m_renderCommands.data(), static_cast< size_t >(bufferSize));
-   memcpy(static_cast< uint8_t* >(data) + commandsSize, &m_numMeshes, sizeof(uint32_t));
+   // void* data = nullptr;
+   // vkMapMemory(Data::vk_device, m_indirectDrawsBufferMemory, 0, bufferSize, 0, &data);
+   // memcpy(data, m_renderCommands.data(), static_cast< size_t >(bufferSize));
+   // memcpy(static_cast< uint8_t* >(data) + commandsSize, &m_numMeshes, sizeof(uint32_t));
 
    CreateRenderPipeline();
    CreateDescriptorPool();
@@ -505,8 +517,9 @@ VulkanRenderer::SetupData()
 void
 VulkanRenderer::CreateIndexBuffer()
 {
-   constexpr uint32_t indicesPerMesh = 6;
-   indices.resize(static_cast< size_t >(m_numMeshes) * static_cast< size_t >(indicesPerMesh));
+   auto& indices = Data::renderData_[boundApplication_].indices;
+   indices.resize(static_cast< size_t >(Data::renderData_[boundApplication_].numMeshes)
+                  * static_cast< size_t >(indicesPerMesh));
 
    uint32_t offset = 0;
    for (uint32_t i = 0; i < indices.size(); i += indicesPerMesh)
@@ -537,9 +550,10 @@ VulkanRenderer::CreateIndexBuffer()
 
    Buffer::CreateBuffer(
       bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, Data::indexBuffer_, Data::indexBufferMemory_);
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, Data::renderData_[boundApplication_].indexBuffer,
+      Data::renderData_[boundApplication_].indexBufferMemory);
 
-   Buffer::CopyBuffer(stagingBuffer, Data::indexBuffer_, bufferSize);
+   Buffer::CopyBuffer(stagingBuffer, Data::renderData_[boundApplication_].indexBuffer, bufferSize);
 
    vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
    vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
@@ -549,26 +563,29 @@ void
 VulkanRenderer::CreateUniformBuffers()
 {
    const VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-   const VkDeviceSize SSBObufferSize = perInstance.size() * sizeof(PerInstanceBuffer);
+   const VkDeviceSize SSBObufferSize =
+      Data::renderData_[boundApplication_].perInstance.size() * sizeof(PerInstanceBuffer);
 
    const auto swapchainImagesSize = Data::MAX_FRAMES_IN_FLIGHT; // m_swapChainImages.size();
 
-   m_uniformBuffers.resize(swapchainImagesSize);
-   m_uniformBuffersMemory.resize(swapchainImagesSize);
-   m_ssbo.resize(swapchainImagesSize);
-   m_ssboMemory.resize(swapchainImagesSize);
+   Data::renderData_[boundApplication_].uniformBuffers.resize(swapchainImagesSize);
+   Data::renderData_[boundApplication_].uniformBuffersMemory.resize(swapchainImagesSize);
+   Data::renderData_[boundApplication_].ssbo.resize(swapchainImagesSize);
+   Data::renderData_[boundApplication_].ssboMemory.resize(swapchainImagesSize);
 
    for (size_t i = 0; i < swapchainImagesSize; i++)
    {
       Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
                               | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                           m_uniformBuffers[i], m_uniformBuffersMemory[i]);
+                           Data::renderData_[boundApplication_].uniformBuffers[i],
+                           Data::renderData_[boundApplication_].uniformBuffersMemory[i]);
 
       Buffer::CreateBuffer(SSBObufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
                               | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                           m_ssbo[i], m_ssboMemory[i]);
+                           Data::renderData_[boundApplication_].ssbo[i],
+                           Data::renderData_[boundApplication_].ssboMemory[i]);
    }
 }
 void
@@ -614,15 +631,16 @@ VulkanRenderer::CreateDescriptorSets()
    for (size_t i = 0; i < size; i++)
    {
       VkDescriptorBufferInfo bufferInfo{};
-      bufferInfo.buffer = m_uniformBuffers[i];
+      bufferInfo.buffer = Data::renderData_[boundApplication_].uniformBuffers[i];
       bufferInfo.offset = 0;
       bufferInfo.range = sizeof(UniformBufferObject);
 
 
       VkDescriptorBufferInfo instanceBufferInfo = {};
-      instanceBufferInfo.buffer = m_ssbo[i];
+      instanceBufferInfo.buffer = Data::renderData_[boundApplication_].ssbo[i];
       instanceBufferInfo.offset = 0;
-      instanceBufferInfo.range = perInstance.size() * sizeof(PerInstanceBuffer);
+      instanceBufferInfo.range =
+         Data::renderData_[boundApplication_].perInstance.size() * sizeof(PerInstanceBuffer);
 
       VkDescriptorImageInfo imageInfo = {};
       imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -713,7 +731,8 @@ VulkanRenderer::CreateRenderPipeline()
 void
 VulkanRenderer::UpdateUniformBuffer(uint32_t currentImage)
 {
-   if (!m_uniformBuffersMemory.empty() and !m_ssboMemory.empty())
+   if (!Data::renderData_[boundApplication_].uniformBuffersMemory.empty()
+       and !Data::renderData_[boundApplication_].ssboMemory.empty())
    {
       UniformBufferObject ubo = {};
 
@@ -721,15 +740,22 @@ VulkanRenderer::UpdateUniformBuffer(uint32_t currentImage)
       ubo.proj = proj_mat;
 
       void* data = nullptr;
-      vkMapMemory(Data::vk_device, m_uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
+      vkMapMemory(Data::vk_device,
+                  Data::renderData_[boundApplication_].uniformBuffersMemory[currentImage], 0,
+                  sizeof(ubo), 0, &data);
       memcpy(data, &ubo, sizeof(ubo));
-      vkUnmapMemory(Data::vk_device, m_uniformBuffersMemory[currentImage]);
+      vkUnmapMemory(Data::vk_device,
+                    Data::renderData_[boundApplication_].uniformBuffersMemory[currentImage]);
 
       void* data2 = nullptr;
-      vkMapMemory(Data::vk_device, m_ssboMemory[currentImage], 0,
-                  perInstance.size() * sizeof(PerInstanceBuffer), 0, &data2);
-      memcpy(data2, perInstance.data(), perInstance.size() * sizeof(PerInstanceBuffer));
-      vkUnmapMemory(Data::vk_device, m_ssboMemory[currentImage]);
+      vkMapMemory(Data::vk_device, Data::renderData_[boundApplication_].ssboMemory[currentImage], 0,
+                  Data::renderData_[boundApplication_].perInstance.size()
+                     * sizeof(PerInstanceBuffer),
+                  0, &data2);
+      memcpy(data2, Data::renderData_[boundApplication_].perInstance.data(),
+             Data::renderData_[boundApplication_].perInstance.size() * sizeof(PerInstanceBuffer));
+      vkUnmapMemory(Data::vk_device,
+                    Data::renderData_[boundApplication_].ssboMemory[currentImage]);
    }
 }
 

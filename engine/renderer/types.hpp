@@ -7,6 +7,12 @@
 
 namespace looper::renderer {
 
+enum class ApplicationType
+{
+   EDITOR,
+   GAME
+};
+
 enum class TextureType
 {
    DIFFUSE_MAP = 0,
@@ -23,4 +29,6 @@ struct PerInstanceBuffer
    int32_t diffuse = {};
 };
 
-} // namespace shady::renderer
+using IndexType = uint32_t;
+
+} // namespace looper::renderer

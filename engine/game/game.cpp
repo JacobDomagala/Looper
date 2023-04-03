@@ -282,6 +282,8 @@ Game::RenderSecondPass()
 void
 Game::LoadLevel(const std::string& pathToLevel)
 {
+   renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::GAME);
+
    m_currentLevel = std::make_shared< Level >();
    m_currentLevel->Load(this, pathToLevel);
    m_player = m_currentLevel->GetPlayer();
@@ -397,16 +399,25 @@ Game::Render(VkCommandBuffer cmdBuffer)
    vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::graphicsPipeline_);
 
    auto offsets = std::to_array< const VkDeviceSize >({0});
-   vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::Data::vertexBuffer_, offsets.data());
+   vkCmdBindVertexBuffers(
+      cmdBuffer, 0, 1,
+      &renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()].vertexBuffer,
+      offsets.data());
 
-   vkCmdBindIndexBuffer(cmdBuffer, renderer::Data::indexBuffer_, 0, VK_INDEX_TYPE_UINT32);
+   vkCmdBindIndexBuffer(
+      cmdBuffer,
+      renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()].indexBuffer, 0,
+      VK_INDEX_TYPE_UINT32);
 
    vkCmdBindDescriptorSets(
       cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::pipelineLayout_, 0, 1,
       &renderer::Data::descriptorSets_[renderer::Data::currentFrame_], 0, nullptr);
 
-   numObjects_ = renderer::VulkanRenderer::GetNumMeshes();
-   vkCmdDrawIndexed(cmdBuffer, numObjects_ * 6, 1, 0, 0, 0);
+   //const auto numObjects = renderer::VulkanRenderer::GetNumMeshes(renderer::ApplicationType::GAME);
+   //numObjects_ = numObjects.second - numObjects.first;
+   vkCmdDrawIndexed(
+      cmdBuffer, renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()].numMeshes * 6,
+      1, 0, 0, 0);
 }
 
 } // namespace looper

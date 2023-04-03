@@ -15,8 +15,13 @@ namespace looper {
 class Application;
 }
 
-
 namespace looper::renderer {
+
+enum class MarkerType
+{
+   BEGIN,
+   END
+};
 
 class VulkanRenderer
 {
@@ -30,21 +35,59 @@ class VulkanRenderer
    static void
    Draw(Application* app);
 
-   [[nodiscard]]
-   static uint32_t
-   MeshLoaded(const std::vector< Vertex >& vertices_in,
-              const TextureMaps& textures_in,
+   [[nodiscard]] static uint32_t
+   MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureMaps& textures_in,
               const glm::mat4& modelMat);
 
    static void
    SubmitMeshData(const uint32_t idx, const glm::mat4& modelMat);
 
-   [[nodiscard]]
-   static uint32_t 
-   GetNumMeshes()
+   //static void
+   //SetMeshesMarker(ApplicationType type, MarkerType markerType)
+   //{
+   //   switch (type)
+   //   {
+   //      case ApplicationType::EDITOR: {
+   //         markerType == MarkerType::BEGIN ? numEditorObjs_.first = m_numMeshes
+   //                                         : numEditorObjs_.second = m_numMeshes;
+   //      }
+   //      break;
+   //      case ApplicationType::GAME: {
+   //         markerType == MarkerType::BEGIN ? numGameObjs_.first = m_numMeshes
+   //                                         : numGameObjs_.second = m_numMeshes;
+   //      }
+   //      break;
+   //   }
+   //}
+
+   static void
+   SetAppMarker(ApplicationType type)
    {
-      return m_numMeshes;
+      boundApplication_ = type;
    }
+
+   [[nodiscard]]
+   static ApplicationType
+   GetCurrentlyBoundType()
+   {
+      return boundApplication_;
+   }
+
+   //[[nodiscard]] static std::pair < uint32_t, uint32_t>
+   //GetNumMeshes(ApplicationType type)
+   //{
+   //   switch (type)
+   //   {
+   //      case ApplicationType::EDITOR: {
+   //         return numEditorObjs_;
+   //      }
+   //      break;
+   //      case ApplicationType::GAME: {
+   //         return numGameObjs_;
+   //      }
+   //      break;
+   //   }
+   //}
 
    static void
    SetupData();
@@ -122,10 +165,14 @@ class VulkanRenderer
    static VkFormat
    FindDepthFormat();
 
-   //static bool
-   //HasStencilComponent(VkFormat format);
+   // static bool
+   // HasStencilComponent(VkFormat format);
 
-   inline static uint32_t m_numMeshes = {};
+   //inline static uint32_t m_numMeshes = {};
+   //inline static std::pair< uint32_t, uint32_t > numEditorObjs_ = {};
+   //inline static std::pair< uint32_t, uint32_t > numGameObjs_ = {};
+
+   inline static ApplicationType boundApplication_ = {};
 
  private:
    inline static bool isLoaded_ = false;
@@ -147,7 +194,7 @@ class VulkanRenderer
 
    inline static VkDescriptorSetLayout m_descriptorSetLayout = {};
    inline static VkDescriptorPool m_descriptorPool = {};
-   
+
 
    inline static std::vector< VkCommandBuffer > m_commandBuffers = {};
 
@@ -156,11 +203,11 @@ class VulkanRenderer
    inline static std::vector< VkFence > m_inFlightFences = {};
    inline static std::vector< VkFence > m_imagesInFlight = {};
 
-   inline static std::vector< VkBuffer > m_uniformBuffers = {};
-   inline static std::vector< VkDeviceMemory > m_uniformBuffersMemory = {};
+   //inline static std::vector< VkBuffer > m_uniformBuffers = {};
+   //inline static std::vector< VkDeviceMemory > m_uniformBuffersMemory = {};
 
-   inline static std::vector< VkBuffer > m_ssbo = {};
-   inline static std::vector< VkDeviceMemory > m_ssboMemory = {};
+   //inline static std::vector< VkBuffer > m_ssbo = {};
+   //inline static std::vector< VkDeviceMemory > m_ssboMemory = {};
 
    inline static VkImage m_depthImage = {};
    inline static VkDeviceMemory m_depthImageMemory = {};
@@ -177,4 +224,4 @@ class VulkanRenderer
    inline static uint32_t m_currentIndex = {};
 };
 
-} // namespace shady::renderer
+} // namespace looper::renderer
