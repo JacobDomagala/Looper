@@ -123,8 +123,8 @@ Game::KeyEvents() // NOLINT
 {
    const auto floatDeltaTime = static_cast< float >(m_deltaTime.count());
    // Camera movement is disabled
-   const auto cameraMovement = 0.0f * floatDeltaTime;
-   const auto playerMovement = 0.5f * floatDeltaTime;
+   const auto cameraMovement = 0.00025f * floatDeltaTime;
+   const auto playerMovement = 0.025f * floatDeltaTime;
 
    auto playerMoveBy = glm::vec2();
    auto cameraMoveBy = glm::vec2();
@@ -165,13 +165,13 @@ Game::KeyEvents() // NOLINT
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_W))
       {
-         playerMoveBy += glm::vec2(0, -playerMovement);
-         cameraMoveBy += glm::vec2(0, cameraMovement);
+         playerMoveBy += glm::vec2(0, playerMovement);
+         cameraMoveBy += glm::vec2(0, -cameraMovement);
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_S))
       {
-         playerMoveBy += glm::vec2(0, playerMovement);
-         cameraMoveBy += glm::vec2(0, -cameraMovement);
+         playerMoveBy += glm::vec2(0, -playerMovement);
+         cameraMoveBy += glm::vec2(0, cameraMovement);
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_A))
       {
@@ -216,13 +216,14 @@ Game::MouseEvents()
    if (!m_reverse)
    {
       // value to control how fast should camera move
-      constexpr int32_t multiplier = 3;
+      constexpr int32_t multiplier = 1;
 
       // cursor's position from center of the screen to trigger camera movement
       constexpr float borderValue = 0.5f;
+      constexpr float modifier = 0.1f;
 
-      const auto cameraMovement = floorf(static_cast< float >(m_deltaTime.count()));
-      auto cameraMoveBy = glm::ivec2();
+      const auto cameraMovement = modifier * floorf(static_cast< float >(m_deltaTime.count()));
+      auto cameraMoveBy = glm::vec2();
       const auto cursor = m_window->GetCursorNormalized();
 
       if (cursor.x > borderValue)
