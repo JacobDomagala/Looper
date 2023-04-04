@@ -683,42 +683,42 @@ Editor::LoadLevel(const std::string& levelPath)
    m_currentLevel = std::make_shared< Level >();
    m_currentLevel->Load(this, levelPath);
 
-   //// Populate editor objects
-   // const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
-   // std::transform(pathfinderNodes.begin(), pathfinderNodes.end(),
-   //                std::back_inserter(m_editorObjects), [this](const auto& node) {
-   //                   const auto tileSize = m_currentLevel->GetTileSize();
+   // Populate editor objects
+    const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
+    std::transform(pathfinderNodes.begin(), pathfinderNodes.end(),
+                   std::back_inserter(m_editorObjects), [this](const auto& node) {
+                      const auto tileSize = m_currentLevel->GetTileSize();
 
-   //                  auto pathfinderNode = std::make_shared< EditorObject >(
-   //                     *this, node.m_position, glm::ivec2(tileSize, tileSize), "white.png",
-   //                     node.GetID());
+                     auto pathfinderNode = std::make_shared< EditorObject >(
+                        *this, node.m_position, glm::ivec2(tileSize, tileSize), "white.png",
+                        node.GetID());
 
-   //                  pathfinderNode->SetIsBackground(true);
-   //                  pathfinderNode->SetVisible(m_renderPathfinderNodes);
-   //                  pathfinderNode->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
+                     pathfinderNode->SetIsBackground(true);
+                     pathfinderNode->SetVisible(m_renderPathfinderNodes);
+                     pathfinderNode->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
 
-   //                  return pathfinderNode;
-   //               });
+                     return pathfinderNode;
+                  });
 
-   // const auto& gameObjects = m_currentLevel->GetObjects();
-   // for (const auto& object : gameObjects)
-   //{
-   //    const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(object);
+    const auto& gameObjects = m_currentLevel->GetObjects();
+    for (const auto& object : gameObjects)
+   {
+       const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(object);
 
-   //   if (animatablePtr)
-   //   {
-   //      const auto& animationPoints = animatablePtr->GetAnimationKeypoints();
+      if (animatablePtr)
+      {
+         const auto& animationPoints = animatablePtr->GetAnimationKeypoints();
 
-   //      for (const auto& point : animationPoints)
-   //      {
-   //         auto editorObject = std::make_shared< EditorObject >(
-   //            *this, point.m_end, glm::ivec2(20, 20), "NodeSprite.png", point.GetID());
-   //         editorObject->SetName("AnimationPoint" + object->GetName());
+         for (const auto& point : animationPoints)
+         {
+            auto editorObject = std::make_shared< EditorObject >(
+               *this, point.m_end, glm::ivec2(20, 20), "NodeSprite.png", point.GetID());
+            editorObject->SetName("AnimationPoint" + object->GetName());
 
-   //         m_editorObjects.push_back(editorObject);
-   //      }
-   //   }
-   //}
+            m_editorObjects.push_back(editorObject);
+         }
+      }
+   }
 
    m_camera.Create(glm::vec3(m_currentLevel->GetPlayer()->GetPosition(), 0.0f),
                    m_window->GetSize());

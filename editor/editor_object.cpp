@@ -13,7 +13,7 @@ EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const
      m_objectID(linkedObject),
      m_hasLinkedObject(true)
 {
-   m_sprite.SetSpriteTextured(m_position, size, sprite);
+   m_sprite.SetSpriteTextured(glm::vec3{m_position, 0.1f}, size, sprite);
 }
 
 bool
