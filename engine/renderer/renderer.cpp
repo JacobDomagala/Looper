@@ -336,6 +336,30 @@ checkDeviceExtensionSupport(VkPhysicalDevice device)
 }
 
 bool
+hasStencilComponent(VkFormat format)
+{
+   return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT
+          || format == VK_FORMAT_D16_UNORM_S8_UINT;
+}
+
+VkFormat
+findDepthStencilFormat(VkPhysicalDevice physicalDevice)
+{
+   std::vector< VkFormat > candidates = {VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT,
+                                         VK_FORMAT_D16_UNORM_S8_UINT};
+
+   for (VkFormat format : candidates)
+   {
+      if (hasStencilComponent(format))
+      {
+         return format;
+      }
+   }
+
+   throw std::runtime_error("Failed to find suitable depth stencil format.");
+}
+
+bool
 isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
    static_cast< void >(findQueueFamilies(device, surface));
@@ -823,9 +847,9 @@ VulkanRenderer::FindSupportedFormat(const std::vector< VkFormat >& candidates, V
 VkFormat
 VulkanRenderer::FindDepthFormat()
 {
-   return FindSupportedFormat(
-      {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
-      VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+   return FindSupportedFormat({VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+                              VK_IMAGE_TILING_OPTIMAL,
+                              VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
 // bool
@@ -1135,16 +1159,15 @@ VulkanRenderer::CreateRenderPass()
    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-   VkAttachmentDescription depthAttachment = {};
-   depthAttachment.format = FindDepthFormat();
-   // depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-   depthAttachment.samples = renderer::Data::m_msaaSamples;
-   depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-   depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-   depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-   depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-   depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-   depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+   VkAttachmentDescription depthStencilAttachment = {};
+   depthStencilAttachment.format = FindDepthFormat();
+   depthStencilAttachment.samples = renderer::Data::m_msaaSamples;
+   depthStencilAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+   depthStencilAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+   depthStencilAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;   // Load stencil buffer
+   depthStencilAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE; // Store stencil buffer
+   depthStencilAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+   depthStencilAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
    VkAttachmentDescription colorAttachmentResolve = {};
    colorAttachmentResolve.format = Data::renderData_[boundApplication_].swapChainImageFormat;
@@ -1160,9 +1183,9 @@ VulkanRenderer::CreateRenderPass()
    colorAttachmentRef.attachment = 0;
    colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-   VkAttachmentReference depthAttachmentRef = {};
-   depthAttachmentRef.attachment = 1;
-   depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+   VkAttachmentReference depthStencilAttachmentRef = {};
+   depthStencilAttachmentRef.attachment = 1;
+   depthStencilAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
    VkAttachmentReference colorAttachmentResolveRef = {};
    colorAttachmentResolveRef.attachment = 2;
@@ -1172,7 +1195,7 @@ VulkanRenderer::CreateRenderPass()
    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
    subpass.colorAttachmentCount = 1;
    subpass.pColorAttachments = &colorAttachmentRef;
-   subpass.pDepthStencilAttachment = &depthAttachmentRef;
+   subpass.pDepthStencilAttachment = &depthStencilAttachmentRef;
    subpass.pResolveAttachments = &colorAttachmentResolveRef;
 
    VkSubpassDependency dependency = {};
@@ -1183,7 +1206,7 @@ VulkanRenderer::CreateRenderPass()
    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
-   std::array< VkAttachmentDescription, 3 > attachments = {colorAttachment, depthAttachment,
+   std::array< VkAttachmentDescription, 3 > attachments = {colorAttachment, depthStencilAttachment,
                                                            colorAttachmentResolve};
    VkRenderPassCreateInfo renderPassInfo = {};
    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -1391,6 +1414,16 @@ VulkanRenderer::CreatePipeline()
    multisampling.sampleShadingEnable = VK_FALSE;
    multisampling.rasterizationSamples = renderer::Data::m_msaaSamples;
 
+   // Define depth and stencil state
+   VkStencilOpState stencilOp{};
+   stencilOp.failOp = VK_STENCIL_OP_KEEP;
+   stencilOp.passOp = VK_STENCIL_OP_KEEP;
+   stencilOp.depthFailOp = VK_STENCIL_OP_KEEP;
+   stencilOp.compareOp = VK_COMPARE_OP_ALWAYS;
+   stencilOp.compareMask = 0xFF;
+   stencilOp.writeMask = 0xFF;
+   stencilOp.reference = 0x01;
+
    VkPipelineDepthStencilStateCreateInfo depthStencil = {};
    depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
    depthStencil.depthTestEnable = VK_TRUE;
@@ -1399,9 +1432,9 @@ VulkanRenderer::CreatePipeline()
    depthStencil.depthBoundsTestEnable = VK_FALSE;
    depthStencil.minDepthBounds = 0.0f;
    depthStencil.maxDepthBounds = 1.0f;
-   depthStencil.stencilTestEnable = VK_FALSE;
-   depthStencil.front = {};
-   depthStencil.back = {};
+   depthStencil.stencilTestEnable = VK_TRUE;
+   depthStencil.front = stencilOp;
+   depthStencil.back = stencilOp;
 
    VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
    colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT

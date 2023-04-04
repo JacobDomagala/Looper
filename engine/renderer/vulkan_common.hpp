@@ -73,16 +73,6 @@ struct Data
    inline static VkPipeline graphicsPipeline_ = {};
    inline static VkPipelineLayout pipelineLayout_ = {};
 
-   //inline static VkBuffer editorVertexBuffer_ = {};
-   //inline static VkDeviceMemory editorVertexBufferMemory_ = {};
-   //inline static VkBuffer gameVertexBuffer_ = {};
-   //inline static VkDeviceMemory gameVertexBufferMemory_ = {};
-
-   //inline static VkBuffer editorIndexBuffer_ = {};
-   //inline static VkDeviceMemory editorIndexBufferMemory_ = {};
-   //inline static VkBuffer gameIndexBuffer_ = {};
-   //inline static VkDeviceMemory gameIndexBufferMemory_ = {};
-
    inline static std::unordered_map< ApplicationType, RenderData > renderData_ = {};
 
    inline static const uint32_t MAX_FRAMES_IN_FLIGHT = 3;

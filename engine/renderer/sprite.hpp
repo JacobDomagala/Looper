@@ -18,20 +18,25 @@ class Sprite
       RADIANS
    };
 
+   struct Modifiers
+   {
+      glm::vec2 scale = {1.0f, 1.0f};
+   };
+
    // Create sprite without texture
    void
    SetSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
-             const glm::ivec2& size = glm::ivec2(10, 10));
+             const glm::vec2& size = glm::vec2(10, 10));
 
    // Create sprite with texture
    void
    SetSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
-                     const glm::ivec2& size = glm::ivec2(10, 10),
+                     const glm::vec2& size = glm::vec2(10, 10),
                      const std::string& fileName = "Default128.png");
 
    void
    SetSpriteTextured(const glm::vec3& position = glm::vec3(0.0f, 0.0f, 0.0f),
-                     const glm::ivec2& size = glm::ivec2(10, 10),
+                     const glm::vec2& size = glm::vec2(10, 10),
                      const std::string& fileName = "Default128.png");
 
    void
@@ -49,7 +54,7 @@ class Sprite
    [[nodiscard]] glm::vec2
    GetPosition() const;
 
-   [[nodiscard]] glm::ivec2
+   [[nodiscard]] glm::vec2
    GetSize() const;
 
    void SetSize(glm::vec2);
@@ -106,9 +111,12 @@ class Sprite
    void
    Render();
 
-   static constexpr std::pair< float, float > s_ROTATIONRANGE = {glm::radians(-360.0f),
+   void
+   SetModifiers(const Modifiers& mod);
+
+   static constexpr std::pair< float, float > ROTATION_RANGE = {glm::radians(-360.0f),
                                                                  glm::radians(360.0f)};
-   static constexpr std::pair< float, float > s_SCALERANGE = {1.0f, 5.0f};
+   static constexpr std::pair< float, float > SCALE_RANGE = {1.0f, 5.0f};
 
  private:
    struct State
@@ -127,6 +135,8 @@ class Sprite
       float m_angle = 0.0f;
 
       float m_uniformScaleValue = 0.0f;
+
+      Modifiers modifiers = {};
    };
 
    std::deque< State > m_statesQueue = {};
@@ -138,7 +148,7 @@ class Sprite
    glm::vec3 m_initialPosition = {};
 
    // width and height
-   glm::ivec2 m_size = {};
+   glm::vec2 m_size = {};
    bool changed_ = false;
    uint32_t rendererIdx_ = static_cast< uint32_t >(~0);
 };

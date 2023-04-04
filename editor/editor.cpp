@@ -2,6 +2,7 @@
 #include "enemy.hpp"
 #include "game.hpp"
 #include "input_manager.hpp"
+#include "renderer/sprite.hpp"
 #include "renderer/renderer.hpp"
 #include "renderer/vulkan_common.hpp"
 #include "renderer/window/window.hpp"
@@ -31,6 +32,7 @@ Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
    renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle(),
                                         renderer::ApplicationType::EDITOR);
 
+   gui_.Init();
    gui_.Init();
 
    m_deltaTime = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000.0f));
@@ -305,6 +307,8 @@ void
 Editor::SelectGameObject()
 {
    m_currentSelectedGameObject->SetColor({1.0f, 0.0f, 0.0f});
+   m_currentSelectedGameObject->GetSprite().SetModifiers(
+      renderer::Sprite::Modifiers{glm::vec2{1.2f, 1.2f}});
 }
 
 void
@@ -316,6 +320,8 @@ Editor::UnselectGameObject()
    if (m_currentSelectedGameObject)
    {
       m_currentSelectedGameObject->SetColor({1.0f, 1.0f, 1.0f});
+      m_currentSelectedGameObject->GetSprite().SetModifiers(
+         renderer::Sprite::Modifiers{glm::vec2{1.0f, 1.0f}});
       m_currentSelectedGameObject.reset();
    }
 }
