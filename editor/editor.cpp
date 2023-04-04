@@ -819,7 +819,7 @@ Editor::LaunchGameLoop()
    // EditorGUI::Shutdown();
 
    m_game = std::make_unique< Game >();
-   m_game->Init("GameInit.txt");
+   m_game->Init("GameInit.txt", false);
    m_game->LoadLevel(m_levelFileName);
 
    // Create game-thread and run it inside

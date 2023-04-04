@@ -53,7 +53,7 @@ Game::MainLoop()
 }
 
 void
-Game::Init(const std::string& configFile)
+Game::Init(const std::string& configFile, bool loadLevel)
 {
    m_isGame = true;
 
@@ -93,8 +93,12 @@ Game::Init(const std::string& configFile)
    InputManager::Init(m_window->GetWindowHandle());
    InputManager::RegisterForInput(this);
 
-   // LoadLevel(m_levels[0]);
-   LoadLevel((LEVELS_DIR / "TestLevel" / "TestLevel.dgl").string());
+   if (loadLevel)
+   {
+      // LoadLevel(m_levels[0]);
+      LoadLevel((LEVELS_DIR / "TestLevel" / "TestLevel.dgl").string());
+   }
+   
    m_state = GameState::GAME;
    m_initialized = true;
 }
