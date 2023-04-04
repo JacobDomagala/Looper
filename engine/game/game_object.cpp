@@ -47,7 +47,7 @@ GameObject::SetSize(const glm::vec2& newSize)
 }
 
 void
-GameObject::SetColor(const glm::vec3& color)
+GameObject::SetColor(const glm::vec4& color)
 {
    m_sprite.SetColor(color);
 }

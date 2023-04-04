@@ -95,7 +95,7 @@ void
 Enemy::Hit(int32_t /*dmg*/)
 {
    // currentHP -= dmg;
-   SetColor({1.0f, 0.0f, 0.0f});
+   SetColor({1.0f, 0.0f, 0.0, 0.75f});
 }
 
 std::string

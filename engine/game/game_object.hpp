@@ -29,7 +29,7 @@ class GameObject : public Object
 
    // SETERS
    virtual void
-   SetColor(const glm::vec3& color);
+   SetColor(const glm::vec4& color);
 
    virtual void
    SetPosition(const glm::vec2& position);

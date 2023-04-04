@@ -22,7 +22,7 @@ class EditorObject
 
    // SETERS
    void
-   SetColor(const glm::vec3& color);
+   SetColor(const glm::vec4& color);
 
    void
    SetIsBackground(bool isBackground);

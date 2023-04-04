@@ -26,6 +26,7 @@ using TextureMaps = std::array< std::string, 3 >;
 struct PerInstanceBuffer
 {
    alignas(16) glm::mat4 model = {};
+   glm::vec4 color = {};
    int32_t diffuse = {};
 };
 

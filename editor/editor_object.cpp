@@ -66,7 +66,7 @@ EditorObject::Visible() const
 }
 
 void
-EditorObject::SetColor(const glm::vec3& color)
+EditorObject::SetColor(const glm::vec4& color)
 {
    m_sprite.SetColor(color);
 }
@@ -136,7 +136,7 @@ EditorObject::CreateSpriteTextured(const glm::vec2& /*position*/, const glm::ive
 void
 EditorObject::SetObjectSelected()
 {
-   SetColor({1.0f, 0.0f, 0.0f});
+   SetColor({1.0f, 0.0f, 0.0f, 1.0f});
    m_selected = true;
 }
 
@@ -144,7 +144,7 @@ void
 EditorObject::SetObjectUnselected()
 {
    m_selected = false;
-   SetColor({1.0f, 1.0f, 1.0f});
+   SetColor({1.0f, 1.0f, 1.0f, 1.0f});
 }
 
 void
@@ -273,11 +273,11 @@ EditorObject::Render()
 
             if (pathfinderNode.m_occupied)
             {
-               SetColor(glm::vec3{1.0f, 0.0f, 0.0f});
+               SetColor({1.0f, 0.0f, 0.0f, 1.0f});
             }
 
             m_sprite.Render();
-            SetColor(glm::vec3{1.0f, 1.0f, 1.0f});
+            SetColor({1.0f, 1.0f, 1.0f, 1.0f});
          }
          break;
 

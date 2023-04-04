@@ -14,6 +14,7 @@ ubo;
 struct BufferData
 {
    mat4 modelMat;
+   vec4 color;
    int diff;
 };
 
@@ -24,13 +25,12 @@ layout(std430, set = 0, binding = 1) readonly buffer Block
 
 layout(location = 0) in vec3 a_position;
 layout(location = 1) in vec2 a_texCoord;
-layout(location = 2) in vec4 a_color;
-layout(location = 3) in float a_drawID;
+layout(location = 2) in float a_drawID;
 
 layout(location = 0) out VS_OUT
 {
+   vec4 fColor;
    vec2 fTexCoord;
-   vec3 fColor;
 
    flat int fDiffSampl;
 }
@@ -42,7 +42,7 @@ main(void)
    BufferData curInstanceData = Transforms[int(a_drawID)];
 
    vs_out.fTexCoord = a_texCoord;
-   vs_out.fColor = vec3(a_color);
+   vs_out.fColor = curInstanceData.color;
 
    vs_out.fDiffSampl = curInstanceData.diff;
 

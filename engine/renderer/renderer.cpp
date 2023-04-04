@@ -36,7 +36,7 @@ std::vector< VkImageView > texturesVec = {};
 
 uint32_t
 VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureMaps& textures_in,
-                           const glm::mat4& modelMat)
+                           const glm::mat4& modelMat, const glm::vec4& color)
 {
    auto& vertices = Data::renderData_[boundApplication_].vertices;
 
@@ -64,6 +64,7 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
 
    PerInstanceBuffer newInstance = {};
    newInstance.model = modelMat;
+   newInstance.color = color;
 
    for (const auto& texture : textures_in)
    {
@@ -104,9 +105,10 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
 }
 
 void
-VulkanRenderer::SubmitMeshData(const uint32_t idx, const glm::mat4& modelMat)
+VulkanRenderer::SubmitMeshData(const uint32_t idx, const glm::mat4& modelMat, const glm::vec4& color)
 {
    Data::renderData_[boundApplication_].perInstance.at(idx).model = modelMat;
+   Data::renderData_[boundApplication_].perInstance.at(idx).color = color;
 }
 
 struct QueueFamilyIndices

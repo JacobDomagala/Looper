@@ -306,9 +306,9 @@ Editor::HandleObjectSelected(Object::ID objectID, bool fromGUI)
 void
 Editor::SelectGameObject()
 {
-   m_currentSelectedGameObject->SetColor({1.0f, 0.0f, 0.0f});
+   m_currentSelectedGameObject->SetColor({1.0f, 0.0f, 0.0f, 1.0f});
    m_currentSelectedGameObject->GetSprite().SetModifiers(
-      renderer::Sprite::Modifiers{glm::vec2{1.2f, 1.2f}});
+      renderer::Sprite::Modifiers{glm::vec2{1.05f, 1.05f}});
 }
 
 void
@@ -319,7 +319,7 @@ Editor::UnselectGameObject()
    gui_.GameObjectUnselected();
    if (m_currentSelectedGameObject)
    {
-      m_currentSelectedGameObject->SetColor({1.0f, 1.0f, 1.0f});
+      m_currentSelectedGameObject->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
       m_currentSelectedGameObject->GetSprite().SetModifiers(
          renderer::Sprite::Modifiers{glm::vec2{1.0f, 1.0f}});
       m_currentSelectedGameObject.reset();
@@ -636,7 +636,7 @@ Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
 
                      pathfinderNode->SetIsBackground(true);
                      pathfinderNode->SetVisible(m_renderPathfinderNodes);
-                     pathfinderNode->SetColor(glm::vec3{1.0f, 1.0f, 1.0f});
+                     pathfinderNode->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
 
                      return pathfinderNode;
                   });
@@ -678,7 +678,7 @@ Editor::LoadLevel(const std::string& levelPath)
 
    //                  pathfinderNode->SetIsBackground(true);
    //                  pathfinderNode->SetVisible(m_renderPathfinderNodes);
-   //                  pathfinderNode->SetColor(glm::vec3{1.0f, 1.0f, 1.0f});
+   //                  pathfinderNode->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
 
    //                  return pathfinderNode;
    //               });

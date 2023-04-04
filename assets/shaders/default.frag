@@ -9,8 +9,8 @@ layout(set = 0, binding = 3) uniform texture2D textures[256];
 
 layout(location = 0) in VS_OUT
 {
+   vec4 fColor;
    vec2 fTexCoord;
-   vec3 fColor;
 
    flat int fDiffSampl;
 }
@@ -22,5 +22,5 @@ void
 main(void)
 {
     // outColor = texture(sampler2D(textures[0], samp), fs_in.fTexCoord);
-    outColor = texture(sampler2D(textures[fs_in.fDiffSampl], samp), fs_in.fTexCoord);
+    outColor = fs_in.fColor * texture(sampler2D(textures[fs_in.fDiffSampl], samp), fs_in.fTexCoord);
 }

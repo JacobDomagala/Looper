@@ -52,10 +52,10 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
 
    */
    const std::vector< renderer::Vertex > vtcs = {
-      {glm::vec3{-0.5f, 0.5f, 0.0f}, glm::vec2{0.0f, 0.0f}, glm::vec4{}, 1.0f},
-      {glm::vec3{0.5f, 0.5f, 0.0f}, glm::vec2{1.0f, 0.0f}, glm::vec4{}, 1.0f},
-      {glm::vec3(0.5f, -0.5f, 0.0f), glm::vec2{1.0f, 1.0f}, glm::vec4{}, 1.0f},
-      {glm::vec3{-0.5f, -0.5f, 0.0f}, glm::vec2{0.0f, 1.0f}, glm::vec4{}, 1.0f}};
+      {glm::vec3{-0.5f, 0.5f, 0.0f}, glm::vec2{0.0f, 0.0f}, 1.0f},
+      {glm::vec3{0.5f, 0.5f, 0.0f}, glm::vec2{1.0f, 0.0f}, 1.0f},
+      {glm::vec3(0.5f, -0.5f, 0.0f), glm::vec2{1.0f, 1.0f}, 1.0f},
+      {glm::vec3{-0.5f, -0.5f, 0.0f}, glm::vec2{0.0f, 1.0f}, 1.0f}};
 
    const glm::mat4 transformMat =
       glm::translate(glm::mat4(1.0f), glm::vec3(m_currentState.m_translateVal, m_initialPosition.z))
@@ -68,7 +68,7 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
       TextureLibrary::GetTexture(texture_)->GetName(),
       TextureLibrary::GetTexture(texture_)->GetName()};
 
-   rendererIdx_ = VulkanRenderer::MeshLoaded(vtcs, txts, transformMat);
+   rendererIdx_ = VulkanRenderer::MeshLoaded(vtcs, txts, transformMat, m_currentState.m_color);
 }
 
 void
@@ -111,7 +111,7 @@ Sprite::Render()
          * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
          * glm::scale(glm::mat4(1.0f), {m_size * m_currentState.modifiers.scale, 1.0f});
 
-      renderer::VulkanRenderer::SubmitMeshData(rendererIdx_, transformMat);
+      renderer::VulkanRenderer::SubmitMeshData(rendererIdx_, transformMat, m_currentState.m_color);
 
       changed_ = false;
    }
@@ -174,9 +174,9 @@ Sprite::GetUniformScaleValue()
 }
 
 void
-Sprite::SetColor(const glm::vec3& color)
+Sprite::SetColor(const glm::vec4& color)
 {
-   m_currentState.m_color = glm::vec4(color, 1.0f);
+   m_currentState.m_color = color;
    changed_ = true;
 }
 

@@ -40,7 +40,7 @@ class Sprite
                      const std::string& fileName = "Default128.png");
 
    void
-   SetColor(const glm::vec3& color);
+   SetColor(const glm::vec4& color);
 
    void
    SetTextureFromFile(const std::string& filePath);
