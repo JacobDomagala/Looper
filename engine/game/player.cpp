@@ -32,7 +32,7 @@ Player::CheckCollision(const glm::vec2& bulletPosition, Enemy const* enemy, bool
       if (enemyShooting)
       {
          m_currentState.m_currentHP -= enemy->GetDmg();
-         m_sprite.SetColor(glm::vec3(1.0f, 0.0f, 0.0f));
+         m_sprite.SetColor({1.0f, 0.0f, 0.0f, 0.75f});
       }
       return false;
    }
@@ -68,7 +68,7 @@ Player::UpdateInternal(bool isReverse)
       }
 
       m_sprite.Rotate(m_currentState.m_viewAngle);
-      m_sprite.SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
+      m_sprite.SetColor({1.0f, 1.0f, 1.0f, 0.75f});
 
       m_statesQueue.push_back(m_currentState);
 

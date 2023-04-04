@@ -8,7 +8,7 @@
 namespace looper::renderer {
 
 void
-Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
+Sprite::SetSprite(const glm::vec2& position, const glm::vec2& size)
 {
    // m_texture = std::make_shared< Texture >();
    // m_texture->CreateColorTexture(size, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
@@ -25,7 +25,7 @@ Sprite::SetSprite(const glm::vec2& position, const glm::ivec2& size)
 
 
 void
-Sprite::SetSpriteTextured(const glm::vec3& position, const glm::ivec2& size,
+Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
                           const std::string& fileName)
 {
    texture_ = renderer::TextureLibrary::GetTexture(fileName)->GetID();
@@ -52,12 +52,12 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::ivec2& size,
 
    */
    const std::vector< renderer::Vertex > vtcs = {
-      {glm::vec3{-0.5f, 0.5f, 0.0f}, glm::vec2{0.0f, 0.0f}, glm::vec4{}, 1.0f},
-      {glm::vec3{0.5f, 0.5f, 0.0f}, glm::vec2{1.0f, 0.0f}, glm::vec4{}, 1.0f},
-      {glm::vec3(0.5f, -0.5f, 0.0f), glm::vec2{1.0f, 1.0f}, glm::vec4{}, 1.0f},
-      {glm::vec3{-0.5f, -0.5f, 0.0f}, glm::vec2{0.0f, 1.0f}, glm::vec4{}, 1.0f}};
+      {glm::vec3{-0.5f, 0.5f, 0.0f}, glm::vec3{0.0f, 0.0f, 1.0f}},
+      {glm::vec3{0.5f, 0.5f, 0.0f}, glm::vec3{1.0f, 0.0f, 1.0f}},
+      {glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3{1.0f, 1.0f, 1.0f}},
+      {glm::vec3{-0.5f, -0.5f, 0.0f}, glm::vec3{0.0f, 1.0f, 1.0f}}};
 
-   const glm::mat4 transformMat =
+   const auto transformMat =
       glm::translate(glm::mat4(1.0f), glm::vec3(m_currentState.m_translateVal, m_initialPosition.z))
       // glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f))
       * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
@@ -68,11 +68,11 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::ivec2& size,
       TextureLibrary::GetTexture(texture_)->GetName(),
       TextureLibrary::GetTexture(texture_)->GetName()};
 
-   rendererIdx_ = VulkanRenderer::MeshLoaded(vtcs, txts, transformMat);
+   rendererIdx_ = VulkanRenderer::MeshLoaded(vtcs, txts, transformMat, m_currentState.m_color);
 }
 
 void
-Sprite::SetSpriteTextured(const glm::vec2& position, const glm::ivec2& size,
+Sprite::SetSpriteTextured(const glm::vec2& position, const glm::vec2& size,
                           const std::string& fileName)
 {
    SetSpriteTextured(glm::vec3{position, 0.0f}, size, fileName);
@@ -109,9 +109,9 @@ Sprite::Render()
          glm::translate(glm::mat4(1.0f),
                         glm::vec3(m_currentState.m_translateVal, m_initialPosition.z))
          * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
-         * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
+         * glm::scale(glm::mat4(1.0f), {m_size * m_currentState.modifiers.scale, 1.0f});
 
-      renderer::VulkanRenderer::SubmitMeshData(rendererIdx_, transformMat);
+      renderer::VulkanRenderer::SubmitMeshData(rendererIdx_, transformMat, m_currentState.m_color);
 
       changed_ = false;
    }
@@ -123,7 +123,7 @@ Sprite::GetPosition() const
    return m_currentState.m_currentPosition;
 }
 
-glm::ivec2
+glm::vec2
 Sprite::GetSize() const
 {
    return m_size;
@@ -174,9 +174,9 @@ Sprite::GetUniformScaleValue()
 }
 
 void
-Sprite::SetColor(const glm::vec3& color)
+Sprite::SetColor(const glm::vec4& color)
 {
-   m_currentState.m_color = glm::vec4(color, 1.0f);
+   m_currentState.m_color = color;
    changed_ = true;
 }
 
@@ -232,9 +232,9 @@ Sprite::Scale(const glm::vec2& scaleValue)
 {
    m_currentState.m_scaleVal = scaleValue;
    m_currentState.m_scaleVal.x =
-      glm::clamp(m_currentState.m_scaleVal.x, s_SCALERANGE.first, s_SCALERANGE.second);
+      glm::clamp(m_currentState.m_scaleVal.x, SCALE_RANGE.first, SCALE_RANGE.second);
    m_currentState.m_scaleVal.y =
-      glm::clamp(m_currentState.m_scaleVal.y, s_SCALERANGE.first, s_SCALERANGE.second);
+      glm::clamp(m_currentState.m_scaleVal.y, SCALE_RANGE.first, SCALE_RANGE.second);
 
    m_size = static_cast< glm::vec2 >(m_size)
             * (m_currentState.m_scaleVal + m_currentState.m_uniformScaleValue);
@@ -247,9 +247,12 @@ Sprite::ScaleCumulative(const glm::vec2& scaleValue)
 {
    m_currentState.m_scaleVal += scaleValue;
    m_currentState.m_scaleVal.x =
-      glm::clamp(m_currentState.m_scaleVal.x, s_SCALERANGE.first, s_SCALERANGE.second);
+      glm::clamp(m_currentState.m_scaleVal.x, SCALE_RANGE.first, SCALE_RANGE.second);
    m_currentState.m_scaleVal.y =
-      glm::clamp(m_currentState.m_scaleVal.y, s_SCALERANGE.first, s_SCALERANGE.second);
+      glm::clamp(m_currentState.m_scaleVal.y, SCALE_RANGE.first, SCALE_RANGE.second);
+
+   m_size = static_cast< glm::vec2 >(m_size)
+            * (m_currentState.m_scaleVal + m_currentState.m_uniformScaleValue);
 
    changed_ = true;
 }
@@ -261,6 +264,12 @@ Sprite::Translate(const glm::vec2& translateValue)
    m_currentState.m_translateVal += translateValue;
 
    changed_ = true;
+}
+
+void
+Sprite::SetModifiers(const Modifiers& mod)
+{
+   m_currentState.modifiers = mod;
 }
 
 void

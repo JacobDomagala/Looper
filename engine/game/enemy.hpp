@@ -92,7 +92,7 @@ class Enemy : public GameObject, public Animatable
       float m_timeSinceCombatStarted = 0.0f;
       float m_timeSinceLastShot = 0.0f;
       float m_reactionTime = 0.1f;
-      float m_movementSpeed = 0.5f;
+      float m_movementSpeed = 0.025f;
       float m_visionRange = 0.0f;
 
       bool m_combatStarted = false;

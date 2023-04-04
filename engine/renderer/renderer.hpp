@@ -31,10 +31,10 @@ class VulkanRenderer
 
    [[nodiscard]] static uint32_t
    MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureMaps& textures_in,
-              const glm::mat4& modelMat);
+              const glm::mat4& modelMat, const glm::vec4& color);
 
    static void
-   SubmitMeshData(const uint32_t idx, const glm::mat4& modelMat);
+   SubmitMeshData(const uint32_t idx, const glm::mat4& modelMat, const glm::vec4& color);
 
    static void
    SetAppMarker(ApplicationType type)

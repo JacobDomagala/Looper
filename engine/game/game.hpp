@@ -23,7 +23,7 @@ class Game : public Application
 
    // Initialize Game using 'configFile'
    void
-   Init(const std::string& configFile);
+   Init(const std::string& configFile, bool loadLevel = true);
 
    [[nodiscard]] bool
    IsReverse() const;

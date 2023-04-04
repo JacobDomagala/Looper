@@ -617,7 +617,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
    if (ImGui::CollapsingHeader("General"))
    {
       auto sprite_size = m_currentLevel->GetSprite().GetSize();
-      if (ImGui::InputInt2("Size", &sprite_size.x))
+      if (ImGui::InputFloat2("Size", &sprite_size.x))
       {
          m_currentLevel->SetSize(sprite_size);
       }
@@ -759,14 +759,14 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
 
       ImGui::InputFloat2("Position", &objectPosition.x);
 
-      if (ImGui::SliderInt2("Size", &sprite_size.x, 10, 1000))
+      if (ImGui::SliderFloat2("Size", &sprite_size.x, 10, 1000))
       {
          m_currentlySelectedGameObject->SetSize(sprite_size);
       }
 
       if (ImGui::SliderFloat("Rotate", &rotation,
-                             glm::degrees(renderer::Sprite::s_ROTATIONRANGE.first),
-                             glm::degrees(renderer::Sprite::s_ROTATIONRANGE.second)))
+                             glm::degrees(renderer::Sprite::ROTATION_RANGE.first),
+                             glm::degrees(renderer::Sprite::ROTATION_RANGE.second)))
       {
          m_currentlySelectedGameObject->Rotate(glm::radians(rotation));
       }
