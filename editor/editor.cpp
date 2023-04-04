@@ -2,8 +2,8 @@
 #include "enemy.hpp"
 #include "game.hpp"
 #include "input_manager.hpp"
-#include "renderer/sprite.hpp"
 #include "renderer/renderer.hpp"
+#include "renderer/sprite.hpp"
 #include "renderer/vulkan_common.hpp"
 #include "renderer/window/window.hpp"
 #include "utils/file_manager.hpp"
@@ -306,9 +306,7 @@ Editor::HandleObjectSelected(Object::ID objectID, bool fromGUI)
 void
 Editor::SelectGameObject()
 {
-   m_currentSelectedGameObject->SetColor({1.0f, 0.0f, 0.0f, 1.0f});
-   m_currentSelectedGameObject->GetSprite().SetModifiers(
-      renderer::Sprite::Modifiers{glm::vec2{1.05f, 1.05f}});
+   // m_currentSelectedGameObject->SetColor({1.0f, 1.0f, 1.0f, 0.0f});
 }
 
 void
@@ -319,9 +317,9 @@ Editor::UnselectGameObject()
    gui_.GameObjectUnselected();
    if (m_currentSelectedGameObject)
    {
-      m_currentSelectedGameObject->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
-      m_currentSelectedGameObject->GetSprite().SetModifiers(
-         renderer::Sprite::Modifiers{glm::vec2{1.0f, 1.0f}});
+      // m_currentSelectedGameObject->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
+      // m_currentSelectedGameObject->GetSprite().SetModifiers(
+      //   renderer::Sprite::Modifiers{glm::vec2{1.0f, 1.0f}});
       m_currentSelectedGameObject.reset();
    }
 }
@@ -445,22 +443,41 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 
       vkCmdBindIndexBuffer(
          cmdBuffer,
-         renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()]
-            .indexBuffer,
+         renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()].indexBuffer,
          0, VK_INDEX_TYPE_UINT32);
 
       vkCmdBindDescriptorSets(
          cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::pipelineLayout_, 0, 1,
          &renderer::Data::descriptorSets_[renderer::Data::currentFrame_], 0, nullptr);
 
-      //const auto numObjects =
-      //   renderer::VulkanRenderer::GetNumMeshes(renderer::ApplicationType::EDITOR);
-      //numObjects_ = numObjects.second - numObjects.first;
+      renderer::PushConstants pushConstants = {};
+      pushConstants.selectedIdx = -1.0f;
+
+      if (m_currentSelectedGameObject)
+      {
+         const auto tmpIdx = m_currentSelectedGameObject->GetSprite().GetRenderIdx();
+         pushConstants.selectedIdx = static_cast< float >(tmpIdx);
+      }
+
+      vkCmdPushConstants(cmdBuffer, renderer::Data::pipelineLayout_, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                         sizeof(renderer::PushConstants), &pushConstants);
+
       vkCmdDrawIndexed(
          cmdBuffer,
          renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()].numMeshes
             * 6,
          1, 0, 0, 0);
+
+
+      if (m_currentSelectedGameObject)
+      {
+         const auto tmpIdx = m_currentSelectedGameObject->GetSprite().GetRenderIdx();
+         pushConstants.selectedIdx = -1.0f;
+         vkCmdPushConstants(cmdBuffer, renderer::Data::pipelineLayout_, VK_SHADER_STAGE_VERTEX_BIT,
+                            0, sizeof(renderer::PushConstants), &pushConstants);
+         vkCmdDrawIndexed(cmdBuffer, 6, 1, tmpIdx * 6, 0, 0);
+      }
+
 
       DrawEditorObjects();
       DrawAnimationPoints();
@@ -667,10 +684,10 @@ Editor::LoadLevel(const std::string& levelPath)
    m_currentLevel->Load(this, levelPath);
 
    //// Populate editor objects
-   //const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
-   //std::transform(pathfinderNodes.begin(), pathfinderNodes.end(),
-   //               std::back_inserter(m_editorObjects), [this](const auto& node) {
-   //                  const auto tileSize = m_currentLevel->GetTileSize();
+   // const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
+   // std::transform(pathfinderNodes.begin(), pathfinderNodes.end(),
+   //                std::back_inserter(m_editorObjects), [this](const auto& node) {
+   //                   const auto tileSize = m_currentLevel->GetTileSize();
 
    //                  auto pathfinderNode = std::make_shared< EditorObject >(
    //                     *this, node.m_position, glm::ivec2(tileSize, tileSize), "white.png",
@@ -683,10 +700,10 @@ Editor::LoadLevel(const std::string& levelPath)
    //                  return pathfinderNode;
    //               });
 
-   //const auto& gameObjects = m_currentLevel->GetObjects();
-   //for (const auto& object : gameObjects)
+   // const auto& gameObjects = m_currentLevel->GetObjects();
+   // for (const auto& object : gameObjects)
    //{
-   //   const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(object);
+   //    const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(object);
 
    //   if (animatablePtr)
    //   {

@@ -78,6 +78,11 @@ struct Data
    inline static const uint32_t MAX_FRAMES_IN_FLIGHT = 3;
 };
 
+struct PushConstants
+{
+   float selectedIdx = {};
+};
+
 uint32_t
 FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 

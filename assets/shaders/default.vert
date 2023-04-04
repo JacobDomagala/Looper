@@ -24,8 +24,7 @@ layout(std430, set = 0, binding = 1) readonly buffer Block
 };
 
 layout(location = 0) in vec3 a_position;
-layout(location = 1) in vec2 a_texCoord;
-layout(location = 2) in float a_drawID;
+layout(location = 1) in vec3 a_texCoordDrawID;
 
 layout(location = 0) out VS_OUT
 {
@@ -36,18 +35,30 @@ layout(location = 0) out VS_OUT
 }
 vs_out;
 
+layout (push_constant) uniform PushConstants {
+    float selectedIdx;
+} pushConstants;
+
 void
 main(void)
 {
-   BufferData curInstanceData = Transforms[int(a_drawID)];
+   float drawID = a_texCoordDrawID.z;
+   BufferData curInstanceData = Transforms[int(drawID)];
 
-   vs_out.fTexCoord = a_texCoord;
-   vs_out.fColor = curInstanceData.color;
+   vs_out.fTexCoord = a_texCoordDrawID.xy;
+   vs_out.fColor = pushConstants.selectedIdx != drawID ? curInstanceData.color : vec4(0.4f, 0.1f, 0.2f, 1.0f);
 
    vs_out.fDiffSampl = curInstanceData.diff;
 
+   mat4 scaleMat = mat4(
+       vec4(1.1f, 0.0f, 0.0f, 0.0f),
+       vec4(0.0f, 1.1f, 0.0f, 0.0f),
+       vec4(0.0f, 0.0f, 1.0f, 0.0f),
+       vec4(0.0f, 0.0f, 0.0f, 1.0f)
+   );
+
    mat4 modelMat = curInstanceData.modelMat;
-   //gl_Position = ubo.u_projectionMat * ubo.u_viewMat * vec4(a_position, 1.0f);
-   gl_Position = ubo.u_projectionMat * ubo.u_viewMat * modelMat * vec4(a_position, 1.0f);
-   // gl_Position = ubo.u_viewMat * modelMat * vec4(a_position, 1.0f);
+   vec3 position = pushConstants.selectedIdx != drawID ? a_position : vec3(scaleMat * vec4(a_position.xyz, 1.0f));
+
+   gl_Position = ubo.u_projectionMat * ubo.u_viewMat * modelMat * vec4(position.xyz, 1.0f);
 }

@@ -114,8 +114,20 @@ class Sprite
    void
    SetModifiers(const Modifiers& mod);
 
+   [[nodiscard]] uint32_t
+   GetRenderIdx() const
+   {
+      return rendererIdx_;
+   }
+
+   void
+   SetRenderIdx(uint32_t idx)
+   {
+      rendererIdx_ = idx;
+   }
+
    static constexpr std::pair< float, float > ROTATION_RANGE = {glm::radians(-360.0f),
-                                                                 glm::radians(360.0f)};
+                                                                glm::radians(360.0f)};
    static constexpr std::pair< float, float > SCALE_RANGE = {1.0f, 5.0f};
 
  private:

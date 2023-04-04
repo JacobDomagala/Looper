@@ -43,7 +43,7 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
    std::copy(vertices_in.begin(), vertices_in.end(),
              std::back_inserter(Data::renderData_[boundApplication_].vertices));
    std::transform(vertices.end() - 4, vertices.end(), vertices.end() - 4, [](auto& vtx) {
-      vtx.m_drawID = static_cast< float >(Data::renderData_[boundApplication_].numMeshes);
+      vtx.m_texCoordsDraw.z = static_cast< float >(Data::renderData_[boundApplication_].numMeshes);
       return vtx;
    });
 
@@ -335,30 +335,6 @@ checkDeviceExtensionSupport(VkPhysicalDevice device)
    }
 
    return requiredExtensions.empty();
-}
-
-bool
-hasStencilComponent(VkFormat format)
-{
-   return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT
-          || format == VK_FORMAT_D16_UNORM_S8_UINT;
-}
-
-VkFormat
-findDepthStencilFormat(VkPhysicalDevice physicalDevice)
-{
-   std::vector< VkFormat > candidates = {VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT,
-                                         VK_FORMAT_D16_UNORM_S8_UINT};
-
-   for (VkFormat format : candidates)
-   {
-      if (hasStencilComponent(format))
-      {
-         return format;
-      }
-   }
-
-   throw std::runtime_error("Failed to find suitable depth stencil format.");
 }
 
 bool
@@ -853,12 +829,6 @@ VulkanRenderer::FindDepthFormat()
                               VK_IMAGE_TILING_OPTIMAL,
                               VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
-
-// bool
-// VulkanRenderer::HasStencilComponent(VkFormat format)
-//{
-//    return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
-// }
 
 void
 VulkanRenderer::Draw(Application* app)
@@ -1460,10 +1430,18 @@ VulkanRenderer::CreatePipeline()
    colorBlending.blendConstants[2] = 0.0f;
    colorBlending.blendConstants[3] = 0.0f;
 
+   // Define push constant range
+   VkPushConstantRange pushConstantRange{};
+   pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+   pushConstantRange.offset = 0;
+   pushConstantRange.size = sizeof(PushConstants);
+
    VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
    pipelineLayoutInfo.setLayoutCount = 1;
    pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
+   pipelineLayoutInfo.pushConstantRangeCount = 1;
+   pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
    vk_check_error(
       vkCreatePipelineLayout(Data::vk_device, &pipelineLayoutInfo, nullptr, &Data::pipelineLayout_),
