@@ -52,13 +52,13 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
 
    */
    const std::vector< renderer::Vertex > vtcs = {
-      {glm::vec3{-0.5f, 0.5f, 0.0f}, glm::vec3{0.0f, 0.0f, 1.0f}},
-      {glm::vec3{0.5f, 0.5f, 0.0f}, glm::vec3{1.0f, 0.0f, 1.0f}},
-      {glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3{1.0f, 1.0f, 1.0f}},
-      {glm::vec3{-0.5f, -0.5f, 0.0f}, glm::vec3{0.0f, 1.0f, 1.0f}}};
+      {glm::vec3{-0.5f, 0.5f, m_initialPosition.z}, glm::vec3{0.0f, 0.0f, 1.0f}},
+      {glm::vec3{0.5f, 0.5f, m_initialPosition.z}, glm::vec3{1.0f, 0.0f, 1.0f}},
+      {glm::vec3(0.5f, -0.5f, m_initialPosition.z), glm::vec3{1.0f, 1.0f, 1.0f}},
+      {glm::vec3{-0.5f, -0.5f, m_initialPosition.z}, glm::vec3{0.0f, 1.0f, 1.0f}}};
 
    const auto transformMat =
-      glm::translate(glm::mat4(1.0f), glm::vec3(m_currentState.m_translateVal, m_initialPosition.z))
+      glm::translate(glm::mat4(1.0f), glm::vec3(m_currentState.m_translateVal, 0.0f))
       // glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f))
       * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
       * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});

@@ -658,7 +658,7 @@ Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
                      return pathfinderNode;
                   });
 
-   m_camera.Create(glm::vec3(m_currentLevel->GetLevelPosition(), 0.0f), m_window->GetSize());
+   m_camera.Create(glm::vec3(m_currentLevel->GetLevelPosition(), -1.0f), m_window->GetSize());
    m_camera.SetLevelSize(m_currentLevel->GetSize());
 
    m_levelLoaded = true;

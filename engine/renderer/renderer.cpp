@@ -452,6 +452,12 @@ void
 VulkanRenderer::CreateVertexBuffer()
 {
    auto& vertices = Data::renderData_[boundApplication_].vertices;
+
+   // Sort vertices so we ensure the correct order of draws
+   std::sort(vertices.begin(), vertices.end(), [](const auto& vtxLeft, const auto& vtxRight) {
+      return vtxLeft.m_position.z > vtxRight.m_position.z;
+   });
+   
    const VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
 
    VkBuffer stagingBuffer = {};

@@ -39,10 +39,7 @@ void
 Camera::SetProjection(float left, float right, float top, float bottom)
 {
    // NOLINTNEXTLINE top and bottom swapped intentionally
-   m_projectionMatrix = glm::ortho(left, right, top, bottom, -1.0f, 1.0f);
-
-   /*const auto aspectRatio = static_cast< float >(m_windowSize.x) / m_windowSize.y;
-   m_projectionMatrix = glm::perspective(60.0f, aspectRatio, nearPlane_, farPlane_);*/
+   m_projectionMatrix = glm::ortho(left, right, top, bottom, nearPlane_, farPlane_);
 }
 
 void
