@@ -6,7 +6,7 @@
 
 namespace looper {
 
-GameObject::GameObject(Application& application, const glm::vec2& position, const glm::ivec2& size,
+GameObject::GameObject(Application& application, const glm::vec2& position, const glm::vec2& size,
                        const std::string& sprite, Object::TYPE type)
    : Object(type), m_appHandle(application)
 {
