@@ -26,6 +26,7 @@ vk_check_error(VkResult vkResult, std::string_view errorMessage)
 }
 
 static constexpr uint32_t indicesPerMesh = 6;
+static constexpr uint32_t indicesPerLine = 2;
 static constexpr bool ENABLE_VALIDATION = true;
 static constexpr std::array< const char*, 1 > VALIDATION_LAYERS = {"VK_LAYER_KHRONOS_validation"};
 static constexpr std::array< const char*, 1 > DEVICE_EXTENSIONS = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
@@ -68,19 +69,40 @@ struct Data
    inline static VkRenderPass m_renderPass = {};
    inline static VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
    inline static VkExtent2D m_swapChainExtent = {};
-   inline static uint32_t currentFrame_ = {};
-   inline static std::vector< VkDescriptorSet > descriptorSets_ = {};
+   
+   // Standard pipeline
    inline static VkPipeline graphicsPipeline_ = {};
    inline static VkPipelineLayout pipelineLayout_ = {};
+   inline static std::vector< VkDescriptorSet > descriptorSets_ = {};
+
+   // Line pipeline
+   inline static VkPipeline linePipeline_ = {};
+   inline static VkPipelineLayout linePipelineLayout_ = {};
+   inline static std::vector< VkDescriptorSet > lineDescriptorSets_ = {};
+   inline static VkBuffer lineVertexBuffer = {};
+   inline static VkDeviceMemory lineVertexBufferMemory = {};
+   inline static VkBuffer lineIndexBuffer = {};
+   inline static VkDeviceMemory lineIndexBufferMemory = {};
+   inline static std::vector< LineVertex > lineVertices_ = {};
+   inline static std::vector< uint32_t > lineIndices_ = {};
+   inline static std::vector< VkBuffer > lineUniformBuffers_ = {};
+   inline static std::vector< VkDeviceMemory > lineUniformBuffersMemory_ = {};
+   inline static uint32_t numLines = {};
 
    inline static std::unordered_map< ApplicationType, RenderData > renderData_ = {};
 
+   inline static uint32_t currentFrame_ = {};
    inline static const uint32_t MAX_FRAMES_IN_FLIGHT = 3;
 };
 
 struct PushConstants
 {
    float selectedIdx = {};
+};
+
+struct LinePushConstants
+{
+   glm::vec4 color = {};
 };
 
 uint32_t

@@ -1,10 +1,39 @@
 #pragma once
 
+#include <array>
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.h>
-#include <array>
 
 namespace looper::renderer {
+
+struct LineVertex
+{
+   glm::vec3 m_position;
+
+   static VkVertexInputBindingDescription
+   getBindingDescription()
+   {
+      VkVertexInputBindingDescription bindingDescription{};
+      bindingDescription.binding = 0;
+      bindingDescription.stride = sizeof(LineVertex);
+      bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+      return bindingDescription;
+   }
+
+   static auto
+   getAttributeDescriptions()
+   {
+      std::array< VkVertexInputAttributeDescription, 1 > attributeDescriptions{};
+
+      attributeDescriptions[0].binding = 0;
+      attributeDescriptions[0].location = 0;
+      attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+      attributeDescriptions[0].offset = offsetof(LineVertex, m_position);
+
+      return attributeDescriptions;
+   }
+};
 
 struct Vertex
 {
@@ -41,4 +70,4 @@ struct Vertex
    }
 };
 
-} // namespace shady::renderer
+} // namespace looper::renderer

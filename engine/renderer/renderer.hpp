@@ -29,6 +29,9 @@ class VulkanRenderer
    static void
    Draw(Application* app);
 
+   static void
+   DrawLine(const glm::vec2& start, const glm::vec2& end, const glm::vec4& color);
+
    [[nodiscard]] static uint32_t
    MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureMaps& textures_in,
               const glm::mat4& modelMat, const glm::vec4& color);
@@ -49,7 +52,13 @@ class VulkanRenderer
    }
 
    static void
+   CreateLinePipeline();
+
+   static void
    SetupData();
+
+   static void
+   SetupLineData();
 
    static void
    CreateCommandBuffers(Application* app, uint32_t imageIndex);
@@ -110,6 +119,11 @@ class VulkanRenderer
    static void
    CreateDescriptorSets();
 
+   static void
+   CreateLineDescriptorPool();
+
+   static void
+   CreateLineDescriptorSets();
 
    static void
    CreateDepthResources();
@@ -138,6 +152,9 @@ class VulkanRenderer
 
    inline static VkDescriptorSetLayout m_descriptorSetLayout = {};
    inline static VkDescriptorPool m_descriptorPool = {};
+
+   inline static VkDescriptorPool lineDescriptorPool = {};
+   inline static VkDescriptorSetLayout lineDescriptorSetLayout_ = {};
 
 
    inline static std::vector< VkCommandBuffer > m_commandBuffers = {};

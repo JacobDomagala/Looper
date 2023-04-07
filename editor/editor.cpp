@@ -31,8 +31,6 @@ Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
 
    renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle(),
                                         renderer::ApplicationType::EDITOR);
-
-   gui_.Init();
    gui_.Init();
 
    m_deltaTime = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000.0f));
@@ -478,11 +476,45 @@ Editor::Render(VkCommandBuffer cmdBuffer)
          vkCmdDrawIndexed(cmdBuffer, 6, 1, tmpIdx * 6, 0, 0);
       }
 
+      if (m_drawGrid)
+      {
+         vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                           renderer::Data::linePipeline_);
+
+         auto offsets = std::to_array< const VkDeviceSize >({0});
+         vkCmdBindVertexBuffers(
+            cmdBuffer, 0, 1,
+            &renderer::Data::lineVertexBuffer,
+            offsets.data());
+
+         vkCmdBindIndexBuffer(
+            cmdBuffer,
+            renderer::Data::lineIndexBuffer,
+            0, VK_INDEX_TYPE_UINT32);
+
+         vkCmdBindDescriptorSets(
+            cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::linePipelineLayout_, 0, 1,
+            &renderer::Data::lineDescriptorSets_[renderer::Data::currentFrame_], 0, nullptr);
+
+
+         renderer::LinePushConstants linePushConstants = {};
+         linePushConstants.color = glm::vec4(0.4f, 0.5f, 0.6f, 1.0f);
+
+         vkCmdPushConstants(cmdBuffer, renderer::Data::linePipelineLayout_, VK_SHADER_STAGE_FRAGMENT_BIT,
+                            0, sizeof(renderer::LinePushConstants), &linePushConstants);
+        
+               vkCmdDrawIndexed(
+            cmdBuffer,
+            renderer::Data::lineIndices_.size(),
+            1, 0, 0, 0);
+
+      
+      }
+
 
       DrawEditorObjects();
       DrawAnimationPoints();
       // DrawBoundingBoxes();
-      // DrawGrid();
    }
 
    EditorGUI::Render(cmdBuffer);
@@ -578,27 +610,27 @@ Editor::DrawAnimationPoints()
 void
 Editor::DrawGrid()
 {
-   // if (m_drawGrid)
-   // {
-   //    const auto levelSize = m_currentLevel->GetSize();
-   //    const auto grad = m_gridCellSize;
+    if (m_drawGrid)
+    {
+       const auto levelSize = m_currentLevel->GetSize();
+       const auto grad = m_gridCellSize;
 
-   //    const auto w = levelSize.x / grad;
-   //    const auto h = levelSize.y / grad;
-   //    // const auto offset = glm::ivec2(0, grad);
+       const auto w = levelSize.x / grad;
+       const auto h = levelSize.y / grad;
+       // const auto offset = glm::ivec2(0, grad);
 
-   //    for (int i = 0; i <= h; ++i)
-   //    {
-   //       Renderer::DrawLine(glm::vec2(0, i * grad), glm::vec2(levelSize.x, i * grad),
-   //                          {1.0f, 0.0f, 1.0f, 1.0f});
-   //    }
+       for (int i = 0; i <= h; ++i)
+       {
+         renderer::VulkanRenderer::DrawLine(
+            glm::vec2(0, i * grad), glm::vec2(levelSize.x, i * grad), {1.0f, 0.0f, 1.0f, 1.0f});
+       }
 
-   //    for (int i = 0; i <= w; ++i)
-   //    {
-   //       Renderer::DrawLine(glm::vec2(i * grad, 0), glm::vec2(i * grad, levelSize.y),
-   //                          {1.0f, 0.0f, 1.0f, 1.0f});
-   //    }
-   // }
+       for (int i = 0; i <= w; ++i)
+       {
+          renderer::VulkanRenderer::DrawLine(
+             glm::vec2(i * grad, 0), glm::vec2(i * grad, levelSize.y), {1.0f, 0.0f, 1.0f, 1.0f});
+       }
+    }
 }
 
 void
@@ -726,8 +758,12 @@ Editor::LoadLevel(const std::string& levelPath)
 
    m_levelLoaded = true;
    gui_.LevelLoaded(m_currentLevel);
-
    renderer::VulkanRenderer::SetupData();
+
+   DrawGrid();
+   renderer::VulkanRenderer::CreateLinePipeline();
+   renderer::VulkanRenderer::SetupLineData();
+
 }
 
 void
@@ -814,27 +850,18 @@ Editor::PlayLevel()
 void
 Editor::LaunchGameLoop()
 {
-   // Clear rednerer data
-   // Renderer::Shutdown();
-   // EditorGUI::Shutdown();
-
    m_game = std::make_unique< Game >();
    m_game->Init("GameInit.txt", false);
    m_game->LoadLevel(m_levelFileName);
 
-   // Create game-thread and run it inside
+   // TODO: Create game-thread and run it inside
    m_game->MainLoop();
    m_game.reset();
 
    m_playGame = false;
+
    renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::EDITOR);
    renderer::VulkanRenderer::SetupData();
-   // Reinitialize renderer
-   // glfwMakeContextCurrent(m_window->GetWindowHandle());
-   // RenderCommand::Init();
-   // renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle());
-
-   // gui_.Init();
 }
 
 // std::shared_ptr< EditorObject >
