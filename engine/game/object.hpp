@@ -1,5 +1,7 @@
 #pragma once
 
+#include "types.hpp"
+
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -20,31 +22,21 @@ class Object
    static constexpr ID INVALID_ID = static_cast< ID >(~0);
    static constexpr uint32_t TYPE_NUM_BITS = 32;
 
-   enum class TYPE
-   {
-      NONE = 0,
-      ENEMY = 1,
-      PLAYER = 2,
-      OBJECT = 3,
-      ANIMATION_POINT = 4,
-      PATHFINDER_NODE = 8
-   };
-
-   explicit Object(TYPE type);
+   explicit Object(ObjectType type);
    virtual ~Object() = default;
 
-   static TYPE
+   static ObjectType
    GetTypeFromString(const std::string& stringType);
 
-   static TYPE
+   static ObjectType
    GetTypeFromID(ID id);
 
    static std::string
    GetTypeString(ID id);
 
-   void SetType(TYPE);
+   void SetType(ObjectType);
 
-   [[nodiscard]] TYPE
+   [[nodiscard]] ObjectType
    GetType() const;
 
    [[nodiscard]] std::string
@@ -54,17 +46,17 @@ class Object
    GetID() const;
 
  protected:
-   TYPE m_type;
+   ObjectType m_type;
 
    ID m_id;
 
    // NOLINTNEXTLINE
-   static inline std::unordered_map< std::string, TYPE > s_map = {
-      {"Enemy", Object::TYPE::ENEMY},
-      {"Player", Object::TYPE::PLAYER},
-      {"Object", Object::TYPE::OBJECT},
-      {"Animation Point", Object::TYPE::ANIMATION_POINT},
-      {"Pathfinder Node", Object::TYPE::PATHFINDER_NODE}};
+   static inline std::unordered_map< std::string, ObjectType > s_map = {
+      {"Enemy", ObjectType::ENEMY},
+      {"Player", ObjectType::PLAYER},
+      {"Object", ObjectType::OBJECT},
+      {"Animation Point", ObjectType::ANIMATION_POINT},
+      {"Pathfinder Node", ObjectType::PATHFINDER_NODE}};
    static inline ID s_currentID = 0; // NOLINT
 };
 

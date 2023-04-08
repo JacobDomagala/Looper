@@ -3,33 +3,33 @@
 namespace looper {
 
 static std::string
-TypeToString(Object::TYPE type)
+TypeToString(ObjectType type)
 {
    std::string typeStr;
 
    switch (type)
    {
-      case Object::TYPE::ENEMY: {
+      case ObjectType::ENEMY: {
          typeStr = "Enemy";
       }
       break;
 
-      case Object::TYPE::PLAYER: {
+      case ObjectType::PLAYER: {
          typeStr = "Player";
       }
       break;
 
-      case Object::TYPE::OBJECT: {
+      case ObjectType::OBJECT: {
          typeStr = "Object";
       }
       break;
 
-      case Object::TYPE::ANIMATION_POINT: {
+      case ObjectType::ANIMATION_POINT: {
          typeStr = "Animation Point";
       }
       break;
 
-      case Object::TYPE::PATHFINDER_NODE: {
+      case ObjectType::PATHFINDER_NODE: {
          typeStr = "Pathfinder Node";
       }
       break;
@@ -42,13 +42,13 @@ TypeToString(Object::TYPE type)
    return typeStr;
 }
 
-Object::TYPE
+ObjectType
 Object::GetTypeFromString(const std::string& stringType)
 {
    return s_map[stringType];
 }
 
-Object::Object(TYPE type) : m_type(type)
+Object::Object(ObjectType type) : m_type(type)
 {
    // First 32 bits are for ids, the other are for type storage
    auto type_val = static_cast< ID >(type) << TYPE_NUM_BITS;
@@ -58,12 +58,12 @@ Object::Object(TYPE type) : m_type(type)
 }
 
 void
-Object::SetType(TYPE newType)
+Object::SetType(ObjectType newType)
 {
    m_type = newType;
 }
 
-Object::TYPE
+ObjectType
 Object::GetType() const
 {
    return m_type;
@@ -81,28 +81,28 @@ Object::GetTypeString(ID id)
    return TypeToString(GetTypeFromID(id));
 }
 
-Object::TYPE
+ObjectType
 Object::GetTypeFromID(ID id)
 {
    // Shift 'id' value to its type part
    const auto type_part = id >> TYPE_NUM_BITS;
-   Object::TYPE type = TYPE::NONE;
+   ObjectType type = ObjectType::NONE;
 
-   if (type_part & static_cast< ID >(TYPE::ENEMY))
+   if (type_part & static_cast< ID >(ObjectType::ENEMY))
    {
-      type = TYPE::ENEMY;
+      type = ObjectType::ENEMY;
    }
-   else if (type_part & static_cast< ID >(TYPE::PLAYER))
+   else if (type_part & static_cast< ID >(ObjectType::PLAYER))
    {
-      type = TYPE::PLAYER;
+      type = ObjectType::PLAYER;
    }
-   else if (type_part & static_cast< ID >(TYPE::ANIMATION_POINT))
+   else if (type_part & static_cast< ID >(ObjectType::ANIMATION_POINT))
    {
-      type = TYPE::ANIMATION_POINT;
+      type = ObjectType::ANIMATION_POINT;
    }
-   else if (type_part & static_cast< ID >(TYPE::PATHFINDER_NODE))
+   else if (type_part & static_cast< ID >(ObjectType::PATHFINDER_NODE))
    {
-      type = TYPE::PATHFINDER_NODE;
+      type = ObjectType::PATHFINDER_NODE;
    }
 
    return type;

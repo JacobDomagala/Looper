@@ -15,14 +15,14 @@ struct Node : public Object
 {
    using NodeID = int32_t;
 
-   Node() : Object(Object::TYPE::PATHFINDER_NODE)
+   Node() : Object(ObjectType::PATHFINDER_NODE)
    {
    }
 
    Node(const glm::ivec2& coords, const glm::vec2& posOnMap, NodeID nodeID,
         std::vector< NodeID > connectedTo = {}, bool occupied = false,
         std::vector< Object::ID > objectOccupying = {})
-      : Object(Object::TYPE::PATHFINDER_NODE),
+      : Object(ObjectType::PATHFINDER_NODE),
         m_xPos(coords.x),
         m_yPos(coords.y),
         m_position(posOnMap),

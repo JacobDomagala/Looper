@@ -796,7 +796,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
       }
    }
 
-   if (m_currentlySelectedGameObject->GetType() == GameObject::TYPE::ENEMY)
+   if (m_currentlySelectedGameObject->GetType() == ObjectType::ENEMY)
    {
       const auto animatablePtr =
          std::dynamic_pointer_cast< Animatable >(m_currentlySelectedGameObject);
@@ -870,7 +870,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          if (ImGui::Button("New"))
          {
             m_parent.GetCamera().SetCameraAtPosition(newNodePosition);
-            m_parent.AddObject(Object::TYPE::ANIMATION_POINT);
+            m_parent.AddObject(ObjectType::ANIMATION_POINT);
             m_parent.SetRenderAnimationPoints(true);
          }
          ImGui::EndChild();

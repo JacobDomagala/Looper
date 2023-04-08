@@ -66,13 +66,13 @@ class Editor : public Application
    SaveLevel(const std::string& levelPath);
 
    void
-   AddGameObject(GameObject::TYPE objectType);
+   AddGameObject(ObjectType objectType);
 
    void
    CopyGameObject(const std::shared_ptr< GameObject >& objectToCopy);
 
    void
-   AddObject(Object::TYPE objectType);
+   AddObject(ObjectType objectType);
 
    void
    ToggleAnimateObject();

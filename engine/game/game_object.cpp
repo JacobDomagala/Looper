@@ -7,7 +7,7 @@
 namespace looper {
 
 GameObject::GameObject(Application& application, const glm::vec2& position, const glm::vec2& size,
-                       const std::string& sprite, Object::TYPE type)
+                       const std::string& sprite, ObjectType type)
    : Object(type), m_appHandle(application)
 {
    m_sprite.SetSpriteTextured(position, size, sprite);

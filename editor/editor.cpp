@@ -404,7 +404,7 @@ Editor::ActionOnObject(Editor::ACTION action)
          }
          else if (m_gameObjectSelected && m_currentSelectedGameObject)
          {
-            if (m_currentSelectedGameObject->GetType() == looper::Object::TYPE::PLAYER)
+            if (m_currentSelectedGameObject->GetType() == ObjectType::PLAYER)
             {
                m_player.reset();
             }
@@ -504,11 +504,8 @@ Editor::Render(VkCommandBuffer cmdBuffer)
                             0, sizeof(renderer::LinePushConstants), &linePushConstants);
         
                vkCmdDrawIndexed(
-            cmdBuffer,
-            renderer::Data::lineIndices_.size(),
+            cmdBuffer, renderer::Data::numGridLines * 2,
             1, 0, 0, 0);
-
-      
       }
 
 
@@ -539,7 +536,7 @@ Editor::DrawEditorObjects()
    {
       // Animation points are handled in Editor::DrawAnimationPoints()
       if (object->IsVisible()
-          && (Object::GetTypeFromID(object->GetLinkedObjectID()) != Object::TYPE::ANIMATION_POINT)
+          && (Object::GetTypeFromID(object->GetLinkedObjectID()) != ObjectType::ANIMATION_POINT)
           && !object->GetIsBackground())
       {
          object->Render();
@@ -571,8 +568,7 @@ Editor::DrawAnimationPoints()
                                    object->GetLinkedObjectID());
                if (it != animaltionPointIDs.end())
                {
-                  // renderer::VulkanRenderer::DrawLine(lineStart, object->GetPosition(), {1.0f,
-                  // 0.0f, 1.0f, 1.0f});
+                  renderer::VulkanRenderer::DrawDynamicLine(lineStart, object->GetPosition());
                   lineStart = object->GetCenteredPosition();
 
                   object->Render();
@@ -631,6 +627,8 @@ Editor::DrawGrid()
              glm::vec2(i * grad, 0), glm::vec2(i * grad, levelSize.y), {1.0f, 0.0f, 1.0f, 1.0f});
        }
     }
+
+    renderer::Data::numGridLines = renderer::Data::numLines;
 }
 
 void
@@ -774,7 +772,7 @@ Editor::SaveLevel(const std::string& levelPath)
 }
 
 void
-Editor::AddGameObject(GameObject::TYPE objectType)
+Editor::AddGameObject(ObjectType objectType)
 {
    HandleGameObjectSelected(m_currentLevel->AddGameObject(objectType));
 }
@@ -793,10 +791,10 @@ Editor::CopyGameObject(const std::shared_ptr< GameObject >& objectToCopy)
 }
 
 void
-Editor::AddObject(Object::TYPE objectType)
+Editor::AddObject(ObjectType objectType)
 {
    std::shared_ptr< EditorObject > newObject;
-   if (objectType == Object::TYPE::ANIMATION_POINT)
+   if (objectType == ObjectType::ANIMATION_POINT)
    {
       if (!m_currentSelectedGameObject)
       {
@@ -885,8 +883,7 @@ Editor::RenderNodes(bool render)
       m_renderPathfinderNodes = render;
 
       std::for_each(m_editorObjects.begin(), m_editorObjects.end(), [render](auto& object) {
-         if (Object::GetTypeFromID(object->GetLinkedObjectID())
-             == looper::Object::TYPE::PATHFINDER_NODE)
+         if (Object::GetTypeFromID(object->GetLinkedObjectID()) == ObjectType::PATHFINDER_NODE)
          {
             object->SetVisible(render);
          }
@@ -1030,6 +1027,8 @@ Editor::MainLoop()
       renderer::VulkanRenderer::Draw(this);
 
       timeLastFrame_ = watch.Stop();
+
+      renderer::Data::curDynLineIdx = 0;
 
       if (m_playGame)
       {

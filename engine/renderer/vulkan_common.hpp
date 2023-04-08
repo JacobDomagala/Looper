@@ -25,8 +25,8 @@ vk_check_error(VkResult vkResult, std::string_view errorMessage)
    }
 }
 
-static constexpr uint32_t indicesPerMesh = 6;
-static constexpr uint32_t indicesPerLine = 2;
+static constexpr uint32_t INDICES_PER_SPRITE = 6;
+static constexpr uint32_t INDICES_PER_LINE = 2;
 static constexpr bool ENABLE_VALIDATION = true;
 static constexpr std::array< const char*, 1 > VALIDATION_LAYERS = {"VK_LAYER_KHRONOS_validation"};
 static constexpr std::array< const char*, 1 > DEVICE_EXTENSIONS = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
@@ -69,7 +69,7 @@ struct Data
    inline static VkRenderPass m_renderPass = {};
    inline static VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
    inline static VkExtent2D m_swapChainExtent = {};
-   
+
    // Standard pipeline
    inline static VkPipeline graphicsPipeline_ = {};
    inline static VkPipelineLayout pipelineLayout_ = {};
@@ -87,12 +87,25 @@ struct Data
    inline static std::vector< uint32_t > lineIndices_ = {};
    inline static std::vector< VkBuffer > lineUniformBuffers_ = {};
    inline static std::vector< VkDeviceMemory > lineUniformBuffersMemory_ = {};
+   inline static uint32_t numGridLines = {};
    inline static uint32_t numLines = {};
+   inline static uint32_t curDynLineIdx = {};
 
    inline static std::unordered_map< ApplicationType, RenderData > renderData_ = {};
 
    inline static uint32_t currentFrame_ = {};
    inline static const uint32_t MAX_FRAMES_IN_FLIGHT = 3;
+};
+
+struct EditorData
+{
+   // Pathfinder
+   inline static std::vector< Vertex > pathfinderVertices_ = {};
+   inline static std::vector< uint32_t > pathfinderIndices_ = {};
+   inline static VkBuffer pathfinderVertexBuffer = {};
+   inline static VkDeviceMemory pathfinderVertexBufferMemory = {};
+   inline static VkBuffer pathfinderIndexBuffer = {};
+   inline static VkDeviceMemory pathfinderIndexBufferMemory = {};
 };
 
 struct PushConstants

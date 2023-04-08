@@ -19,7 +19,7 @@ EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const
 bool
 EditorObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 {
-   if (Object ::GetTypeFromID(m_objectID) == Object::TYPE::PATHFINDER_NODE)
+   if (Object ::GetTypeFromID(m_objectID) == ObjectType::PATHFINDER_NODE)
    {
       return false;
    }
@@ -172,7 +172,7 @@ EditorObject::DeleteLinkedObject()
    {
       switch (Object::GetTypeFromID(m_objectID))
       {
-         case Object::TYPE::ANIMATION_POINT: {
+         case ObjectType::ANIMATION_POINT: {
             auto& animationPoint =
                dynamic_cast< AnimationPoint& >(m_editor.GetLevel().GetObjectRef(m_objectID));
             auto& object = m_editor.GetLevel().GetObjectRef(animationPoint.m_parent);
@@ -184,7 +184,7 @@ EditorObject::DeleteLinkedObject()
          }
          break;
 
-         case Object::TYPE::PATHFINDER_NODE: {
+         case ObjectType::PATHFINDER_NODE: {
             auto& node = dynamic_cast< Node& >(m_editor.GetLevel().GetObjectRef(m_objectID));
             m_editor.GetLevel().GetPathfinder().DeleteNode(node.m_ID);
          }
@@ -207,7 +207,7 @@ EditorObject::Move(const glm::vec2& moveBy)
    {
       switch (Object::GetTypeFromID(m_objectID))
       {
-         case Object::TYPE::ANIMATION_POINT: {
+         case ObjectType::ANIMATION_POINT: {
             auto& animationPoint =
                dynamic_cast< AnimationPoint& >(m_editor.GetLevel().GetObjectRef(m_objectID));
             animationPoint.m_end += moveBy;
@@ -215,7 +215,7 @@ EditorObject::Move(const glm::vec2& moveBy)
          }
          break;
 
-         case Object::TYPE::PATHFINDER_NODE: {
+         case ObjectType::PATHFINDER_NODE: {
             auto& node = dynamic_cast< Node& >(m_editor.GetLevel().GetObjectRef(m_objectID));
             node.m_position += moveBy;
          }
@@ -243,7 +243,7 @@ EditorObject::Rotate(float angle, bool cumulative)
    {
       switch (Object::GetTypeFromID(m_objectID))
       {
-         case Object::TYPE::ANIMATION_POINT: {
+         case ObjectType::ANIMATION_POINT: {
             auto& animationPoint =
                dynamic_cast< AnimationPoint& >(m_editor.GetLevel().GetObjectRef(m_objectID));
             animationPoint.m_rotation = rotate;
@@ -267,7 +267,7 @@ EditorObject::Render()
    {
       switch (Object::GetTypeFromID(m_objectID))
       {
-         case Object::TYPE::PATHFINDER_NODE: {
+         case ObjectType::PATHFINDER_NODE: {
             auto& pathfinderNode =
                dynamic_cast< Node& >(m_editor.GetLevel().GetObjectRef(m_objectID));
 
@@ -281,7 +281,8 @@ EditorObject::Render()
          }
          break;
 
-         case Object::TYPE::ANIMATION_POINT: {
+         case ObjectType::ANIMATION_POINT: {
+            m_sprite.SetColor({1.0f, 1.0f, 1.0f, static_cast< float >(m_visible)});
             m_sprite.Render();
          }
          break;

@@ -38,12 +38,18 @@ uint32_t
 VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureMaps& textures_in,
                            const glm::mat4& modelMat, const glm::vec4& color)
 {
-   auto& vertices = Data::renderData_[boundApplication_].vertices;
+   auto* renderData = &Data::renderData_[boundApplication_];
+   auto* vertices = &renderData->vertices;
+   if (boundApplication_ == ApplicationType::EDITOR)
+   {
+      
+   }
 
-   std::copy(vertices_in.begin(), vertices_in.end(),
-             std::back_inserter(Data::renderData_[boundApplication_].vertices));
-   std::transform(vertices.end() - 4, vertices.end(), vertices.end() - 4, [](auto& vtx) {
-      vtx.m_texCoordsDraw.z = static_cast< float >(Data::renderData_[boundApplication_].numMeshes);
+   
+
+   std::copy(vertices_in.begin(), vertices_in.end(), std::back_inserter(*vertices));
+   std::transform(vertices->end() - 4, vertices->end(), vertices->end() - 4, [renderData](auto& vtx) {
+      vtx.m_texCoordsDraw.z = static_cast< float >(renderData->numMeshes);
       return vtx;
    });
 
@@ -52,7 +58,7 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
 
    VkDrawIndexedIndirectCommand newModel = {};
    newModel.firstIndex = m_currentIndex;
-   newModel.indexCount = static_cast< uint32_t >(6);
+   newModel.indexCount = INDICES_PER_SPRITE;
    newModel.firstInstance = 0;
    newModel.instanceCount = 1;
    newModel.vertexOffset = static_cast< int32_t >(m_currentVertex);
@@ -60,7 +66,7 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
    // m_renderCommands.push_back(newModel);
 
    m_currentVertex += static_cast< uint32_t >(vertices_in.size());
-   m_currentIndex += static_cast< uint32_t >(6);
+   m_currentIndex += INDICES_PER_SPRITE;
 
    PerInstanceBuffer newInstance = {};
    newInstance.model = modelMat;
@@ -96,10 +102,10 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
       }
    }
 
-   Data::renderData_[boundApplication_].perInstance.push_back(newInstance);
+   renderData->perInstance.push_back(newInstance);
 
-   auto currentMeshIdx = Data::renderData_[boundApplication_].numMeshes;
-   ++Data::renderData_[boundApplication_].numMeshes;
+   auto currentMeshIdx = renderData->numMeshes;
+   ++(renderData->numMeshes);
 
    return currentMeshIdx;
 }
@@ -641,6 +647,23 @@ VulkanRenderer::DrawLine(const glm::vec2& start, const glm::vec2& end, const glm
 }
 
 void
+VulkanRenderer::DrawDynamicLine(const glm::vec2& start, const glm::vec2& end)
+{
+   if (Data::lineVertices_.capacity() < Data::numGridLines + Data::curDynLineIdx + 2)
+   {
+      Data::lineVertices_.push_back(LineVertex{glm::vec3{start, 0.0f}});
+      Data::lineVertices_.push_back(LineVertex{glm::vec3{end, 0.0f}});
+   }
+   else
+   {
+      Data::lineVertices_[Data::numGridLines + Data::curDynLineIdx++] =
+         LineVertex{glm::vec3{start, 0.0f}};
+      Data::lineVertices_[Data::numGridLines + Data::curDynLineIdx++] =
+         LineVertex{glm::vec3{end, 0.0f}};
+   }
+}
+
+void
 VulkanRenderer::SetupLineData()
 {
    {
@@ -669,10 +692,10 @@ VulkanRenderer::SetupLineData()
    }
    {
       auto& indices = Data::lineIndices_;
-      indices.resize(static_cast< size_t >(Data::numLines) * static_cast< size_t >(indicesPerLine));
+      indices.resize(static_cast< size_t >(Data::numLines) * static_cast< size_t >(INDICES_PER_LINE));
 
       uint32_t offset = 0;
-      for (uint32_t i = 0; i < indices.size(); i += indicesPerLine)
+      for (uint32_t i = 0; i < indices.size(); i += INDICES_PER_LINE)
       {
          indices[i + 0] = offset + 0;
          indices[i + 1] = offset + 1;
@@ -702,6 +725,20 @@ VulkanRenderer::SetupLineData()
 
       vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
       vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
+   }
+}
+
+void
+VulkanRenderer::SetupEditorData(ObjectType type)
+{
+   switch (type)
+   {
+      case ObjectType::ANIMATION_POINT: {
+      }
+      break;
+      case ObjectType::PATHFINDER_NODE: {
+      }
+      break;
    }
 }
 
@@ -740,10 +777,10 @@ VulkanRenderer::CreateIndexBuffer()
 {
    auto& indices = Data::renderData_[boundApplication_].indices;
    indices.resize(static_cast< size_t >(Data::renderData_[boundApplication_].numMeshes)
-                  * static_cast< size_t >(indicesPerMesh));
+                  * static_cast< size_t >(INDICES_PER_SPRITE));
 
    uint32_t offset = 0;
-   for (uint32_t i = 0; i < indices.size(); i += indicesPerMesh)
+   for (uint32_t i = 0; i < indices.size(); i += INDICES_PER_SPRITE)
    {
       indices[i + 0] = offset + 0;
       indices[i + 1] = offset + 1;

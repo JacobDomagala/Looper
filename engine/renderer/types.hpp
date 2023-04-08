@@ -5,6 +5,20 @@
 #include <array>
 #include <string>
 
+namespace looper {
+
+enum class ObjectType
+{
+   NONE = 0,
+   ENEMY = 1,
+   PLAYER = 2,
+   OBJECT = 3,
+   ANIMATION_POINT = 4,
+   PATHFINDER_NODE = 8
+};
+
+}
+
 namespace looper::renderer {
 
 enum class ApplicationType

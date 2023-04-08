@@ -32,12 +32,18 @@ class VulkanRenderer
    static void
    DrawLine(const glm::vec2& start, const glm::vec2& end, const glm::vec4& color);
 
+   static void
+   DrawDynamicLine(const glm::vec2& start, const glm::vec2& end);
+
    [[nodiscard]] static uint32_t
    MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureMaps& textures_in,
               const glm::mat4& modelMat, const glm::vec4& color);
 
    static void
    SubmitMeshData(const uint32_t idx, const glm::mat4& modelMat, const glm::vec4& color);
+
+   //   static void
+   //SubmitMeshData(const uint32_t idx, const glm::mat4& modelMat, const glm::vec4& color);
 
    static void
    SetAppMarker(ApplicationType type)
@@ -56,6 +62,9 @@ class VulkanRenderer
 
    static void
    SetupData();
+
+   static void
+   SetupEditorData(ObjectType type);
 
    static void
    SetupLineData();
