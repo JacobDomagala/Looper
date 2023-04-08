@@ -483,6 +483,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
          vkCmdDrawIndexed(cmdBuffer, 6, 1, tmpIdx * 6, 0, 0);
       }
 
+      // DRAW PATHFINDER NODES
       if (m_renderPathfinderNodes)
       {
          vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::EditorData::pathfinderVertexBuffer,
@@ -495,6 +496,8 @@ Editor::Render(VkCommandBuffer cmdBuffer)
                           1, 0, 0, 0);
       }
 
+
+      // DRAW ANIMATION POINTS
       vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::EditorData::animationVertexBuffer,
                              offsets.data());
 
@@ -504,29 +507,35 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       vkCmdDrawIndexed(cmdBuffer, renderer::EditorData::numPoints_ * renderer::INDICES_PER_SPRITE,
                        1, 0, 0, 0);
 
-      if (m_drawGrid)
-      {
-         vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                           renderer::Data::linePipeline_);
 
-         vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::Data::lineVertexBuffer, offsets.data());
+      // DRAW LINES
+      vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::linePipeline_);
 
-         vkCmdBindIndexBuffer(cmdBuffer, renderer::Data::lineIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::Data::lineVertexBuffer, offsets.data());
 
-         vkCmdBindDescriptorSets(
-            cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::linePipelineLayout_, 0, 1,
-            &renderer::Data::lineDescriptorSets_[renderer::Data::currentFrame_], 0, nullptr);
+      vkCmdBindIndexBuffer(cmdBuffer, renderer::Data::lineIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
+      vkCmdBindDescriptorSets(
+         cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::linePipelineLayout_, 0, 1,
+         &renderer::Data::lineDescriptorSets_[renderer::Data::currentFrame_], 0, nullptr);
 
-         renderer::LinePushConstants linePushConstants = {};
-         linePushConstants.color = glm::vec4(0.4f, 0.5f, 0.6f, 1.0f);
+      renderer::LinePushConstants linePushConstants = {};
+      linePushConstants.color = glm::vec4(0.4f, 0.5f, 0.6f, static_cast< float >(m_drawGrid));
 
-         vkCmdPushConstants(cmdBuffer, renderer::Data::linePipelineLayout_,
-                            VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(renderer::LinePushConstants),
-                            &linePushConstants);
+      vkCmdPushConstants(cmdBuffer, renderer::Data::linePipelineLayout_,
+                         VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(renderer::LinePushConstants),
+                         &linePushConstants);
 
-         vkCmdDrawIndexed(cmdBuffer, renderer::Data::numGridLines * 2, 1, 0, 0, 0);
-      }
+      vkCmdDrawIndexed(cmdBuffer, renderer::Data::numGridLines * renderer::INDICES_PER_LINE, 1, 0,
+                       0, 0);
+
+      linePushConstants.color = glm::vec4(0.5f, 0.8f, 0.8f, 1.0f);
+      vkCmdPushConstants(cmdBuffer, renderer::Data::linePipelineLayout_,
+                         VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(renderer::LinePushConstants),
+                         &linePushConstants);
+      vkCmdDrawIndexed(cmdBuffer, renderer::Data::curDynLineIdx, 1,
+                       renderer::Data::numGridLines * renderer::INDICES_PER_LINE,
+                       0, 0);
    }
 
    EditorGUI::Render(cmdBuffer);
@@ -595,6 +604,8 @@ Editor::DrawAnimationPoints()
                }
             }
          }
+
+         renderer::VulkanRenderer::UpdateLineData(renderer::Data::numGridLines);
       }
    }
 }
@@ -777,6 +788,7 @@ Editor::LoadLevel(const std::string& levelPath)
    DrawGrid();
    renderer::VulkanRenderer::CreateLinePipeline();
    renderer::VulkanRenderer::SetupLineData();
+   renderer::VulkanRenderer::UpdateLineData();
 
    renderer::VulkanRenderer::SetupEditorData(ObjectType::PATHFINDER_NODE);
    renderer::VulkanRenderer::SetupEditorData(ObjectType::ANIMATION_POINT);

@@ -650,17 +650,35 @@ VulkanRenderer::DrawLine(const glm::vec2& start, const glm::vec2& end)
 void
 VulkanRenderer::DrawDynamicLine(const glm::vec2& start, const glm::vec2& end)
 {
-   if (Data::lineVertices_.capacity() < Data::numGridLines + Data::curDynLineIdx + 2)
+   const auto totalNumVtx = Data::numGridLines * VERTICES_PER_LINE;
+   if (Data::lineVertices_.size() < (totalNumVtx + Data::curDynLineIdx + VERTICES_PER_LINE))
    {
       Data::lineVertices_.push_back(LineVertex{glm::vec3{start, 0.0f}});
       Data::lineVertices_.push_back(LineVertex{glm::vec3{end, 0.0f}});
    }
    else
    {
-      Data::lineVertices_[Data::numGridLines + Data::curDynLineIdx++] =
+      Data::lineVertices_[totalNumVtx + Data::curDynLineIdx++] =
          LineVertex{glm::vec3{start, 0.0f}};
-      Data::lineVertices_[Data::numGridLines + Data::curDynLineIdx++] =
+      Data::lineVertices_[totalNumVtx + Data::curDynLineIdx++] =
          LineVertex{glm::vec3{end, 0.0f}};
+   }
+}
+
+void
+VulkanRenderer::UpdateLineData(uint32_t startingLine)
+{
+   const auto lastLine = (Data::curDynLineIdx / VERTICES_PER_LINE) + Data::numGridLines;
+   const auto numLines = lastLine - startingLine;
+   const auto bufferSize = numLines * sizeof(LineVertex) * VERTICES_PER_LINE;
+   if (bufferSize)
+   {
+      const auto offset = startingLine * sizeof(LineVertex) * VERTICES_PER_LINE;
+
+      void* data = nullptr;
+      vkMapMemory(Data::vk_device, Data::lineVertexBufferMemory, offset, bufferSize, 0, &data);
+      memcpy(data, Data::lineVertices_.data() + startingLine * VERTICES_PER_LINE, bufferSize);
+      vkUnmapMemory(Data::vk_device, Data::lineVertexBufferMemory);
    }
 }
 
@@ -668,32 +686,16 @@ void
 VulkanRenderer::SetupLineData()
 {
    {
-      const VkDeviceSize bufferSize = sizeof(Vertex) * Data::lineVertices_.size();
-
-      VkBuffer stagingBuffer = {};
-      VkDeviceMemory stagingBufferMemory = {};
-      Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-                              | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                           stagingBuffer, stagingBufferMemory);
-
-      void* data = nullptr;
-      vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
-      memcpy(data, Data::lineVertices_.data(), bufferSize);
-      vkUnmapMemory(Data::vk_device, stagingBufferMemory);
+      const VkDeviceSize bufferSize = sizeof(Vertex) * EditorData::MAX_NUM_LINES * 2;
 
       Buffer::CreateBuffer(
          bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, Data::lineVertexBuffer, Data::lineVertexBufferMemory);
-
-      Buffer::CopyBuffer(stagingBuffer, Data::lineVertexBuffer, bufferSize);
-
-      vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
-      vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
+         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+         Data::lineVertexBuffer, Data::lineVertexBufferMemory);
    }
    {
       auto& indices = Data::lineIndices_;
-      indices.resize(static_cast< size_t >(Data::numLines)
+      indices.resize(static_cast< size_t >(EditorData::MAX_NUM_LINES)
                      * static_cast< size_t >(INDICES_PER_LINE));
 
       uint32_t offset = 0;

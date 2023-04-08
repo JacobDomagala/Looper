@@ -26,7 +26,9 @@ vk_check_error(VkResult vkResult, std::string_view errorMessage)
 }
 
 static constexpr uint32_t INDICES_PER_SPRITE = 6;
+static constexpr uint32_t VERTICES_PER_SPRITE = 4;
 static constexpr uint32_t INDICES_PER_LINE = 2;
+static constexpr uint32_t VERTICES_PER_LINE = 2;
 static constexpr bool ENABLE_VALIDATION = true;
 static constexpr std::array< const char*, 1 > VALIDATION_LAYERS = {"VK_LAYER_KHRONOS_validation"};
 static constexpr std::array< const char*, 1 > DEVICE_EXTENSIONS = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
@@ -129,7 +131,7 @@ struct EditorData
    inline static uint32_t numPoints_ = {};
 
    // Dynamic Lines
-
+   inline static constexpr uint32_t MAX_NUM_LINES = 100000;
 };
 
 struct PushConstants

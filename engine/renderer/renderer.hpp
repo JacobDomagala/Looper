@@ -67,6 +67,9 @@ class VulkanRenderer
    SetupLineData();
 
    static void
+   UpdateLineData(uint32_t startingLine = 0);
+
+   static void
    CreateCommandBuffers(Application* app, uint32_t imageIndex);
 
    inline static glm::mat4 view_mat = {};
