@@ -460,8 +460,18 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       vkCmdPushConstants(cmdBuffer, renderer::Data::pipelineLayout_, VK_SHADER_STAGE_VERTEX_BIT, 0,
                          sizeof(renderer::PushConstants), &pushConstants);
 
-      const auto numObjects = renderData.numMeshes - renderer::EditorData::numNodes_;
+      const auto numObjects =
+         renderData.numMeshes - renderer::EditorData::numNodes_ - renderer::EditorData::numPoints_;
       vkCmdDrawIndexed(cmdBuffer, numObjects * renderer::INDICES_PER_SPRITE, 1, 0, 0, 0);
+
+      if (m_currentSelectedGameObject)
+      {
+         const auto tmpIdx = m_currentSelectedGameObject->GetSprite().GetRenderIdx();
+         pushConstants.selectedIdx = -1.0f;
+         vkCmdPushConstants(cmdBuffer, renderer::Data::pipelineLayout_, VK_SHADER_STAGE_VERTEX_BIT,
+                            0, sizeof(renderer::PushConstants), &pushConstants);
+         vkCmdDrawIndexed(cmdBuffer, 6, 1, tmpIdx * 6, 0, 0);
+      }
 
       if (m_renderPathfinderNodes)
       {
@@ -475,14 +485,14 @@ Editor::Render(VkCommandBuffer cmdBuffer)
                           1, 0, 0, 0);
       }
 
-      if (m_currentSelectedGameObject)
-      {
-         const auto tmpIdx = m_currentSelectedGameObject->GetSprite().GetRenderIdx();
-         pushConstants.selectedIdx = -1.0f;
-         vkCmdPushConstants(cmdBuffer, renderer::Data::pipelineLayout_, VK_SHADER_STAGE_VERTEX_BIT,
-                            0, sizeof(renderer::PushConstants), &pushConstants);
-         vkCmdDrawIndexed(cmdBuffer, 6, 1, tmpIdx * 6, 0, 0);
-      }
+      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::EditorData::animationVertexBuffer,
+                             offsets.data());
+
+      vkCmdBindIndexBuffer(cmdBuffer, renderer::EditorData::animationIndexBuffer, 0,
+                           VK_INDEX_TYPE_UINT32);
+
+      vkCmdDrawIndexed(cmdBuffer, renderer::EditorData::numPoints_ * renderer::INDICES_PER_SPRITE, 1,
+                       0, 0, 0);
 
       if (m_drawGrid)
       {
@@ -529,11 +539,17 @@ Editor::DrawEditorObjects()
 {
    for (auto& object : m_editorObjects)
    {
-      // Animation points are handled in Editor::DrawAnimationPoints()
-      if (object->IsVisible()
-          && (Object::GetTypeFromID(object->GetLinkedObjectID()) != ObjectType::ANIMATION_POINT))
+      if (object->IsVisible())
       {
          object->Render();
+      }
+   }
+
+   if (m_renderPathfinderNodes)
+   {
+      for (auto& node : pathfinderNodes_)
+      {
+         node->Render();
       }
    }
 }
@@ -554,7 +570,7 @@ Editor::DrawAnimationPoints()
                         [](const auto& animationKeyPoint) { return animationKeyPoint.GetID(); });
 
          auto lineStart = animatePtr->GetAnimationStartLocation();
-         for (auto& object : m_editorObjects)
+         for (auto& object : animationPoints_)
          {
             if (object->IsVisible())
             {
@@ -576,14 +592,13 @@ Editor::DrawAnimationPoints()
 // void
 // Editor::DrawBoundingBoxes()
 // {
-//    constexpr glm::vec4 color = {1.0f, 0.2f, 0.1f, 1.0f};
-
+//
 //    auto drawBoundingBox = [color](const renderer::Spriteer::Sprite& sprite) {
 //       const auto rect = sprite.GetTransformedRectangle();
-//       Renderer::DrawLine(rect[0], rect[1], color);
-//       Renderer::DrawLine(rect[1], rect[2], color);
-//       Renderer::DrawLine(rect[2], rect[3], color);
-//       Renderer::DrawLine(rect[3], rect[0], color);
+//       Renderer::DrawLine(rect[0], rect[1]);
+//       Renderer::DrawLine(rect[1], rect[2]);
+//       Renderer::DrawLine(rect[2], rect[3]);
+//       Renderer::DrawLine(rect[3], rect[0]);
 //    };
 
 //    if (m_currentSelectedGameObject)
@@ -600,26 +615,21 @@ Editor::DrawAnimationPoints()
 void
 Editor::DrawGrid()
 {
-   if (m_drawGrid)
+   const auto levelSize = m_currentLevel->GetSize();
+   const auto grad = m_gridCellSize;
+
+   const auto w = levelSize.x / grad;
+   const auto h = levelSize.y / grad;
+   // const auto offset = glm::ivec2(0, grad);
+
+   for (int i = 0; i <= h; ++i)
    {
-      const auto levelSize = m_currentLevel->GetSize();
-      const auto grad = m_gridCellSize;
+      renderer::VulkanRenderer::DrawLine(glm::vec2(0, i * grad), glm::vec2(levelSize.x, i * grad));
+   }
 
-      const auto w = levelSize.x / grad;
-      const auto h = levelSize.y / grad;
-      // const auto offset = glm::ivec2(0, grad);
-
-      for (int i = 0; i <= h; ++i)
-      {
-         renderer::VulkanRenderer::DrawLine(
-            glm::vec2(0, i * grad), glm::vec2(levelSize.x, i * grad), {1.0f, 0.0f, 1.0f, 1.0f});
-      }
-
-      for (int i = 0; i <= w; ++i)
-      {
-         renderer::VulkanRenderer::DrawLine(
-            glm::vec2(i * grad, 0), glm::vec2(i * grad, levelSize.y), {1.0f, 0.0f, 1.0f, 1.0f});
-      }
+   for (int i = 0; i <= w; ++i)
+   {
+      renderer::VulkanRenderer::DrawLine(glm::vec2(i * grad, 0), glm::vec2(i * grad, levelSize.y));
    }
 
    renderer::Data::numGridLines = renderer::Data::numLines;
@@ -699,6 +709,7 @@ Editor::LoadLevel(const std::string& levelPath)
       UnselectGameObject();
       m_currentLevel.reset();
       m_editorObjects.clear();
+      pathfinderNodes_.clear();
    }
 
    renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::EDITOR);
@@ -710,7 +721,7 @@ Editor::LoadLevel(const std::string& levelPath)
    // Populate editor objects
    const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
    std::transform(pathfinderNodes.begin(), pathfinderNodes.end(),
-                  std::back_inserter(m_editorObjects), [this](const auto& node) {
+                  std::back_inserter(pathfinderNodes_), [this](const auto& node) {
                      const auto tileSize = m_currentLevel->GetTileSize();
 
                      auto pathfinderNode = std::make_shared< EditorObject >(
@@ -736,10 +747,10 @@ Editor::LoadLevel(const std::string& levelPath)
          for (const auto& point : animationPoints)
          {
             auto editorObject = std::make_shared< EditorObject >(
-               *this, point.m_end, glm::ivec2(20, 20), "NodeSprite.png", point.GetID());
-            editorObject->SetName("AnimationPoint" + object->GetName());
+               *this, point.m_end, glm::vec2(20, 20), "NodeSprite.png", point.GetID());
+            editorObject->SetName(fmt::format("AnimationPoint{}", object->GetName()));
 
-            m_editorObjects.push_back(editorObject);
+            animationPoints_.push_back(editorObject);
          }
       }
    }
@@ -757,6 +768,7 @@ Editor::LoadLevel(const std::string& levelPath)
    renderer::VulkanRenderer::SetupLineData();
 
    renderer::VulkanRenderer::SetupEditorData(ObjectType::PATHFINDER_NODE);
+   renderer::VulkanRenderer::SetupEditorData(ObjectType::ANIMATION_POINT);
 }
 
 void
@@ -873,7 +885,13 @@ Editor::LaunchGameLoop()
 void
 Editor::RenderNodes(bool render)
 {
-   m_renderPathfinderNodes = render;
+   if (m_renderPathfinderNodes != render)
+   {
+      m_renderPathfinderNodes = render;
+
+      std::for_each(pathfinderNodes_.begin(), pathfinderNodes_.end(),
+                    [render](auto& node) { node->SetVisible(render); });
+   }
 }
 
 bool
@@ -894,14 +912,15 @@ Editor::SetRenderAnimationPoints(bool render)
 
       for (auto& animationPoint : animationPoints)
       {
-         auto it = std::find_if(
-            m_editorObjects.begin(), m_editorObjects.end(), [&animationPoint](auto& editorObject) {
+         auto it = std::find_if(animationPoints_.begin(), animationPoints_.end(),
+                         [&animationPoint](auto& editorObject) {
                return editorObject->GetLinkedObjectID() == animationPoint.GetID();
             });
 
-         if (it != m_editorObjects.end())
+         if (it != animationPoints_.end())
          {
             (*it)->SetVisible(render);
+            (*it)->Render();
          }
       }
    }

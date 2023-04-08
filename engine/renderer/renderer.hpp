@@ -30,7 +30,7 @@ class VulkanRenderer
    Draw(Application* app);
 
    static void
-   DrawLine(const glm::vec2& start, const glm::vec2& end, const glm::vec4& color);
+   DrawLine(const glm::vec2& start, const glm::vec2& end);
 
    static void
    DrawDynamicLine(const glm::vec2& start, const glm::vec2& end);

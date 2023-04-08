@@ -118,6 +118,18 @@ struct EditorData
    inline static VkBuffer pathfinderIndexBuffer = {};
    inline static VkDeviceMemory pathfinderIndexBufferMemory = {};
    inline static uint32_t numNodes_ = {};
+
+   // Animation
+   inline static std::vector< Vertex > animationVertices_ = {};
+   inline static std::vector< uint32_t > animationIndices_ = {};
+   inline static VkBuffer animationVertexBuffer = {};
+   inline static VkDeviceMemory animationVertexBufferMemory = {};
+   inline static VkBuffer animationIndexBuffer = {};
+   inline static VkDeviceMemory animationIndexBufferMemory = {};
+   inline static uint32_t numPoints_ = {};
+
+   // Dynamic Lines
+
 };
 
 struct PushConstants

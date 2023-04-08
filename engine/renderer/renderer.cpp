@@ -26,6 +26,42 @@ static int32_t currTexIdx = 0;
 std::unordered_map< std::string, std::pair< int32_t, VkImageView > > textures = {};
 std::vector< VkImageView > texturesVec = {};
 
+struct SwapChainSupportDetails
+{
+   VkSurfaceCapabilitiesKHR capabilities = {};
+   std::vector< VkSurfaceFormatKHR > formats = {};
+   std::vector< VkPresentModeKHR > presentModes = {};
+};
+
+struct QueueFamilyIndices
+{
+   std::optional< uint32_t > graphicsFamily = {};
+   std::optional< uint32_t > presentFamily = {};
+
+   [[nodiscard]] uint32_t
+   GetGraphics() const
+   {
+      utils::Assert(graphicsFamily.has_value(),
+                    "QueueFamilyIndices::GetGraphics: graphicsFamily not initialized!");
+      return graphicsFamily.value();
+   }
+
+   [[nodiscard]] uint32_t
+   GetPresent() const
+   {
+      utils::Assert(presentFamily.has_value(),
+                    "QueueFamilyIndices::GetPresent: presentFamily not initialized!");
+      return presentFamily.value();
+   }
+
+   [[nodiscard]] bool
+   isComplete() const
+   {
+      return graphicsFamily.has_value() && presentFamily.has_value();
+   }
+};
+
+
 uint32_t
 VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureMaps& textures_in,
                            const glm::mat4& modelMat, const glm::vec4& color, ObjectType type)
@@ -38,6 +74,8 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
       switch (type)
       {
          case ObjectType::ANIMATION_POINT: {
+            vertices = &EditorData::animationVertices_;
+            ++EditorData::numPoints_;
          }
          break;
          case ObjectType::PATHFINDER_NODE: {
@@ -121,42 +159,6 @@ VulkanRenderer::SubmitMeshData(const uint32_t idx, const glm::mat4& modelMat,
    Data::renderData_[boundApplication_].perInstance.at(idx).model = modelMat;
    Data::renderData_[boundApplication_].perInstance.at(idx).color = color;
 }
-
-struct QueueFamilyIndices
-{
-   std::optional< uint32_t > graphicsFamily = {};
-   std::optional< uint32_t > presentFamily = {};
-
-   [[nodiscard]] uint32_t
-   GetGraphics() const
-   {
-      utils::Assert(graphicsFamily.has_value(),
-                    "QueueFamilyIndices::GetGraphics: graphicsFamily not initialized!");
-      return graphicsFamily.value();
-   }
-
-   [[nodiscard]] uint32_t
-   GetPresent() const
-   {
-      utils::Assert(presentFamily.has_value(),
-                    "QueueFamilyIndices::GetPresent: presentFamily not initialized!");
-      return presentFamily.value();
-   }
-
-   [[nodiscard]] bool
-   isComplete() const
-   {
-      return graphicsFamily.has_value() && presentFamily.has_value();
-   }
-};
-
-struct SwapChainSupportDetails
-{
-   VkSurfaceCapabilitiesKHR capabilities = {};
-   std::vector< VkSurfaceFormatKHR > formats = {};
-   std::vector< VkPresentModeKHR > presentModes = {};
-};
-
 
 std::set< std::string >
 get_supported_extensions()
@@ -464,11 +466,6 @@ VulkanRenderer::CreateVertexBuffer()
 {
    auto& vertices = Data::renderData_[boundApplication_].vertices;
 
-   // Sort vertices so we ensure the correct order of draws
-   std::sort(vertices.begin(), vertices.end(), [](const auto& vtxLeft, const auto& vtxRight) {
-      return vtxLeft.m_position.z > vtxRight.m_position.z;
-   });
-
    const VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
 
    VkBuffer stagingBuffer = {};
@@ -642,7 +639,7 @@ VulkanRenderer::CreateLinePipeline()
 }
 
 void
-VulkanRenderer::DrawLine(const glm::vec2& start, const glm::vec2& end, const glm::vec4& color)
+VulkanRenderer::DrawLine(const glm::vec2& start, const glm::vec2& end)
 {
    Data::lineVertices_.push_back(LineVertex{glm::vec3{start, 0.0f}});
    Data::lineVertices_.push_back(LineVertex{glm::vec3{end, 0.0f}});
@@ -739,6 +736,77 @@ VulkanRenderer::SetupEditorData(ObjectType type)
    switch (type)
    {
       case ObjectType::ANIMATION_POINT: {
+         {
+            auto& vertices = EditorData::animationVertices_;
+
+            const VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
+
+            VkBuffer stagingBuffer = {};
+            VkDeviceMemory stagingBufferMemory = {};
+            Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                 stagingBuffer, stagingBufferMemory);
+
+            void* data = nullptr;
+            vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
+            memcpy(data, vertices.data(), bufferSize);
+            vkUnmapMemory(Data::vk_device, stagingBufferMemory);
+
+            Buffer::CreateBuffer(
+               bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, EditorData::animationVertexBuffer,
+               EditorData::animationVertexBufferMemory);
+
+            Buffer::CopyBuffer(stagingBuffer, EditorData::animationVertexBuffer, bufferSize);
+
+            vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
+            vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
+         }
+
+         {
+            auto& indices = EditorData::animationIndices_;
+            indices.resize(static_cast< size_t >(EditorData::numPoints_)
+                           * static_cast< size_t >(INDICES_PER_SPRITE));
+
+            uint32_t offset = 0;
+            for (uint32_t i = 0; i < indices.size(); i += INDICES_PER_SPRITE)
+            {
+               indices[i + 0] = offset + 0;
+               indices[i + 1] = offset + 1;
+               indices[i + 2] = offset + 2;
+
+               indices[i + 3] = offset + 0;
+               indices[i + 4] = offset + 2;
+               indices[i + 5] = offset + 3;
+
+               offset += 4;
+            }
+
+            const VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+            VkBuffer stagingBuffer = {};
+            VkDeviceMemory stagingBufferMemory = {};
+            Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                 stagingBuffer, stagingBufferMemory);
+
+            void* data = nullptr;
+            vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
+            memcpy(data, indices.data(), bufferSize);
+            vkUnmapMemory(Data::vk_device, stagingBufferMemory);
+
+            Buffer::CreateBuffer(
+               bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, EditorData::animationIndexBuffer,
+               EditorData::animationIndexBufferMemory);
+
+            Buffer::CopyBuffer(stagingBuffer, EditorData::animationIndexBuffer, bufferSize);
+
+            vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
+            vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
+         }
       }
       break;
       case ObjectType::PATHFINDER_NODE: {
@@ -816,6 +884,8 @@ VulkanRenderer::SetupEditorData(ObjectType type)
          }
       }
       break;
+      default: {
+      }
    }
 }
 

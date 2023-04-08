@@ -100,10 +100,6 @@ Sprite::Update(bool isReverse)
 void
 Sprite::Render()
 {
-   // Renderer::DrawQuad(m_currentState.m_translateVal, m_size, m_currentState.m_angle,
-   //                    TextureLibrary::GetTexture(m_texture->GetName()), 1.0f,
-   //                    m_currentState.m_color);
-
    if (changed_)
    {
       const glm::mat4 transformMat =

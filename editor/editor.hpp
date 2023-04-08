@@ -206,13 +206,15 @@ class Editor : public Application
    bool m_movementOnEditorObject = false;
    bool m_editorObjectSelected = false;
    std::vector< std::shared_ptr< EditorObject > > m_editorObjects = {};
+   std::vector< std::shared_ptr< EditorObject > > pathfinderNodes_ = {};
+   std::vector< std::shared_ptr< EditorObject > > animationPoints_ = {};
    std::shared_ptr< EditorObject > m_currentEditorObjectSelected = {};
 
-   bool m_renderPathfinderNodes = true;
+   bool m_renderPathfinderNodes = false;
 
    uint32_t numPathfinderNodes_= {};
    
-   bool m_drawGrid = true;
+   bool m_drawGrid = false;
    int32_t m_gridCellSize = 128;
 
    // constructed in initializer list
