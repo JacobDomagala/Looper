@@ -355,23 +355,33 @@ Editor::UnselectEditorObject()
 void
 Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
 {
-   auto newSelectedEditorObject =
-      std::find_if(m_editorObjects.begin(), m_editorObjects.end(), [cursorPosition](auto& object) {
-         return object->IsVisible() && object->CheckIfCollidedScreenPosion(cursorPosition);
-      });
+   auto CheckIfEditorObjectSelected =
+      [this, cursorPosition](const std::vector< std::shared_ptr< EditorObject > >& objects) {
+         auto newSelectedEditorObject =
+            std::find_if(objects.begin(), objects.end(), [cursorPosition](auto& object) {
+               return object->IsVisible() && object->CheckIfCollidedScreenPosion(cursorPosition);
+            });
 
-   if (newSelectedEditorObject != m_editorObjects.end())
+         if (newSelectedEditorObject != objects.end())
+         {
+            HandleEditorObjectSelected(*newSelectedEditorObject);
+         }
+
+         return newSelectedEditorObject != objects.end();
+      };
+
+
+   if (CheckIfEditorObjectSelected(m_editorObjects)
+       or CheckIfEditorObjectSelected(animationPoints_))
    {
-      HandleEditorObjectSelected(*newSelectedEditorObject);
+      return;
    }
-   else
-   {
-      auto newSelectedObject = m_currentLevel->GetGameObjectOnLocation(cursorPosition);
 
-      if (newSelectedObject)
-      {
-         HandleGameObjectSelected(newSelectedObject);
-      }
+   auto newSelectedObject = m_currentLevel->GetGameObjectOnLocation(cursorPosition);
+
+   if (newSelectedObject)
+   {
+      HandleGameObjectSelected(newSelectedObject);
    }
 }
 
@@ -491,8 +501,8 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       vkCmdBindIndexBuffer(cmdBuffer, renderer::EditorData::animationIndexBuffer, 0,
                            VK_INDEX_TYPE_UINT32);
 
-      vkCmdDrawIndexed(cmdBuffer, renderer::EditorData::numPoints_ * renderer::INDICES_PER_SPRITE, 1,
-                       0, 0, 0);
+      vkCmdDrawIndexed(cmdBuffer, renderer::EditorData::numPoints_ * renderer::INDICES_PER_SPRITE,
+                       1, 0, 0, 0);
 
       if (m_drawGrid)
       {
@@ -912,10 +922,11 @@ Editor::SetRenderAnimationPoints(bool render)
 
       for (auto& animationPoint : animationPoints)
       {
-         auto it = std::find_if(animationPoints_.begin(), animationPoints_.end(),
+         auto it =
+            std::find_if(animationPoints_.begin(), animationPoints_.end(),
                          [&animationPoint](auto& editorObject) {
-               return editorObject->GetLinkedObjectID() == animationPoint.GetID();
-            });
+                            return editorObject->GetLinkedObjectID() == animationPoint.GetID();
+                         });
 
          if (it != animationPoints_.end())
          {
