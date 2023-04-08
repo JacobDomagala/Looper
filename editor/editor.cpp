@@ -759,7 +759,8 @@ Editor::LoadLevel(const std::string& levelPath)
             auto editorObject = std::make_shared< EditorObject >(
                *this, point.m_end, glm::vec2(20, 20), "NodeSprite.png", point.GetID());
             editorObject->SetName(fmt::format("AnimationPoint{}", object->GetName()));
-
+            editorObject->SetVisible(false);
+            editorObject->Render();
             animationPoints_.push_back(editorObject);
          }
       }

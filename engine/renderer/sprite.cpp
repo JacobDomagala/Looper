@@ -76,7 +76,7 @@ void
 Sprite::SetSpriteTextured(const glm::vec2& position, const glm::vec2& size,
                           const std::string& fileName, ObjectType type)
 {
-   SetSpriteTextured(glm::vec3{position, 0.0f}, size, fileName);
+   SetSpriteTextured(glm::vec3{position, 0.0f}, size, fileName, type);
 }
 
 void
