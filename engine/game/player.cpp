@@ -7,7 +7,7 @@ namespace looper {
 
 Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& size,
                const std::string& sprite, const std::string& name)
-   : GameObject(game, position, size, sprite, TYPE::PLAYER)
+   : GameObject(game, position, size, sprite, ObjectType::PLAYER)
 {
    m_name = name;
    m_currentState.m_velocity = {0.0f, 0.0f};

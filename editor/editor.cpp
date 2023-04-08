@@ -31,8 +31,6 @@ Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
 
    renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle(),
                                         renderer::ApplicationType::EDITOR);
-
-   gui_.Init();
    gui_.Init();
 
    m_deltaTime = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000.0f));
@@ -357,23 +355,33 @@ Editor::UnselectEditorObject()
 void
 Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
 {
-   auto newSelectedEditorObject =
-      std::find_if(m_editorObjects.begin(), m_editorObjects.end(), [cursorPosition](auto& object) {
-         return object->IsVisible() && object->CheckIfCollidedScreenPosion(cursorPosition);
-      });
+   auto CheckIfEditorObjectSelected =
+      [this, cursorPosition](const std::vector< std::shared_ptr< EditorObject > >& objects) {
+         auto newSelectedEditorObject =
+            std::find_if(objects.begin(), objects.end(), [cursorPosition](auto& object) {
+               return object->IsVisible() && object->CheckIfCollidedScreenPosion(cursorPosition);
+            });
 
-   if (newSelectedEditorObject != m_editorObjects.end())
+         if (newSelectedEditorObject != objects.end())
+         {
+            HandleEditorObjectSelected(*newSelectedEditorObject);
+         }
+
+         return newSelectedEditorObject != objects.end();
+      };
+
+
+   if (CheckIfEditorObjectSelected(m_editorObjects)
+       or CheckIfEditorObjectSelected(animationPoints_))
    {
-      HandleEditorObjectSelected(*newSelectedEditorObject);
+      return;
    }
-   else
-   {
-      auto newSelectedObject = m_currentLevel->GetGameObjectOnLocation(cursorPosition);
 
-      if (newSelectedObject)
-      {
-         HandleGameObjectSelected(newSelectedObject);
-      }
+   auto newSelectedObject = m_currentLevel->GetGameObjectOnLocation(cursorPosition);
+
+   if (newSelectedObject)
+   {
+      HandleGameObjectSelected(newSelectedObject);
    }
 }
 
@@ -406,7 +414,7 @@ Editor::ActionOnObject(Editor::ACTION action)
          }
          else if (m_gameObjectSelected && m_currentSelectedGameObject)
          {
-            if (m_currentSelectedGameObject->GetType() == looper::Object::TYPE::PLAYER)
+            if (m_currentSelectedGameObject->GetType() == ObjectType::PLAYER)
             {
                m_player.reset();
             }
@@ -428,23 +436,23 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 {
    if (m_levelLoaded)
    {
+      auto& renderData =
+         renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()];
+
       m_currentLevel->GetSprite().Render();
-      DrawBackgroundObjects();
+
+      DrawEditorObjects();
+      DrawAnimationPoints();
+
       m_currentLevel->RenderGameObjects();
+
       vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                         renderer::Data::graphicsPipeline_);
 
       auto offsets = std::to_array< const VkDeviceSize >({0});
-      vkCmdBindVertexBuffers(
-         cmdBuffer, 0, 1,
-         &renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()]
-             .vertexBuffer,
-         offsets.data());
+      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer, offsets.data());
 
-      vkCmdBindIndexBuffer(
-         cmdBuffer,
-         renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()].indexBuffer,
-         0, VK_INDEX_TYPE_UINT32);
+      vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
       vkCmdBindDescriptorSets(
          cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::pipelineLayout_, 0, 1,
@@ -462,12 +470,9 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       vkCmdPushConstants(cmdBuffer, renderer::Data::pipelineLayout_, VK_SHADER_STAGE_VERTEX_BIT, 0,
                          sizeof(renderer::PushConstants), &pushConstants);
 
-      vkCmdDrawIndexed(
-         cmdBuffer,
-         renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()].numMeshes
-            * 6,
-         1, 0, 0, 0);
-
+      const auto numObjects =
+         renderData.numMeshes - renderer::EditorData::numNodes_ - renderer::EditorData::numPoints_;
+      vkCmdDrawIndexed(cmdBuffer, numObjects * renderer::INDICES_PER_SPRITE, 1, 0, 0, 0);
 
       if (m_currentSelectedGameObject)
       {
@@ -478,11 +483,59 @@ Editor::Render(VkCommandBuffer cmdBuffer)
          vkCmdDrawIndexed(cmdBuffer, 6, 1, tmpIdx * 6, 0, 0);
       }
 
+      // DRAW PATHFINDER NODES
+      if (m_renderPathfinderNodes)
+      {
+         vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::EditorData::pathfinderVertexBuffer,
+                                offsets.data());
 
-      DrawEditorObjects();
-      DrawAnimationPoints();
-      // DrawBoundingBoxes();
-      // DrawGrid();
+         vkCmdBindIndexBuffer(cmdBuffer, renderer::EditorData::pathfinderIndexBuffer, 0,
+                              VK_INDEX_TYPE_UINT32);
+
+         vkCmdDrawIndexed(cmdBuffer, renderer::EditorData::numNodes_ * renderer::INDICES_PER_SPRITE,
+                          1, 0, 0, 0);
+      }
+
+
+      // DRAW ANIMATION POINTS
+      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::EditorData::animationVertexBuffer,
+                             offsets.data());
+
+      vkCmdBindIndexBuffer(cmdBuffer, renderer::EditorData::animationIndexBuffer, 0,
+                           VK_INDEX_TYPE_UINT32);
+
+      vkCmdDrawIndexed(cmdBuffer, renderer::EditorData::numPoints_ * renderer::INDICES_PER_SPRITE,
+                       1, 0, 0, 0);
+
+
+      // DRAW LINES
+      vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::linePipeline_);
+
+      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::Data::lineVertexBuffer, offsets.data());
+
+      vkCmdBindIndexBuffer(cmdBuffer, renderer::Data::lineIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+      vkCmdBindDescriptorSets(
+         cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::linePipelineLayout_, 0, 1,
+         &renderer::Data::lineDescriptorSets_[renderer::Data::currentFrame_], 0, nullptr);
+
+      renderer::LinePushConstants linePushConstants = {};
+      linePushConstants.color = glm::vec4(0.4f, 0.5f, 0.6f, static_cast< float >(m_drawGrid));
+
+      vkCmdPushConstants(cmdBuffer, renderer::Data::linePipelineLayout_,
+                         VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(renderer::LinePushConstants),
+                         &linePushConstants);
+
+      vkCmdDrawIndexed(cmdBuffer, renderer::Data::numGridLines * renderer::INDICES_PER_LINE, 1, 0,
+                       0, 0);
+
+      linePushConstants.color = glm::vec4(0.5f, 0.8f, 0.8f, 1.0f);
+      vkCmdPushConstants(cmdBuffer, renderer::Data::linePipelineLayout_,
+                         VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(renderer::LinePushConstants),
+                         &linePushConstants);
+      vkCmdDrawIndexed(cmdBuffer, renderer::Data::curDynLineIdx, 1,
+                       renderer::Data::numGridLines * renderer::INDICES_PER_LINE,
+                       0, 0);
    }
 
    EditorGUI::Render(cmdBuffer);
@@ -505,12 +558,17 @@ Editor::DrawEditorObjects()
 {
    for (auto& object : m_editorObjects)
    {
-      // Animation points are handled in Editor::DrawAnimationPoints()
-      if (object->IsVisible()
-          && (Object::GetTypeFromID(object->GetLinkedObjectID()) != Object::TYPE::ANIMATION_POINT)
-          && !object->GetIsBackground())
+      if (object->IsVisible())
       {
          object->Render();
+      }
+   }
+
+   if (m_renderPathfinderNodes)
+   {
+      for (auto& node : pathfinderNodes_)
+      {
+         node->Render();
       }
    }
 }
@@ -531,7 +589,7 @@ Editor::DrawAnimationPoints()
                         [](const auto& animationKeyPoint) { return animationKeyPoint.GetID(); });
 
          auto lineStart = animatePtr->GetAnimationStartLocation();
-         for (auto& object : m_editorObjects)
+         for (auto& object : animationPoints_)
          {
             if (object->IsVisible())
             {
@@ -539,14 +597,15 @@ Editor::DrawAnimationPoints()
                                    object->GetLinkedObjectID());
                if (it != animaltionPointIDs.end())
                {
-                  // renderer::VulkanRenderer::DrawLine(lineStart, object->GetPosition(), {1.0f,
-                  // 0.0f, 1.0f, 1.0f});
+                  renderer::VulkanRenderer::DrawDynamicLine(lineStart, object->GetPosition());
                   lineStart = object->GetCenteredPosition();
 
                   object->Render();
                }
             }
          }
+
+         renderer::VulkanRenderer::UpdateLineData(renderer::Data::numGridLines);
       }
    }
 }
@@ -554,14 +613,13 @@ Editor::DrawAnimationPoints()
 // void
 // Editor::DrawBoundingBoxes()
 // {
-//    constexpr glm::vec4 color = {1.0f, 0.2f, 0.1f, 1.0f};
-
+//
 //    auto drawBoundingBox = [color](const renderer::Spriteer::Sprite& sprite) {
 //       const auto rect = sprite.GetTransformedRectangle();
-//       Renderer::DrawLine(rect[0], rect[1], color);
-//       Renderer::DrawLine(rect[1], rect[2], color);
-//       Renderer::DrawLine(rect[2], rect[3], color);
-//       Renderer::DrawLine(rect[3], rect[0], color);
+//       Renderer::DrawLine(rect[0], rect[1]);
+//       Renderer::DrawLine(rect[1], rect[2]);
+//       Renderer::DrawLine(rect[2], rect[3]);
+//       Renderer::DrawLine(rect[3], rect[0]);
 //    };
 
 //    if (m_currentSelectedGameObject)
@@ -578,27 +636,24 @@ Editor::DrawAnimationPoints()
 void
 Editor::DrawGrid()
 {
-   // if (m_drawGrid)
-   // {
-   //    const auto levelSize = m_currentLevel->GetSize();
-   //    const auto grad = m_gridCellSize;
+   const auto levelSize = m_currentLevel->GetSize();
+   const auto grad = m_gridCellSize;
 
-   //    const auto w = levelSize.x / grad;
-   //    const auto h = levelSize.y / grad;
-   //    // const auto offset = glm::ivec2(0, grad);
+   const auto w = levelSize.x / grad;
+   const auto h = levelSize.y / grad;
+   // const auto offset = glm::ivec2(0, grad);
 
-   //    for (int i = 0; i <= h; ++i)
-   //    {
-   //       Renderer::DrawLine(glm::vec2(0, i * grad), glm::vec2(levelSize.x, i * grad),
-   //                          {1.0f, 0.0f, 1.0f, 1.0f});
-   //    }
+   for (int i = 0; i <= h; ++i)
+   {
+      renderer::VulkanRenderer::DrawLine(glm::vec2(0, i * grad), glm::vec2(levelSize.x, i * grad));
+   }
 
-   //    for (int i = 0; i <= w; ++i)
-   //    {
-   //       Renderer::DrawLine(glm::vec2(i * grad, 0), glm::vec2(i * grad, levelSize.y),
-   //                          {1.0f, 0.0f, 1.0f, 1.0f});
-   //    }
-   // }
+   for (int i = 0; i <= w; ++i)
+   {
+      renderer::VulkanRenderer::DrawLine(glm::vec2(i * grad, 0), glm::vec2(i * grad, levelSize.y));
+   }
+
+   renderer::Data::numGridLines = renderer::Data::numLines;
 }
 
 void
@@ -658,7 +713,7 @@ Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
                      return pathfinderNode;
                   });
 
-   m_camera.Create(glm::vec3(m_currentLevel->GetLevelPosition(), 0.0f), m_window->GetSize());
+   m_camera.Create(glm::vec3(m_currentLevel->GetLevelPosition(), -1.0f), m_window->GetSize());
    m_camera.SetLevelSize(m_currentLevel->GetSize());
 
    m_levelLoaded = true;
@@ -675,6 +730,7 @@ Editor::LoadLevel(const std::string& levelPath)
       UnselectGameObject();
       m_currentLevel.reset();
       m_editorObjects.clear();
+      pathfinderNodes_.clear();
    }
 
    renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::EDITOR);
@@ -683,42 +739,43 @@ Editor::LoadLevel(const std::string& levelPath)
    m_currentLevel = std::make_shared< Level >();
    m_currentLevel->Load(this, levelPath);
 
-   //// Populate editor objects
-   // const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
-   // std::transform(pathfinderNodes.begin(), pathfinderNodes.end(),
-   //                std::back_inserter(m_editorObjects), [this](const auto& node) {
-   //                   const auto tileSize = m_currentLevel->GetTileSize();
+   // Populate editor objects
+   const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
+   std::transform(pathfinderNodes.begin(), pathfinderNodes.end(),
+                  std::back_inserter(pathfinderNodes_), [this](const auto& node) {
+                     const auto tileSize = m_currentLevel->GetTileSize();
 
-   //                  auto pathfinderNode = std::make_shared< EditorObject >(
-   //                     *this, node.m_position, glm::ivec2(tileSize, tileSize), "white.png",
-   //                     node.GetID());
+                     auto pathfinderNode = std::make_shared< EditorObject >(
+                        *this, node.m_position, glm::ivec2(tileSize, tileSize), "white.png",
+                        node.GetID());
 
-   //                  pathfinderNode->SetIsBackground(true);
-   //                  pathfinderNode->SetVisible(m_renderPathfinderNodes);
-   //                  pathfinderNode->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
+                     pathfinderNode->SetIsBackground(true);
+                     pathfinderNode->SetVisible(m_renderPathfinderNodes);
+                     pathfinderNode->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
 
-   //                  return pathfinderNode;
-   //               });
+                     return pathfinderNode;
+                  });
 
-   // const auto& gameObjects = m_currentLevel->GetObjects();
-   // for (const auto& object : gameObjects)
-   //{
-   //    const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(object);
+   const auto& gameObjects = m_currentLevel->GetObjects();
+   for (const auto& object : gameObjects)
+   {
+      const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(object);
 
-   //   if (animatablePtr)
-   //   {
-   //      const auto& animationPoints = animatablePtr->GetAnimationKeypoints();
+      if (animatablePtr)
+      {
+         const auto& animationPoints = animatablePtr->GetAnimationKeypoints();
 
-   //      for (const auto& point : animationPoints)
-   //      {
-   //         auto editorObject = std::make_shared< EditorObject >(
-   //            *this, point.m_end, glm::ivec2(20, 20), "NodeSprite.png", point.GetID());
-   //         editorObject->SetName("AnimationPoint" + object->GetName());
-
-   //         m_editorObjects.push_back(editorObject);
-   //      }
-   //   }
-   //}
+         for (const auto& point : animationPoints)
+         {
+            auto editorObject = std::make_shared< EditorObject >(
+               *this, point.m_end, glm::vec2(20, 20), "NodeSprite.png", point.GetID());
+            editorObject->SetName(fmt::format("AnimationPoint{}", object->GetName()));
+            editorObject->SetVisible(false);
+            editorObject->Render();
+            animationPoints_.push_back(editorObject);
+         }
+      }
+   }
 
    m_camera.Create(glm::vec3(m_currentLevel->GetPlayer()->GetPosition(), 0.0f),
                    m_window->GetSize());
@@ -726,8 +783,15 @@ Editor::LoadLevel(const std::string& levelPath)
 
    m_levelLoaded = true;
    gui_.LevelLoaded(m_currentLevel);
-
    renderer::VulkanRenderer::SetupData();
+
+   DrawGrid();
+   renderer::VulkanRenderer::CreateLinePipeline();
+   renderer::VulkanRenderer::SetupLineData();
+   renderer::VulkanRenderer::UpdateLineData();
+
+   renderer::VulkanRenderer::SetupEditorData(ObjectType::PATHFINDER_NODE);
+   renderer::VulkanRenderer::SetupEditorData(ObjectType::ANIMATION_POINT);
 }
 
 void
@@ -738,7 +802,7 @@ Editor::SaveLevel(const std::string& levelPath)
 }
 
 void
-Editor::AddGameObject(GameObject::TYPE objectType)
+Editor::AddGameObject(ObjectType objectType)
 {
    HandleGameObjectSelected(m_currentLevel->AddGameObject(objectType));
 }
@@ -757,10 +821,10 @@ Editor::CopyGameObject(const std::shared_ptr< GameObject >& objectToCopy)
 }
 
 void
-Editor::AddObject(Object::TYPE objectType)
+Editor::AddObject(ObjectType objectType)
 {
    std::shared_ptr< EditorObject > newObject;
-   if (objectType == Object::TYPE::ANIMATION_POINT)
+   if (objectType == ObjectType::ANIMATION_POINT)
    {
       if (!m_currentSelectedGameObject)
       {
@@ -814,27 +878,18 @@ Editor::PlayLevel()
 void
 Editor::LaunchGameLoop()
 {
-   // Clear rednerer data
-   // Renderer::Shutdown();
-   // EditorGUI::Shutdown();
-
    m_game = std::make_unique< Game >();
    m_game->Init("GameInit.txt", false);
    m_game->LoadLevel(m_levelFileName);
 
-   // Create game-thread and run it inside
+   // TODO: Create game-thread and run it inside
    m_game->MainLoop();
    m_game.reset();
 
    m_playGame = false;
+
    renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::EDITOR);
    renderer::VulkanRenderer::SetupData();
-   // Reinitialize renderer
-   // glfwMakeContextCurrent(m_window->GetWindowHandle());
-   // RenderCommand::Init();
-   // renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle());
-
-   // gui_.Init();
 }
 
 // std::shared_ptr< EditorObject >
@@ -857,13 +912,8 @@ Editor::RenderNodes(bool render)
    {
       m_renderPathfinderNodes = render;
 
-      std::for_each(m_editorObjects.begin(), m_editorObjects.end(), [render](auto& object) {
-         if (Object::GetTypeFromID(object->GetLinkedObjectID())
-             == looper::Object::TYPE::PATHFINDER_NODE)
-         {
-            object->SetVisible(render);
-         }
-      });
+      std::for_each(pathfinderNodes_.begin(), pathfinderNodes_.end(),
+                    [render](auto& node) { node->SetVisible(render); });
    }
 }
 
@@ -885,14 +935,16 @@ Editor::SetRenderAnimationPoints(bool render)
 
       for (auto& animationPoint : animationPoints)
       {
-         auto it = std::find_if(
-            m_editorObjects.begin(), m_editorObjects.end(), [&animationPoint](auto& editorObject) {
-               return editorObject->GetLinkedObjectID() == animationPoint.GetID();
-            });
+         auto it =
+            std::find_if(animationPoints_.begin(), animationPoints_.end(),
+                         [&animationPoint](auto& editorObject) {
+                            return editorObject->GetLinkedObjectID() == animationPoint.GetID();
+                         });
 
-         if (it != m_editorObjects.end())
+         if (it != animationPoints_.end())
          {
             (*it)->SetVisible(render);
+            (*it)->Render();
          }
       }
    }
@@ -1003,6 +1055,8 @@ Editor::MainLoop()
       renderer::VulkanRenderer::Draw(this);
 
       timeLastFrame_ = watch.Stop();
+
+      renderer::Data::curDynLineIdx = 0;
 
       if (m_playGame)
       {

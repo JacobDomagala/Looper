@@ -5,6 +5,20 @@
 #include <array>
 #include <string>
 
+namespace looper {
+
+enum class ObjectType
+{
+   NONE = 0,
+   ENEMY = 1,
+   PLAYER = 2,
+   OBJECT = 3,
+   ANIMATION_POINT = 4,
+   PATHFINDER_NODE = 8
+};
+
+}
+
 namespace looper::renderer {
 
 enum class ApplicationType
@@ -22,6 +36,13 @@ enum class TextureType
 
 // DIFFUSE_MAP SPECULAR_MAP NORMAL_MAP
 using TextureMaps = std::array< std::string, 3 >;
+
+struct UniformBufferObject
+{
+   alignas(16) glm::mat4 proj = {};
+   alignas(16) glm::mat4 view = {};
+   glm::vec4 cameraPos = {};
+};
 
 struct PerInstanceBuffer
 {

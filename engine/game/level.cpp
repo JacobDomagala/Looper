@@ -127,7 +127,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
 
             auto gameObject = std::make_shared< GameObject >(
                *context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture,
-               Object::TYPE::OBJECT);
+               ObjectType::OBJECT);
             gameObject->SetName(name);
             gameObject->GetSprite().Scale(glm::vec2(object["scale"][0], object["scale"][1]));
             gameObject->GetSprite().Rotate(object["rotation"]);
@@ -174,7 +174,7 @@ Level::Save(const std::string& pathToLevel)
    {
       switch (object->GetType())
       {
-         case Object::TYPE::PLAYER: {
+         case ObjectType::PLAYER: {
             json["PLAYER"]["name"] = m_player->GetName();
             json["PLAYER"]["position"] = {m_player->GetPosition().x, m_player->GetPosition().y};
             json["PLAYER"]["scale"] = {m_player->GetSprite().GetScale().x,
@@ -187,7 +187,7 @@ Level::Save(const std::string& pathToLevel)
          }
          break;
 
-         case Object::TYPE::ENEMY: {
+         case ObjectType::ENEMY: {
             nlohmann::json enemyJson;
 
             enemyJson["name"] = object->GetName();
@@ -220,7 +220,7 @@ Level::Save(const std::string& pathToLevel)
          }
          break;
 
-         case Object::TYPE::OBJECT: {
+         case ObjectType::OBJECT: {
             nlohmann::json objectJson;
 
             objectJson["name"] = object->GetName();
@@ -266,7 +266,7 @@ Level::Quit()
 }
 
 std::shared_ptr< GameObject >
-Level::AddGameObject(GameObject::TYPE objectType)
+Level::AddGameObject(ObjectType objectType)
 {
    const auto defaultPosition = m_contextPointer->GetCamera().GetPosition();
    const auto defaultSize = glm::ivec2(128, 128);
@@ -276,14 +276,14 @@ Level::AddGameObject(GameObject::TYPE objectType)
 
    switch (objectType)
    {
-      case GameObject::TYPE::ENEMY: {
+      case ObjectType::ENEMY: {
          newObject = std::make_shared< Enemy >(*m_contextPointer, defaultPosition, defaultSize,
                                                defaultTexture, std::vector< AnimationPoint >{});
          m_objects.push_back(newObject);
       }
       break;
 
-      case GameObject::TYPE::PLAYER: {
+      case ObjectType::PLAYER: {
          if (m_player != nullptr)
          {
             newObject = m_player;
@@ -298,9 +298,9 @@ Level::AddGameObject(GameObject::TYPE objectType)
       }
       break;
 
-      case GameObject::TYPE::OBJECT: {
+      case ObjectType::OBJECT: {
          newObject = std::make_shared< GameObject >(*m_contextPointer, defaultPosition, defaultSize,
-                                                    defaultTexture, Object::TYPE::OBJECT);
+                                                    defaultTexture, ObjectType::OBJECT);
 
          m_objects.push_back(newObject);
       }
@@ -449,9 +449,9 @@ Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
    m_locked = false;
    m_levelSize = size;
 
-   m_background.SetSpriteTextured(glm::vec2(static_cast< float >(m_levelSize.x) / 2.0f,
-                                            static_cast< float >(m_levelSize.y) / 2.0f),
-                                  size, fileName);
+   m_background.SetSpriteTextured(glm::vec3(static_cast< float >(m_levelSize.x) / 2.0f,
+                                            static_cast< float >(m_levelSize.y) / 2.0f, 0.3f),
+                                  size, fileName, ObjectType::NONE);
 }
 
 void
@@ -487,7 +487,7 @@ Level::GetObjectRef(Object::ID objectID)
 
    switch (Object::GetTypeFromID(objectID))
    {
-      case Object::TYPE::ENEMY: {
+      case ObjectType::ENEMY: {
          auto it = std::find_if(m_objects.begin(), m_objects.end(), [objectID](const auto& object) {
             return object->GetID() == objectID;
          });
@@ -499,13 +499,13 @@ Level::GetObjectRef(Object::ID objectID)
       }
       break;
 
-      case Object::TYPE::PLAYER: {
+      case ObjectType::PLAYER: {
          // Assume it's the player
          return *m_player;
       }
       break;
 
-      case Object::TYPE::ANIMATION_POINT: {
+      case ObjectType::ANIMATION_POINT: {
          for (auto& object : m_objects)
          {
             auto animatePtr = std::dynamic_pointer_cast< Animatable >(object);
@@ -526,7 +526,7 @@ Level::GetObjectRef(Object::ID objectID)
       }
       break;
 
-      case Object::TYPE::PATHFINDER_NODE: {
+      case ObjectType::PATHFINDER_NODE: {
          auto& nodes = m_pathFinder.GetAllNodes();
          auto it = std::find_if(nodes.begin(), nodes.end(),
                                 [objectID](const auto& node) { return node.GetID() == objectID; });
@@ -559,7 +559,7 @@ Level::Update(bool isReverse)
    {
       if (obj->Visible())
       {
-         if (obj->GetType() == Object::TYPE::ENEMY)
+         if (obj->GetType() == ObjectType::ENEMY)
          {
             std::dynamic_pointer_cast< Enemy >(obj)->DealWithPlayer();
          }

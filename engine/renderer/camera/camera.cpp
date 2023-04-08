@@ -25,6 +25,7 @@ Camera::Create(const glm::vec3& position, const glm::ivec2& windowSize, const gl
 
    // NOLINTNEXTLINE top and bottom swapped intentionally
    m_projectionMatrix = glm::ortho(left, right, top, bottom, nearPlane_, farPlane_);
+
    m_viewProjectionMatrix = m_projectionMatrix * m_viewMatrix;
 }
 
@@ -38,7 +39,7 @@ void
 Camera::SetProjection(float left, float right, float top, float bottom)
 {
    // NOLINTNEXTLINE top and bottom swapped intentionally
-   m_projectionMatrix = glm::ortho(left, right, top, bottom, -1.0f, 1.0f);
+   m_projectionMatrix = glm::ortho(left, right, top, bottom, nearPlane_, farPlane_);
 }
 
 void

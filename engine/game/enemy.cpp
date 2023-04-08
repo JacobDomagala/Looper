@@ -12,7 +12,7 @@ namespace looper {
 Enemy::Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size,
              const std::string& textureName, const std::vector< AnimationPoint >& keypoints,
              Animatable::ANIMATION_TYPE animationType)
-   : GameObject(context, pos, size, textureName, TYPE::ENEMY),
+   : GameObject(context, pos, size, textureName, ObjectType::ENEMY),
      Animatable(animationType),
      m_weapon(std::make_unique< Glock >()),
      m_initialPosition(m_currentGameObjectState.m_position)

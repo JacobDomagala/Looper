@@ -10,7 +10,6 @@
 #include "utils/file_manager.hpp"
 #include "vulkan_common.hpp"
 
-
 #include <GLFW/glfw3.h>
 #include <array>
 #include <glm/glm.hpp>
@@ -23,44 +22,93 @@
 
 namespace looper::renderer {
 
-struct UniformBufferObject
-{
-   alignas(16) glm::mat4 proj = {};
-   alignas(16) glm::mat4 view = {};
-   glm::vec4 cameraPos = {};
-};
-
 static int32_t currTexIdx = 0;
 std::unordered_map< std::string, std::pair< int32_t, VkImageView > > textures = {};
 std::vector< VkImageView > texturesVec = {};
 
+struct SwapChainSupportDetails
+{
+   VkSurfaceCapabilitiesKHR capabilities = {};
+   std::vector< VkSurfaceFormatKHR > formats = {};
+   std::vector< VkPresentModeKHR > presentModes = {};
+};
+
+struct QueueFamilyIndices
+{
+   std::optional< uint32_t > graphicsFamily = {};
+   std::optional< uint32_t > presentFamily = {};
+
+   [[nodiscard]] uint32_t
+   GetGraphics() const
+   {
+      utils::Assert(graphicsFamily.has_value(),
+                    "QueueFamilyIndices::GetGraphics: graphicsFamily not initialized!");
+      return graphicsFamily.value();
+   }
+
+   [[nodiscard]] uint32_t
+   GetPresent() const
+   {
+      utils::Assert(presentFamily.has_value(),
+                    "QueueFamilyIndices::GetPresent: presentFamily not initialized!");
+      return presentFamily.value();
+   }
+
+   [[nodiscard]] bool
+   isComplete() const
+   {
+      return graphicsFamily.has_value() && presentFamily.has_value();
+   }
+};
+
+
 uint32_t
 VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureMaps& textures_in,
-                           const glm::mat4& modelMat, const glm::vec4& color)
+                           const glm::mat4& modelMat, const glm::vec4& color, ObjectType type)
 {
-   auto& vertices = Data::renderData_[boundApplication_].vertices;
+   auto* renderData = &Data::renderData_[boundApplication_];
+   auto* vertices = &renderData->vertices;
+   auto* numObjects = &renderData->numMeshes;
+   if (boundApplication_ == ApplicationType::EDITOR)
+   {
+      switch (type)
+      {
+         case ObjectType::ANIMATION_POINT: {
+            vertices = &EditorData::animationVertices_;
+            ++EditorData::numPoints_;
+         }
+         break;
+         case ObjectType::PATHFINDER_NODE: {
+            vertices = &EditorData::pathfinderVertices_;
+            ++EditorData::numNodes_;
+         }
+         break;
+         default: {
+         }
+      }
+   }
 
-   std::copy(vertices_in.begin(), vertices_in.end(),
-             std::back_inserter(Data::renderData_[boundApplication_].vertices));
-   std::transform(vertices.end() - 4, vertices.end(), vertices.end() - 4, [](auto& vtx) {
-      vtx.m_texCoordsDraw.z = static_cast< float >(Data::renderData_[boundApplication_].numMeshes);
-      return vtx;
-   });
+   std::copy(vertices_in.begin(), vertices_in.end(), std::back_inserter(*vertices));
+   std::transform(vertices->end() - 4, vertices->end(), vertices->end() - 4,
+                  [numObjects](auto& vtx) {
+                     vtx.m_texCoordsDraw.z = static_cast< float >(*numObjects);
+                     return vtx;
+                  });
 
    // Indices are handled in init
    // std::copy(indicies_in.begin(), indicies_in.end(), std::back_inserter(indices));
 
-   VkDrawIndexedIndirectCommand newModel = {};
-   newModel.firstIndex = m_currentIndex;
-   newModel.indexCount = static_cast< uint32_t >(6);
-   newModel.firstInstance = 0;
-   newModel.instanceCount = 1;
-   newModel.vertexOffset = static_cast< int32_t >(m_currentVertex);
    // TODO: If we go back to indirect draw, this also should be updated to editor/game
-   // m_renderCommands.push_back(newModel);
+   // VkDrawIndexedIndirectCommand newModel = {};
+   // newModel.firstIndex = m_currentIndex;
+   // newModel.indexCount = INDICES_PER_SPRITE;
+   // newModel.firstInstance = 0;
+   // newModel.instanceCount = 1;
+   // newModel.vertexOffset = static_cast< int32_t >(m_currentVertex);
+   //  m_renderCommands.push_back(newModel);
 
-   m_currentVertex += static_cast< uint32_t >(vertices_in.size());
-   m_currentIndex += static_cast< uint32_t >(6);
+   // m_currentVertex += static_cast< uint32_t >(vertices_in.size());
+   // m_currentIndex += INDICES_PER_SPRITE;
 
    PerInstanceBuffer newInstance = {};
    newInstance.model = modelMat;
@@ -96,56 +144,21 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
       }
    }
 
-   Data::renderData_[boundApplication_].perInstance.push_back(newInstance);
+   renderData->perInstance.push_back(newInstance);
 
-   auto currentMeshIdx = Data::renderData_[boundApplication_].numMeshes;
-   ++Data::renderData_[boundApplication_].numMeshes;
+   auto currentMeshIdx = *numObjects;
+   ++(*numObjects);
 
    return currentMeshIdx;
 }
 
 void
-VulkanRenderer::SubmitMeshData(const uint32_t idx, const glm::mat4& modelMat, const glm::vec4& color)
+VulkanRenderer::SubmitMeshData(const uint32_t idx, const glm::mat4& modelMat,
+                               const glm::vec4& color)
 {
    Data::renderData_[boundApplication_].perInstance.at(idx).model = modelMat;
    Data::renderData_[boundApplication_].perInstance.at(idx).color = color;
 }
-
-struct QueueFamilyIndices
-{
-   std::optional< uint32_t > graphicsFamily = {};
-   std::optional< uint32_t > presentFamily = {};
-
-   [[nodiscard]] uint32_t
-   GetGraphics() const
-   {
-      utils::Assert(graphicsFamily.has_value(),
-                    "QueueFamilyIndices::GetGraphics: graphicsFamily not initialized!");
-      return graphicsFamily.value();
-   }
-
-   [[nodiscard]] uint32_t
-   GetPresent() const
-   {
-      utils::Assert(presentFamily.has_value(),
-                    "QueueFamilyIndices::GetPresent: presentFamily not initialized!");
-      return presentFamily.value();
-   }
-
-   [[nodiscard]] bool
-   isComplete() const
-   {
-      return graphicsFamily.has_value() && presentFamily.has_value();
-   }
-};
-
-struct SwapChainSupportDetails
-{
-   VkSurfaceCapabilitiesKHR capabilities = {};
-   std::vector< VkSurfaceFormatKHR > formats = {};
-   std::vector< VkPresentModeKHR > presentModes = {};
-};
-
 
 std::set< std::string >
 get_supported_extensions()
@@ -452,6 +465,7 @@ void
 VulkanRenderer::CreateVertexBuffer()
 {
    auto& vertices = Data::renderData_[boundApplication_].vertices;
+
    const VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
 
    VkBuffer stagingBuffer = {};
@@ -476,6 +490,406 @@ VulkanRenderer::CreateVertexBuffer()
    vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
 }
 
+void
+VulkanRenderer::CreateLinePipeline()
+{
+   CreateLineDescriptorPool();
+   CreateLineDescriptorSets();
+
+   auto [vertexInfo, fragmentInfo] =
+      VulkanShader::CreateShader(Data::vk_device, "line.vert.spv", "line.frag.spv");
+   auto shaderStages = std::to_array({vertexInfo.shaderInfo, fragmentInfo.shaderInfo});
+
+   VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
+   vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+   auto bindingDescription = LineVertex::getBindingDescription();
+   auto attributeDescriptions = LineVertex::getAttributeDescriptions();
+   vertexInputInfo.vertexBindingDescriptionCount = 1;
+   vertexInputInfo.vertexAttributeDescriptionCount =
+      static_cast< uint32_t >(attributeDescriptions.size());
+   vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+   vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+
+   VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
+   inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+   inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+   inputAssembly.primitiveRestartEnable = VK_FALSE;
+
+
+   VkViewport viewport = {};
+   viewport.x = 0.0f;
+   viewport.y = 0.0f;
+   viewport.width = static_cast< float >(Data::m_swapChainExtent.width);
+   viewport.height = static_cast< float >(Data::m_swapChainExtent.height);
+   viewport.minDepth = 0.0f;
+   viewport.maxDepth = 1.0f;
+
+   VkRect2D scissor = {};
+   scissor.offset = {0, 0};
+   scissor.extent = Data::m_swapChainExtent;
+
+   VkPipelineViewportStateCreateInfo viewportState = {};
+   viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+   viewportState.viewportCount = 1;
+   viewportState.pViewports = &viewport;
+   viewportState.scissorCount = 1;
+   viewportState.pScissors = &scissor;
+
+   VkPipelineRasterizationStateCreateInfo rasterizer = {};
+   rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+   rasterizer.depthClampEnable = VK_FALSE;
+   rasterizer.rasterizerDiscardEnable = VK_FALSE;
+   rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+   rasterizer.lineWidth = 1.0f;
+   rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+   // rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+   rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+   rasterizer.depthBiasEnable = VK_FALSE;
+
+   VkPipelineMultisampleStateCreateInfo multisampling = {};
+   multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+   multisampling.sampleShadingEnable = VK_FALSE;
+   multisampling.rasterizationSamples = renderer::Data::m_msaaSamples;
+
+   // Define depth and stencil state
+   VkStencilOpState stencilOp{};
+   stencilOp.failOp = VK_STENCIL_OP_KEEP;
+   stencilOp.passOp = VK_STENCIL_OP_KEEP;
+   stencilOp.depthFailOp = VK_STENCIL_OP_KEEP;
+   stencilOp.compareOp = VK_COMPARE_OP_ALWAYS;
+   stencilOp.compareMask = 0xFF;
+   stencilOp.writeMask = 0xFF;
+   stencilOp.reference = 0x01;
+
+   VkPipelineDepthStencilStateCreateInfo depthStencil = {};
+   depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+   depthStencil.depthTestEnable = VK_TRUE;
+   depthStencil.depthWriteEnable = VK_TRUE;
+   depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+   depthStencil.depthBoundsTestEnable = VK_FALSE;
+   depthStencil.minDepthBounds = 0.0f;
+   depthStencil.maxDepthBounds = 1.0f;
+   depthStencil.stencilTestEnable = VK_TRUE;
+   depthStencil.front = stencilOp;
+   depthStencil.back = stencilOp;
+
+   VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
+   colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT
+                                         | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+   colorBlendAttachment.blendEnable = VK_TRUE;
+   colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+   colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+   colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+   colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+   colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+   colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+
+   VkPipelineColorBlendStateCreateInfo colorBlending = {};
+   colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+   colorBlending.logicOpEnable = VK_FALSE;
+   colorBlending.logicOp = VK_LOGIC_OP_COPY;
+   colorBlending.attachmentCount = 1;
+   colorBlending.pAttachments = &colorBlendAttachment;
+   colorBlending.blendConstants[0] = 0.0f;
+   colorBlending.blendConstants[1] = 0.0f;
+   colorBlending.blendConstants[2] = 0.0f;
+   colorBlending.blendConstants[3] = 0.0f;
+
+   // Define push constant range
+   VkPushConstantRange pushConstantRange{};
+   pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+   pushConstantRange.offset = 0;
+   pushConstantRange.size = sizeof(LinePushConstants);
+
+   VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+   pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+   pipelineLayoutInfo.setLayoutCount = 1;
+   pipelineLayoutInfo.pSetLayouts = &lineDescriptorSetLayout_;
+   pipelineLayoutInfo.pushConstantRangeCount = 1;
+   pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
+
+   vk_check_error(vkCreatePipelineLayout(Data::vk_device, &pipelineLayoutInfo, nullptr,
+                                         &Data::linePipelineLayout_),
+                  "failed to create pipeline layout!");
+
+   VkGraphicsPipelineCreateInfo pipelineInfo{};
+   pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+   pipelineInfo.stageCount = 2;
+   pipelineInfo.pStages = shaderStages.data();
+   pipelineInfo.pVertexInputState = &vertexInputInfo;
+   pipelineInfo.pInputAssemblyState = &inputAssembly;
+   pipelineInfo.pViewportState = &viewportState;
+   pipelineInfo.pRasterizationState = &rasterizer;
+   pipelineInfo.pMultisampleState = &multisampling;
+   pipelineInfo.pDepthStencilState = &depthStencil;
+   pipelineInfo.pColorBlendState = &colorBlending;
+   pipelineInfo.layout = Data::linePipelineLayout_;
+   pipelineInfo.renderPass = renderer::Data::m_renderPass;
+   pipelineInfo.subpass = 0;
+   pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+
+
+   vk_check_error(vkCreateGraphicsPipelines(Data::vk_device, VK_NULL_HANDLE, 1, &pipelineInfo,
+                                            nullptr, &Data::linePipeline_),
+                  "failed to create graphics pipeline!");
+
+   // Shader info can be destroyed after the pipeline is created
+   vertexInfo.Destroy();
+   fragmentInfo.Destroy();
+}
+
+void
+VulkanRenderer::DrawLine(const glm::vec2& start, const glm::vec2& end)
+{
+   Data::lineVertices_.push_back(LineVertex{glm::vec3{start, 0.0f}});
+   Data::lineVertices_.push_back(LineVertex{glm::vec3{end, 0.0f}});
+
+   ++Data::numLines;
+}
+
+void
+VulkanRenderer::DrawDynamicLine(const glm::vec2& start, const glm::vec2& end)
+{
+   const auto totalNumVtx = Data::numGridLines * VERTICES_PER_LINE;
+   if (Data::lineVertices_.size() < (totalNumVtx + Data::curDynLineIdx + VERTICES_PER_LINE))
+   {
+      Data::lineVertices_.push_back(LineVertex{glm::vec3{start, 0.0f}});
+      Data::lineVertices_.push_back(LineVertex{glm::vec3{end, 0.0f}});
+   }
+   else
+   {
+      Data::lineVertices_[totalNumVtx + Data::curDynLineIdx++] =
+         LineVertex{glm::vec3{start, 0.0f}};
+      Data::lineVertices_[totalNumVtx + Data::curDynLineIdx++] =
+         LineVertex{glm::vec3{end, 0.0f}};
+   }
+}
+
+void
+VulkanRenderer::UpdateLineData(uint32_t startingLine)
+{
+   const auto lastLine = (Data::curDynLineIdx / VERTICES_PER_LINE) + Data::numGridLines;
+   const auto numLines = lastLine - startingLine;
+   const auto bufferSize = numLines * sizeof(LineVertex) * VERTICES_PER_LINE;
+   if (bufferSize)
+   {
+      const auto offset = startingLine * sizeof(LineVertex) * VERTICES_PER_LINE;
+
+      void* data = nullptr;
+      vkMapMemory(Data::vk_device, Data::lineVertexBufferMemory, offset, bufferSize, 0, &data);
+      memcpy(data, Data::lineVertices_.data() + startingLine * VERTICES_PER_LINE, bufferSize);
+      vkUnmapMemory(Data::vk_device, Data::lineVertexBufferMemory);
+   }
+}
+
+void
+VulkanRenderer::SetupLineData()
+{
+   {
+      const VkDeviceSize bufferSize = sizeof(Vertex) * EditorData::MAX_NUM_LINES * 2;
+
+      Buffer::CreateBuffer(
+         bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+         Data::lineVertexBuffer, Data::lineVertexBufferMemory);
+   }
+   {
+      auto& indices = Data::lineIndices_;
+      indices.resize(static_cast< size_t >(EditorData::MAX_NUM_LINES)
+                     * static_cast< size_t >(INDICES_PER_LINE));
+
+      uint32_t offset = 0;
+      for (uint32_t i = 0; i < indices.size(); i += INDICES_PER_LINE)
+      {
+         indices[i + 0] = offset + 0;
+         indices[i + 1] = offset + 1;
+
+         offset += 2;
+      }
+
+      const VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+      VkBuffer stagingBuffer = {};
+      VkDeviceMemory stagingBufferMemory = {};
+      Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                              | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                           stagingBuffer, stagingBufferMemory);
+
+      void* data = nullptr;
+      vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
+      memcpy(data, indices.data(), bufferSize);
+      vkUnmapMemory(Data::vk_device, stagingBufferMemory);
+
+      Buffer::CreateBuffer(
+         bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, Data::lineIndexBuffer, Data::lineIndexBufferMemory);
+
+      Buffer::CopyBuffer(stagingBuffer, Data::lineIndexBuffer, bufferSize);
+
+      vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
+      vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
+   }
+}
+
+void
+VulkanRenderer::SetupEditorData(ObjectType type)
+{
+   switch (type)
+   {
+      case ObjectType::ANIMATION_POINT: {
+         {
+            auto& vertices = EditorData::animationVertices_;
+
+            const VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
+
+            VkBuffer stagingBuffer = {};
+            VkDeviceMemory stagingBufferMemory = {};
+            Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                 stagingBuffer, stagingBufferMemory);
+
+            void* data = nullptr;
+            vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
+            memcpy(data, vertices.data(), bufferSize);
+            vkUnmapMemory(Data::vk_device, stagingBufferMemory);
+
+            Buffer::CreateBuffer(
+               bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, EditorData::animationVertexBuffer,
+               EditorData::animationVertexBufferMemory);
+
+            Buffer::CopyBuffer(stagingBuffer, EditorData::animationVertexBuffer, bufferSize);
+
+            vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
+            vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
+         }
+
+         {
+            auto& indices = EditorData::animationIndices_;
+            indices.resize(static_cast< size_t >(EditorData::numPoints_)
+                           * static_cast< size_t >(INDICES_PER_SPRITE));
+
+            uint32_t offset = 0;
+            for (uint32_t i = 0; i < indices.size(); i += INDICES_PER_SPRITE)
+            {
+               indices[i + 0] = offset + 0;
+               indices[i + 1] = offset + 1;
+               indices[i + 2] = offset + 2;
+
+               indices[i + 3] = offset + 0;
+               indices[i + 4] = offset + 2;
+               indices[i + 5] = offset + 3;
+
+               offset += 4;
+            }
+
+            const VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+            VkBuffer stagingBuffer = {};
+            VkDeviceMemory stagingBufferMemory = {};
+            Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                 stagingBuffer, stagingBufferMemory);
+
+            void* data = nullptr;
+            vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
+            memcpy(data, indices.data(), bufferSize);
+            vkUnmapMemory(Data::vk_device, stagingBufferMemory);
+
+            Buffer::CreateBuffer(
+               bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, EditorData::animationIndexBuffer,
+               EditorData::animationIndexBufferMemory);
+
+            Buffer::CopyBuffer(stagingBuffer, EditorData::animationIndexBuffer, bufferSize);
+
+            vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
+            vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
+         }
+      }
+      break;
+      case ObjectType::PATHFINDER_NODE: {
+         {
+            auto& vertices = EditorData::pathfinderVertices_;
+
+            const VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
+
+            VkBuffer stagingBuffer = {};
+            VkDeviceMemory stagingBufferMemory = {};
+            Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                 stagingBuffer, stagingBufferMemory);
+
+            void* data = nullptr;
+            vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
+            memcpy(data, vertices.data(), bufferSize);
+            vkUnmapMemory(Data::vk_device, stagingBufferMemory);
+
+            Buffer::CreateBuffer(
+               bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, EditorData::pathfinderVertexBuffer,
+               EditorData::pathfinderVertexBufferMemory);
+
+            Buffer::CopyBuffer(stagingBuffer, EditorData::pathfinderVertexBuffer, bufferSize);
+
+            vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
+            vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
+         }
+
+         {
+            auto& indices = EditorData::pathfinderIndices_;
+            indices.resize(static_cast< size_t >(EditorData::numNodes_)
+                           * static_cast< size_t >(INDICES_PER_SPRITE));
+
+            uint32_t offset = 0;
+            for (uint32_t i = 0; i < indices.size(); i += INDICES_PER_SPRITE)
+            {
+               indices[i + 0] = offset + 0;
+               indices[i + 1] = offset + 1;
+               indices[i + 2] = offset + 2;
+
+               indices[i + 3] = offset + 0;
+               indices[i + 4] = offset + 2;
+               indices[i + 5] = offset + 3;
+
+               offset += 4;
+            }
+
+            const VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+            VkBuffer stagingBuffer = {};
+            VkDeviceMemory stagingBufferMemory = {};
+            Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                 stagingBuffer, stagingBufferMemory);
+
+            void* data = nullptr;
+            vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
+            memcpy(data, indices.data(), bufferSize);
+            vkUnmapMemory(Data::vk_device, stagingBufferMemory);
+
+            Buffer::CreateBuffer(
+               bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, EditorData::pathfinderIndexBuffer,
+               EditorData::pathfinderIndexBufferMemory);
+
+            Buffer::CopyBuffer(stagingBuffer, EditorData::pathfinderIndexBuffer,
+                               bufferSize);
+
+            vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
+            vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
+         }
+      }
+      break;
+      default: {
+      }
+   }
+}
 
 void
 VulkanRenderer::SetupData()
@@ -512,10 +926,10 @@ VulkanRenderer::CreateIndexBuffer()
 {
    auto& indices = Data::renderData_[boundApplication_].indices;
    indices.resize(static_cast< size_t >(Data::renderData_[boundApplication_].numMeshes)
-                  * static_cast< size_t >(indicesPerMesh));
+                  * static_cast< size_t >(INDICES_PER_SPRITE));
 
    uint32_t offset = 0;
-   for (uint32_t i = 0; i < indices.size(); i += indicesPerMesh)
+   for (uint32_t i = 0; i < indices.size(); i += INDICES_PER_SPRITE)
    {
       indices[i + 0] = offset + 0;
       indices[i + 1] = offset + 1;
@@ -581,6 +995,66 @@ VulkanRenderer::CreateUniformBuffers()
                            Data::renderData_[boundApplication_].ssboMemory[i]);
    }
 }
+
+
+void
+VulkanRenderer::CreateLineDescriptorPool()
+{
+   std::array< VkDescriptorPoolSize, 1 > poolSizes{};
+   poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+   poolSizes[0].descriptorCount =
+      static_cast< uint32_t >(Data::renderData_[boundApplication_].swapChainImages.size());
+
+   VkDescriptorPoolCreateInfo poolInfo = {};
+   poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+   poolInfo.poolSizeCount = static_cast< uint32_t >(poolSizes.size());
+   poolInfo.pPoolSizes = poolSizes.data();
+   poolInfo.maxSets =
+      static_cast< uint32_t >(Data::renderData_[boundApplication_].swapChainImages.size());
+
+   vk_check_error(vkCreateDescriptorPool(Data::vk_device, &poolInfo, nullptr, &lineDescriptorPool),
+                  "Failed to create line descriptor pool!");
+}
+
+void
+VulkanRenderer::CreateLineDescriptorSets()
+{
+   const auto size = Data::MAX_FRAMES_IN_FLIGHT;
+   std::vector< VkDescriptorSetLayout > layouts(size, lineDescriptorSetLayout_);
+
+   VkDescriptorSetAllocateInfo allocInfo = {};
+   allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+   allocInfo.descriptorPool = lineDescriptorPool;
+   allocInfo.descriptorSetCount = static_cast< uint32_t >(size);
+   allocInfo.pSetLayouts = layouts.data();
+
+   Data::lineDescriptorSets_.resize(size);
+   vk_check_error(
+      vkAllocateDescriptorSets(Data::vk_device, &allocInfo, Data::lineDescriptorSets_.data()),
+      "Failed to allocate descriptor sets!");
+
+   for (size_t i = 0; i < size; i++)
+   {
+      VkDescriptorBufferInfo bufferInfo{};
+      bufferInfo.buffer = Data::renderData_[boundApplication_].uniformBuffers[i];
+      bufferInfo.offset = 0;
+      bufferInfo.range = sizeof(UniformBufferObject);
+
+      std::array< VkWriteDescriptorSet, 1 > descriptorWrites = {};
+
+      descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+      descriptorWrites[0].dstSet = Data::lineDescriptorSets_[i];
+      descriptorWrites[0].dstBinding = 0;
+      descriptorWrites[0].dstArrayElement = 0;
+      descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+      descriptorWrites[0].descriptorCount = 1;
+      descriptorWrites[0].pBufferInfo = &bufferInfo;
+
+      vkUpdateDescriptorSets(Data::vk_device, static_cast< uint32_t >(descriptorWrites.size()),
+                             descriptorWrites.data(), 0, nullptr);
+   }
+}
+
 void
 VulkanRenderer::CreateDescriptorPool()
 {
@@ -1115,6 +1589,16 @@ VulkanRenderer::CreateDescriptorSetLayout()
    vk_check_error(
       vkCreateDescriptorSetLayout(Data::vk_device, &layoutInfo, nullptr, &m_descriptorSetLayout),
       "Failed to create descriptor set layout!");
+
+
+   VkDescriptorSetLayoutCreateInfo lineLayoutInfo = {};
+   lineLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+   lineLayoutInfo.bindingCount = 1;
+   lineLayoutInfo.pBindings = bindings.data();
+
+   vk_check_error(vkCreateDescriptorSetLayout(Data::vk_device, &lineLayoutInfo, nullptr,
+                                              &lineDescriptorSetLayout_),
+                  "Failed to create line descriptor set layout!");
 }
 
 void

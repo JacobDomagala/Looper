@@ -26,7 +26,7 @@ Sprite::SetSprite(const glm::vec2& position, const glm::vec2& size)
 
 void
 Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
-                          const std::string& fileName)
+                          const std::string& fileName, ObjectType type)
 {
    texture_ = renderer::TextureLibrary::GetTexture(fileName)->GetID();
 
@@ -52,13 +52,13 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
 
    */
    const std::vector< renderer::Vertex > vtcs = {
-      {glm::vec3{-0.5f, 0.5f, 0.0f}, glm::vec3{0.0f, 0.0f, 1.0f}},
-      {glm::vec3{0.5f, 0.5f, 0.0f}, glm::vec3{1.0f, 0.0f, 1.0f}},
-      {glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3{1.0f, 1.0f, 1.0f}},
-      {glm::vec3{-0.5f, -0.5f, 0.0f}, glm::vec3{0.0f, 1.0f, 1.0f}}};
+      {glm::vec3{-0.5f, 0.5f, m_initialPosition.z}, glm::vec3{0.0f, 0.0f, 1.0f}},
+      {glm::vec3{0.5f, 0.5f, m_initialPosition.z}, glm::vec3{1.0f, 0.0f, 1.0f}},
+      {glm::vec3(0.5f, -0.5f, m_initialPosition.z), glm::vec3{1.0f, 1.0f, 1.0f}},
+      {glm::vec3{-0.5f, -0.5f, m_initialPosition.z}, glm::vec3{0.0f, 1.0f, 1.0f}}};
 
    const auto transformMat =
-      glm::translate(glm::mat4(1.0f), glm::vec3(m_currentState.m_translateVal, m_initialPosition.z))
+      glm::translate(glm::mat4(1.0f), glm::vec3(m_currentState.m_translateVal, 0.0f))
       // glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f))
       * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
       * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
@@ -68,14 +68,15 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
       TextureLibrary::GetTexture(texture_)->GetName(),
       TextureLibrary::GetTexture(texture_)->GetName()};
 
-   rendererIdx_ = VulkanRenderer::MeshLoaded(vtcs, txts, transformMat, m_currentState.m_color);
+   rendererIdx_ =
+      VulkanRenderer::MeshLoaded(vtcs, txts, transformMat, m_currentState.m_color, type);
 }
 
 void
 Sprite::SetSpriteTextured(const glm::vec2& position, const glm::vec2& size,
-                          const std::string& fileName)
+                          const std::string& fileName, ObjectType type)
 {
-   SetSpriteTextured(glm::vec3{position, 0.0f}, size, fileName);
+   SetSpriteTextured(glm::vec3{position, 0.0f}, size, fileName, type);
 }
 
 void
@@ -99,10 +100,6 @@ Sprite::Update(bool isReverse)
 void
 Sprite::Render()
 {
-   // Renderer::DrawQuad(m_currentState.m_translateVal, m_size, m_currentState.m_angle,
-   //                    TextureLibrary::GetTexture(m_texture->GetName()), 1.0f,
-   //                    m_currentState.m_color);
-
    if (changed_)
    {
       const glm::mat4 transformMat =

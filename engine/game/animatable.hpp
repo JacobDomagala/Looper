@@ -12,12 +12,12 @@ namespace looper {
 
 struct AnimationPoint : public Object
 {
-   explicit AnimationPoint(ID parentID) : Object(Object::TYPE::ANIMATION_POINT), m_parent(parentID)
+   explicit AnimationPoint(ID parentID) : Object(ObjectType::ANIMATION_POINT), m_parent(parentID)
    {
    }
 
    AnimationPoint(ID parentID, const glm::vec2& endPosition, Timer::seconds timeDuration)
-      : Object(Object::TYPE::ANIMATION_POINT),
+      : Object(ObjectType::ANIMATION_POINT),
         m_parent(parentID),
         m_timeDuration(timeDuration),
         m_end(endPosition)

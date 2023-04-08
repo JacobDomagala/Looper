@@ -17,8 +17,8 @@ class GameObject : public Object
 {
  public:
    // Constructors and destructors
-   GameObject(Application& application, const glm::vec2& position, const glm::ivec2& size,
-              const std::string& sprite, Object::TYPE type);
+   GameObject(Application& application, const glm::vec2& position, const glm::vec2& size,
+              const std::string& sprite, ObjectType type);
 
    virtual void Hit(int32_t /*dmg*/)
    {

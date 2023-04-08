@@ -25,30 +25,44 @@ vk_check_error(VkResult vkResult, std::string_view errorMessage)
    }
 }
 
-static constexpr uint32_t indicesPerMesh = 6;
+static constexpr uint32_t INDICES_PER_SPRITE = 6;
+static constexpr uint32_t VERTICES_PER_SPRITE = 4;
+static constexpr uint32_t INDICES_PER_LINE = 2;
+static constexpr uint32_t VERTICES_PER_LINE = 2;
 static constexpr bool ENABLE_VALIDATION = true;
 static constexpr std::array< const char*, 1 > VALIDATION_LAYERS = {"VK_LAYER_KHRONOS_validation"};
 static constexpr std::array< const char*, 1 > DEVICE_EXTENSIONS = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 struct RenderData
-{
+{  
+   // Vertex
    std::vector< Vertex > vertices = {};
-   std::vector< IndexType > indices = {};
-   std::vector< PerInstanceBuffer > perInstance = {};
    VkBuffer vertexBuffer = {};
    VkDeviceMemory vertexBufferMemory = {};
+
+   // Index
+   std::vector< IndexType > indices = {};
    VkBuffer indexBuffer = {};
    VkDeviceMemory indexBufferMemory = {};
+   
+   // UBO (UniformBufferObject)
    std::vector< VkBuffer > uniformBuffers = {};
    std::vector< VkDeviceMemory > uniformBuffersMemory = {};
+
+   // SSBO (PerInstanceBuffer) 
+   std::vector< PerInstanceBuffer > perInstance = {};
    std::vector< VkBuffer > ssbo = {};
    std::vector< VkDeviceMemory > ssboMemory = {};
+   
    VkSurfaceKHR surface = {};
+
+   // Swapchain
    VkSwapchainKHR swapChain = {};
    std::vector< VkImage > swapChainImages = {};
    std::vector< VkImageView > swapChainImageViews = {};
    std::vector< VkFramebuffer > swapChainFramebuffers = {};
    VkFormat swapChainImageFormat = {};
+   
    uint32_t numMeshes = {};
 };
 
@@ -68,19 +82,66 @@ struct Data
    inline static VkRenderPass m_renderPass = {};
    inline static VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
    inline static VkExtent2D m_swapChainExtent = {};
-   inline static uint32_t currentFrame_ = {};
-   inline static std::vector< VkDescriptorSet > descriptorSets_ = {};
+
+   // Standard pipeline
    inline static VkPipeline graphicsPipeline_ = {};
    inline static VkPipelineLayout pipelineLayout_ = {};
+   inline static std::vector< VkDescriptorSet > descriptorSets_ = {};
+
+   // Line pipeline
+   inline static VkPipeline linePipeline_ = {};
+   inline static VkPipelineLayout linePipelineLayout_ = {};
+   inline static std::vector< VkDescriptorSet > lineDescriptorSets_ = {};
+   inline static VkBuffer lineVertexBuffer = {};
+   inline static VkDeviceMemory lineVertexBufferMemory = {};
+   inline static VkBuffer lineIndexBuffer = {};
+   inline static VkDeviceMemory lineIndexBufferMemory = {};
+   inline static std::vector< LineVertex > lineVertices_ = {};
+   inline static std::vector< uint32_t > lineIndices_ = {};
+   inline static std::vector< VkBuffer > lineUniformBuffers_ = {};
+   inline static std::vector< VkDeviceMemory > lineUniformBuffersMemory_ = {};
+   inline static uint32_t numGridLines = {};
+   inline static uint32_t numLines = {};
+   inline static uint32_t curDynLineIdx = {};
 
    inline static std::unordered_map< ApplicationType, RenderData > renderData_ = {};
 
+   inline static uint32_t currentFrame_ = {};
    inline static const uint32_t MAX_FRAMES_IN_FLIGHT = 3;
+};
+
+struct EditorData
+{
+   // Pathfinder
+   inline static std::vector< Vertex > pathfinderVertices_ = {};
+   inline static std::vector< uint32_t > pathfinderIndices_ = {};
+   inline static VkBuffer pathfinderVertexBuffer = {};
+   inline static VkDeviceMemory pathfinderVertexBufferMemory = {};
+   inline static VkBuffer pathfinderIndexBuffer = {};
+   inline static VkDeviceMemory pathfinderIndexBufferMemory = {};
+   inline static uint32_t numNodes_ = {};
+
+   // Animation
+   inline static std::vector< Vertex > animationVertices_ = {};
+   inline static std::vector< uint32_t > animationIndices_ = {};
+   inline static VkBuffer animationVertexBuffer = {};
+   inline static VkDeviceMemory animationVertexBufferMemory = {};
+   inline static VkBuffer animationIndexBuffer = {};
+   inline static VkDeviceMemory animationIndexBufferMemory = {};
+   inline static uint32_t numPoints_ = {};
+
+   // Dynamic Lines
+   inline static constexpr uint32_t MAX_NUM_LINES = 100000;
 };
 
 struct PushConstants
 {
    float selectedIdx = {};
+};
+
+struct LinePushConstants
+{
+   glm::vec4 color = {};
 };
 
 uint32_t

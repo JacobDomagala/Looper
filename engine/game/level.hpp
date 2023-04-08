@@ -18,7 +18,7 @@ class Level
    static constexpr Tile_t invalidTile = Tile_t{-1, -1};
 
    std::shared_ptr< GameObject >
-   AddGameObject(GameObject::TYPE objectType);
+   AddGameObject(ObjectType objectType);
 
    [[nodiscard]] std::vector< Tile_t >
    GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const;
