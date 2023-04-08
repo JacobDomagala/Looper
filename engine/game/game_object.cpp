@@ -10,7 +10,7 @@ GameObject::GameObject(Application& application, const glm::vec2& position, cons
                        const std::string& sprite, ObjectType type)
    : Object(type), m_appHandle(application)
 {
-   m_sprite.SetSpriteTextured(position, size, sprite);
+   m_sprite.SetSpriteTextured(position, size, sprite, type);
    m_currentGameObjectState.m_position = position;
    m_currentGameObjectState.m_visible = true;
    m_currentGameObjectState.m_centeredPosition = m_sprite.GetPosition();
@@ -106,7 +106,7 @@ void
 GameObject::CreateSpriteTextured(const glm::vec2& position, const glm::ivec2& size,
                                  const std::string& fileName)
 {
-   m_sprite.SetSpriteTextured(position, size, fileName);
+   m_sprite.SetSpriteTextured(position, size, fileName, m_type);
    m_currentGameObjectState.m_position = m_sprite.GetPosition();
 }
 

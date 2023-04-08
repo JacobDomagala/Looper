@@ -32,24 +32,35 @@ static constexpr std::array< const char*, 1 > VALIDATION_LAYERS = {"VK_LAYER_KHR
 static constexpr std::array< const char*, 1 > DEVICE_EXTENSIONS = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 struct RenderData
-{
+{  
+   // Vertex
    std::vector< Vertex > vertices = {};
-   std::vector< IndexType > indices = {};
-   std::vector< PerInstanceBuffer > perInstance = {};
    VkBuffer vertexBuffer = {};
    VkDeviceMemory vertexBufferMemory = {};
+
+   // Index
+   std::vector< IndexType > indices = {};
    VkBuffer indexBuffer = {};
    VkDeviceMemory indexBufferMemory = {};
+   
+   // UBO (UniformBufferObject)
    std::vector< VkBuffer > uniformBuffers = {};
    std::vector< VkDeviceMemory > uniformBuffersMemory = {};
+
+   // SSBO (PerInstanceBuffer) 
+   std::vector< PerInstanceBuffer > perInstance = {};
    std::vector< VkBuffer > ssbo = {};
    std::vector< VkDeviceMemory > ssboMemory = {};
+   
    VkSurfaceKHR surface = {};
+
+   // Swapchain
    VkSwapchainKHR swapChain = {};
    std::vector< VkImage > swapChainImages = {};
    std::vector< VkImageView > swapChainImageViews = {};
    std::vector< VkFramebuffer > swapChainFramebuffers = {};
    VkFormat swapChainImageFormat = {};
+   
    uint32_t numMeshes = {};
 };
 
@@ -106,6 +117,7 @@ struct EditorData
    inline static VkDeviceMemory pathfinderVertexBufferMemory = {};
    inline static VkBuffer pathfinderIndexBuffer = {};
    inline static VkDeviceMemory pathfinderIndexBufferMemory = {};
+   inline static uint32_t numNodes_ = {};
 };
 
 struct PushConstants

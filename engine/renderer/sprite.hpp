@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "texture.hpp"
+#include "types.hpp"
 
 #include <deque>
 #include <glm/glm.hpp>
@@ -32,12 +33,14 @@ class Sprite
    void
    SetSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
                      const glm::vec2& size = glm::vec2(10, 10),
-                     const std::string& fileName = "Default128.png");
+                     const std::string& fileName = "Default128.png",
+                     ObjectType type = ObjectType::NONE);
 
    void
    SetSpriteTextured(const glm::vec3& position = glm::vec3(0.0f, 0.0f, 0.0f),
                      const glm::vec2& size = glm::vec2(10, 10),
-                     const std::string& fileName = "Default128.png");
+                     const std::string& fileName = "Default128.png",
+                     ObjectType type = ObjectType::NONE);
 
    void
    SetColor(const glm::vec4& color);

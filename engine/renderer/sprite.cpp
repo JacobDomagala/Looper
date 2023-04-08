@@ -26,7 +26,7 @@ Sprite::SetSprite(const glm::vec2& position, const glm::vec2& size)
 
 void
 Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
-                          const std::string& fileName)
+                          const std::string& fileName, ObjectType type)
 {
    texture_ = renderer::TextureLibrary::GetTexture(fileName)->GetID();
 
@@ -68,12 +68,13 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
       TextureLibrary::GetTexture(texture_)->GetName(),
       TextureLibrary::GetTexture(texture_)->GetName()};
 
-   rendererIdx_ = VulkanRenderer::MeshLoaded(vtcs, txts, transformMat, m_currentState.m_color);
+   rendererIdx_ =
+      VulkanRenderer::MeshLoaded(vtcs, txts, transformMat, m_currentState.m_color, type);
 }
 
 void
 Sprite::SetSpriteTextured(const glm::vec2& position, const glm::vec2& size,
-                          const std::string& fileName)
+                          const std::string& fileName, ObjectType type)
 {
    SetSpriteTextured(glm::vec3{position, 0.0f}, size, fileName);
 }

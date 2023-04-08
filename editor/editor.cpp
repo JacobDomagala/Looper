@@ -426,23 +426,23 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 {
    if (m_levelLoaded)
    {
+      auto& renderData =
+         renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()];
+
       m_currentLevel->GetSprite().Render();
-      DrawBackgroundObjects();
+
+      DrawEditorObjects();
+      DrawAnimationPoints();
+
       m_currentLevel->RenderGameObjects();
+
       vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                         renderer::Data::graphicsPipeline_);
 
       auto offsets = std::to_array< const VkDeviceSize >({0});
-      vkCmdBindVertexBuffers(
-         cmdBuffer, 0, 1,
-         &renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()]
-             .vertexBuffer,
-         offsets.data());
+      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer, offsets.data());
 
-      vkCmdBindIndexBuffer(
-         cmdBuffer,
-         renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()].indexBuffer,
-         0, VK_INDEX_TYPE_UINT32);
+      vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
       vkCmdBindDescriptorSets(
          cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::pipelineLayout_, 0, 1,
@@ -460,12 +460,20 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       vkCmdPushConstants(cmdBuffer, renderer::Data::pipelineLayout_, VK_SHADER_STAGE_VERTEX_BIT, 0,
                          sizeof(renderer::PushConstants), &pushConstants);
 
-      vkCmdDrawIndexed(
-         cmdBuffer,
-         renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()].numMeshes
-            * 6,
-         1, 0, 0, 0);
+      const auto numObjects = renderData.numMeshes - renderer::EditorData::numNodes_;
+      vkCmdDrawIndexed(cmdBuffer, numObjects * renderer::INDICES_PER_SPRITE, 1, 0, 0, 0);
 
+      if (m_renderPathfinderNodes)
+      {
+         vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::EditorData::pathfinderVertexBuffer,
+                                offsets.data());
+
+         vkCmdBindIndexBuffer(cmdBuffer, renderer::EditorData::pathfinderIndexBuffer, 0,
+                              VK_INDEX_TYPE_UINT32);
+
+         vkCmdDrawIndexed(cmdBuffer, renderer::EditorData::numNodes_ * renderer::INDICES_PER_SPRITE,
+                          1, 0, 0, 0);
+      }
 
       if (m_currentSelectedGameObject)
       {
@@ -481,16 +489,9 @@ Editor::Render(VkCommandBuffer cmdBuffer)
          vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                            renderer::Data::linePipeline_);
 
-         auto offsets = std::to_array< const VkDeviceSize >({0});
-         vkCmdBindVertexBuffers(
-            cmdBuffer, 0, 1,
-            &renderer::Data::lineVertexBuffer,
-            offsets.data());
+         vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::Data::lineVertexBuffer, offsets.data());
 
-         vkCmdBindIndexBuffer(
-            cmdBuffer,
-            renderer::Data::lineIndexBuffer,
-            0, VK_INDEX_TYPE_UINT32);
+         vkCmdBindIndexBuffer(cmdBuffer, renderer::Data::lineIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
          vkCmdBindDescriptorSets(
             cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::linePipelineLayout_, 0, 1,
@@ -500,18 +501,12 @@ Editor::Render(VkCommandBuffer cmdBuffer)
          renderer::LinePushConstants linePushConstants = {};
          linePushConstants.color = glm::vec4(0.4f, 0.5f, 0.6f, 1.0f);
 
-         vkCmdPushConstants(cmdBuffer, renderer::Data::linePipelineLayout_, VK_SHADER_STAGE_FRAGMENT_BIT,
-                            0, sizeof(renderer::LinePushConstants), &linePushConstants);
-        
-               vkCmdDrawIndexed(
-            cmdBuffer, renderer::Data::numGridLines * 2,
-            1, 0, 0, 0);
+         vkCmdPushConstants(cmdBuffer, renderer::Data::linePipelineLayout_,
+                            VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(renderer::LinePushConstants),
+                            &linePushConstants);
+
+         vkCmdDrawIndexed(cmdBuffer, renderer::Data::numGridLines * 2, 1, 0, 0, 0);
       }
-
-
-      DrawEditorObjects();
-      DrawAnimationPoints();
-      // DrawBoundingBoxes();
    }
 
    EditorGUI::Render(cmdBuffer);
@@ -536,8 +531,7 @@ Editor::DrawEditorObjects()
    {
       // Animation points are handled in Editor::DrawAnimationPoints()
       if (object->IsVisible()
-          && (Object::GetTypeFromID(object->GetLinkedObjectID()) != ObjectType::ANIMATION_POINT)
-          && !object->GetIsBackground())
+          && (Object::GetTypeFromID(object->GetLinkedObjectID()) != ObjectType::ANIMATION_POINT))
       {
          object->Render();
       }
@@ -606,29 +600,29 @@ Editor::DrawAnimationPoints()
 void
 Editor::DrawGrid()
 {
-    if (m_drawGrid)
-    {
-       const auto levelSize = m_currentLevel->GetSize();
-       const auto grad = m_gridCellSize;
+   if (m_drawGrid)
+   {
+      const auto levelSize = m_currentLevel->GetSize();
+      const auto grad = m_gridCellSize;
 
-       const auto w = levelSize.x / grad;
-       const auto h = levelSize.y / grad;
-       // const auto offset = glm::ivec2(0, grad);
+      const auto w = levelSize.x / grad;
+      const auto h = levelSize.y / grad;
+      // const auto offset = glm::ivec2(0, grad);
 
-       for (int i = 0; i <= h; ++i)
-       {
+      for (int i = 0; i <= h; ++i)
+      {
          renderer::VulkanRenderer::DrawLine(
             glm::vec2(0, i * grad), glm::vec2(levelSize.x, i * grad), {1.0f, 0.0f, 1.0f, 1.0f});
-       }
+      }
 
-       for (int i = 0; i <= w; ++i)
-       {
-          renderer::VulkanRenderer::DrawLine(
-             glm::vec2(i * grad, 0), glm::vec2(i * grad, levelSize.y), {1.0f, 0.0f, 1.0f, 1.0f});
-       }
-    }
+      for (int i = 0; i <= w; ++i)
+      {
+         renderer::VulkanRenderer::DrawLine(
+            glm::vec2(i * grad, 0), glm::vec2(i * grad, levelSize.y), {1.0f, 0.0f, 1.0f, 1.0f});
+      }
+   }
 
-    renderer::Data::numGridLines = renderer::Data::numLines;
+   renderer::Data::numGridLines = renderer::Data::numLines;
 }
 
 void
@@ -714,10 +708,10 @@ Editor::LoadLevel(const std::string& levelPath)
    m_currentLevel->Load(this, levelPath);
 
    // Populate editor objects
-    const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
-    std::transform(pathfinderNodes.begin(), pathfinderNodes.end(),
-                   std::back_inserter(m_editorObjects), [this](const auto& node) {
-                      const auto tileSize = m_currentLevel->GetTileSize();
+   const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
+   std::transform(pathfinderNodes.begin(), pathfinderNodes.end(),
+                  std::back_inserter(m_editorObjects), [this](const auto& node) {
+                     const auto tileSize = m_currentLevel->GetTileSize();
 
                      auto pathfinderNode = std::make_shared< EditorObject >(
                         *this, node.m_position, glm::ivec2(tileSize, tileSize), "white.png",
@@ -730,10 +724,10 @@ Editor::LoadLevel(const std::string& levelPath)
                      return pathfinderNode;
                   });
 
-    const auto& gameObjects = m_currentLevel->GetObjects();
-    for (const auto& object : gameObjects)
+   const auto& gameObjects = m_currentLevel->GetObjects();
+   for (const auto& object : gameObjects)
    {
-       const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(object);
+      const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(object);
 
       if (animatablePtr)
       {
@@ -762,6 +756,7 @@ Editor::LoadLevel(const std::string& levelPath)
    renderer::VulkanRenderer::CreateLinePipeline();
    renderer::VulkanRenderer::SetupLineData();
 
+   renderer::VulkanRenderer::SetupEditorData(ObjectType::PATHFINDER_NODE);
 }
 
 void
@@ -878,17 +873,7 @@ Editor::LaunchGameLoop()
 void
 Editor::RenderNodes(bool render)
 {
-   if (m_renderPathfinderNodes != render)
-   {
-      m_renderPathfinderNodes = render;
-
-      std::for_each(m_editorObjects.begin(), m_editorObjects.end(), [render](auto& object) {
-         if (Object::GetTypeFromID(object->GetLinkedObjectID()) == ObjectType::PATHFINDER_NODE)
-         {
-            object->SetVisible(render);
-         }
-      });
-   }
+   m_renderPathfinderNodes = render;
 }
 
 bool

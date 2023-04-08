@@ -10,7 +10,6 @@
 #include "utils/file_manager.hpp"
 #include "vulkan_common.hpp"
 
-
 #include <GLFW/glfw3.h>
 #include <array>
 #include <glm/glm.hpp>
@@ -23,50 +22,55 @@
 
 namespace looper::renderer {
 
-struct UniformBufferObject
-{
-   alignas(16) glm::mat4 proj = {};
-   alignas(16) glm::mat4 view = {};
-   glm::vec4 cameraPos = {};
-};
-
 static int32_t currTexIdx = 0;
 std::unordered_map< std::string, std::pair< int32_t, VkImageView > > textures = {};
 std::vector< VkImageView > texturesVec = {};
 
 uint32_t
 VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureMaps& textures_in,
-                           const glm::mat4& modelMat, const glm::vec4& color)
+                           const glm::mat4& modelMat, const glm::vec4& color, ObjectType type)
 {
    auto* renderData = &Data::renderData_[boundApplication_];
    auto* vertices = &renderData->vertices;
+   auto* numObjects = &renderData->numMeshes;
    if (boundApplication_ == ApplicationType::EDITOR)
    {
-      
+      switch (type)
+      {
+         case ObjectType::ANIMATION_POINT: {
+         }
+         break;
+         case ObjectType::PATHFINDER_NODE: {
+            vertices = &EditorData::pathfinderVertices_;
+            ++EditorData::numNodes_;
+         }
+         break;
+         default: {
+         }
+      }
    }
 
-   
-
    std::copy(vertices_in.begin(), vertices_in.end(), std::back_inserter(*vertices));
-   std::transform(vertices->end() - 4, vertices->end(), vertices->end() - 4, [renderData](auto& vtx) {
-      vtx.m_texCoordsDraw.z = static_cast< float >(renderData->numMeshes);
-      return vtx;
-   });
+   std::transform(vertices->end() - 4, vertices->end(), vertices->end() - 4,
+                  [numObjects](auto& vtx) {
+                     vtx.m_texCoordsDraw.z = static_cast< float >(*numObjects);
+                     return vtx;
+                  });
 
    // Indices are handled in init
    // std::copy(indicies_in.begin(), indicies_in.end(), std::back_inserter(indices));
 
-   VkDrawIndexedIndirectCommand newModel = {};
-   newModel.firstIndex = m_currentIndex;
-   newModel.indexCount = INDICES_PER_SPRITE;
-   newModel.firstInstance = 0;
-   newModel.instanceCount = 1;
-   newModel.vertexOffset = static_cast< int32_t >(m_currentVertex);
    // TODO: If we go back to indirect draw, this also should be updated to editor/game
-   // m_renderCommands.push_back(newModel);
+   // VkDrawIndexedIndirectCommand newModel = {};
+   // newModel.firstIndex = m_currentIndex;
+   // newModel.indexCount = INDICES_PER_SPRITE;
+   // newModel.firstInstance = 0;
+   // newModel.instanceCount = 1;
+   // newModel.vertexOffset = static_cast< int32_t >(m_currentVertex);
+   //  m_renderCommands.push_back(newModel);
 
-   m_currentVertex += static_cast< uint32_t >(vertices_in.size());
-   m_currentIndex += INDICES_PER_SPRITE;
+   // m_currentVertex += static_cast< uint32_t >(vertices_in.size());
+   // m_currentIndex += INDICES_PER_SPRITE;
 
    PerInstanceBuffer newInstance = {};
    newInstance.model = modelMat;
@@ -104,8 +108,8 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
 
    renderData->perInstance.push_back(newInstance);
 
-   auto currentMeshIdx = renderData->numMeshes;
-   ++(renderData->numMeshes);
+   auto currentMeshIdx = *numObjects;
+   ++(*numObjects);
 
    return currentMeshIdx;
 }
@@ -692,7 +696,8 @@ VulkanRenderer::SetupLineData()
    }
    {
       auto& indices = Data::lineIndices_;
-      indices.resize(static_cast< size_t >(Data::numLines) * static_cast< size_t >(INDICES_PER_LINE));
+      indices.resize(static_cast< size_t >(Data::numLines)
+                     * static_cast< size_t >(INDICES_PER_LINE));
 
       uint32_t offset = 0;
       for (uint32_t i = 0; i < indices.size(); i += INDICES_PER_LINE)
@@ -737,6 +742,78 @@ VulkanRenderer::SetupEditorData(ObjectType type)
       }
       break;
       case ObjectType::PATHFINDER_NODE: {
+         {
+            auto& vertices = EditorData::pathfinderVertices_;
+
+            const VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
+
+            VkBuffer stagingBuffer = {};
+            VkDeviceMemory stagingBufferMemory = {};
+            Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                 stagingBuffer, stagingBufferMemory);
+
+            void* data = nullptr;
+            vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
+            memcpy(data, vertices.data(), bufferSize);
+            vkUnmapMemory(Data::vk_device, stagingBufferMemory);
+
+            Buffer::CreateBuffer(
+               bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, EditorData::pathfinderVertexBuffer,
+               EditorData::pathfinderVertexBufferMemory);
+
+            Buffer::CopyBuffer(stagingBuffer, EditorData::pathfinderVertexBuffer, bufferSize);
+
+            vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
+            vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
+         }
+
+         {
+            auto& indices = EditorData::pathfinderIndices_;
+            indices.resize(static_cast< size_t >(EditorData::numNodes_)
+                           * static_cast< size_t >(INDICES_PER_SPRITE));
+
+            uint32_t offset = 0;
+            for (uint32_t i = 0; i < indices.size(); i += INDICES_PER_SPRITE)
+            {
+               indices[i + 0] = offset + 0;
+               indices[i + 1] = offset + 1;
+               indices[i + 2] = offset + 2;
+
+               indices[i + 3] = offset + 0;
+               indices[i + 4] = offset + 2;
+               indices[i + 5] = offset + 3;
+
+               offset += 4;
+            }
+
+            const VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+            VkBuffer stagingBuffer = {};
+            VkDeviceMemory stagingBufferMemory = {};
+            Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                 stagingBuffer, stagingBufferMemory);
+
+            void* data = nullptr;
+            vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
+            memcpy(data, indices.data(), bufferSize);
+            vkUnmapMemory(Data::vk_device, stagingBufferMemory);
+
+            Buffer::CreateBuffer(
+               bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, EditorData::pathfinderIndexBuffer,
+               EditorData::pathfinderIndexBufferMemory);
+
+            Buffer::CopyBuffer(stagingBuffer, EditorData::pathfinderIndexBuffer,
+                               bufferSize);
+
+            vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
+            vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
+         }
       }
       break;
    }

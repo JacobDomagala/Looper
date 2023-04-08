@@ -37,6 +37,13 @@ enum class TextureType
 // DIFFUSE_MAP SPECULAR_MAP NORMAL_MAP
 using TextureMaps = std::array< std::string, 3 >;
 
+struct UniformBufferObject
+{
+   alignas(16) glm::mat4 proj = {};
+   alignas(16) glm::mat4 view = {};
+   glm::vec4 cameraPos = {};
+};
+
 struct PerInstanceBuffer
 {
    alignas(16) glm::mat4 model = {};
