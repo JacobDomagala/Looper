@@ -664,10 +664,10 @@ Editor::DrawAnimationPoints()
 //
 //    auto drawBoundingBox = [color](const renderer::Spriteer::Sprite& sprite) {
 //       const auto rect = sprite.GetTransformedRectangle();
-//       Renderer::DrawLine(rect[0], rect[1]);
-//       Renderer::DrawLine(rect[1], rect[2]);
-//       Renderer::DrawLine(rect[2], rect[3]);
-//       Renderer::DrawLine(rect[3], rect[0]);
+//       Renderer::DrawDynamicLine(rect[0], rect[1]);
+//       Renderer::DrawDynamicLine(rect[1], rect[2]);
+//       Renderer::DrawDynamicLine(rect[2], rect[3]);
+//       Renderer::DrawDynamicLine(rect[3], rect[0]);
 //    };
 
 //    if (m_currentSelectedGameObject)
@@ -886,7 +886,7 @@ Editor::AddObject(ObjectType objectType)
       newObject = std::make_shared< EditorObject >(*this, newNode.m_end, glm::ivec2(20, 20),
                                                    "NodeSprite.png", newNode.GetID());
 
-      m_editorObjects.push_back(newObject);
+      animationPoints_.push_back(newObject);
       animatablePtr->ResetAnimation();
 
       renderer::VulkanRenderer::SetupEditorData(ObjectType::ANIMATION_POINT);

@@ -885,6 +885,8 @@ VulkanRenderer::SetupEditorData(ObjectType type)
       default: {
       }
    }
+
+   UpdatePerInstanceBuffer();
 }
 
 void
@@ -893,6 +895,26 @@ VulkanRenderer::UpdateBuffers()
    CreateVertexBuffer();
    CreateIndexBuffer();
    CreateUniformBuffers();
+}
+
+void
+VulkanRenderer::UpdatePerInstanceBuffer()
+{
+   auto& renderData = Data::renderData_[boundApplication_];
+   const VkDeviceSize SSBObufferSize = renderData.perInstance.size() * sizeof(PerInstanceBuffer);
+
+   const auto swapchainImagesSize = Data::MAX_FRAMES_IN_FLIGHT; 
+
+   renderData.ssbo.resize(swapchainImagesSize);
+   renderData.ssboMemory.resize(swapchainImagesSize);
+
+   for (size_t i = 0; i < swapchainImagesSize; i++)
+   {
+      Buffer::CreateBuffer(SSBObufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                              | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                           renderData.ssbo[i], renderData.ssboMemory[i]);
+   }
 }
 
 void
@@ -972,30 +994,28 @@ VulkanRenderer::CreateIndexBuffer()
 void
 VulkanRenderer::CreateUniformBuffers()
 {
+   auto& renderData = Data::renderData_[boundApplication_];
    const VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-   const VkDeviceSize SSBObufferSize =
-      Data::renderData_[boundApplication_].perInstance.size() * sizeof(PerInstanceBuffer);
+   const VkDeviceSize SSBObufferSize = renderData.perInstance.size() * sizeof(PerInstanceBuffer);
 
    const auto swapchainImagesSize = Data::MAX_FRAMES_IN_FLIGHT; // m_swapChainImages.size();
 
-   Data::renderData_[boundApplication_].uniformBuffers.resize(swapchainImagesSize);
-   Data::renderData_[boundApplication_].uniformBuffersMemory.resize(swapchainImagesSize);
-   Data::renderData_[boundApplication_].ssbo.resize(swapchainImagesSize);
-   Data::renderData_[boundApplication_].ssboMemory.resize(swapchainImagesSize);
+   renderData.uniformBuffers.resize(swapchainImagesSize);
+   renderData.uniformBuffersMemory.resize(swapchainImagesSize);
+   renderData.ssbo.resize(swapchainImagesSize);
+   renderData.ssboMemory.resize(swapchainImagesSize);
 
    for (size_t i = 0; i < swapchainImagesSize; i++)
    {
       Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
                               | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                           Data::renderData_[boundApplication_].uniformBuffers[i],
-                           Data::renderData_[boundApplication_].uniformBuffersMemory[i]);
+                           renderData.uniformBuffers[i], renderData.uniformBuffersMemory[i]);
 
       Buffer::CreateBuffer(SSBObufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
                               | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                           Data::renderData_[boundApplication_].ssbo[i],
-                           Data::renderData_[boundApplication_].ssboMemory[i]);
+                           renderData.ssbo[i], renderData.ssboMemory[i]);
    }
 }
 
@@ -1126,7 +1146,6 @@ void VulkanRenderer::UpdateDescriptorSets()
                      return descriptoInfo;
                   });
 
-      int i = (Data::currentFrame_ + 1) % Data::MAX_FRAMES_IN_FLIGHT;
   for (size_t i = 0; i < size; i++)
    {
       VkDescriptorBufferInfo bufferInfo{};
