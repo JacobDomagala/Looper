@@ -52,6 +52,6 @@ struct PerInstanceBuffer
 };
 
 using IndexType = uint32_t;
-using TextureID = uint64_t;
+using TextureID = int32_t;
 
 } // namespace looper::renderer

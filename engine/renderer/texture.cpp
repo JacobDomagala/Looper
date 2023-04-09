@@ -481,7 +481,7 @@ TextureLibrary::GetTextureViews()
 uint32_t
 TextureLibrary::GetNumTextures()
 {
-   return currentID_;
+   return static_cast<uint32_t>(currentID_);
 }
 
 } // namespace looper::renderer

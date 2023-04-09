@@ -123,7 +123,7 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
       switch (loadedTexture->GetType())
       {
          case TextureType::DIFFUSE_MAP: {
-            newInstance.diffuse = static_cast<int32_t>(idx);
+            newInstance.diffuse = idx;
          }
          break;
          default:
@@ -1101,7 +1101,9 @@ void VulkanRenderer::UpdateDescriptorSets()
          ->GetImageViewAndSampler();
 
    auto textureViews = TextureLibrary::GetTextureViews();
-   for (int i = textureViews.size(); i < 256; ++i)
+
+   // Fill all MAX_NUM_TEXTURES ImageViews 
+   for (size_t i = textureViews.size(); i < MAX_NUM_TEXTURES; ++i)
    {
       textureViews.push_back(textureViews.front());
    }
@@ -1111,7 +1113,7 @@ void VulkanRenderer::UpdateDescriptorSets()
 
    std::transform(descriptorImageInfos.begin(), descriptorImageInfos.end(), textureViews.begin(),
                   descriptorImageInfos.begin(),
-                  [sampler](auto& descriptoInfo, const auto& texture) {
+                  [sampler = sampler](auto& descriptoInfo, const auto& texture) {
                      descriptoInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
                      descriptoInfo.sampler = sampler;
                      descriptoInfo.imageView = texture;
@@ -1582,7 +1584,7 @@ VulkanRenderer::CreateDescriptorSetLayout()
 
    VkDescriptorSetLayoutBinding texturesLayoutBinding = {};
    texturesLayoutBinding.binding = 3;
-   texturesLayoutBinding.descriptorCount = 256;
+   texturesLayoutBinding.descriptorCount = MAX_NUM_TEXTURES;
    texturesLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
    texturesLayoutBinding.pImmutableSamplers = nullptr;
    texturesLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;

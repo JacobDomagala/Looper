@@ -25,6 +25,7 @@ vk_check_error(VkResult vkResult, std::string_view errorMessage)
    }
 }
 
+static constexpr uint32_t MAX_NUM_TEXTURES = 256;
 static constexpr uint32_t INDICES_PER_SPRITE = 6;
 static constexpr uint32_t VERTICES_PER_SPRITE = 4;
 static constexpr uint32_t INDICES_PER_LINE = 2;
