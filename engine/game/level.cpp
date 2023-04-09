@@ -148,7 +148,7 @@ Level::Save(const std::string& pathToLevel)
 {
    nlohmann::json json;
 
-   const auto nodes = m_pathFinder.GetAllNodes();
+   const auto& nodes = m_pathFinder.GetAllNodes();
    for (const auto& node : nodes)
    {
       nlohmann::json nodeJson;

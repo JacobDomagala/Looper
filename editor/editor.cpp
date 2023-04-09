@@ -346,7 +346,7 @@ Editor::UnselectGameObject()
    auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
    if (animatablePtr and animatablePtr->GetRenderAnimationSteps())
    {
-      auto animationPoints = animatablePtr->GetAnimationKeypoints();
+      const auto& animationPoints = animatablePtr->GetAnimationKeypoints();
 
       for (auto& animationPoint : animationPoints)
       {
@@ -981,7 +981,7 @@ Editor::SetRenderAnimationPoints(bool render)
    if (animatablePtr)
    {
       animatablePtr->RenderAnimationSteps(render);
-      auto animationPoints = animatablePtr->GetAnimationKeypoints();
+      const auto& animationPoints = animatablePtr->GetAnimationKeypoints();
 
       for (auto& animationPoint : animationPoints)
       {
