@@ -298,6 +298,7 @@ void
 EditorObject::SetVisible(bool visible)
 {
    m_visible = visible;
+   m_sprite.SetColor({1.0f, 1.0f, 1.0f, static_cast< float >(m_visible)});
 }
 
 bool

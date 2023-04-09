@@ -272,6 +272,14 @@ Editor::HandleGameObjectSelected(const std::shared_ptr< GameObject >& newSelecte
 
       m_currentSelectedGameObject = newSelectedGameObject;
 
+      // Make sure to render animation points if needed
+      auto animatePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
+
+      if (animatePtr && animatePtr->GetRenderAnimationSteps())
+      {
+         SetRenderAnimationPoints(true);
+      }
+
       // mark new object as selected
       SelectGameObject();
       m_gameObjectSelected = true;
@@ -290,14 +298,36 @@ Editor::HandleGameObjectSelected(const std::shared_ptr< GameObject >& newSelecte
 void
 Editor::HandleObjectSelected(Object::ID objectID, bool fromGUI)
 {
-   auto it = std::find_if(m_editorObjects.begin(), m_editorObjects.end(),
-                          [objectID](const auto& editorObject) {
-                             return editorObject->GetLinkedObjectID() == objectID;
-                          });
-
-   if (it != m_editorObjects.end())
+   switch (Object::GetTypeFromID(objectID))
    {
-      HandleEditorObjectSelected(*it, fromGUI);
+      case ObjectType::ANIMATION_POINT: {
+         auto it = std::ranges::find_if(animationPoints_, [objectID](const auto& point) {
+            return point->GetLinkedObjectID() == objectID;
+         });
+
+         if (it != animationPoints_.end())
+         {
+            HandleEditorObjectSelected(*it, fromGUI);
+         }
+      }
+      break;
+
+      case ObjectType::ENEMY:
+      case ObjectType::OBJECT: {
+         auto it = std::find_if(m_editorObjects.begin(), m_editorObjects.end(),
+                                [objectID](const auto& editorObject) {
+                                   return editorObject->GetLinkedObjectID() == objectID;
+                                });
+
+         if (it != m_editorObjects.end())
+         {
+            HandleEditorObjectSelected(*it, fromGUI);
+         }
+      }
+      break;
+
+      default: {
+      }
    }
 }
 
@@ -313,6 +343,26 @@ Editor::UnselectGameObject()
    m_gameObjectSelected = false;
    m_movementOnGameObject = false;
    gui_.GameObjectUnselected();
+   auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
+   if (animatablePtr and animatablePtr->GetRenderAnimationSteps())
+   {
+      auto animationPoints = animatablePtr->GetAnimationKeypoints();
+
+      for (auto& animationPoint : animationPoints)
+      {
+         auto it =
+            std::ranges::find_if(animationPoints_,
+                         [&animationPoint](auto& editorObject) {
+                            return editorObject->GetLinkedObjectID() == animationPoint.GetID();
+                         });
+
+         if (it != animationPoints_.end())
+         {
+            (*it)->SetVisible(false);
+         }
+      }
+   }
+
    if (m_currentSelectedGameObject)
    {
       // m_currentSelectedGameObject->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
@@ -534,8 +584,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
                          VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(renderer::LinePushConstants),
                          &linePushConstants);
       vkCmdDrawIndexed(cmdBuffer, renderer::Data::curDynLineIdx, 1,
-                       renderer::Data::numGridLines * renderer::INDICES_PER_LINE,
-                       0, 0);
+                       renderer::Data::numGridLines * renderer::INDICES_PER_LINE, 0, 0);
    }
 
    EditorGUI::Render(cmdBuffer);
@@ -558,10 +607,7 @@ Editor::DrawEditorObjects()
 {
    for (auto& object : m_editorObjects)
    {
-      if (object->IsVisible())
-      {
-         object->Render();
-      }
+      object->Render();
    }
 
    if (m_renderPathfinderNodes)
@@ -576,6 +622,11 @@ Editor::DrawEditorObjects()
 void
 Editor::DrawAnimationPoints()
 {
+   for (auto& point : animationPoints_)
+   {
+      point->Render();
+   }
+   
    if (m_currentSelectedGameObject)
    {
       auto animatePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
@@ -599,8 +650,6 @@ Editor::DrawAnimationPoints()
                {
                   renderer::VulkanRenderer::DrawDynamicLine(lineStart, object->GetPosition());
                   lineStart = object->GetCenteredPosition();
-
-                  object->Render();
                }
             }
          }
@@ -840,6 +889,8 @@ Editor::AddObject(ObjectType objectType)
 
       m_editorObjects.push_back(newObject);
       animatablePtr->ResetAnimation();
+
+      renderer::VulkanRenderer::SetupEditorData(ObjectType::ANIMATION_POINT);
    }
 
    HandleEditorObjectSelected(newObject);
@@ -944,7 +995,6 @@ Editor::SetRenderAnimationPoints(bool render)
          if (it != animationPoints_.end())
          {
             (*it)->SetVisible(render);
-            (*it)->Render();
          }
       }
    }

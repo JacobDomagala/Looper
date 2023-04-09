@@ -174,8 +174,11 @@ Sprite::GetUniformScaleValue()
 void
 Sprite::SetColor(const glm::vec4& color)
 {
-   m_currentState.m_color = color;
-   changed_ = true;
+   if (m_currentState.m_color != color)
+   {
+      m_currentState.m_color = color;
+      changed_ = true;
+   }
 }
 
 void

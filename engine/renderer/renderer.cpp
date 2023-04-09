@@ -1126,7 +1126,8 @@ void VulkanRenderer::UpdateDescriptorSets()
                      return descriptoInfo;
                   });
 
-   for (size_t i = 0; i < size; i++)
+      int i = (Data::currentFrame_ + 1) % Data::MAX_FRAMES_IN_FLIGHT;
+  for (size_t i = 0; i < size; i++)
    {
       VkDescriptorBufferInfo bufferInfo{};
       bufferInfo.buffer = Data::renderData_[boundApplication_].uniformBuffers[i];
