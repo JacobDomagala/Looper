@@ -888,11 +888,17 @@ VulkanRenderer::SetupEditorData(ObjectType type)
 }
 
 void
-VulkanRenderer::SetupData()
+VulkanRenderer::UpdateBuffers()
 {
    CreateVertexBuffer();
    CreateIndexBuffer();
    CreateUniformBuffers();
+}
+
+void
+VulkanRenderer::SetupData()
+{
+   UpdateBuffers();
 
    // Indirect render stuff
    // const auto commandsSize = m_renderCommands.size() * sizeof(VkDrawIndexedIndirectCommand);

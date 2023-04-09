@@ -62,6 +62,9 @@ class VulkanRenderer
    SetupData();
 
    static void
+   UpdateBuffers();
+
+   static void
    SetupEditorData(ObjectType type);
 
    static void

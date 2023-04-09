@@ -310,6 +310,8 @@ Level::AddGameObject(ObjectType objectType)
       }
    }
 
+   renderer::VulkanRenderer::UpdateBuffers();
+
    return newObject;
 }
 
