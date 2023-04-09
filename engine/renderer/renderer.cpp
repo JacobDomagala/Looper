@@ -149,6 +149,11 @@ VulkanRenderer::SubmitMeshData(const uint32_t idx,
    object.model = modelMat;
    object.color = color;
    object.diffuse = id;
+
+   if (isLoaded_)
+   {
+      UpdateDescriptorSets();
+   }
 }
 
 std::set< std::string >
@@ -908,6 +913,7 @@ VulkanRenderer::SetupData()
    CreateRenderPipeline();
    CreateDescriptorPool();
    CreateDescriptorSets();
+   UpdateDescriptorSets();
 
    isLoaded_ = true;
 }
@@ -1077,26 +1083,37 @@ VulkanRenderer::CreateDescriptorSets()
    VkDescriptorSetAllocateInfo allocInfo = {};
    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
    allocInfo.descriptorPool = m_descriptorPool;
-   allocInfo.descriptorSetCount = static_cast< uint32_t >(size);
+   allocInfo.descriptorSetCount = size;
    allocInfo.pSetLayouts = layouts.data();
 
    Data::descriptorSets_.resize(size);
    vk_check_error(
       vkAllocateDescriptorSets(Data::vk_device, &allocInfo, Data::descriptorSets_.data()),
       "Failed to allocate descriptor sets!");
+}
+
+void VulkanRenderer::UpdateDescriptorSets()
+{
+   const auto size = Data::MAX_FRAMES_IN_FLIGHT;
 
    const auto [imageView, sampler] =
       TextureLibrary::GetTexture(TextureType::DIFFUSE_MAP, "white.png")
          ->GetImageViewAndSampler();
 
    auto textureViews = TextureLibrary::GetTextureViews();
+   for (int i = textureViews.size(); i < 256; ++i)
+   {
+      textureViews.push_back(textureViews.front());
+   }
+
    std::vector< VkDescriptorImageInfo > descriptorImageInfos(textureViews.size(),
                                                              VkDescriptorImageInfo{});
 
    std::transform(descriptorImageInfos.begin(), descriptorImageInfos.end(), textureViews.begin(),
-                  descriptorImageInfos.begin(), [](auto& descriptoInfo, const auto& texture) {
+                  descriptorImageInfos.begin(),
+                  [sampler](auto& descriptoInfo, const auto& texture) {
                      descriptoInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                     descriptoInfo.sampler = nullptr;
+                     descriptoInfo.sampler = sampler;
                      descriptoInfo.imageView = texture;
                      return descriptoInfo;
                   });
@@ -1153,7 +1170,7 @@ VulkanRenderer::CreateDescriptorSets()
       descriptorWrites[3].dstSet = Data::descriptorSets_[i];
       descriptorWrites[3].dstBinding = 3;
       descriptorWrites[3].dstArrayElement = 0;
-      descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+      descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
       descriptorWrites[3].descriptorCount = static_cast< uint32_t >(textureViews.size());
       descriptorWrites[3].pImageInfo = descriptorImageInfos.data();
 
@@ -1565,8 +1582,8 @@ VulkanRenderer::CreateDescriptorSetLayout()
 
    VkDescriptorSetLayoutBinding texturesLayoutBinding = {};
    texturesLayoutBinding.binding = 3;
-   texturesLayoutBinding.descriptorCount = TextureLibrary::GetNumTextures();
-   texturesLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+   texturesLayoutBinding.descriptorCount = 256;
+   texturesLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
    texturesLayoutBinding.pImmutableSamplers = nullptr;
    texturesLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
@@ -1581,7 +1598,6 @@ VulkanRenderer::CreateDescriptorSetLayout()
    vk_check_error(
       vkCreateDescriptorSetLayout(Data::vk_device, &layoutInfo, nullptr, &m_descriptorSetLayout),
       "Failed to create descriptor set layout!");
-
 
    VkDescriptorSetLayoutCreateInfo lineLayoutInfo = {};
    lineLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;

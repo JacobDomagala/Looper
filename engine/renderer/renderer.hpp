@@ -130,6 +130,9 @@ class VulkanRenderer
    CreateDescriptorSets();
 
    static void
+   UpdateDescriptorSets();
+
+   static void
    CreateLineDescriptorPool();
 
    static void

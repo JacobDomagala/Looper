@@ -182,6 +182,7 @@ void
 Sprite::SetTextureFromFile(const std::string& filePath)
 {
    texture_ = renderer::TextureLibrary::GetTexture(filePath)->GetID();
+   changed_ = true;
 }
 
 void
