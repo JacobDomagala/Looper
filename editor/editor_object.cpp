@@ -276,9 +276,12 @@ EditorObject::Render()
             {
                SetColor({1.0f, 0.0f, 0.0f, 1.0f});
             }
+            else
+            {
+               SetColor({1.0f, 1.0f, 1.0f, 1.0f});
+            }
 
             m_sprite.Render();
-            SetColor({1.0f, 1.0f, 1.0f, 1.0f});
          }
          break;
 
@@ -298,6 +301,7 @@ void
 EditorObject::SetVisible(bool visible)
 {
    m_visible = visible;
+   m_sprite.SetColor({1.0f, 1.0f, 1.0f, static_cast< float >(m_visible)});
 }
 
 bool
