@@ -350,11 +350,9 @@ Editor::UnselectGameObject()
 
       for (auto& animationPoint : animationPoints)
       {
-         auto it =
-            std::ranges::find_if(animationPoints_,
-                         [&animationPoint](auto& editorObject) {
-                            return editorObject->GetLinkedObjectID() == animationPoint.GetID();
-                         });
+         auto it = std::ranges::find_if(animationPoints_, [&animationPoint](auto& editorObject) {
+            return editorObject->GetLinkedObjectID() == animationPoint.GetID();
+         });
 
          if (it != animationPoints_.end())
          {
@@ -622,41 +620,42 @@ Editor::DrawEditorObjects()
 void
 Editor::DrawAnimationPoints()
 {
+   bool drawLines = false;
+   std::vector< Object::ID > animaltionPointIDs = {};
+   glm::vec2 lineStart = {};
+
+   if (m_currentSelectedGameObject)
+   {
+      auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
+      if (animatablePtr && animatablePtr->GetRenderAnimationSteps())
+      {
+         drawLines = true;
+
+         const auto& animationPoints = animatablePtr->GetAnimationKeypoints();
+         std::ranges::transform(
+            animationPoints, std::back_inserter(animaltionPointIDs),
+            [](const auto& animationKeyPoint) { return animationKeyPoint.GetID(); });
+
+         lineStart = animatablePtr->GetAnimationStartLocation();
+      }
+   }
+
    for (auto& point : animationPoints_)
    {
       point->Render();
-   }
-   
-   if (m_currentSelectedGameObject)
-   {
-      auto animatePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
 
-      if (animatePtr && animatePtr->GetRenderAnimationSteps())
+      if (drawLines)
       {
-         std::vector< Object::ID > animaltionPointIDs = {};
-         const auto& animationPoints = animatePtr->GetAnimationKeypoints();
-         std::transform(animationPoints.begin(), animationPoints.end(),
-                        std::back_inserter(animaltionPointIDs),
-                        [](const auto& animationKeyPoint) { return animationKeyPoint.GetID(); });
-
-         auto lineStart = animatePtr->GetAnimationStartLocation();
-         for (auto& object : animationPoints_)
+         if (std::ranges::find(animaltionPointIDs, point->GetLinkedObjectID())
+             != animaltionPointIDs.end())
          {
-            if (object->IsVisible())
-            {
-               auto it = std::find(animaltionPointIDs.begin(), animaltionPointIDs.end(),
-                                   object->GetLinkedObjectID());
-               if (it != animaltionPointIDs.end())
-               {
-                  renderer::VulkanRenderer::DrawDynamicLine(lineStart, object->GetPosition());
-                  lineStart = object->GetCenteredPosition();
-               }
-            }
+            renderer::VulkanRenderer::DrawDynamicLine(lineStart, point->GetPosition());
+            lineStart = point->GetCenteredPosition();
          }
-
-         renderer::VulkanRenderer::UpdateLineData(renderer::Data::numGridLines);
       }
    }
+
+   renderer::VulkanRenderer::UpdateLineData(renderer::Data::numGridLines);
 }
 
 // void
