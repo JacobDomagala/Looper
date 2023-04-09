@@ -1,14 +1,15 @@
 #include "texture.hpp"
 #include "buffer.hpp"
 #include "command.hpp"
-#include "vulkan_common.hpp"
 #include "logger/logger.hpp"
 #include "utils/assert.hpp"
 #include "utils/file_manager.hpp"
+#include "vulkan_common.hpp"
 
 #undef max
 
 #include <string_view>
+#include <ranges>
 
 namespace looper::renderer {
 
@@ -36,8 +37,8 @@ Texture::CreateTextureImage(TextureType type, std::string_view textureName)
 {
    m_type = type;
    auto textureData = FileManager::LoadImageData(textureName);
-   m_width = static_cast<uint32_t>(textureData.m_size.x);
-   m_height = static_cast<uint32_t>(textureData.m_size.y);
+   m_width = static_cast< uint32_t >(textureData.m_size.x);
+   m_height = static_cast< uint32_t >(textureData.m_size.y);
    m_format = type == TextureType::DIFFUSE_MAP ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
    m_mips = static_cast< uint32_t >(std::floor(std::log2(std::max(m_width, m_height)))) + 1;
 
@@ -47,8 +48,8 @@ Texture::CreateTextureImage(TextureType type, std::string_view textureName)
          | VK_IMAGE_USAGE_SAMPLED_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, false);
 
-   m_textureImageView = CreateImageView(m_textureImage, m_format, VK_IMAGE_ASPECT_COLOR_BIT, m_mips,
-                                        false);
+   m_textureImageView =
+      CreateImageView(m_textureImage, m_format, VK_IMAGE_ASPECT_COLOR_BIT, m_mips, false);
 
    CreateTextureSampler();
 
@@ -91,7 +92,8 @@ Texture::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels,
       imageInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
    }
 
-   vk_check_error(vkCreateImage(Data::vk_device, &imageInfo, nullptr, &image), "failed to create image!");
+   vk_check_error(vkCreateImage(Data::vk_device, &imageInfo, nullptr, &image),
+                  "failed to create image!");
 
    Buffer::AllocateImageMemory(image, imageMemory, properties);
 
@@ -117,7 +119,7 @@ Texture::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspe
 
    VkImageView imageView = {};
    vk_check_error(vkCreateImageView(Data::vk_device, &viewInfo, nullptr, &imageView),
-            "Failed to create texture image view!");
+                  "Failed to create texture image view!");
 
    return imageView;
 }
@@ -149,7 +151,7 @@ Texture::CreateSampler(uint32_t mipLevels)
    samplerInfo.mipLodBias = 0.0f;
 
    vk_check_error(vkCreateSampler(Data::vk_device, &samplerInfo, nullptr, &sampler),
-            "Failed to create texture sampler!");
+                  "Failed to create texture sampler!");
 
    return sampler;
 }
@@ -220,11 +222,13 @@ Texture::GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, 
                            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1,
                            &barrier);
 
-      if (mipWidth > 1){
+      if (mipWidth > 1)
+      {
          mipWidth /= 2;
       }
 
-      if (mipHeight > 1){
+      if (mipHeight > 1)
+      {
          mipHeight /= 2;
       }
    }
@@ -248,6 +252,12 @@ Texture::GetImageViewAndSampler() const
    return {m_textureImageView, m_textureSampler};
 }
 
+VkImageView
+Texture::GetImageView() const
+{
+   return m_textureImageView;
+}
+
 TextureType
 Texture::GetType() const
 {
@@ -266,7 +276,7 @@ Texture::GetImage() const
    return m_textureImage;
 }
 
-Texture::TextureID
+TextureID
 Texture::GetID() const
 {
    return id_;
@@ -418,7 +428,7 @@ TextureLibrary::GetTexture(const std::string& textureName)
 }
 
 const Texture*
-TextureLibrary::GetTexture(const Texture::TextureID id)
+TextureLibrary::GetTexture(const TextureID id)
 {
    for (auto& texture : s_loadedTextures)
    {
@@ -433,7 +443,6 @@ TextureLibrary::GetTexture(const Texture::TextureID id)
                                    id));
 
    return nullptr;
-
 }
 
 void
@@ -459,8 +468,20 @@ TextureLibrary::Clear()
 void
 TextureLibrary::LoadTexture(TextureType type, std::string_view textureName)
 {
-
    s_loadedTextures[std::string{textureName}] = {type, textureName, currentID_++};
+   imageViews_.push_back(s_loadedTextures[std::string{textureName}].GetImageView());
 }
 
-} // namespace shady::renderer
+const std::vector< VkImageView >&
+TextureLibrary::GetTextureViews()
+{
+   return imageViews_;
+}
+
+uint32_t
+TextureLibrary::GetNumTextures()
+{
+   return static_cast<uint32_t>(currentID_);
+}
+
+} // namespace looper::renderer

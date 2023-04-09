@@ -22,10 +22,6 @@
 
 namespace looper::renderer {
 
-static int32_t currTexIdx = 0;
-std::unordered_map< std::string, std::pair< int32_t, VkImageView > > textures = {};
-std::vector< VkImageView > texturesVec = {};
-
 struct SwapChainSupportDetails
 {
    VkSurfaceCapabilitiesKHR capabilities = {};
@@ -121,19 +117,10 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
          continue;
       }
 
-      const auto it = std::find_if(textures.begin(), textures.end(),
-                                   [texture](const auto& tex) { return texture == tex.first; });
-      if (it == textures.end())
-      {
-         textures[texture] = {currTexIdx++,
-                              TextureLibrary::GetTexture(texture)->GetImageViewAndSampler().first};
-
-         texturesVec.push_back(TextureLibrary::GetTexture(texture)->GetImageViewAndSampler().first);
-      }
-
-      const auto idx = textures[texture].first;
-      const auto* tex = TextureLibrary::GetTexture(texture);
-      switch (tex->GetType())
+      const auto loadedTexture = TextureLibrary::GetTexture(texture);
+      const auto idx = loadedTexture->GetID();
+      
+      switch (loadedTexture->GetType())
       {
          case TextureType::DIFFUSE_MAP: {
             newInstance.diffuse = idx;
@@ -153,11 +140,20 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
 }
 
 void
-VulkanRenderer::SubmitMeshData(const uint32_t idx, const glm::mat4& modelMat,
+VulkanRenderer::SubmitMeshData(const uint32_t idx,
+                               const TextureID id, const glm::mat4& modelMat,
                                const glm::vec4& color)
 {
-   Data::renderData_[boundApplication_].perInstance.at(idx).model = modelMat;
-   Data::renderData_[boundApplication_].perInstance.at(idx).color = color;
+   auto& object = Data::renderData_[boundApplication_].perInstance.at(idx);
+
+   object.model = modelMat;
+   object.color = color;
+   object.diffuse = id;
+
+   if (isLoaded_)
+   {
+      UpdateDescriptorSets();
+   }
 }
 
 std::set< std::string >
@@ -917,6 +913,7 @@ VulkanRenderer::SetupData()
    CreateRenderPipeline();
    CreateDescriptorPool();
    CreateDescriptorSets();
+   UpdateDescriptorSets();
 
    isLoaded_ = true;
 }
@@ -1086,17 +1083,42 @@ VulkanRenderer::CreateDescriptorSets()
    VkDescriptorSetAllocateInfo allocInfo = {};
    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
    allocInfo.descriptorPool = m_descriptorPool;
-   allocInfo.descriptorSetCount = static_cast< uint32_t >(size);
+   allocInfo.descriptorSetCount = size;
    allocInfo.pSetLayouts = layouts.data();
 
    Data::descriptorSets_.resize(size);
    vk_check_error(
       vkAllocateDescriptorSets(Data::vk_device, &allocInfo, Data::descriptorSets_.data()),
       "Failed to allocate descriptor sets!");
+}
+
+void VulkanRenderer::UpdateDescriptorSets()
+{
+   const auto size = Data::MAX_FRAMES_IN_FLIGHT;
 
    const auto [imageView, sampler] =
-      TextureLibrary::GetTexture(TextureType::DIFFUSE_MAP, "Default128.png")
+      TextureLibrary::GetTexture(TextureType::DIFFUSE_MAP, "white.png")
          ->GetImageViewAndSampler();
+
+   auto textureViews = TextureLibrary::GetTextureViews();
+
+   // Fill all MAX_NUM_TEXTURES ImageViews 
+   for (size_t i = textureViews.size(); i < MAX_NUM_TEXTURES; ++i)
+   {
+      textureViews.push_back(textureViews.front());
+   }
+
+   std::vector< VkDescriptorImageInfo > descriptorImageInfos(textureViews.size(),
+                                                             VkDescriptorImageInfo{});
+
+   std::transform(descriptorImageInfos.begin(), descriptorImageInfos.end(), textureViews.begin(),
+                  descriptorImageInfos.begin(),
+                  [sampler = sampler](auto& descriptoInfo, const auto& texture) {
+                     descriptoInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                     descriptoInfo.sampler = sampler;
+                     descriptoInfo.imageView = texture;
+                     return descriptoInfo;
+                  });
 
    for (size_t i = 0; i < size; i++)
    {
@@ -1116,17 +1138,6 @@ VulkanRenderer::CreateDescriptorSets()
       imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
       imageInfo.imageView = imageView;
       imageInfo.sampler = sampler;
-
-      std::vector< VkDescriptorImageInfo > descriptorImageInfos(texturesVec.size(),
-                                                                VkDescriptorImageInfo{});
-
-      std::transform(descriptorImageInfos.begin(), descriptorImageInfos.end(), texturesVec.begin(),
-                     descriptorImageInfos.begin(), [](auto& descriptoInfo, const auto& texture) {
-                        descriptoInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                        descriptoInfo.sampler = nullptr;
-                        descriptoInfo.imageView = texture;
-                        return descriptoInfo;
-                     });
 
       std::array< VkWriteDescriptorSet, 4 > descriptorWrites = {};
 
@@ -1161,8 +1172,8 @@ VulkanRenderer::CreateDescriptorSets()
       descriptorWrites[3].dstSet = Data::descriptorSets_[i];
       descriptorWrites[3].dstBinding = 3;
       descriptorWrites[3].dstArrayElement = 0;
-      descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-      descriptorWrites[3].descriptorCount = static_cast< uint32_t >(texturesVec.size());
+      descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+      descriptorWrites[3].descriptorCount = static_cast< uint32_t >(textureViews.size());
       descriptorWrites[3].pImageInfo = descriptorImageInfos.data();
 
       vkUpdateDescriptorSets(Data::vk_device, static_cast< uint32_t >(descriptorWrites.size()),
@@ -1573,8 +1584,8 @@ VulkanRenderer::CreateDescriptorSetLayout()
 
    VkDescriptorSetLayoutBinding texturesLayoutBinding = {};
    texturesLayoutBinding.binding = 3;
-   texturesLayoutBinding.descriptorCount = static_cast< uint32_t >(textures.size());
-   texturesLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+   texturesLayoutBinding.descriptorCount = MAX_NUM_TEXTURES;
+   texturesLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
    texturesLayoutBinding.pImmutableSamplers = nullptr;
    texturesLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
@@ -1589,7 +1600,6 @@ VulkanRenderer::CreateDescriptorSetLayout()
    vk_check_error(
       vkCreateDescriptorSetLayout(Data::vk_device, &layoutInfo, nullptr, &m_descriptorSetLayout),
       "Failed to create descriptor set layout!");
-
 
    VkDescriptorSetLayoutCreateInfo lineLayoutInfo = {};
    lineLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;

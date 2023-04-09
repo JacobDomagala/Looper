@@ -158,7 +158,7 @@ class Sprite
    State m_currentState = {};
 
    // sprite's texture
-   renderer::Texture::TextureID texture_ = {};
+   renderer::TextureID texture_ = {};
 
    glm::vec3 m_initialPosition = {};
 
