@@ -22,10 +22,6 @@
 
 namespace looper::renderer {
 
-static int32_t currTexIdx = 0;
-std::unordered_map< std::string, std::pair< int32_t, VkImageView > > textures = {};
-std::vector< VkImageView > texturesVec = {};
-
 struct SwapChainSupportDetails
 {
    VkSurfaceCapabilitiesKHR capabilities = {};
@@ -121,22 +117,13 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
          continue;
       }
 
-      const auto it = std::find_if(textures.begin(), textures.end(),
-                                   [texture](const auto& tex) { return texture == tex.first; });
-      if (it == textures.end())
-      {
-         textures[texture] = {currTexIdx++,
-                              TextureLibrary::GetTexture(texture)->GetImageViewAndSampler().first};
-
-         texturesVec.push_back(TextureLibrary::GetTexture(texture)->GetImageViewAndSampler().first);
-      }
-
-      const auto idx = textures[texture].first;
-      const auto* tex = TextureLibrary::GetTexture(texture);
-      switch (tex->GetType())
+      const auto loadedTexture = TextureLibrary::GetTexture(texture);
+      const auto idx = loadedTexture->GetID();
+      
+      switch (loadedTexture->GetType())
       {
          case TextureType::DIFFUSE_MAP: {
-            newInstance.diffuse = idx;
+            newInstance.diffuse = static_cast<int32_t>(idx);
          }
          break;
          default:
@@ -153,11 +140,15 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
 }
 
 void
-VulkanRenderer::SubmitMeshData(const uint32_t idx, const glm::mat4& modelMat,
+VulkanRenderer::SubmitMeshData(const uint32_t idx,
+                               const TextureID id, const glm::mat4& modelMat,
                                const glm::vec4& color)
 {
-   Data::renderData_[boundApplication_].perInstance.at(idx).model = modelMat;
-   Data::renderData_[boundApplication_].perInstance.at(idx).color = color;
+   auto& object = Data::renderData_[boundApplication_].perInstance.at(idx);
+
+   object.model = modelMat;
+   object.color = color;
+   object.diffuse = id;
 }
 
 std::set< std::string >
@@ -1095,8 +1086,20 @@ VulkanRenderer::CreateDescriptorSets()
       "Failed to allocate descriptor sets!");
 
    const auto [imageView, sampler] =
-      TextureLibrary::GetTexture(TextureType::DIFFUSE_MAP, "Default128.png")
+      TextureLibrary::GetTexture(TextureType::DIFFUSE_MAP, "white.png")
          ->GetImageViewAndSampler();
+
+   auto textureViews = TextureLibrary::GetTextureViews();
+   std::vector< VkDescriptorImageInfo > descriptorImageInfos(textureViews.size(),
+                                                             VkDescriptorImageInfo{});
+
+   std::transform(descriptorImageInfos.begin(), descriptorImageInfos.end(), textureViews.begin(),
+                  descriptorImageInfos.begin(), [](auto& descriptoInfo, const auto& texture) {
+                     descriptoInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                     descriptoInfo.sampler = nullptr;
+                     descriptoInfo.imageView = texture;
+                     return descriptoInfo;
+                  });
 
    for (size_t i = 0; i < size; i++)
    {
@@ -1116,17 +1119,6 @@ VulkanRenderer::CreateDescriptorSets()
       imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
       imageInfo.imageView = imageView;
       imageInfo.sampler = sampler;
-
-      std::vector< VkDescriptorImageInfo > descriptorImageInfos(texturesVec.size(),
-                                                                VkDescriptorImageInfo{});
-
-      std::transform(descriptorImageInfos.begin(), descriptorImageInfos.end(), texturesVec.begin(),
-                     descriptorImageInfos.begin(), [](auto& descriptoInfo, const auto& texture) {
-                        descriptoInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                        descriptoInfo.sampler = nullptr;
-                        descriptoInfo.imageView = texture;
-                        return descriptoInfo;
-                     });
 
       std::array< VkWriteDescriptorSet, 4 > descriptorWrites = {};
 
@@ -1162,7 +1154,7 @@ VulkanRenderer::CreateDescriptorSets()
       descriptorWrites[3].dstBinding = 3;
       descriptorWrites[3].dstArrayElement = 0;
       descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-      descriptorWrites[3].descriptorCount = static_cast< uint32_t >(texturesVec.size());
+      descriptorWrites[3].descriptorCount = static_cast< uint32_t >(textureViews.size());
       descriptorWrites[3].pImageInfo = descriptorImageInfos.data();
 
       vkUpdateDescriptorSets(Data::vk_device, static_cast< uint32_t >(descriptorWrites.size()),
@@ -1573,7 +1565,7 @@ VulkanRenderer::CreateDescriptorSetLayout()
 
    VkDescriptorSetLayoutBinding texturesLayoutBinding = {};
    texturesLayoutBinding.binding = 3;
-   texturesLayoutBinding.descriptorCount = static_cast< uint32_t >(textures.size());
+   texturesLayoutBinding.descriptorCount = TextureLibrary::GetNumTextures();
    texturesLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
    texturesLayoutBinding.pImmutableSamplers = nullptr;
    texturesLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;

@@ -11,7 +11,6 @@ namespace looper::renderer {
 class Texture
 {
  public:
-   using TextureID = uint64_t;
 
    Texture(TextureType type, std::string_view textureName, TextureID id);
 
@@ -51,6 +50,9 @@ class Texture
 
    [[nodiscard]] std::pair< VkImageView, VkSampler >
    GetImageViewAndSampler() const;
+
+   [[nodiscard]] VkImageView
+   GetImageView() const;
 
    void
    CreateTextureSampler();
@@ -98,10 +100,16 @@ class TextureLibrary
    GetTexture(const std::string& textureName);
 
    static const Texture*
-   GetTexture(const Texture::TextureID id);
+   GetTexture(const TextureID id);
 
    static void
    CreateTexture(TextureType type, const std::string& textureName);
+
+   static const std::vector< VkImageView >&
+   GetTextureViews();
+
+   [[nodiscard]] static uint32_t
+   GetNumTextures();
 
    static void
    Clear();
@@ -112,7 +120,8 @@ class TextureLibrary
 
  private:
    static inline std::unordered_map< std::string, Texture > s_loadedTextures = {};
-   static inline Texture::TextureID currentID_ = 0;
+   static inline std::vector< VkImageView > imageViews_ = {};
+   static inline TextureID currentID_ = 0;
 };
 
 } // namespace shady::renderer

@@ -108,7 +108,8 @@ Sprite::Render()
          * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
          * glm::scale(glm::mat4(1.0f), {m_size * m_currentState.modifiers.scale, 1.0f});
 
-      renderer::VulkanRenderer::SubmitMeshData(rendererIdx_, transformMat, m_currentState.m_color);
+      renderer::VulkanRenderer::SubmitMeshData(rendererIdx_, texture_, transformMat,
+                                               m_currentState.m_color);
 
       changed_ = false;
    }
@@ -178,9 +179,9 @@ Sprite::SetColor(const glm::vec4& color)
 }
 
 void
-Sprite::SetTextureFromFile(const std::string& /*filePath*/)
+Sprite::SetTextureFromFile(const std::string& filePath)
 {
-   // m_texture = TextureLibrary::GetTexture(filePath);
+   texture_ = renderer::TextureLibrary::GetTexture(filePath)->GetID();
 }
 
 void
