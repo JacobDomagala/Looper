@@ -373,7 +373,7 @@ void
 EditorGUI::CursorPositionCallback(const CursorPositionEvent& event)
 {
    ImGuiIO& io = ImGui::GetIO();
-   io.MousePos = ImVec2(event.m_xPos, event.m_yPos);
+   io.MousePos = ImVec2(static_cast<float>(event.m_xPos), static_cast<float>(event.m_yPos));
 }
 
 void
@@ -818,17 +818,17 @@ EditorGUI::RenderCreateNewLevelWindow()
    static std::string name = "DummyLevelName";
 
    ImGui::SetNextWindowPos({halfSize.x, halfSize.y});
-   ImGui::SetNextWindowSize({300, 100});
+   ImGui::SetNextWindowSize({320, 120});
    ImGui::Begin("Create New");
    ImGui::InputInt2("Size", &size.x);
    ImGui::InputText("Name", name.data(), name.length());
-   if (ImGui::Button("Create", {140, 25}))
+   if (ImGui::Button("Create", {150, 35}))
    {
       m_parent.CreateLevel(name, size);
       m_createPushed = false;
    }
    ImGui::SameLine();
-   if (ImGui::Button("Cancel", {140, 25}))
+   if (ImGui::Button("Cancel", {150, 35}))
    {
       m_createPushed = false;
    }
