@@ -16,6 +16,11 @@ class InputListener
    }
 
    virtual void
+   CharCallback(const CharEvent& /*event*/)
+   {
+   }
+
+   virtual void
    MouseButtonCallback(const MouseButtonEvent& /*event*/)
    {
    }

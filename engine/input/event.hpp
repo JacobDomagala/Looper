@@ -9,6 +9,7 @@ struct Event
    enum class EventType
    {
       KEY,
+      CHAR,
       MOUSE_BUTTON,
       MOUSE_CURSOR,
       MOUSE_SCROLL
@@ -35,14 +36,23 @@ struct KeyEvent : public Event
    int32_t m_mods;
 };
 
-struct MouseButtonEvent : public Event
+struct CharEvent : public Event
 {
-   MouseButtonEvent(int32_t button, int32_t action, int32_t mods)
-      : Event(EventType::MOUSE_BUTTON), m_buttton(button), m_action(action), m_mods(mods)
+   CharEvent(uint32_t key) : Event(EventType::CHAR), m_key(key)
    {
    }
 
-   int32_t m_buttton;
+   uint32_t m_key;
+};
+
+struct MouseButtonEvent : public Event
+{
+   MouseButtonEvent(int32_t button, int32_t action, int32_t mods)
+      : Event(EventType::MOUSE_BUTTON), m_button(button), m_action(action), m_mods(mods)
+   {
+   }
+
+   int32_t m_button;
    int32_t m_action;
    int32_t m_mods;
 };

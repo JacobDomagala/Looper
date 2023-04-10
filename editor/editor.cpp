@@ -764,8 +764,8 @@ Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
 
    // Populate editor objects
    const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
-   std::transform(pathfinderNodes.begin(), pathfinderNodes.end(),
-                  std::back_inserter(m_editorObjects), [this](const auto& node) {
+   std::ranges::transform(pathfinderNodes,
+                  std::back_inserter(pathfinderNodes_), [this](const auto& node) {
                      const auto tileSize = m_currentLevel->GetTileSize();
 
                      auto pathfinderNode = std::make_shared< EditorObject >(

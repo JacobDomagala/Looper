@@ -2,6 +2,7 @@
 
 #include "object.hpp"
 #include "renderer/buffer.hpp"
+#include "input/input_listener.hpp"
 
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.h>
@@ -26,10 +27,25 @@ struct PushConstBlock
    glm::vec2 translate = {};
 };
 
-class EditorGUI
+class EditorGUI : public InputListener
 {
  public:
    explicit EditorGUI(Editor& parent);
+
+   void
+   KeyCallback(const KeyEvent& event) override;
+
+   void
+   CharCallback(const CharEvent& event) override;
+
+   void
+   MouseButtonCallback(const MouseButtonEvent& event) override;
+
+   void
+   CursorPositionCallback(const CursorPositionEvent& event) override;
+
+   void
+   MouseScrollCallback(const MouseScrollEvent& event) override;
 
    void
    Init();
@@ -73,8 +89,10 @@ class EditorGUI
  private:
    void
    RenderMainPanel();
+
    void
    RenderLevelMenu();
+
    void
    RenderGameObjectMenu();
 
@@ -117,8 +135,8 @@ class EditorGUI
    inline static uint32_t m_subpass = 0;
 
    inline static PushConstBlock m_pushConstant = {};
-   inline static std::vector<renderer::Buffer> m_vertexBuffer = {};
-   inline static std::vector<renderer::Buffer> m_indexBuffer = {};
+   inline static std::vector< renderer::Buffer > m_vertexBuffer = {};
+   inline static std::vector< renderer::Buffer > m_indexBuffer = {};
    inline static int32_t m_vertexCount = 0;
    inline static int32_t m_indexCount = 0;
 };
