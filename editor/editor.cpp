@@ -434,6 +434,20 @@ Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
 }
 
 void
+Editor::SetupRendererData()
+{
+   renderer::VulkanRenderer::SetupData();
+
+   DrawGrid();
+   renderer::VulkanRenderer::CreateLinePipeline();
+   renderer::VulkanRenderer::SetupLineData();
+   renderer::VulkanRenderer::UpdateLineData();
+
+   renderer::VulkanRenderer::SetupEditorData(ObjectType::PATHFINDER_NODE);
+   renderer::VulkanRenderer::SetupEditorData(ObjectType::ANIMATION_POINT);
+}
+
+void
 Editor::ActionOnObject(Editor::ACTION action)
 {
    switch (action)
@@ -545,16 +559,20 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       }
 
 
-      // DRAW ANIMATION POINTS
-      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::EditorData::animationVertexBuffer,
-                             offsets.data());
+      if (renderer::EditorData::numPoints_)
+      {
+         // DRAW ANIMATION POINTS
+         vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::EditorData::animationVertexBuffer,
+                                offsets.data());
 
-      vkCmdBindIndexBuffer(cmdBuffer, renderer::EditorData::animationIndexBuffer, 0,
-                           VK_INDEX_TYPE_UINT32);
+         vkCmdBindIndexBuffer(cmdBuffer, renderer::EditorData::animationIndexBuffer, 0,
+                              VK_INDEX_TYPE_UINT32);
 
-      vkCmdDrawIndexed(cmdBuffer, renderer::EditorData::numPoints_ * renderer::INDICES_PER_SPRITE,
-                       1, 0, 0, 0);
+         vkCmdDrawIndexed(
+            cmdBuffer, renderer::EditorData::numPoints_ * renderer::INDICES_PER_SPRITE, 1, 0, 0, 0);
 
+      }
+      
 
       // DRAW LINES
       vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::linePipeline_);
@@ -767,6 +785,8 @@ Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
    m_levelLoaded = true;
    m_levelFileName = (LEVELS_DIR / (name + ".dgl")).string();
    gui_.LevelLoaded(m_currentLevel);
+
+   SetupRendererData();
 }
 
 void
@@ -831,15 +851,7 @@ Editor::LoadLevel(const std::string& levelPath)
 
    m_levelLoaded = true;
    gui_.LevelLoaded(m_currentLevel);
-   renderer::VulkanRenderer::SetupData();
-
-   DrawGrid();
-   renderer::VulkanRenderer::CreateLinePipeline();
-   renderer::VulkanRenderer::SetupLineData();
-   renderer::VulkanRenderer::UpdateLineData();
-
-   renderer::VulkanRenderer::SetupEditorData(ObjectType::PATHFINDER_NODE);
-   renderer::VulkanRenderer::SetupEditorData(ObjectType::ANIMATION_POINT);
+   SetupRendererData();
 }
 
 void

@@ -737,6 +737,11 @@ VulkanRenderer::SetupEditorData(ObjectType type)
          {
             auto& vertices = EditorData::animationVertices_;
 
+            if (vertices.empty())
+            {
+               return;
+            }
+
             const VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
 
             VkBuffer stagingBuffer = {};
