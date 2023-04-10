@@ -628,9 +628,11 @@ Editor::DrawEditorObjects()
 
    if (m_renderPathfinderNodes)
    {
-      for (auto& node : pathfinderNodes_)
+      const auto& changedNodes = m_currentLevel->GetPathfinder().GetNodesModifiedLastFrame();
+
+      for (auto nodeID : changedNodes)
       {
-         node->Render();
+         pathfinderNodes_.at(nodeID)->Render();
       }
    }
 }
@@ -809,20 +811,17 @@ Editor::LoadLevel(const std::string& levelPath)
 
    // Populate editor objects
    const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
-   std::transform(pathfinderNodes.begin(), pathfinderNodes.end(),
-                  std::back_inserter(pathfinderNodes_), [this](const auto& node) {
-                     const auto tileSize = m_currentLevel->GetTileSize();
+   std::ranges::transform(
+      pathfinderNodes, std::back_inserter(pathfinderNodes_), [this](const auto& node) {
+         const auto tileSize = m_currentLevel->GetTileSize();
 
-                     auto pathfinderNode = std::make_shared< EditorObject >(
-                        *this, node.m_position, glm::ivec2(tileSize, tileSize), "white.png",
-                        node.GetID());
+         auto editorNode = std::make_shared< EditorObject >(
+            *this, node.m_position, glm::ivec2(tileSize, tileSize), "white.png", node.GetID());
+         
+         editorNode->Render();
 
-                     pathfinderNode->SetIsBackground(true);
-                     pathfinderNode->SetVisible(m_renderPathfinderNodes);
-                     pathfinderNode->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
-
-                     return pathfinderNode;
-                  });
+         return editorNode;      
+       });
 
    const auto& gameObjects = m_currentLevel->GetObjects();
    for (const auto& object : gameObjects)
@@ -974,8 +973,8 @@ Editor::RenderNodes(bool render)
    {
       m_renderPathfinderNodes = render;
 
-      std::for_each(pathfinderNodes_.begin(), pathfinderNodes_.end(),
-                    [render](auto& node) { node->SetVisible(render); });
+      //std::for_each(pathfinderNodes_.begin(), pathfinderNodes_.end(),
+      //              [render](auto& node) { node->SetVisible(render); });
    }
 }
 
@@ -1118,6 +1117,11 @@ Editor::MainLoop()
       timeLastFrame_ = watch.Stop();
 
       renderer::Data::curDynLineIdx = 0;
+      if (m_levelLoaded and m_currentLevel->GetPathfinder().IsInitialized())
+      {
+         m_currentLevel->GetPathfinder().ClearPerFrameData();
+      }
+      
 
       if (m_playGame)
       {

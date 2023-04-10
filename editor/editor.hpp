@@ -186,7 +186,6 @@ class Editor : public Application
    SetMouseOnObject();
 
    std::unique_ptr< Game > m_game = {};
-   std::shared_ptr< Level > m_level = {};
 
    std::string m_levelFileName = {};
 
