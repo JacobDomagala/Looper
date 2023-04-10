@@ -363,15 +363,21 @@ EditorGUI::CharCallback(const CharEvent& event)
 void
 EditorGUI::MouseButtonCallback(const MouseButtonEvent& event)
 {
+   ImGuiIO& io = ImGui::GetIO();
+
+   io.MouseDown[0] = (event.m_button == GLFW_MOUSE_BUTTON_1) && event.m_action;
+   io.MouseDown[1] = (event.m_button == GLFW_MOUSE_BUTTON_2) && event.m_action;
 }
 
 void
 EditorGUI::CursorPositionCallback(const CursorPositionEvent& event)
 {
+   ImGuiIO& io = ImGui::GetIO();
+   io.MousePos = ImVec2(event.m_xPos, event.m_yPos);
 }
 
 void
-EditorGUI::MouseScrollCallback(const MouseScrollEvent& event)
+EditorGUI::MouseScrollCallback(const MouseScrollEvent& /*event*/)
 {
 }
 
@@ -388,8 +394,8 @@ EditorGUI::Init()
    // Setup Dear ImGui context
    IMGUI_CHECKVERSION();
    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls NOLINT
+   ImGuiIO& io = ImGui::GetIO();
+   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls NOLINT
 
    // Setup Dear ImGui style
    ImGui::StyleColorsDark();
@@ -1154,15 +1160,6 @@ EditorGUI::UpdateUI()
    ImGuiIO& io = ImGui::GetIO();
    io.DisplaySize = ImVec2(m_parent.GetWindowSize().x, m_parent.GetWindowSize().y);
 
-   auto mousePos = InputManager::GetMousePos();
-
-   io.MousePos = ImVec2(mousePos.x, mousePos.y);
-   io.MouseDown[0] = InputManager::CheckButtonPressed(GLFW_MOUSE_BUTTON_1);
-   io.MouseDown[1] = InputManager::CheckButtonPressed(GLFW_MOUSE_BUTTON_2);
-
-   // io.KeysDown[ImGuiKey_1] = InputManager::CheckKeyPressed(GLFW_KEY_1);
-
-   // io.AddKeyEvent(ImGuiKey_1, InputManager::CheckKeyPressed(GLFW_KEY_1));
    ImGui::NewFrame();
 
    m_windowSize = m_parent.GetWindowSize();

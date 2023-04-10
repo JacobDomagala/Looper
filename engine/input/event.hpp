@@ -48,11 +48,11 @@ struct CharEvent : public Event
 struct MouseButtonEvent : public Event
 {
    MouseButtonEvent(int32_t button, int32_t action, int32_t mods)
-      : Event(EventType::MOUSE_BUTTON), m_buttton(button), m_action(action), m_mods(mods)
+      : Event(EventType::MOUSE_BUTTON), m_button(button), m_action(action), m_mods(mods)
    {
    }
 
-   int32_t m_buttton;
+   int32_t m_button;
    int32_t m_action;
    int32_t m_mods;
 };

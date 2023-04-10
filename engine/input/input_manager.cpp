@@ -37,7 +37,7 @@ InputManager::InternalKeyCallback(GLFWwindow* /*window*/, int32_t key, int32_t s
 }
 
 void
-InputManager::InternalCharCallback(GLFWwindow* window, uint32_t key)
+InputManager::InternalCharCallback(GLFWwindow* /*window*/, uint32_t key)
 {
    Logger::Trace("GLFW char {}", key);
    BroadcastEvent(CharEvent{key});
