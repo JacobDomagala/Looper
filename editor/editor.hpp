@@ -141,6 +141,9 @@ class Editor : public Application
    // GetEditorObjectByID(Object::ID ID);
 
    void
+   SetupRendererData();
+
+   void
    ActionOnObject(ACTION action);
 
    void
