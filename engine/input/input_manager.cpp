@@ -37,6 +37,13 @@ InputManager::InternalKeyCallback(GLFWwindow* /*window*/, int32_t key, int32_t s
 }
 
 void
+InputManager::InternalCharCallback(GLFWwindow* window, uint32_t key)
+{
+   Logger::Trace("GLFW char {}", key);
+   BroadcastEvent(CharEvent{key});
+}
+
+void
 InputManager::InternalMouseButtonCallback(GLFWwindow* /*window*/, int32_t button, int32_t action,
                                           int32_t mods)
 {
@@ -77,6 +84,14 @@ InputManager::BroadcastEvent(const Event& event)
       }
       break;
 
+            case Event::EventType::CHAR: {
+         for (auto* listener : s_charListeners)
+         {
+            listener->CharCallback(static_cast< const CharEvent& >(event));
+         }
+      }
+      break;
+
       case Event::EventType::MOUSE_BUTTON: {
          for (auto* listener : s_mouseButtonListeners)
          {
@@ -112,6 +127,7 @@ InputManager::Init(GLFWwindow* mainWindow)
    s_windowHandle = mainWindow;
 
    glfwSetKeyCallback(s_windowHandle, InternalKeyCallback);
+   glfwSetCharCallback(s_windowHandle, InternalCharCallback);
    glfwSetMouseButtonCallback(s_windowHandle, InternalMouseButtonCallback);
    glfwSetCursorPosCallback(s_windowHandle, InternalCursorPositionCallback);
    glfwSetScrollCallback(s_windowHandle, InternalMouseScrollCallback);
@@ -123,6 +139,12 @@ void
 InputManager::RegisterForKeyInput(InputListener* listener)
 {
    s_keyListeners.push_back(listener);
+}
+
+void
+InputManager::RegisterForCharInput(InputListener* listener)
+{
+   s_charListeners.push_back(listener);
 }
 
 void

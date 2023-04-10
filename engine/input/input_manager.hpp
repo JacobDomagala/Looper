@@ -21,6 +21,9 @@ class InputManager
    RegisterForKeyInput(InputListener* listener);
 
    static void
+   RegisterForCharInput(InputListener* listener);
+
+   static void
    RegisterForMouseButtonInput(InputListener* listener);
 
    static void
@@ -69,6 +72,8 @@ class InputManager
    InternalKeyCallback(GLFWwindow* window, int32_t key, int32_t scancode, int32_t action,
                        int32_t mods);
    static void
+   InternalCharCallback(GLFWwindow* window, uint32_t key);
+   static void
    InternalMouseButtonCallback(GLFWwindow* window, int32_t button, int32_t action, int32_t mods);
    static void
    InternalCursorPositionCallback(GLFWwindow* window, double xPos, double yPos);
@@ -81,6 +86,7 @@ class InputManager
 
    // NOLINTBEGIN
    static inline std::vector< InputListener* > s_keyListeners = {};
+   static inline std::vector< InputListener* > s_charListeners = {};
    static inline std::vector< InputListener* > s_mouseButtonListeners = {};
    static inline std::vector< InputListener* > s_mouseMovementListeners = {};
    static inline std::vector< InputListener* > s_mouseScrollListeners = {};
