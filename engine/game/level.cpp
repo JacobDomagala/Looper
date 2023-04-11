@@ -22,9 +22,11 @@ Level::Create(Application* context, const std::string& name, const glm::ivec2& s
 {
    m_name = name;
    m_levelSize = size;
-   const auto halfSize = size / 2;
-   m_background.SetSpriteTextured(glm::vec3{halfSize, 0.3f}, m_levelSize, "white.png");
-   // m_background.SetSprite(glm::vec2(halfSize), m_levelSize);
+ 
+   m_background.SetSpriteTextured(glm::vec3(static_cast< float >(m_levelSize.x) / 2.0f,
+                                            static_cast< float >(m_levelSize.y) / 2.0f, 0.3f),
+                                  size, "white.png", ObjectType::NONE);
+ 
    m_contextPointer = context;
    m_pathFinder.Initialize(m_levelSize, m_tileWidth);
 }

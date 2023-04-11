@@ -23,11 +23,11 @@ Sprite::SetSprite(const glm::vec2& position, const glm::vec2& size)
    m_currentState.m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
-
 void
 Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
                           const std::string& fileName, ObjectType type)
 {
+   changed_ = true;
    texture_ = renderer::TextureLibrary::GetTexture(fileName)->GetID();
 
    m_initialPosition = position;

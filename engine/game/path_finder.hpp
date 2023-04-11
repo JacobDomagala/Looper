@@ -5,6 +5,7 @@
 
 #include <glm/glm.hpp>
 #include <vector>
+#include <unordered_set>
 
 #undef max
 
@@ -199,9 +200,16 @@ class PathFinder
    void
    SetNodeFreed(const Tile_t& nodeCoords, Object::ID objectID);
 
+   void
+   ClearPerFrameData();
+
+   const std::unordered_set< Node::NodeID >&
+   GetNodesModifiedLastFrame();
+
  private:
    bool m_initialized = false;
    std::vector< Node > m_nodes = {};
+   std::unordered_set< Node::NodeID > nodesModifiedLastFrame_ = {};
    glm::ivec2 m_levelSize = {};
    uint32_t m_tileSize = {};
 };

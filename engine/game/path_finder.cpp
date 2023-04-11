@@ -272,15 +272,18 @@ PathFinder::SetNodeOccupied(const Tile_t& nodeCoords, Object::ID objectID)
 {
    if (nodeCoords != Tile_t{-1, -1})
    {
-      auto node_found = std::find_if(m_nodes.begin(), m_nodes.end(), [nodeCoords](const auto& node) {
-         return (node.m_xPos == nodeCoords.first) and (node.m_yPos == nodeCoords.second);
-      });
+      auto node_found =
+         std::find_if(m_nodes.begin(), m_nodes.end(), [nodeCoords](const auto& node) {
+            return (node.m_xPos == nodeCoords.first) and (node.m_yPos == nodeCoords.second);
+         });
 
       // NOLINTNEXTLINE
       assert(node_found != m_nodes.end());
 
       node_found->m_occupied = true;
       node_found->m_objectsOccupyingThisNode.push_back(objectID);
+
+      nodesModifiedLastFrame_.insert(node_found->m_ID);
    }
 }
 
@@ -289,20 +292,22 @@ PathFinder::SetNodeFreed(const Tile_t& nodeCoords, Object::ID objectID)
 {
    if (nodeCoords != Tile_t{-1, -1})
    {
-      auto node_found = std::find_if(m_nodes.begin(), m_nodes.end(), [nodeCoords](const auto& node) {
-         return (node.m_xPos == nodeCoords.first) and (node.m_yPos == nodeCoords.second);
-      });
+      auto node_found =
+         std::find_if(m_nodes.begin(), m_nodes.end(), [nodeCoords](const auto& node) {
+            return (node.m_xPos == nodeCoords.first) and (node.m_yPos == nodeCoords.second);
+         });
 
       // NOLINTNEXTLINE
       assert(node_found != m_nodes.end());
 
-      node_found->m_objectsOccupyingThisNode.erase(std::find(node_found->m_objectsOccupyingThisNode.begin(),
-                                                       node_found->m_objectsOccupyingThisNode.end(),
-                                                       objectID));
+      node_found->m_objectsOccupyingThisNode.erase(
+         std::find(node_found->m_objectsOccupyingThisNode.begin(),
+                   node_found->m_objectsOccupyingThisNode.end(), objectID));
 
       if (node_found->m_objectsOccupyingThisNode.empty())
       {
          node_found->m_occupied = false;
+         nodesModifiedLastFrame_.insert(node_found->m_ID);
       }
    }
 }
@@ -317,6 +322,18 @@ bool
 PathFinder::IsInitialized() const
 {
    return m_initialized;
+}
+
+void
+PathFinder::ClearPerFrameData()
+{
+   nodesModifiedLastFrame_.clear();
+}
+
+const std::unordered_set< Node::NodeID >&
+PathFinder::GetNodesModifiedLastFrame()
+{
+   return nodesModifiedLastFrame_;
 }
 
 } // namespace looper
