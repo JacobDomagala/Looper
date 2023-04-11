@@ -750,6 +750,23 @@ Editor::GetRenderOffsets() const
 }
 
 void
+Editor::SetupPathfinderNodes()
+{
+   const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
+   std::ranges::transform(
+      pathfinderNodes, std::back_inserter(pathfinderNodes_), [this](const auto& node) {
+         const auto tileSize = m_currentLevel->GetTileSize();
+
+         auto pathfinderNode = std::make_shared< EditorObject >(
+            *this, node.m_position, glm::ivec2(tileSize, tileSize), "white.png", node.GetID());
+
+         pathfinderNode->Render();
+
+         return pathfinderNode;
+      });
+}
+
+void
 Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
 {
    if (m_levelLoaded)
@@ -758,30 +775,15 @@ Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
       UnselectGameObject();
       m_currentLevel.reset();
       m_editorObjects.clear();
+      pathfinderNodes_.clear();
    }
 
    m_currentLevel = std::make_shared< Level >();
    m_currentLevel->Create(this, name, size);
-   m_currentLevel->LoadShaders("Editor");
 
-   // Populate editor objects
-   const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
-   std::ranges::transform(pathfinderNodes,
-                  std::back_inserter(pathfinderNodes_), [this](const auto& node) {
-                     const auto tileSize = m_currentLevel->GetTileSize();
+   SetupPathfinderNodes();
 
-                     auto pathfinderNode = std::make_shared< EditorObject >(
-                        *this, node.m_position, glm::ivec2(tileSize, tileSize), "white.png",
-                        node.GetID());
-
-                     pathfinderNode->SetIsBackground(true);
-                     pathfinderNode->SetVisible(m_renderPathfinderNodes);
-                     pathfinderNode->SetColor({1.0f, 1.0f, 1.0f, 1.0f});
-
-                     return pathfinderNode;
-                  });
-
-   m_camera.Create(glm::vec3(m_currentLevel->GetLevelPosition(), -1.0f), m_window->GetSize());
+   m_camera.Create(glm::vec3(0.0f, 0.0f, 0.0f), m_window->GetSize());
    m_camera.SetLevelSize(m_currentLevel->GetSize());
 
    m_levelLoaded = true;
@@ -809,19 +811,7 @@ Editor::LoadLevel(const std::string& levelPath)
    m_currentLevel = std::make_shared< Level >();
    m_currentLevel->Load(this, levelPath);
 
-   // Populate editor objects
-   const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
-   std::ranges::transform(
-      pathfinderNodes, std::back_inserter(pathfinderNodes_), [this](const auto& node) {
-         const auto tileSize = m_currentLevel->GetTileSize();
-
-         auto editorNode = std::make_shared< EditorObject >(
-            *this, node.m_position, glm::ivec2(tileSize, tileSize), "white.png", node.GetID());
-         
-         editorNode->Render();
-
-         return editorNode;      
-       });
+   SetupPathfinderNodes();
 
    const auto& gameObjects = m_currentLevel->GetObjects();
    for (const auto& object : gameObjects)

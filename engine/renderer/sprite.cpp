@@ -21,6 +21,8 @@ Sprite::SetSprite(const glm::vec2& position, const glm::vec2& size)
    m_currentState.m_angle = 0.0f;
    m_currentState.m_scaleVal = glm::vec2(1.0f, 1.0f);
    m_currentState.m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+   changed_ = true;
 }
 
 

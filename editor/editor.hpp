@@ -185,6 +185,9 @@ class Editor : public Application
    void
    SetMouseOnObject();
 
+   void
+   SetupPathfinderNodes();
+
    std::unique_ptr< Game > m_game = {};
 
    std::string m_levelFileName = {};
