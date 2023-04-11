@@ -570,9 +570,8 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 
          vkCmdDrawIndexed(
             cmdBuffer, renderer::EditorData::numPoints_ * renderer::INDICES_PER_SPRITE, 1, 0, 0, 0);
-
       }
-      
+
 
       // DRAW LINES
       vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::linePipeline_);
@@ -632,7 +631,7 @@ Editor::DrawEditorObjects()
 
       for (auto nodeID : changedNodes)
       {
-         pathfinderNodes_.at(nodeID)->Render();
+         pathfinderNodes_.at(static_cast< size_t >(nodeID))->Render();
       }
    }
 }
@@ -963,8 +962,8 @@ Editor::RenderNodes(bool render)
    {
       m_renderPathfinderNodes = render;
 
-      //std::for_each(pathfinderNodes_.begin(), pathfinderNodes_.end(),
-      //              [render](auto& node) { node->SetVisible(render); });
+      // std::for_each(pathfinderNodes_.begin(), pathfinderNodes_.end(),
+      //               [render](auto& node) { node->SetVisible(render); });
    }
 }
 
@@ -1111,7 +1110,7 @@ Editor::MainLoop()
       {
          m_currentLevel->GetPathfinder().ClearPerFrameData();
       }
-      
+
 
       if (m_playGame)
       {

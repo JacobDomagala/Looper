@@ -203,13 +203,13 @@ class PathFinder
    void
    ClearPerFrameData();
 
-   const std::unordered_set< Node::ID >&
+   const std::unordered_set< Node::NodeID >&
    GetNodesModifiedLastFrame();
 
  private:
    bool m_initialized = false;
    std::vector< Node > m_nodes = {};
-   std::unordered_set< Node::ID > nodesModifiedLastFrame_ = {};
+   std::unordered_set< Node::NodeID > nodesModifiedLastFrame_ = {};
    glm::ivec2 m_levelSize = {};
    uint32_t m_tileSize = {};
 };

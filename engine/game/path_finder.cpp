@@ -330,7 +330,7 @@ PathFinder::ClearPerFrameData()
    nodesModifiedLastFrame_.clear();
 }
 
-const std::unordered_set< Node::ID >&
+const std::unordered_set< Node::NodeID >&
 PathFinder::GetNodesModifiedLastFrame()
 {
    return nodesModifiedLastFrame_;
