@@ -489,6 +489,7 @@ VulkanRenderer::CreateVertexBuffer()
 void
 VulkanRenderer::CreateLinePipeline()
 {
+   CreateLineDescriptorSetLayout();
    CreateLineDescriptorPool();
    CreateLineDescriptorSets();
 
@@ -600,7 +601,7 @@ VulkanRenderer::CreateLinePipeline()
    VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
    pipelineLayoutInfo.setLayoutCount = 1;
-   pipelineLayoutInfo.pSetLayouts = &lineDescriptorSetLayout_;
+   pipelineLayoutInfo.pSetLayouts = &Data::lineDescriptorSetLayout_;
    pipelineLayoutInfo.pushConstantRangeCount = 1;
    pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
@@ -952,6 +953,36 @@ VulkanRenderer::SetupData()
 }
 
 void
+VulkanRenderer::FreeData()
+{
+   vkWaitForFences(Data::vk_device, 1, &m_inFlightFences[Data::currentFrame_], VK_TRUE, UINT64_MAX);
+
+   auto& renderData = Data::renderData_.at(boundApplication_);
+   vkDestroyBuffer(Data::vk_device, renderData.indexBuffer, nullptr);
+   vkFreeMemory(Data::vk_device, renderData.indexBufferMemory, nullptr);
+   renderData.indices.clear();
+
+   vkDestroyBuffer(Data::vk_device, renderData.vertexBuffer, nullptr);
+   vkFreeMemory(Data::vk_device, renderData.vertexBufferMemory, nullptr);
+   renderData.vertices.clear();
+
+   for (size_t i = 0; i < renderData.uniformBuffers.size(); ++i)
+   {
+      vkDestroyBuffer(Data::vk_device, renderData.uniformBuffers[i], nullptr);
+      vkFreeMemory(Data::vk_device, renderData.uniformBuffersMemory[i], nullptr);
+
+      vkDestroyBuffer(Data::vk_device, renderData.ssbo[i], nullptr);
+      vkFreeMemory(Data::vk_device, renderData.ssboMemory[i], nullptr);
+   }
+
+   vkDestroySwapchainKHR(Data::vk_device, renderData.swapChain, nullptr);
+   renderData.surface = VK_NULL_HANDLE;
+   renderData.swapChainImageFormat = VK_FORMAT_UNDEFINED;
+   
+   Data::renderData_.erase(boundApplication_);
+}
+
+void
 VulkanRenderer::CreateIndexBuffer()
 {
    auto& indices = Data::renderData_[boundApplication_].indices;
@@ -1040,7 +1071,7 @@ VulkanRenderer::CreateLineDescriptorPool()
    poolInfo.maxSets =
       static_cast< uint32_t >(Data::renderData_[boundApplication_].swapChainImages.size());
 
-   vk_check_error(vkCreateDescriptorPool(Data::vk_device, &poolInfo, nullptr, &lineDescriptorPool),
+   vk_check_error(vkCreateDescriptorPool(Data::vk_device, &poolInfo, nullptr, &Data::lineDescriptorPool),
                   "Failed to create line descriptor pool!");
 }
 
@@ -1048,11 +1079,11 @@ void
 VulkanRenderer::CreateLineDescriptorSets()
 {
    const auto size = Data::MAX_FRAMES_IN_FLIGHT;
-   std::vector< VkDescriptorSetLayout > layouts(size, lineDescriptorSetLayout_);
+   std::vector< VkDescriptorSetLayout > layouts(size, Data::lineDescriptorSetLayout_);
 
    VkDescriptorSetAllocateInfo allocInfo = {};
    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-   allocInfo.descriptorPool = lineDescriptorPool;
+   allocInfo.descriptorPool = Data::lineDescriptorPool;
    allocInfo.descriptorSetCount = static_cast< uint32_t >(size);
    allocInfo.pSetLayouts = layouts.data();
 
@@ -1086,6 +1117,8 @@ VulkanRenderer::CreateLineDescriptorSets()
 void
 VulkanRenderer::CreateDescriptorPool()
 {
+   auto& renderData = renderer::Data::renderData_.at(boundApplication_);
+
    std::array< VkDescriptorPoolSize, 2 > poolSizes{};
    poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
    poolSizes[0].descriptorCount =
@@ -1101,30 +1134,34 @@ VulkanRenderer::CreateDescriptorPool()
    poolInfo.maxSets =
       static_cast< uint32_t >(Data::renderData_[boundApplication_].swapChainImages.size());
 
-   vk_check_error(vkCreateDescriptorPool(Data::vk_device, &poolInfo, nullptr, &m_descriptorPool),
+   vk_check_error(
+      vkCreateDescriptorPool(Data::vk_device, &poolInfo, nullptr, &renderData.descriptorPool),
                   "Failed to create descriptor pool!");
 }
 
 void
 VulkanRenderer::CreateDescriptorSets()
 {
+   auto& renderData = renderer::Data::renderData_.at(boundApplication_);
    const auto size = Data::MAX_FRAMES_IN_FLIGHT;
-   std::vector< VkDescriptorSetLayout > layouts(size, m_descriptorSetLayout);
+   std::vector< VkDescriptorSetLayout > layouts(size, renderData.descriptorSetLayout);
 
    VkDescriptorSetAllocateInfo allocInfo = {};
    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-   allocInfo.descriptorPool = m_descriptorPool;
+   allocInfo.descriptorPool = renderData.descriptorPool;
    allocInfo.descriptorSetCount = size;
    allocInfo.pSetLayouts = layouts.data();
 
-   Data::descriptorSets_.resize(size);
+   renderData.descriptorSets.resize(size);
    vk_check_error(
-      vkAllocateDescriptorSets(Data::vk_device, &allocInfo, Data::descriptorSets_.data()),
+      vkAllocateDescriptorSets(Data::vk_device, &allocInfo, renderData.descriptorSets.data()),
       "Failed to allocate descriptor sets!");
 }
 
 void VulkanRenderer::UpdateDescriptorSets()
 {
+   auto& renderData = renderer::Data::renderData_.at(boundApplication_);
+
    const auto size = Data::MAX_FRAMES_IN_FLIGHT;
 
    const auto [imageView, sampler] =
@@ -1173,7 +1210,7 @@ void VulkanRenderer::UpdateDescriptorSets()
       std::array< VkWriteDescriptorSet, 4 > descriptorWrites = {};
 
       descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      descriptorWrites[0].dstSet = Data::descriptorSets_[i];
+      descriptorWrites[0].dstSet = renderData.descriptorSets[i];
       descriptorWrites[0].dstBinding = 0;
       descriptorWrites[0].dstArrayElement = 0;
       descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -1181,7 +1218,7 @@ void VulkanRenderer::UpdateDescriptorSets()
       descriptorWrites[0].pBufferInfo = &bufferInfo;
 
       descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      descriptorWrites[1].dstSet = Data::descriptorSets_[i];
+      descriptorWrites[1].dstSet = renderData.descriptorSets[i];
       descriptorWrites[1].dstBinding = 1;
       descriptorWrites[1].dstArrayElement = 0;
       descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -1192,7 +1229,7 @@ void VulkanRenderer::UpdateDescriptorSets()
       samplerInfo.sampler = sampler;
 
       descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      descriptorWrites[2].dstSet = Data::descriptorSets_[i];
+      descriptorWrites[2].dstSet = renderData.descriptorSets[i];
       descriptorWrites[2].dstBinding = 2;
       descriptorWrites[2].dstArrayElement = 0;
       descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
@@ -1200,7 +1237,7 @@ void VulkanRenderer::UpdateDescriptorSets()
       descriptorWrites[2].pImageInfo = &samplerInfo;
 
       descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      descriptorWrites[3].dstSet = Data::descriptorSets_[i];
+      descriptorWrites[3].dstSet = renderData.descriptorSets[i];
       descriptorWrites[3].dstBinding = 3;
       descriptorWrites[3].dstArrayElement = 0;
       descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -1578,14 +1615,15 @@ VulkanRenderer::CreateSwapchain(GLFWwindow* windowHandle)
 void
 VulkanRenderer::CreateImageViews()
 {
-   Data::renderData_[boundApplication_].swapChainImageViews.resize(
-      Data::renderData_[boundApplication_].swapChainImages.size());
+   auto& renderData = Data::renderData_.at(boundApplication_);
 
-   for (uint32_t i = 0; i < Data::renderData_[boundApplication_].swapChainImages.size(); i++)
+   renderData.swapChainImageViews.resize(renderData.swapChainImages.size());
+
+   for (uint32_t i = 0; i < renderData.swapChainImages.size(); i++)
    {
-      Data::renderData_[boundApplication_].swapChainImageViews[i] = Texture::CreateImageView(
-         Data::renderData_[boundApplication_].swapChainImages[i],
-         Data::renderData_[boundApplication_].swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+      renderData.swapChainImageViews[i] = Texture::CreateImageView(
+         renderData.swapChainImages[i], renderData.swapChainImageFormat,
+                                  VK_IMAGE_ASPECT_COLOR_BIT, 1);
    }
 }
 
@@ -1628,9 +1666,27 @@ VulkanRenderer::CreateDescriptorSetLayout()
    layoutInfo.bindingCount = static_cast< uint32_t >(bindings.size());
    layoutInfo.pBindings = bindings.data();
 
-   vk_check_error(
-      vkCreateDescriptorSetLayout(Data::vk_device, &layoutInfo, nullptr, &m_descriptorSetLayout),
+
+   auto& renderData = Data::renderData_.at(boundApplication_);
+
+   vk_check_error(vkCreateDescriptorSetLayout(Data::vk_device, &layoutInfo, nullptr,
+                                              &renderData.descriptorSetLayout),
       "Failed to create descriptor set layout!");
+
+   
+}
+
+void 
+VulkanRenderer::CreateLineDescriptorSetLayout()
+{
+   VkDescriptorSetLayoutBinding uboLayoutBinding = {};
+   uboLayoutBinding.binding = 0;
+   uboLayoutBinding.descriptorCount = 1;
+   uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+   uboLayoutBinding.pImmutableSamplers = nullptr;
+   uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+   std::array< VkDescriptorSetLayoutBinding, 1 > bindings = {uboLayoutBinding};
 
    VkDescriptorSetLayoutCreateInfo lineLayoutInfo = {};
    lineLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -1638,7 +1694,7 @@ VulkanRenderer::CreateDescriptorSetLayout()
    lineLayoutInfo.pBindings = bindings.data();
 
    vk_check_error(vkCreateDescriptorSetLayout(Data::vk_device, &lineLayoutInfo, nullptr,
-                                              &lineDescriptorSetLayout_),
+                                              &Data::lineDescriptorSetLayout_),
                   "Failed to create line descriptor set layout!");
 }
 
@@ -1964,7 +2020,7 @@ VulkanRenderer::CreatePipeline()
    VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
    pipelineLayoutInfo.setLayoutCount = 1;
-   pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
+   pipelineLayoutInfo.pSetLayouts = &Data::renderData_.at(boundApplication_).descriptorSetLayout;
    pipelineLayoutInfo.pushConstantRangeCount = 1;
    pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 

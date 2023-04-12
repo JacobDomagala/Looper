@@ -518,7 +518,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 
       vkCmdBindDescriptorSets(
          cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::pipelineLayout_, 0, 1,
-         &renderer::Data::descriptorSets_[renderer::Data::currentFrame_], 0, nullptr);
+                              &renderData.descriptorSets[renderer::Data::currentFrame_], 0, nullptr);
 
       renderer::PushConstants pushConstants = {};
       pushConstants.selectedIdx = -1.0f;
@@ -935,10 +935,11 @@ Editor::LaunchGameLoop()
    m_game->MainLoop();
    m_game.reset();
 
+   renderer::VulkanRenderer::FreeData();
    m_playGame = false;
 
    renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::EDITOR);
-   renderer::VulkanRenderer::SetupData();
+   // renderer::VulkanRenderer::SetupData();
 }
 
 // std::shared_ptr< EditorObject >

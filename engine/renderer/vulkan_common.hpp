@@ -62,6 +62,9 @@ struct RenderData
    std::vector< VkImage > swapChainImages = {};
    std::vector< VkImageView > swapChainImageViews = {};
    std::vector< VkFramebuffer > swapChainFramebuffers = {};
+   VkDescriptorSetLayout descriptorSetLayout = {};
+   VkDescriptorPool descriptorPool = {};
+   std::vector< VkDescriptorSet > descriptorSets = {};
    VkFormat swapChainImageFormat = {};
    
    uint32_t numMeshes = {};
@@ -87,11 +90,12 @@ struct Data
    // Standard pipeline
    inline static VkPipeline graphicsPipeline_ = {};
    inline static VkPipelineLayout pipelineLayout_ = {};
-   inline static std::vector< VkDescriptorSet > descriptorSets_ = {};
 
    // Line pipeline
    inline static VkPipeline linePipeline_ = {};
    inline static VkPipelineLayout linePipelineLayout_ = {};
+   inline static VkDescriptorPool lineDescriptorPool = {};
+   inline static VkDescriptorSetLayout lineDescriptorSetLayout_ = {};
    inline static std::vector< VkDescriptorSet > lineDescriptorSets_ = {};
    inline static VkBuffer lineVertexBuffer = {};
    inline static VkDeviceMemory lineVertexBufferMemory = {};

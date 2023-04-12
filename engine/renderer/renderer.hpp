@@ -62,6 +62,9 @@ class VulkanRenderer
    SetupData();
 
    static void
+   FreeData();
+
+   static void
    UpdateBuffers();
 
    static void
@@ -145,6 +148,9 @@ class VulkanRenderer
    CreateLineDescriptorSets();
 
    static void
+   CreateLineDescriptorSetLayout();
+
+   static void
    CreateDepthResources();
 
    static void
@@ -168,13 +174,6 @@ class VulkanRenderer
    inline static VkQueue m_presentQueue = {};
 
    inline static VkRenderPass m_renderPass = {};
-
-   inline static VkDescriptorSetLayout m_descriptorSetLayout = {};
-   inline static VkDescriptorPool m_descriptorPool = {};
-
-   inline static VkDescriptorPool lineDescriptorPool = {};
-   inline static VkDescriptorSetLayout lineDescriptorSetLayout_ = {};
-
 
    inline static std::vector< VkCommandBuffer > m_commandBuffers = {};
 

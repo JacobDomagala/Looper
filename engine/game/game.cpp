@@ -98,7 +98,7 @@ Game::Init(const std::string& configFile, bool loadLevel)
       // LoadLevel(m_levels[0]);
       LoadLevel((LEVELS_DIR / "TestLevel" / "TestLevel.dgl").string());
    }
-   
+
    m_state = GameState::GAME;
    m_initialized = true;
 }
@@ -402,26 +402,22 @@ Game::Render(VkCommandBuffer cmdBuffer)
 
    vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::graphicsPipeline_);
 
+   auto& renderData =
+      renderer::Data::renderData_.at(renderer::VulkanRenderer::GetCurrentlyBoundType());
    auto offsets = std::to_array< const VkDeviceSize >({0});
-   vkCmdBindVertexBuffers(
-      cmdBuffer, 0, 1,
-      &renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()].vertexBuffer,
-      offsets.data());
 
-   vkCmdBindIndexBuffer(
-      cmdBuffer,
-      renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()].indexBuffer, 0,
-      VK_INDEX_TYPE_UINT32);
+   vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer, offsets.data());
 
-   vkCmdBindDescriptorSets(
-      cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::pipelineLayout_, 0, 1,
-      &renderer::Data::descriptorSets_[renderer::Data::currentFrame_], 0, nullptr);
+   vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-   //const auto numObjects = renderer::VulkanRenderer::GetNumMeshes(renderer::ApplicationType::GAME);
-   //numObjects_ = numObjects.second - numObjects.first;
-   vkCmdDrawIndexed(
-      cmdBuffer, renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()].numMeshes * 6,
-      1, 0, 0, 0);
+   vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                           renderer::Data::pipelineLayout_, 0, 1,
+                           &renderData.descriptorSets[renderer::Data::currentFrame_], 0, nullptr);
+
+   // const auto numObjects =
+   // renderer::VulkanRenderer::GetNumMeshes(renderer::ApplicationType::GAME); numObjects_ =
+   // numObjects.second - numObjects.first;
+   vkCmdDrawIndexed(cmdBuffer, renderData.numMeshes * 6, 1, 0, 0, 0);
 }
 
 } // namespace looper
