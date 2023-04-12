@@ -677,28 +677,27 @@ Editor::DrawAnimationPoints()
    renderer::VulkanRenderer::UpdateLineData(renderer::Data::numGridLines);
 }
 
-// void
-// Editor::DrawBoundingBoxes()
-// {
-//
-//    auto drawBoundingBox = [color](const renderer::Spriteer::Sprite& sprite) {
-//       const auto rect = sprite.GetTransformedRectangle();
-//       Renderer::DrawDynamicLine(rect[0], rect[1]);
-//       Renderer::DrawDynamicLine(rect[1], rect[2]);
-//       Renderer::DrawDynamicLine(rect[2], rect[3]);
-//       Renderer::DrawDynamicLine(rect[3], rect[0]);
-//    };
+ void
+ Editor::DrawBoundingBoxes()
+ {
+    auto drawBoundingBox = [](const renderer::Sprite& sprite) {
+       const auto rect = sprite.GetTransformedRectangle();
+       renderer::VulkanRenderer::DrawDynamicLine(rect[0], rect[1]);
+       renderer::VulkanRenderer::DrawDynamicLine(rect[1], rect[2]);
+       renderer::VulkanRenderer::DrawDynamicLine(rect[2], rect[3]);
+       renderer::VulkanRenderer::DrawDynamicLine(rect[3], rect[0]);
+    };
 
-//    if (m_currentSelectedGameObject)
-//    {
-//       drawBoundingBox(m_currentSelectedGameObject->GetSprite());
-//    }
+    if (m_currentSelectedGameObject)
+    {
+       drawBoundingBox(m_currentSelectedGameObject->GetSprite());
+    }
 
-//    if (m_currentEditorObjectSelected)
-//    {
-//       drawBoundingBox(m_currentEditorObjectSelected->GetSprite());
-//    }
-// }
+    if (m_currentEditorObjectSelected)
+    {
+       drawBoundingBox(m_currentEditorObjectSelected->GetSprite());
+    }
+ }
 
 void
 Editor::DrawGrid()
@@ -1043,6 +1042,8 @@ Editor::Update()
 
    renderer::VulkanRenderer::view_mat = m_camera.GetViewMatrix();
    renderer::VulkanRenderer::proj_mat = m_camera.GetProjectionMatrix();
+
+   DrawBoundingBoxes();
 }
 
 void
