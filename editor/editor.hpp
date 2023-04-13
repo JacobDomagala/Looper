@@ -108,6 +108,9 @@ class Editor : public Application
    DrawGrid();
 
    void
+   DrawBoundingBoxes();
+
+   void
    SetGridData(bool render, int32_t cellSize);
 
    [[nodiscard]] std::pair< bool, int32_t >

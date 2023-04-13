@@ -508,17 +508,16 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 
       m_currentLevel->RenderGameObjects();
 
-      vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                        renderer::Data::graphicsPipeline_);
+      vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.graphicsPipeline);
 
       auto offsets = std::to_array< const VkDeviceSize >({0});
       vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer, offsets.data());
 
       vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-      vkCmdBindDescriptorSets(
-         cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::pipelineLayout_, 0, 1,
-         &renderer::Data::descriptorSets_[renderer::Data::currentFrame_], 0, nullptr);
+      vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipelineLayout,
+                              0, 1,
+                              &renderData.descriptorSets[renderer::Data::currentFrame_], 0, nullptr);
 
       renderer::PushConstants pushConstants = {};
       pushConstants.selectedIdx = -1.0f;
@@ -529,7 +528,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
          pushConstants.selectedIdx = static_cast< float >(tmpIdx);
       }
 
-      vkCmdPushConstants(cmdBuffer, renderer::Data::pipelineLayout_, VK_SHADER_STAGE_VERTEX_BIT, 0,
+      vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                          sizeof(renderer::PushConstants), &pushConstants);
 
       const auto numObjects =
@@ -540,7 +539,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       {
          const auto tmpIdx = m_currentSelectedGameObject->GetSprite().GetRenderIdx();
          pushConstants.selectedIdx = -1.0f;
-         vkCmdPushConstants(cmdBuffer, renderer::Data::pipelineLayout_, VK_SHADER_STAGE_VERTEX_BIT,
+         vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
                             0, sizeof(renderer::PushConstants), &pushConstants);
          vkCmdDrawIndexed(cmdBuffer, 6, 1, tmpIdx * 6, 0, 0);
       }
@@ -677,28 +676,27 @@ Editor::DrawAnimationPoints()
    renderer::VulkanRenderer::UpdateLineData(renderer::Data::numGridLines);
 }
 
-// void
-// Editor::DrawBoundingBoxes()
-// {
-//
-//    auto drawBoundingBox = [color](const renderer::Spriteer::Sprite& sprite) {
-//       const auto rect = sprite.GetTransformedRectangle();
-//       Renderer::DrawDynamicLine(rect[0], rect[1]);
-//       Renderer::DrawDynamicLine(rect[1], rect[2]);
-//       Renderer::DrawDynamicLine(rect[2], rect[3]);
-//       Renderer::DrawDynamicLine(rect[3], rect[0]);
-//    };
+ void
+ Editor::DrawBoundingBoxes()
+ {
+    auto drawBoundingBox = [](const renderer::Sprite& sprite) {
+       const auto rect = sprite.GetTransformedRectangle();
+       renderer::VulkanRenderer::DrawDynamicLine(rect[0], rect[1]);
+       renderer::VulkanRenderer::DrawDynamicLine(rect[1], rect[2]);
+       renderer::VulkanRenderer::DrawDynamicLine(rect[2], rect[3]);
+       renderer::VulkanRenderer::DrawDynamicLine(rect[3], rect[0]);
+    };
 
-//    if (m_currentSelectedGameObject)
-//    {
-//       drawBoundingBox(m_currentSelectedGameObject->GetSprite());
-//    }
+    if (m_currentSelectedGameObject)
+    {
+       drawBoundingBox(m_currentSelectedGameObject->GetSprite());
+    }
 
-//    if (m_currentEditorObjectSelected)
-//    {
-//       drawBoundingBox(m_currentEditorObjectSelected->GetSprite());
-//    }
-// }
+    if (m_currentEditorObjectSelected)
+    {
+       drawBoundingBox(m_currentEditorObjectSelected->GetSprite());
+    }
+ }
 
 void
 Editor::DrawGrid()
@@ -930,16 +928,17 @@ Editor::LaunchGameLoop()
 {
    m_game = std::make_unique< Game >();
    m_game->Init("GameInit.txt", false);
-   m_game->LoadLevel(m_levelFileName);
+   // m_game->LoadLevel(m_levelFileName);
 
    // TODO: Create game-thread and run it inside
-   m_game->MainLoop();
+   // m_game->MainLoop();
    m_game.reset();
 
+   renderer::VulkanRenderer::FreeData(renderer::ApplicationType::GAME);
    m_playGame = false;
 
    renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::EDITOR);
-   renderer::VulkanRenderer::SetupData();
+   // renderer::VulkanRenderer::SetupData();
 }
 
 // std::shared_ptr< EditorObject >
@@ -1043,6 +1042,8 @@ Editor::Update()
 
    renderer::VulkanRenderer::view_mat = m_camera.GetViewMatrix();
    renderer::VulkanRenderer::proj_mat = m_camera.GetProjectionMatrix();
+
+   DrawBoundingBoxes();
 }
 
 void

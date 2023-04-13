@@ -6,6 +6,7 @@
 #include "renderer/texture.hpp"
 #include "renderer/types.hpp"
 #include "renderer/vulkan_common.hpp"
+#include "renderer/renderer.hpp"
 #include "utils/file_manager.hpp"
 
 #include <GLFW/glfw3.h>
@@ -403,7 +404,9 @@ EditorGUI::Init()
    SetStyle();
 
    PrepareResources();
-   PreparePipeline(renderer::Data::m_pipelineCache, renderer::Data::m_renderPass);
+
+   auto& renderData = renderer::Data::renderData_.at(renderer::VulkanRenderer::GetCurrentlyBoundType());
+   PreparePipeline(renderData.pipelineCache, renderData.renderPass);
 }
 
 void
@@ -427,29 +430,29 @@ EditorGUI::UpdateBuffers()
 
    // Vertex buffer
    if ((m_vertexBuffer[currentFrame].m_buffer == VK_NULL_HANDLE)
-       || (m_vertexCount != imDrawData->TotalVtxCount))
+       || (vertexCount_[currentFrame] != imDrawData->TotalVtxCount))
    {
       m_vertexBuffer[currentFrame].Unmap();
       m_vertexBuffer[currentFrame].Destroy();
 
       m_vertexBuffer[currentFrame] = renderer::Buffer::CreateBuffer(
          vertexBufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-      m_vertexCount = imDrawData->TotalVtxCount;
+      vertexCount_[currentFrame] = imDrawData->TotalVtxCount;
       m_vertexBuffer[currentFrame].Map();
    }
 
    // Index buffer
    if ((m_indexBuffer[currentFrame].m_buffer == VK_NULL_HANDLE)
-       || (m_indexCount < imDrawData->TotalIdxCount))
+       || (indexCount_[currentFrame] < imDrawData->TotalIdxCount))
    {
       m_indexBuffer[currentFrame].Unmap();
       m_indexBuffer[currentFrame].Destroy();
 
       m_indexBuffer[currentFrame] = renderer::Buffer::CreateBuffer(
          indexBufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-      m_indexCount = imDrawData->TotalIdxCount;
+      indexCount_[currentFrame] = imDrawData->TotalIdxCount;
       m_indexBuffer[currentFrame].Map();
-   }
+    }
 
    // Upload data
    auto* vtxDst = static_cast< ImDrawVert* >(m_vertexBuffer[currentFrame].m_mappedMemory);
@@ -474,8 +477,6 @@ EditorGUI::UpdateBuffers()
 void
 EditorGUI::Render(VkCommandBuffer commandBuffer)
 {
-   UpdateBuffers();
-
    ImDrawData* imDrawData = ImGui::GetDrawData();
    int32_t vertexOffset = 0;
    uint32_t indexOffset = 0;
@@ -484,6 +485,8 @@ EditorGUI::Render(VkCommandBuffer commandBuffer)
    {
       return;
    }
+
+   UpdateBuffers();
 
    const ImGuiIO& io = ImGui::GetIO();
    const auto currentFrame = renderer::Data::currentFrame_;
@@ -535,9 +538,7 @@ EditorGUI::PrepareResources()
    const auto fontFilename = (FONTS_DIR / "Roboto-Medium.ttf").string();
 
    io.Fonts->AddFontFromFileTTF(fontFilename.c_str(), 16.0f);
-
    io.Fonts->GetTexDataAsRGBA32(&fontData, &texWidth, &texHeight);
-
 
    std::tie(m_fontImage, m_fontMemory) = renderer::Texture::CreateImage(
       static_cast< uint32_t >(texWidth), static_cast< uint32_t >(texHeight), 1,
@@ -545,10 +546,8 @@ EditorGUI::PrepareResources()
       VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-
    m_fontView = renderer::Texture::CreateImageView(m_fontImage, VK_FORMAT_R8G8B8A8_UNORM,
                                                    VK_IMAGE_ASPECT_COLOR_BIT, 1);
-
 
    renderer::Texture::TransitionImageLayout(m_fontImage, VK_IMAGE_LAYOUT_UNDEFINED,
                                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1);
@@ -631,6 +630,8 @@ EditorGUI::PrepareResources()
 
    m_vertexBuffer.resize(renderer::Data::MAX_FRAMES_IN_FLIGHT);
    m_indexBuffer.resize(renderer::Data::MAX_FRAMES_IN_FLIGHT);
+   vertexCount_.resize(renderer::Data::MAX_FRAMES_IN_FLIGHT);
+   indexCount_.resize(renderer::Data::MAX_FRAMES_IN_FLIGHT);
 }
 
 void
@@ -709,7 +710,7 @@ EditorGUI::PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPas
    VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo{};
    pipelineMultisampleStateCreateInfo.sType =
       VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-   pipelineMultisampleStateCreateInfo.rasterizationSamples = renderer::Data::m_msaaSamples;
+   pipelineMultisampleStateCreateInfo.rasterizationSamples = renderer::Data::msaaSamples;
    pipelineMultisampleStateCreateInfo.flags = 0;
 
 

@@ -17,7 +17,6 @@ namespace looper {
 class Game : public Application
 {
  public:
-
    void
    MainLoop() override;
 

@@ -137,8 +137,8 @@ class EditorGUI : public InputListener
    inline static PushConstBlock m_pushConstant = {};
    inline static std::vector< renderer::Buffer > m_vertexBuffer = {};
    inline static std::vector< renderer::Buffer > m_indexBuffer = {};
-   inline static int32_t m_vertexCount = 0;
-   inline static int32_t m_indexCount = 0;
+   inline static std::vector< int32_t > vertexCount_ = {};
+   inline static std::vector< int32_t > indexCount_ = {};
 };
 
 } // namespace looper

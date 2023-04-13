@@ -59,10 +59,27 @@ struct RenderData
 
    // Swapchain
    VkSwapchainKHR swapChain = {};
+   VkExtent2D swapChainExtent = {};
    std::vector< VkImage > swapChainImages = {};
    std::vector< VkImageView > swapChainImageViews = {};
    std::vector< VkFramebuffer > swapChainFramebuffers = {};
+   VkDescriptorSetLayout descriptorSetLayout = {};
+   VkDescriptorPool descriptorPool = {};
+   std::vector< VkDescriptorSet > descriptorSets = {};
    VkFormat swapChainImageFormat = {};
+
+   VkRenderPass renderPass = {};
+   VkPipeline graphicsPipeline = {};
+   VkPipelineCache pipelineCache = {};
+   VkPipelineLayout pipelineLayout = {};
+   
+   VkImage depthImage = {};
+   VkDeviceMemory depthImageMemory = {};
+   VkImageView depthImageView = {};
+
+   VkImage colorImage = {};
+   VkDeviceMemory colorImageMemory = {};
+   VkImageView colorImageView = {};
    
    uint32_t numMeshes = {};
 };
@@ -78,20 +95,16 @@ struct Data
    inline static VkDevice vk_device = {};
    inline static VkPhysicalDevice vk_physicalDevice = VK_NULL_HANDLE;
    inline static VkQueue vk_graphicsQueue = {};
-   inline static VkCommandPool vk_commandPool = {};
-   inline static VkPipelineCache m_pipelineCache = {};
-   inline static VkRenderPass m_renderPass = {};
-   inline static VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
-   inline static VkExtent2D m_swapChainExtent = {};
+   inline static VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
-   // Standard pipeline
-   inline static VkPipeline graphicsPipeline_ = {};
-   inline static VkPipelineLayout pipelineLayout_ = {};
-   inline static std::vector< VkDescriptorSet > descriptorSets_ = {};
+   inline static VkCommandPool commandPool = {};
+   inline static std::vector< VkCommandBuffer > commandBuffers = {};
 
    // Line pipeline
    inline static VkPipeline linePipeline_ = {};
    inline static VkPipelineLayout linePipelineLayout_ = {};
+   inline static VkDescriptorPool lineDescriptorPool = {};
+   inline static VkDescriptorSetLayout lineDescriptorSetLayout_ = {};
    inline static std::vector< VkDescriptorSet > lineDescriptorSets_ = {};
    inline static VkBuffer lineVertexBuffer = {};
    inline static VkDeviceMemory lineVertexBufferMemory = {};

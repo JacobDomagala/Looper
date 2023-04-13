@@ -32,11 +32,15 @@ Window::Window(int32_t width, int32_t height, const std::string& title)
    Logger::Info("GLFW Window created! Name:{} Width:{} Height:{}", m_title, m_width, m_height);
 }
 
+Window::~Window()
+{
+   glfwDestroyWindow(m_pWindow);
+}
+
 void
 Window::ShutDown()
 {
    m_isRunning = false;
-   glfwDestroyWindow(m_pWindow);
 }
 
 void

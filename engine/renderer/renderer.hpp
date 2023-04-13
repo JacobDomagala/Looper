@@ -62,6 +62,9 @@ class VulkanRenderer
    SetupData();
 
    static void
+   FreeData(renderer::ApplicationType type);
+
+   static void
    UpdateBuffers();
 
    static void
@@ -145,6 +148,9 @@ class VulkanRenderer
    CreateLineDescriptorSets();
 
    static void
+   CreateLineDescriptorSetLayout();
+
+   static void
    CreateDepthResources();
 
    static void
@@ -163,20 +169,9 @@ class VulkanRenderer
    inline static VkDebugUtilsMessengerCreateInfoEXT m_debugCreateInfo = {};
    inline static VkDebugUtilsMessengerEXT m_debugMessenger = {};
 
-   inline static VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
-
    inline static VkQueue m_presentQueue = {};
 
    inline static VkRenderPass m_renderPass = {};
-
-   inline static VkDescriptorSetLayout m_descriptorSetLayout = {};
-   inline static VkDescriptorPool m_descriptorPool = {};
-
-   inline static VkDescriptorPool lineDescriptorPool = {};
-   inline static VkDescriptorSetLayout lineDescriptorSetLayout_ = {};
-
-
-   inline static std::vector< VkCommandBuffer > m_commandBuffers = {};
 
    inline static std::vector< VkSemaphore > m_imageAvailableSemaphores = {};
    inline static std::vector< VkSemaphore > m_renderFinishedSemaphores = {};
@@ -185,17 +180,9 @@ class VulkanRenderer
 
    inline static ApplicationType boundApplication_ = {};
 
-   inline static VkImage m_depthImage = {};
-   inline static VkDeviceMemory m_depthImageMemory = {};
-   inline static VkImageView m_depthImageView = {};
-
-   inline static VkImage m_colorImage = {};
-   inline static VkDeviceMemory m_colorImageMemory = {};
-   inline static VkImageView m_colorImageView = {};
-
-   inline static std::vector< VkDrawIndexedIndirectCommand > m_renderCommands = {};
-   inline static VkBuffer m_indirectDrawsBuffer = {};
-   inline static VkDeviceMemory m_indirectDrawsBufferMemory = {};
+   // inline static std::vector< VkDrawIndexedIndirectCommand > m_renderCommands = {};
+   // inline static VkBuffer m_indirectDrawsBuffer = {};
+   // inline static VkDeviceMemory m_indirectDrawsBufferMemory = {};
    inline static uint32_t m_currentVertex = {};
    inline static uint32_t m_currentIndex = {};
 };

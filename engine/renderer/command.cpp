@@ -9,7 +9,7 @@ Command::BeginSingleTimeCommands()
    VkCommandBufferAllocateInfo allocInfo = {};
    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-   allocInfo.commandPool = Data::vk_commandPool;
+   allocInfo.commandPool = Data::commandPool;
    allocInfo.commandBufferCount = 1;
 
    VkCommandBuffer commandBuffer = {};
@@ -37,7 +37,7 @@ Command::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
    vkQueueSubmit(Data::vk_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
    vkQueueWaitIdle(Data::vk_graphicsQueue);
 
-   vkFreeCommandBuffers(Data::vk_device, Data::vk_commandPool, 1, &commandBuffer);
+   vkFreeCommandBuffers(Data::vk_device, Data::commandPool, 1, &commandBuffer);
 }
 
 } // namespace shady::renderer
