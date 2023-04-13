@@ -508,16 +508,15 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 
       m_currentLevel->RenderGameObjects();
 
-      vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                        renderer::Data::graphicsPipeline_);
+      vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.graphicsPipeline);
 
       auto offsets = std::to_array< const VkDeviceSize >({0});
       vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer, offsets.data());
 
       vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-      vkCmdBindDescriptorSets(
-         cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::pipelineLayout_, 0, 1,
+      vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipelineLayout,
+                              0, 1,
                               &renderData.descriptorSets[renderer::Data::currentFrame_], 0, nullptr);
 
       renderer::PushConstants pushConstants = {};
@@ -529,7 +528,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
          pushConstants.selectedIdx = static_cast< float >(tmpIdx);
       }
 
-      vkCmdPushConstants(cmdBuffer, renderer::Data::pipelineLayout_, VK_SHADER_STAGE_VERTEX_BIT, 0,
+      vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                          sizeof(renderer::PushConstants), &pushConstants);
 
       const auto numObjects =
@@ -540,7 +539,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       {
          const auto tmpIdx = m_currentSelectedGameObject->GetSprite().GetRenderIdx();
          pushConstants.selectedIdx = -1.0f;
-         vkCmdPushConstants(cmdBuffer, renderer::Data::pipelineLayout_, VK_SHADER_STAGE_VERTEX_BIT,
+         vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
                             0, sizeof(renderer::PushConstants), &pushConstants);
          vkCmdDrawIndexed(cmdBuffer, 6, 1, tmpIdx * 6, 0, 0);
       }
@@ -929,13 +928,13 @@ Editor::LaunchGameLoop()
 {
    m_game = std::make_unique< Game >();
    m_game->Init("GameInit.txt", false);
-   m_game->LoadLevel(m_levelFileName);
+   // m_game->LoadLevel(m_levelFileName);
 
    // TODO: Create game-thread and run it inside
-   m_game->MainLoop();
+   // m_game->MainLoop();
    m_game.reset();
 
-   renderer::VulkanRenderer::FreeData();
+   renderer::VulkanRenderer::FreeData(renderer::ApplicationType::GAME);
    m_playGame = false;
 
    renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::EDITOR);

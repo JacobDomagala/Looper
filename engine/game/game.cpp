@@ -90,8 +90,8 @@ Game::Init(const std::string& configFile, bool loadLevel)
 
    initFile.close();
 
-   InputManager::Init(m_window->GetWindowHandle());
-   InputManager::RegisterForInput(this);
+   // InputManager::Init(m_window->GetWindowHandle());
+   // InputManager::RegisterForInput(this);
 
    if (loadLevel)
    {
@@ -400,19 +400,21 @@ Game::Render(VkCommandBuffer cmdBuffer)
    RenderFirstPass();
    RenderSecondPass();
 
-   vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::graphicsPipeline_);
-
    auto& renderData =
       renderer::Data::renderData_.at(renderer::VulkanRenderer::GetCurrentlyBoundType());
+
+   vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.graphicsPipeline);
+
+
    auto offsets = std::to_array< const VkDeviceSize >({0});
 
    vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer, offsets.data());
 
    vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-   vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                           renderer::Data::pipelineLayout_, 0, 1,
-                           &renderData.descriptorSets[renderer::Data::currentFrame_], 0, nullptr);
+   vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipelineLayout, 0,
+                           1, &renderData.descriptorSets[renderer::Data::currentFrame_], 0,
+                           nullptr);
 
    // const auto numObjects =
    // renderer::VulkanRenderer::GetNumMeshes(renderer::ApplicationType::GAME); numObjects_ =
