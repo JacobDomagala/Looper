@@ -928,10 +928,10 @@ Editor::LaunchGameLoop()
 {
    m_game = std::make_unique< Game >();
    m_game->Init("GameInit.txt", false);
-   // m_game->LoadLevel(m_levelFileName);
+   m_game->LoadLevel(m_levelFileName);
 
    // TODO: Create game-thread and run it inside
-   // m_game->MainLoop();
+   m_game->MainLoop();
    m_game.reset();
 
    renderer::VulkanRenderer::FreeData(renderer::ApplicationType::GAME);

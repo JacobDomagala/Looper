@@ -57,6 +57,11 @@ struct QueueFamilyIndices
    }
 };
 
+void
+VulkanRenderer::UpdateDescriptors()
+{
+   updateDescriptors_ = true;
+}
 
 uint32_t
 VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureMaps& textures_in,
@@ -136,6 +141,8 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
    auto currentMeshIdx = *numObjects;
    ++(*numObjects);
 
+   UpdateDescriptors();
+
    return currentMeshIdx;
 }
 
@@ -149,7 +156,7 @@ VulkanRenderer::SubmitMeshData(const uint32_t idx, const TextureID id, const glm
    object.color = color;
    object.diffuse = id;
 
-   if (isLoaded_)
+   if (isLoaded_ and updateDescriptors_)
    {
       UpdateDescriptorSets();
    }
@@ -1464,6 +1471,8 @@ VulkanRenderer::Draw(Application* app)
    vkQueuePresentKHR(m_presentQueue, &presentInfo);
 
    Data::currentFrame_ = (Data::currentFrame_ + 1) % Data::MAX_FRAMES_IN_FLIGHT;
+
+   updateDescriptors_ = false;
 }
 
 void

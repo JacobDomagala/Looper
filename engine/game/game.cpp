@@ -90,8 +90,8 @@ Game::Init(const std::string& configFile, bool loadLevel)
 
    initFile.close();
 
-   // InputManager::Init(m_window->GetWindowHandle());
-   // InputManager::RegisterForInput(this);
+   InputManager::Init(m_window->GetWindowHandle());
+   InputManager::RegisterForInput(this);
 
    if (loadLevel)
    {
