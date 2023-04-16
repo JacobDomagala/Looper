@@ -15,40 +15,43 @@ namespace looper {
 void
 Game::MainLoop()
 {
-   auto singleFrameTimer = 0.0f;
-
-   while (IsRunning())
+   if (m_currentLevel)
    {
-      m_timer.ToggleTimer();
-      singleFrameTimer += m_timer.GetFloatDeltaTime();
+      auto singleFrameTimer = 0.0f;
 
-      while (IsRunning() && (singleFrameTimer > TARGET_TIME))
+      while (IsRunning())
       {
-         m_window->Clear();
-         const auto dt = Timer::milliseconds(static_cast< long >(
-            TARGET_TIME * 1000.0f * static_cast< float >(Timer::AreTimersRunning())));
-         ProcessInput(dt);
+         m_timer.ToggleTimer();
+         singleFrameTimer += m_timer.GetFloatDeltaTime();
 
-         renderer::VulkanRenderer::Draw(this);
-         if (m_frameTimer > 1.0f)
+         while (IsRunning() && (singleFrameTimer > TARGET_TIME))
          {
-            m_framesLastSecond = m_frames;
-            m_frameTimer = 0.0f;
-            m_frames = 0;
+            m_window->Clear();
+            const auto dt = Timer::milliseconds(static_cast< long >(
+               TARGET_TIME * 1000.0f * static_cast< float >(Timer::AreTimersRunning())));
+            ProcessInput(dt);
+
+            renderer::VulkanRenderer::Draw(this);
+            if (m_frameTimer > 1.0f)
+            {
+               m_framesLastSecond = m_frames;
+               m_frameTimer = 0.0f;
+               m_frames = 0;
+            }
+            // RenderText(std::to_string(m_framesLastSecond) + " FPS",
+            //            glm::vec2(-WIDTH / 2.0f, -HEIGHT / 2.0f), 0.4f, glm::vec3(1.0f,
+            //            0.0f, 1.0f));
+
+            ++m_frames;
+            m_frameTimer += singleFrameTimer;
+            // singleFrameTimer = 0.0f;
+
+            singleFrameTimer -= TARGET_TIME;
+
+            InputManager::PollEvents();
          }
-         // RenderText(std::to_string(m_framesLastSecond) + " FPS",
-         //            glm::vec2(-WIDTH / 2.0f, -HEIGHT / 2.0f), 0.4f, glm::vec3(1.0f, 0.0f, 1.0f));
-
-         ++m_frames;
-         m_frameTimer += singleFrameTimer;
-         // singleFrameTimer = 0.0f;
-
-         singleFrameTimer -= TARGET_TIME;
-
-         InputManager::PollEvents();
       }
    }
-
    InputManager::UnregisterFromInput(this);
 }
 
@@ -90,8 +93,8 @@ Game::Init(const std::string& configFile, bool loadLevel)
 
    initFile.close();
 
-   // InputManager::Init(m_window->GetWindowHandle());
-   // InputManager::RegisterForInput(this);
+   InputManager::Init(m_window->GetWindowHandle());
+   InputManager::RegisterForInput(this);
 
    if (loadLevel)
    {

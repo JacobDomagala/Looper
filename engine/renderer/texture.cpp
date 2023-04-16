@@ -5,6 +5,7 @@
 #include "utils/assert.hpp"
 #include "utils/file_manager.hpp"
 #include "vulkan_common.hpp"
+#include "renderer.hpp"
 
 #undef max
 
@@ -470,6 +471,8 @@ TextureLibrary::LoadTexture(TextureType type, std::string_view textureName)
 {
    s_loadedTextures[std::string{textureName}] = {type, textureName, currentID_++};
    imageViews_.push_back(s_loadedTextures[std::string{textureName}].GetImageView());
+
+   VulkanRenderer::UpdateDescriptors();
 }
 
 const std::vector< VkImageView >&

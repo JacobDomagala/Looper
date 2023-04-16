@@ -59,7 +59,7 @@ class VulkanRenderer
    CreateLinePipeline();
 
    static void
-   SetupData();
+   SetupData(bool recreatePipeline = true);
 
    static void
    FreeData(renderer::ApplicationType type);
@@ -82,11 +82,17 @@ class VulkanRenderer
    static void
    CreateCommandBuffers(Application* app, uint32_t imageIndex);
 
+   static void
+   UpdateDescriptors();
+
    inline static glm::mat4 view_mat = {};
    inline static glm::mat4 proj_mat = {};
    inline static glm::mat4 model_mat = {};
 
  private:
+   static void
+   DestroyPipeline();
+
    static void
    CreateInstance();
 
@@ -94,7 +100,7 @@ class VulkanRenderer
    CreateDevice();
 
    static void
-   CreateSwapchain(GLFWwindow* windowHandle);
+   CreateSwapchain();
 
    static void
    CreateImageViews();
@@ -166,6 +172,7 @@ class VulkanRenderer
  private:
    inline static bool initialized_ = false;
    inline static bool isLoaded_ = false;
+   inline static bool updateDescriptors_ = false;
    inline static VkDebugUtilsMessengerCreateInfoEXT m_debugCreateInfo = {};
    inline static VkDebugUtilsMessengerEXT m_debugMessenger = {};
 
