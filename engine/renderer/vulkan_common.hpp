@@ -74,7 +74,7 @@ struct RenderData
    VkFormat swapChainImageFormat = {};
 
    VkRenderPass renderPass = VK_NULL_HANDLE;
-   VkPipeline graphicsPipeline = VK_NULL_HANDLE;
+   VkPipeline pipeline = VK_NULL_HANDLE;
    VkPipelineCache pipelineCache = VK_NULL_HANDLE;
    VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
    
@@ -152,15 +152,6 @@ struct EditorData
    inline static constexpr uint32_t MAX_NUM_LINES = 100000;
 };
 
-struct PushConstants
-{
-   float selectedIdx = {};
-};
-
-struct LinePushConstants
-{
-   glm::vec4 color = {};
-};
 
 uint32_t
 FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);

@@ -27,7 +27,7 @@ class VulkanRenderer
    CreateRenderPipeline();
 
    static void
-   Draw(Application* app);
+   Render(Application* app);
 
    static void
    DrawLine(const glm::vec2& start, const glm::vec2& end);
@@ -121,7 +121,7 @@ class VulkanRenderer
    CreateSyncObjects();
 
    static void
-   CreatePipeline();
+   CreateTrianglePipeline();
 
    static void
    CreatePipelineCache();
