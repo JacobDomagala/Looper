@@ -314,6 +314,7 @@ Level::AddGameObject(ObjectType objectType)
    }
 
    renderer::VulkanRenderer::UpdateBuffers();
+   renderer::VulkanRenderer::CreateLinePipeline();
 
    return newObject;
 }

@@ -133,7 +133,10 @@ class VulkanRenderer
    CreateIndexBuffer();
 
    static void
-   CreateUniformBuffers();
+   CreateUniformBuffer();
+
+   static void
+   CreatePerInstanceBuffer();
 
    static void
    UpdateUniformBuffer(uint32_t currentImage);

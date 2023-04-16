@@ -628,10 +628,10 @@ EditorGUI::PrepareResources()
                           writeDescriptorSets.data(), 0, nullptr);
 
 
-   m_vertexBuffer.resize(renderer::Data::MAX_FRAMES_IN_FLIGHT);
-   m_indexBuffer.resize(renderer::Data::MAX_FRAMES_IN_FLIGHT);
-   vertexCount_.resize(renderer::Data::MAX_FRAMES_IN_FLIGHT);
-   indexCount_.resize(renderer::Data::MAX_FRAMES_IN_FLIGHT);
+   m_vertexBuffer.resize(renderer::MAX_FRAMES_IN_FLIGHT);
+   m_indexBuffer.resize(renderer::MAX_FRAMES_IN_FLIGHT);
+   vertexCount_.resize(renderer::MAX_FRAMES_IN_FLIGHT);
+   indexCount_.resize(renderer::MAX_FRAMES_IN_FLIGHT);
 }
 
 void
