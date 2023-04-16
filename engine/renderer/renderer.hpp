@@ -59,7 +59,7 @@ class VulkanRenderer
    CreateLinePipeline();
 
    static void
-   SetupData();
+   SetupData(bool recreatePipeline = true);
 
    static void
    FreeData(renderer::ApplicationType type);
@@ -91,13 +91,16 @@ class VulkanRenderer
 
  private:
    static void
+   DestroyPipeline();
+
+   static void
    CreateInstance();
 
    static void
    CreateDevice();
 
    static void
-   CreateSwapchain(GLFWwindow* windowHandle);
+   CreateSwapchain();
 
    static void
    CreateImageViews();

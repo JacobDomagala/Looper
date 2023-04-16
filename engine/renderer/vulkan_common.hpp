@@ -3,6 +3,7 @@
 #include "types.hpp"
 #include "utils/assert.hpp"
 #include "vertex.hpp"
+#include "buffer.hpp"
 
 #include <array>
 #include <fmt/format.h>
@@ -12,6 +13,8 @@
 #include <vulkan/vk_enum_string_helper.h>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
+
+struct GLFWwindow;
 
 namespace looper::renderer {
 
@@ -56,6 +59,7 @@ struct RenderData
    std::vector< VkDeviceMemory > ssboMemory = {};
    
    VkSurfaceKHR surface = {};
+   GLFWwindow* windowHandle = nullptr;
 
    // Swapchain
    VkSwapchainKHR swapChain = {};

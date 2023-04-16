@@ -516,8 +516,8 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
       vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipelineLayout,
-                              0, 1,
-                              &renderData.descriptorSets[renderer::Data::currentFrame_], 0, nullptr);
+                              0, 1, &renderData.descriptorSets[renderer::Data::currentFrame_], 0,
+                              nullptr);
 
       renderer::PushConstants pushConstants = {};
       pushConstants.selectedIdx = -1.0f;
@@ -539,8 +539,8 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       {
          const auto tmpIdx = m_currentSelectedGameObject->GetSprite().GetRenderIdx();
          pushConstants.selectedIdx = -1.0f;
-         vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
-                            0, sizeof(renderer::PushConstants), &pushConstants);
+         vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                            sizeof(renderer::PushConstants), &pushConstants);
          vkCmdDrawIndexed(cmdBuffer, 6, 1, tmpIdx * 6, 0, 0);
       }
 
@@ -676,27 +676,27 @@ Editor::DrawAnimationPoints()
    renderer::VulkanRenderer::UpdateLineData(renderer::Data::numGridLines);
 }
 
- void
- Editor::DrawBoundingBoxes()
- {
-    auto drawBoundingBox = [](const renderer::Sprite& sprite) {
-       const auto rect = sprite.GetTransformedRectangle();
-       renderer::VulkanRenderer::DrawDynamicLine(rect[0], rect[1]);
-       renderer::VulkanRenderer::DrawDynamicLine(rect[1], rect[2]);
-       renderer::VulkanRenderer::DrawDynamicLine(rect[2], rect[3]);
-       renderer::VulkanRenderer::DrawDynamicLine(rect[3], rect[0]);
-    };
+void
+Editor::DrawBoundingBoxes()
+{
+   auto drawBoundingBox = [](const renderer::Sprite& sprite) {
+      const auto rect = sprite.GetTransformedRectangle();
+      renderer::VulkanRenderer::DrawDynamicLine(rect[0], rect[1]);
+      renderer::VulkanRenderer::DrawDynamicLine(rect[1], rect[2]);
+      renderer::VulkanRenderer::DrawDynamicLine(rect[2], rect[3]);
+      renderer::VulkanRenderer::DrawDynamicLine(rect[3], rect[0]);
+   };
 
-    if (m_currentSelectedGameObject)
-    {
-       drawBoundingBox(m_currentSelectedGameObject->GetSprite());
-    }
+   if (m_currentSelectedGameObject)
+   {
+      drawBoundingBox(m_currentSelectedGameObject->GetSprite());
+   }
 
-    if (m_currentEditorObjectSelected)
-    {
-       drawBoundingBox(m_currentEditorObjectSelected->GetSprite());
-    }
- }
+   if (m_currentEditorObjectSelected)
+   {
+      drawBoundingBox(m_currentEditorObjectSelected->GetSprite());
+   }
+}
 
 void
 Editor::DrawGrid()

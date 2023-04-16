@@ -484,7 +484,7 @@ VulkanRenderer::CreateVertexBuffer()
 
    Buffer::CreateBuffer(
       bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, renderData.vertexBuffer, renderData.vertexBufferMemory);
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, renderData.vertexBuffer, renderData.vertexBufferMemory);
 
    Buffer::CopyBuffer(stagingBuffer, renderData.vertexBuffer, bufferSize);
 
@@ -929,8 +929,13 @@ VulkanRenderer::UpdatePerInstanceBuffer()
 }
 
 void
-VulkanRenderer::SetupData()
+VulkanRenderer::SetupData(bool recreatePipeline)
 {
+   vkDeviceWaitIdle(Data::vk_device);
+
+   auto& renderData = renderer::Data::renderData_.at(boundApplication_);
+   vkDestroyDescriptorPool(Data::vk_device, renderData.descriptorPool, nullptr);
+
    UpdateBuffers();
 
    // Indirect render stuff
@@ -949,18 +954,60 @@ VulkanRenderer::SetupData()
    // memcpy(data, m_renderCommands.data(), static_cast< size_t >(bufferSize));
    // memcpy(static_cast< uint8_t* >(data) + commandsSize, &m_numMeshes, sizeof(uint32_t));
 
-   CreateRenderPipeline();
-   CreateDescriptorPool();
-   CreateDescriptorSets();
-   UpdateDescriptorSets();
+   if (recreatePipeline)
+   {
+      DestroyPipeline();
+
+      CreateRenderPipeline();
+      CreateDescriptorPool();
+      CreateDescriptorSets();
+      UpdateDescriptorSets();
+   }
+
 
    isLoaded_ = true;
 }
 
 void
+VulkanRenderer::DestroyPipeline()
+{
+   vkDeviceWaitIdle(Data::vk_device);
+
+   auto& renderData = Data::renderData_.at(boundApplication_);
+
+   for (size_t i = 0; i < renderData.swapChainImages.size(); ++i)
+   {
+      vkDestroyFramebuffer(Data::vk_device, renderData.swapChainFramebuffers[i], nullptr);
+      vkDestroyImageView(Data::vk_device, renderData.swapChainImageViews[i], nullptr);
+   }
+
+   vkDestroySwapchainKHR(Data::vk_device, renderData.swapChain, nullptr);
+   vkDestroySurfaceKHR(Data::vk_instance, renderData.surface, nullptr);
+
+   renderData.swapChainImages.clear();
+   renderData.swapChainImageViews.clear();
+   renderData.swapChainFramebuffers.clear();
+   renderData.descriptorSets.clear();
+   renderData.swapChainImageFormat = VK_FORMAT_UNDEFINED;
+
+   vkDestroyImage(Data::vk_device, renderData.colorImage, nullptr);
+   vkDestroyImageView(Data::vk_device, renderData.colorImageView, nullptr);
+   vkFreeMemory(Data::vk_device, renderData.colorImageMemory, nullptr);
+
+   vkDestroyImage(Data::vk_device, renderData.depthImage, nullptr);
+   vkDestroyImageView(Data::vk_device, renderData.depthImageView, nullptr);
+   vkFreeMemory(Data::vk_device, renderData.depthImageMemory, nullptr);
+
+   vkDestroyPipeline(Data::vk_device, renderData.graphicsPipeline, nullptr);
+   vkDestroyPipelineLayout(Data::vk_device, renderData.pipelineLayout, nullptr);
+   vkDestroyPipelineCache(Data::vk_device, renderData.pipelineCache, nullptr);
+   vkDestroyRenderPass(Data::vk_device, renderData.renderPass, nullptr);
+}
+
+void
 VulkanRenderer::FreeData(renderer::ApplicationType type)
 {
-   vkWaitForFences(Data::vk_device, 1, &m_inFlightFences[Data::currentFrame_], VK_TRUE, UINT64_MAX);
+   vkDeviceWaitIdle(Data::vk_device);
 
    if (Data::renderData_.find(type) != Data::renderData_.end())
    {
@@ -986,33 +1033,7 @@ VulkanRenderer::FreeData(renderer::ApplicationType type)
       renderData.ssbo.clear();
       renderData.ssboMemory.clear();
 
-      for (size_t i = 0; i < renderData.swapChainImages.size(); ++i)
-      {
-         vkDestroyFramebuffer(Data::vk_device, renderData.swapChainFramebuffers[i], nullptr);
-         vkDestroyImageView(Data::vk_device, renderData.swapChainImageViews[i], nullptr);
-      }
-
-      vkDestroySwapchainKHR(Data::vk_device, renderData.swapChain, nullptr);
-      vkDestroySurfaceKHR(Data::vk_instance, renderData.surface, nullptr);
-
-      renderData.swapChainImages.clear();
-      renderData.swapChainImageViews.clear();
-      renderData.swapChainFramebuffers.clear();
-      renderData.descriptorSets.clear();
-      renderData.swapChainImageFormat = VK_FORMAT_UNDEFINED;
-
-      vkDestroyImage(Data::vk_device, renderData.colorImage, nullptr);
-      vkDestroyImageView(Data::vk_device, renderData.colorImageView, nullptr);
-      vkFreeMemory(Data::vk_device, renderData.colorImageMemory, nullptr);
-      
-      vkDestroyImage(Data::vk_device, renderData.depthImage, nullptr);
-      vkDestroyImageView(Data::vk_device, renderData.depthImageView, nullptr);
-      vkFreeMemory(Data::vk_device, renderData.depthImageMemory, nullptr);
-
-      vkDestroyPipeline(Data::vk_device, renderData.graphicsPipeline, nullptr);
-      vkDestroyPipelineLayout(Data::vk_device, renderData.pipelineLayout, nullptr);
-      vkDestroyPipelineCache(Data::vk_device, renderData.pipelineCache, nullptr);
-      vkDestroyRenderPass(Data::vk_device, renderData.renderPass, nullptr);
+      DestroyPipeline();
 
       Data::renderData_.erase(type);
    }
@@ -1290,15 +1311,17 @@ void
 VulkanRenderer::Initialize(GLFWwindow* windowHandle, ApplicationType type)
 {
    SetAppMarker(type);
+   auto& renderData = Data::renderData_[boundApplication_];
+   renderData.windowHandle = windowHandle;
+
 
    if (not initialized_)
    {
       CreateInstance();
    }
 
-
-   vk_check_error(glfwCreateWindowSurface(Data::vk_instance, windowHandle, nullptr,
-                                          &Data::renderData_[boundApplication_].surface),
+   vk_check_error(glfwCreateWindowSurface(Data::vk_instance, renderData.windowHandle, nullptr,
+                                          &renderData.surface),
                   "failed to create window surface!");
 
    if (not initialized_)
@@ -1306,9 +1329,6 @@ VulkanRenderer::Initialize(GLFWwindow* windowHandle, ApplicationType type)
       CreateDevice();
    }
 
-   CreateSwapchain(windowHandle);
-   CreateImageViews();
-   CreateCommandPool();
    CreateRenderPipeline();
 
    initialized_ = true;
@@ -1317,6 +1337,15 @@ VulkanRenderer::Initialize(GLFWwindow* windowHandle, ApplicationType type)
 void
 VulkanRenderer::CreateRenderPipeline()
 {
+   auto& renderData = Data::renderData_[boundApplication_];
+
+   vk_check_error(glfwCreateWindowSurface(Data::vk_instance, renderData.windowHandle, nullptr,
+                                          &renderData.surface),
+                  "failed to create window surface!");
+
+   CreateSwapchain();
+   CreateImageViews();
+   CreateCommandPool();
    CreateRenderPass();
    CreateDescriptorSetLayout();
    CreatePipeline();
@@ -1364,14 +1393,12 @@ VulkanRenderer::CreateColorResources()
 
    std::tie(renderData.colorImage, renderData.colorImageMemory) = Texture::CreateImage(
       renderData.swapChainExtent.width, renderData.swapChainExtent.height, 1,
-      renderer::Data::msaaSamples, renderData.swapChainImageFormat,
-      VK_IMAGE_TILING_OPTIMAL,
+      renderer::Data::msaaSamples, renderData.swapChainImageFormat, VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
    renderData.colorImageView = Texture::CreateImageView(
-      renderData.colorImage, renderData.swapChainImageFormat,
-      VK_IMAGE_ASPECT_COLOR_BIT, 1);
+      renderData.colorImage, renderData.swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 }
 
 void
@@ -1592,14 +1619,14 @@ VulkanRenderer::CreateDevice()
 }
 
 void
-VulkanRenderer::CreateSwapchain(GLFWwindow* windowHandle)
+VulkanRenderer::CreateSwapchain()
 {
    auto& renderData = Data::renderData_.at(boundApplication_);
 
    const auto swapChainSupport = querySwapChainSupport(Data::vk_physicalDevice, renderData.surface);
    const auto surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
    const auto presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-   const auto extent = chooseSwapExtent(swapChainSupport.capabilities, windowHandle);
+   const auto extent = chooseSwapExtent(swapChainSupport.capabilities, renderData.windowHandle);
 
    uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
    if (swapChainSupport.capabilities.maxImageCount > 0
@@ -1824,8 +1851,7 @@ VulkanRenderer::CreateFramebuffers()
    for (size_t i = 0; i < renderData.swapChainImageViews.size(); i++)
    {
       std::array< VkImageView, 3 > attachments = {
-         renderData.colorImageView, renderData.depthImageView,
-                                                  renderData.swapChainImageViews[i]};
+         renderData.colorImageView, renderData.depthImageView, renderData.swapChainImageViews[i]};
 
       VkFramebufferCreateInfo framebufferInfo = {};
       framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -1836,10 +1862,9 @@ VulkanRenderer::CreateFramebuffers()
       framebufferInfo.height = renderData.swapChainExtent.height;
       framebufferInfo.layers = 1;
 
-      vk_check_error(
-         vkCreateFramebuffer(Data::vk_device, &framebufferInfo, nullptr,
+      vk_check_error(vkCreateFramebuffer(Data::vk_device, &framebufferInfo, nullptr,
                                          &renderData.swapChainFramebuffers[i]),
-         "Failed to create framebuffer!");
+                     "Failed to create framebuffer!");
    }
 }
 
@@ -1871,12 +1896,11 @@ VulkanRenderer::CreateCommandBuffers(Application* app, uint32_t imageIndex)
       allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
       allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
       allocInfo.commandPool = Data::commandPool;
-      allocInfo.commandBufferCount =
-         static_cast< uint32_t >(Data::commandBuffers.size());
+      allocInfo.commandBufferCount = static_cast< uint32_t >(Data::commandBuffers.size());
 
       vk_check_error(
          vkAllocateCommandBuffers(Data::vk_device, &allocInfo, Data::commandBuffers.data()),
-                     "failed to allocate command buffers!");
+         "failed to allocate command buffers!");
    }
 
    VkCommandBufferBeginInfo beginInfo = {};
@@ -1931,8 +1955,7 @@ VulkanRenderer::CreateSyncObjects()
    m_imageAvailableSemaphores.resize(Data::MAX_FRAMES_IN_FLIGHT);
    m_renderFinishedSemaphores.resize(Data::MAX_FRAMES_IN_FLIGHT);
    m_inFlightFences.resize(Data::MAX_FRAMES_IN_FLIGHT);
-   m_imagesInFlight.resize(renderData.swapChainImages.size(),
-                           VK_NULL_HANDLE);
+   m_imagesInFlight.resize(renderData.swapChainImages.size(), VK_NULL_HANDLE);
 
    VkSemaphoreCreateInfo semaphoreInfo = {};
    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -2072,7 +2095,7 @@ VulkanRenderer::CreatePipeline()
 
    vk_check_error(vkCreatePipelineLayout(Data::vk_device, &pipelineLayoutInfo, nullptr,
                                          &renderData.pipelineLayout),
-      "failed to create pipeline layout!");
+                  "failed to create pipeline layout!");
 
    VkGraphicsPipelineCreateInfo pipelineInfo{};
    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
