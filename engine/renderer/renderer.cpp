@@ -1219,6 +1219,7 @@ VulkanRenderer::CreateDescriptorSets()
 void
 VulkanRenderer::UpdateDescriptorSets()
 {
+   vkDeviceWaitIdle(Data::vk_device);
    auto& renderData = renderer::Data::renderData_.at(boundApplication_);
 
    const auto size = Data::MAX_FRAMES_IN_FLIGHT;
