@@ -43,13 +43,13 @@ class VulkanRenderer
    SubmitMeshData(const uint32_t idx, const TextureID textures_in, const glm::mat4& modelMat,
                   const glm::vec4& color);
 
-   static void
+   inline static void
    SetAppMarker(ApplicationType type)
    {
       boundApplication_ = type;
    }
 
-   [[nodiscard]] static ApplicationType
+   inline [[nodiscard]] static ApplicationType
    GetCurrentlyBoundType()
    {
       return boundApplication_;
@@ -106,9 +106,6 @@ class VulkanRenderer
    CreateImageViews();
 
    static void
-   CreateDescriptorSetLayout();
-
-   static void
    CreateRenderPass();
 
    static void
@@ -140,24 +137,6 @@ class VulkanRenderer
 
    static void
    UpdateUniformBuffer(uint32_t currentImage);
-
-   static void
-   CreateDescriptorPool();
-
-   static void
-   CreateDescriptorSets();
-
-   static void
-   UpdateDescriptorSets();
-
-   static void
-   CreateLineDescriptorPool();
-
-   static void
-   CreateLineDescriptorSets();
-
-   static void
-   CreateLineDescriptorSetLayout();
 
    static void
    CreateDepthResources();
