@@ -1112,7 +1112,6 @@ Editor::MainLoop()
          m_currentLevel->GetPathfinder().ClearPerFrameData();
       }
 
-
       if (m_playGame)
       {
          LaunchGameLoop();

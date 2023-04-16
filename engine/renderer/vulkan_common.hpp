@@ -33,6 +33,7 @@ static constexpr uint32_t INDICES_PER_SPRITE = 6;
 static constexpr uint32_t VERTICES_PER_SPRITE = 4;
 static constexpr uint32_t INDICES_PER_LINE = 2;
 static constexpr uint32_t VERTICES_PER_LINE = 2;
+inline constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 3;
 static constexpr bool ENABLE_VALIDATION = true;
 static constexpr std::array< const char*, 1 > VALIDATION_LAYERS = {"VK_LAYER_KHRONOS_validation"};
 static constexpr std::array< const char*, 1 > DEVICE_EXTENSIONS = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
@@ -41,22 +42,22 @@ struct RenderData
 {  
    // Vertex
    std::vector< Vertex > vertices = {};
-   VkBuffer vertexBuffer = {};
-   VkDeviceMemory vertexBufferMemory = {};
+   VkBuffer vertexBuffer = VK_NULL_HANDLE;
+   VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
 
    // Index
    std::vector< IndexType > indices = {};
-   VkBuffer indexBuffer = {};
-   VkDeviceMemory indexBufferMemory = {};
+   VkBuffer indexBuffer = VK_NULL_HANDLE;
+   VkDeviceMemory indexBufferMemory = VK_NULL_HANDLE;
    
    // UBO (UniformBufferObject)
-   std::vector< VkBuffer > uniformBuffers = {};
-   std::vector< VkDeviceMemory > uniformBuffersMemory = {};
+   std::vector< VkBuffer > uniformBuffers = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
+   std::vector< VkDeviceMemory > uniformBuffersMemory = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
 
    // SSBO (PerInstanceBuffer) 
-   std::vector< PerInstanceBuffer > perInstance = {};
-   std::vector< VkBuffer > ssbo = {};
-   std::vector< VkDeviceMemory > ssboMemory = {};
+   std::vector< PerInstanceBuffer > perInstance = {MAX_FRAMES_IN_FLIGHT, PerInstanceBuffer{}};
+   std::vector< VkBuffer > ssbo = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
+   std::vector< VkDeviceMemory > ssboMemory = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
    
    VkSurfaceKHR surface = {};
    GLFWwindow* windowHandle = nullptr;
@@ -72,18 +73,18 @@ struct RenderData
    std::vector< VkDescriptorSet > descriptorSets = {};
    VkFormat swapChainImageFormat = {};
 
-   VkRenderPass renderPass = {};
-   VkPipeline graphicsPipeline = {};
-   VkPipelineCache pipelineCache = {};
-   VkPipelineLayout pipelineLayout = {};
+   VkRenderPass renderPass = VK_NULL_HANDLE;
+   VkPipeline graphicsPipeline = VK_NULL_HANDLE;
+   VkPipelineCache pipelineCache = VK_NULL_HANDLE;
+   VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
    
-   VkImage depthImage = {};
-   VkDeviceMemory depthImageMemory = {};
-   VkImageView depthImageView = {};
+   VkImage depthImage = VK_NULL_HANDLE;
+   VkDeviceMemory depthImageMemory = VK_NULL_HANDLE;
+   VkImageView depthImageView = VK_NULL_HANDLE;
 
-   VkImage colorImage = {};
-   VkDeviceMemory colorImageMemory = {};
-   VkImageView colorImageView = {};
+   VkImage colorImage = VK_NULL_HANDLE;
+   VkDeviceMemory colorImageMemory = VK_NULL_HANDLE;
+   VkImageView colorImageView = VK_NULL_HANDLE;
    
    uint32_t numMeshes = {};
 };
@@ -125,7 +126,6 @@ struct Data
    inline static std::unordered_map< ApplicationType, RenderData > renderData_ = {};
 
    inline static uint32_t currentFrame_ = {};
-   inline static const uint32_t MAX_FRAMES_IN_FLIGHT = 3;
 };
 
 struct EditorData

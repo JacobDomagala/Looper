@@ -903,9 +903,12 @@ VulkanRenderer::SetupEditorData(ObjectType type)
 void
 VulkanRenderer::UpdateBuffers()
 {
+   vkDeviceWaitIdle(Data::vk_device);
+
    CreateVertexBuffer();
    CreateIndexBuffer();
-   CreateUniformBuffers();
+   CreateUniformBuffer();
+   CreatePerInstanceBuffer();
 }
 
 void
@@ -914,7 +917,7 @@ VulkanRenderer::UpdatePerInstanceBuffer()
    auto& renderData = Data::renderData_[boundApplication_];
    const VkDeviceSize SSBObufferSize = renderData.perInstance.size() * sizeof(PerInstanceBuffer);
 
-   const auto swapchainImagesSize = Data::MAX_FRAMES_IN_FLIGHT;
+   const auto swapchainImagesSize = MAX_FRAMES_IN_FLIGHT;
 
    renderData.ssbo.resize(swapchainImagesSize);
    renderData.ssboMemory.resize(swapchainImagesSize);
@@ -1085,26 +1088,49 @@ VulkanRenderer::CreateIndexBuffer()
 }
 
 void
-VulkanRenderer::CreateUniformBuffers()
+VulkanRenderer::CreateUniformBuffer()
 {
    auto& renderData = Data::renderData_[boundApplication_];
    const VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-   const VkDeviceSize SSBObufferSize = renderData.perInstance.size() * sizeof(PerInstanceBuffer);
 
-   const auto swapchainImagesSize = Data::MAX_FRAMES_IN_FLIGHT; // m_swapChainImages.size();
+   // We always (for now) create buffers for all frames in flight, so we only have to check the first one
+   if (renderData.uniformBuffers[0] != VK_NULL_HANDLE)
+   {
+      for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+      {
+         vkDestroyBuffer(Data::vk_device, renderData.uniformBuffers[i], nullptr);
+         vkFreeMemory(Data::vk_device, renderData.uniformBuffersMemory[i], nullptr);
+      }
+   }
 
-   renderData.uniformBuffers.resize(swapchainImagesSize);
-   renderData.uniformBuffersMemory.resize(swapchainImagesSize);
-   renderData.ssbo.resize(swapchainImagesSize);
-   renderData.ssboMemory.resize(swapchainImagesSize);
-
-   for (size_t i = 0; i < swapchainImagesSize; i++)
+   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
    {
       Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
                               | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                            renderData.uniformBuffers[i], renderData.uniformBuffersMemory[i]);
+   }
+}
 
+void
+VulkanRenderer::CreatePerInstanceBuffer()
+{
+   auto& renderData = Data::renderData_[boundApplication_];
+   const VkDeviceSize SSBObufferSize = renderData.perInstance.size() * sizeof(PerInstanceBuffer);
+
+   // We always (for now) create buffers for all frames in flight, so we only have to check the
+   // first one
+   if (renderData.ssboMemory[0] != VK_NULL_HANDLE)
+   {
+      for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+      {
+         vkDestroyBuffer(Data::vk_device, renderData.ssbo[i], nullptr);
+         vkFreeMemory(Data::vk_device, renderData.ssboMemory[i], nullptr);
+      }
+   }
+
+   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+   {
       Buffer::CreateBuffer(SSBObufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
                               | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -1136,7 +1162,7 @@ VulkanRenderer::CreateLineDescriptorPool()
 void
 VulkanRenderer::CreateLineDescriptorSets()
 {
-   const auto size = Data::MAX_FRAMES_IN_FLIGHT;
+   const auto size = MAX_FRAMES_IN_FLIGHT;
    std::vector< VkDescriptorSetLayout > layouts(size, Data::lineDescriptorSetLayout_);
 
    VkDescriptorSetAllocateInfo allocInfo = {};
@@ -1201,7 +1227,7 @@ void
 VulkanRenderer::CreateDescriptorSets()
 {
    auto& renderData = renderer::Data::renderData_.at(boundApplication_);
-   const auto size = Data::MAX_FRAMES_IN_FLIGHT;
+   const auto size = MAX_FRAMES_IN_FLIGHT;
    std::vector< VkDescriptorSetLayout > layouts(size, renderData.descriptorSetLayout);
 
    VkDescriptorSetAllocateInfo allocInfo = {};
@@ -1222,7 +1248,7 @@ VulkanRenderer::UpdateDescriptorSets()
    vkDeviceWaitIdle(Data::vk_device);
    auto& renderData = renderer::Data::renderData_.at(boundApplication_);
 
-   const auto size = Data::MAX_FRAMES_IN_FLIGHT;
+   const auto size = MAX_FRAMES_IN_FLIGHT;
 
    const auto [imageView, sampler] =
       TextureLibrary::GetTexture(TextureType::DIFFUSE_MAP, "white.png")->GetImageViewAndSampler();
@@ -1360,30 +1386,27 @@ VulkanRenderer::CreateRenderPipeline()
 void
 VulkanRenderer::UpdateUniformBuffer(uint32_t currentImage)
 {
-   if (!Data::renderData_[boundApplication_].uniformBuffersMemory.empty()
-       and !Data::renderData_[boundApplication_].ssboMemory.empty())
-   {
+   auto& renderData = Data::renderData_.at(boundApplication_);
+   if (renderData.uniformBuffersMemory[currentImage] != VK_NULL_HANDLE
+       and renderData.ssboMemory[currentImage] != VK_NULL_HANDLE)
+   {   
       UniformBufferObject ubo = {};
 
       ubo.view = view_mat;
       ubo.proj = proj_mat;
 
       void* data = nullptr;
-      vkMapMemory(Data::vk_device,
-                  Data::renderData_[boundApplication_].uniformBuffersMemory[currentImage], 0,
-                  sizeof(ubo), 0, &data);
+      vkMapMemory(Data::vk_device, renderData.uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0,
+                  &data);
       memcpy(data, &ubo, sizeof(ubo));
-      vkUnmapMemory(Data::vk_device,
-                    Data::renderData_[boundApplication_].uniformBuffersMemory[currentImage]);
+      vkUnmapMemory(Data::vk_device, renderData.uniformBuffersMemory[currentImage]);
 
       void* data2 = nullptr;
-      vkMapMemory(Data::vk_device, Data::renderData_[boundApplication_].ssboMemory[currentImage], 0,
-                  Data::renderData_[boundApplication_].perInstance.size()
-                     * sizeof(PerInstanceBuffer),
-                  0, &data2);
-      memcpy(data2, Data::renderData_[boundApplication_].perInstance.data(),
-             Data::renderData_[boundApplication_].perInstance.size() * sizeof(PerInstanceBuffer));
-      vkUnmapMemory(Data::vk_device, Data::renderData_[boundApplication_].ssboMemory[currentImage]);
+      vkMapMemory(Data::vk_device, renderData.ssboMemory[currentImage], 0,
+                  renderData.perInstance.size() * sizeof(PerInstanceBuffer), 0, &data2);
+      memcpy(data2, renderData.perInstance.data(),
+             renderData.perInstance.size() * sizeof(PerInstanceBuffer));
+      vkUnmapMemory(Data::vk_device, renderData.ssboMemory[currentImage]);
    }
 }
 
@@ -1498,7 +1521,7 @@ VulkanRenderer::Draw(Application* app)
 
    vkQueuePresentKHR(m_presentQueue, &presentInfo);
 
-   Data::currentFrame_ = (Data::currentFrame_ + 1) % Data::MAX_FRAMES_IN_FLIGHT;
+   Data::currentFrame_ = (Data::currentFrame_ + 1) % MAX_FRAMES_IN_FLIGHT;
 
    updateDescriptors_ = false;
 }
@@ -1891,7 +1914,7 @@ VulkanRenderer::CreateCommandBuffers(Application* app, uint32_t imageIndex)
 
    if (Data::commandBuffers.empty())
    {
-      Data::commandBuffers.resize(Data::MAX_FRAMES_IN_FLIGHT);
+      Data::commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
       VkCommandBufferAllocateInfo allocInfo{};
       allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -1953,9 +1976,9 @@ VulkanRenderer::CreateSyncObjects()
 {
    auto& renderData = Data::renderData_.at(boundApplication_);
 
-   m_imageAvailableSemaphores.resize(Data::MAX_FRAMES_IN_FLIGHT);
-   m_renderFinishedSemaphores.resize(Data::MAX_FRAMES_IN_FLIGHT);
-   m_inFlightFences.resize(Data::MAX_FRAMES_IN_FLIGHT);
+   m_imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+   m_renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+   m_inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
    m_imagesInFlight.resize(renderData.swapChainImages.size(), VK_NULL_HANDLE);
 
    VkSemaphoreCreateInfo semaphoreInfo = {};
@@ -1965,7 +1988,7 @@ VulkanRenderer::CreateSyncObjects()
    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-   for (size_t i = 0; i < Data::MAX_FRAMES_IN_FLIGHT; i++)
+   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
    {
       vk_check_error(vkCreateSemaphore(Data::vk_device, &semaphoreInfo, nullptr,
                                        &m_imageAvailableSemaphores[i]),
