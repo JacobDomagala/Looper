@@ -519,7 +519,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
                               0, 1, &renderData.descriptorSets[renderer::Data::currentFrame_], 0,
                               nullptr);
 
-      renderer::Vertex::PushConstants pushConstants = {};
+      renderer::QuadShader::PushConstants pushConstants = {};
       pushConstants.selectedIdx = -1.0f;
 
       if (m_currentSelectedGameObject)
@@ -529,7 +529,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       }
 
       vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                         sizeof(renderer::Vertex::PushConstants), &pushConstants);
+                         sizeof(renderer::QuadShader::PushConstants), &pushConstants);
 
       const auto numObjects =
          renderData.numMeshes - renderer::EditorData::numNodes_ - renderer::EditorData::numPoints_;
@@ -540,7 +540,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
          const auto tmpIdx = m_currentSelectedGameObject->GetSprite().GetRenderIdx();
          pushConstants.selectedIdx = -1.0f;
          vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                            sizeof(renderer::Vertex::PushConstants), &pushConstants);
+                            sizeof(renderer::QuadShader::PushConstants), &pushConstants);
          vkCmdDrawIndexed(cmdBuffer, 6, 1, tmpIdx * 6, 0, 0);
       }
 
@@ -583,11 +583,12 @@ Editor::Render(VkCommandBuffer cmdBuffer)
          cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::linePipelineLayout_, 0, 1,
          &renderer::Data::lineDescriptorSets_[renderer::Data::currentFrame_], 0, nullptr);
 
-      renderer::LineVertex::PushConstants linePushConstants = {};
+      renderer::LineShader::PushConstants linePushConstants = {};
       linePushConstants.color = glm::vec4(0.4f, 0.5f, 0.6f, static_cast< float >(m_drawGrid));
 
       vkCmdPushConstants(cmdBuffer, renderer::Data::linePipelineLayout_,
-                         VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(renderer::LineVertex::PushConstants),
+                         VK_SHADER_STAGE_FRAGMENT_BIT, 0,
+                         sizeof(renderer::LineShader::PushConstants),
                          &linePushConstants);
 
       vkCmdDrawIndexed(cmdBuffer, renderer::Data::numGridLines * renderer::INDICES_PER_LINE, 1, 0,
@@ -596,7 +597,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       linePushConstants.color = glm::vec4(0.5f, 0.8f, 0.8f, 1.0f);
       vkCmdPushConstants(cmdBuffer, renderer::Data::linePipelineLayout_,
                          VK_SHADER_STAGE_FRAGMENT_BIT, 0,
-                         sizeof(renderer::LineVertex::PushConstants),
+                         sizeof(renderer::LineShader::PushConstants),
                          &linePushConstants);
       vkCmdDrawIndexed(cmdBuffer, renderer::Data::curDynLineIdx, 1,
                        renderer::Data::numGridLines * renderer::INDICES_PER_LINE, 0, 0);

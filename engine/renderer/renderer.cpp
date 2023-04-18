@@ -57,110 +57,7 @@ struct QueueFamilyIndices
    }
 };
 
-void
-VulkanRenderer::UpdateDescriptors()
-{
-   updateDescriptors_ = true;
-}
-
-uint32_t
-VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureMaps& textures_in,
-                           const glm::mat4& modelMat, const glm::vec4& color, ObjectType type)
-{
-   auto* renderData = &Data::renderData_[boundApplication_];
-   auto* vertices = &renderData->vertices;
-   auto* numObjects = &renderData->numMeshes;
-   if (boundApplication_ == ApplicationType::EDITOR)
-   {
-      switch (type)
-      {
-         case ObjectType::ANIMATION_POINT: {
-            vertices = &EditorData::animationVertices_;
-            ++EditorData::numPoints_;
-         }
-         break;
-         case ObjectType::PATHFINDER_NODE: {
-            vertices = &EditorData::pathfinderVertices_;
-            ++EditorData::numNodes_;
-         }
-         break;
-         default: {
-         }
-      }
-   }
-
-   std::copy(vertices_in.begin(), vertices_in.end(), std::back_inserter(*vertices));
-   std::transform(vertices->end() - 4, vertices->end(), vertices->end() - 4,
-                  [numObjects](auto& vtx) {
-                     vtx.m_texCoordsDraw.z = static_cast< float >(*numObjects);
-                     return vtx;
-                  });
-
-   // Indices are handled in init
-   // std::copy(indicies_in.begin(), indicies_in.end(), std::back_inserter(indices));
-
-   // TODO: If we go back to indirect draw, this also should be updated to editor/game
-   // VkDrawIndexedIndirectCommand newModel = {};
-   // newModel.firstIndex = m_currentIndex;
-   // newModel.indexCount = INDICES_PER_SPRITE;
-   // newModel.firstInstance = 0;
-   // newModel.instanceCount = 1;
-   // newModel.vertexOffset = static_cast< int32_t >(m_currentVertex);
-   //  m_renderCommands.push_back(newModel);
-
-   // m_currentVertex += static_cast< uint32_t >(vertices_in.size());
-   // m_currentIndex += INDICES_PER_SPRITE;
-
-   PerInstanceBuffer newInstance = {};
-   newInstance.model = modelMat;
-   newInstance.color = color;
-
-   for (const auto& texture : textures_in)
-   {
-      if (texture.empty())
-      {
-         continue;
-      }
-
-      const auto loadedTexture = TextureLibrary::GetTexture(texture);
-      const auto idx = loadedTexture->GetID();
-
-      switch (loadedTexture->GetType())
-      {
-         case TextureType::DIFFUSE_MAP: {
-            newInstance.diffuse = idx;
-         }
-         break;
-         default:
-            break;
-      }
-   }
-
-   renderData->perInstance.push_back(newInstance);
-
-   UpdateDescriptors();
-
-   return (*numObjects)++;
-}
-
-void
-VulkanRenderer::SubmitMeshData(const uint32_t idx, const TextureID id, const glm::mat4& modelMat,
-                               const glm::vec4& color)
-{
-   auto& object = Data::renderData_[boundApplication_].perInstance.at(idx);
-
-   object.model = modelMat;
-   object.color = color;
-   object.diffuse = id;
-
-   if (isLoaded_ and updateDescriptors_)
-   {
-      Vertex::UpdateDescriptorSets();
-   }
-}
-
-
-template < typename VertexType >
+template < typename ShaderType, typename VertexType >
 void
 CreatePipeline(std::string_view vertexShader, std::string_view fragmentShader, PrimitiveType type)
 {
@@ -192,7 +89,7 @@ CreatePipeline(std::string_view vertexShader, std::string_view fragmentShader, P
 
    VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
    inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-   inputAssembly.topology = VertexType::TOPOLOGY;
+   inputAssembly.topology = ShaderType::TOPOLOGY;
    inputAssembly.primitiveRestartEnable = VK_FALSE;
 
    VkViewport viewport = {};
@@ -279,13 +176,13 @@ CreatePipeline(std::string_view vertexShader, std::string_view fragmentShader, P
    pipelineLayoutInfo.setLayoutCount = 1;
    pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
 
-   if constexpr (VertexType::HAS_PUSHCONSTANTS)
+   if constexpr (ShaderType::HAS_PUSHCONSTANTS)
    {
       // Define push constant range
       VkPushConstantRange pushConstantRange{};
-      pushConstantRange.stageFlags = VertexType::SHADER_STAGE_FLAGS;
+      pushConstantRange.stageFlags = ShaderType::SHADER_STAGE_FLAGS;
       pushConstantRange.offset = 0;
-      pushConstantRange.size = sizeof(VertexType::PushConstants);
+      pushConstantRange.size = sizeof(ShaderType::PushConstants);
 
       pipelineLayoutInfo.pushConstantRangeCount = 1;
       pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
@@ -624,6 +521,109 @@ chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* windo
    return actualExtent;
 }
 
+
+void
+VulkanRenderer::UpdateDescriptors()
+{
+   updateDescriptors_ = true;
+}
+
+uint32_t
+VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureMaps& textures_in,
+                           const glm::mat4& modelMat, const glm::vec4& color, ObjectType type)
+{
+   auto* renderData = &Data::renderData_[boundApplication_];
+   auto* vertices = &renderData->vertices;
+   auto* numObjects = &renderData->numMeshes;
+   if (boundApplication_ == ApplicationType::EDITOR)
+   {
+      switch (type)
+      {
+         case ObjectType::ANIMATION_POINT: {
+            vertices = &EditorData::animationVertices_;
+            ++EditorData::numPoints_;
+         }
+         break;
+         case ObjectType::PATHFINDER_NODE: {
+            vertices = &EditorData::pathfinderVertices_;
+            ++EditorData::numNodes_;
+         }
+         break;
+         default: {
+         }
+      }
+   }
+
+   std::copy(vertices_in.begin(), vertices_in.end(), std::back_inserter(*vertices));
+   std::transform(vertices->end() - 4, vertices->end(), vertices->end() - 4,
+                  [numObjects](auto& vtx) {
+                     vtx.m_texCoordsDraw.z = static_cast< float >(*numObjects);
+                     return vtx;
+                  });
+
+   // Indices are handled in init
+   // std::copy(indicies_in.begin(), indicies_in.end(), std::back_inserter(indices));
+
+   // TODO: If we go back to indirect draw, this also should be updated to editor/game
+   // VkDrawIndexedIndirectCommand newModel = {};
+   // newModel.firstIndex = m_currentIndex;
+   // newModel.indexCount = INDICES_PER_SPRITE;
+   // newModel.firstInstance = 0;
+   // newModel.instanceCount = 1;
+   // newModel.vertexOffset = static_cast< int32_t >(m_currentVertex);
+   //  m_renderCommands.push_back(newModel);
+
+   // m_currentVertex += static_cast< uint32_t >(vertices_in.size());
+   // m_currentIndex += INDICES_PER_SPRITE;
+
+   PerInstanceBuffer newInstance = {};
+   newInstance.model = modelMat;
+   newInstance.color = color;
+
+   for (const auto& texture : textures_in)
+   {
+      if (texture.empty())
+      {
+         continue;
+      }
+
+      const auto loadedTexture = TextureLibrary::GetTexture(texture);
+      const auto idx = loadedTexture->GetID();
+
+      switch (loadedTexture->GetType())
+      {
+         case TextureType::DIFFUSE_MAP: {
+            newInstance.diffuse = idx;
+         }
+         break;
+         default:
+            break;
+      }
+   }
+
+   renderData->perInstance.push_back(newInstance);
+
+   UpdateDescriptors();
+
+   return (*numObjects)++;
+}
+
+void
+VulkanRenderer::SubmitMeshData(const uint32_t idx, const TextureID id, const glm::mat4& modelMat,
+                               const glm::vec4& color)
+{
+   auto& object = Data::renderData_[boundApplication_].perInstance.at(idx);
+
+   object.model = modelMat;
+   object.color = color;
+   object.diffuse = id;
+
+   if (isLoaded_ and updateDescriptors_)
+   {
+      QuadShader::UpdateDescriptorSets();
+   }
+}
+
 void
 VulkanRenderer::CreateVertexBuffer()
 {
@@ -656,11 +656,11 @@ VulkanRenderer::CreateVertexBuffer()
 void
 VulkanRenderer::CreateLinePipeline()
 {
-   LineVertex::CreateDescriptorSetLayout();
-   LineVertex::CreateDescriptorPool();
-   LineVertex::CreateDescriptorSets();
+   LineShader::CreateDescriptorSetLayout();
+   LineShader::CreateDescriptorPool();
+   LineShader::CreateDescriptorSets();
 
-   CreatePipeline< LineVertex >("line.vert.spv", "line.frag.spv", PrimitiveType::LINE);
+   CreatePipeline< LineShader, LineVertex >("line.vert.spv", "line.frag.spv", PrimitiveType::LINE);
 }
 
 void
@@ -982,9 +982,9 @@ VulkanRenderer::SetupData(bool recreatePipeline)
       DestroyPipeline();
 
       CreateRenderPipeline();
-      Vertex::CreateDescriptorPool();
-      Vertex::CreateDescriptorSets();
-      Vertex::UpdateDescriptorSets();
+      QuadShader::CreateDescriptorPool();
+      QuadShader::CreateDescriptorSets();
+      QuadShader::UpdateDescriptorSets();
    }
 
 
@@ -1113,7 +1113,8 @@ VulkanRenderer::CreateUniformBuffer()
    auto& renderData = Data::renderData_[boundApplication_];
    const VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
-   // We always (for now) create buffers for all frames in flight, so we only have to check the first one
+   // We always (for now) create buffers for all frames in flight, so we only have to check the
+   // first one
    if (renderData.uniformBuffers[0] != VK_NULL_HANDLE)
    {
       for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -1198,8 +1199,8 @@ VulkanRenderer::CreateRenderPipeline()
    CreateImageViews();
    CreateCommandPool();
    CreateRenderPass();
-   Vertex::CreateDescriptorSetLayout();
-   CreatePipeline< Vertex >("vert.spv", "frag.spv", PrimitiveType::TRIANGLE);
+   QuadShader::CreateDescriptorSetLayout();
+   CreatePipeline< QuadShader, Vertex >("vert.spv", "frag.spv", PrimitiveType::TRIANGLE);
    CreateColorResources();
    CreateDepthResources();
    CreateFramebuffers();
@@ -1213,7 +1214,7 @@ VulkanRenderer::UpdateUniformBuffer(uint32_t currentImage)
    auto& renderData = Data::renderData_.at(boundApplication_);
    if (renderData.uniformBuffersMemory[currentImage] != VK_NULL_HANDLE
        and renderData.ssboMemory[currentImage] != VK_NULL_HANDLE)
-   {   
+   {
       UniformBufferObject ubo = {};
 
       ubo.view = view_mat;

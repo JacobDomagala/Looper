@@ -1,8 +1,10 @@
 #pragma once
 
+#include <vulkan/vulkan.h>
+#include <glm/glm.hpp>
+
 #include <string_view>
 #include <utility>
-#include <vulkan/vulkan.h>
 
 namespace looper::renderer {
 
@@ -24,11 +26,70 @@ struct ShaderInfoWrapper
 using VertexShaderInfo = ShaderInfoWrapper;
 using FragmentShaderInfo = ShaderInfoWrapper;
 
-class VulkanShader
+struct VulkanShader
 {
- public:
+   struct PushConstants
+   {
+      glm::vec4 color = {};
+   };
+
    static std::pair< VertexShaderInfo, FragmentShaderInfo >
    CreateShader(VkDevice device, std::string_view vertex, std::string_view fragment);
+
+   static void
+   CreateDescriptorPool();
+
+   static void
+   CreateDescriptorSetLayout();
+
+   static void
+   CreateDescriptorSets();
 };
+
+struct QuadShader
+{
+   static inline constexpr bool HAS_PUSHCONSTANTS = true;
+   static inline constexpr VkShaderStageFlags SHADER_STAGE_FLAGS = VK_SHADER_STAGE_VERTEX_BIT;
+   static inline constexpr VkPrimitiveTopology TOPOLOGY = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+   struct PushConstants
+   {
+      float selectedIdx = {};
+   };
+
+   static void
+   CreateDescriptorPool();
+
+   static void
+   CreateDescriptorSetLayout();
+
+   static void
+   CreateDescriptorSets();
+
+   static void
+   UpdateDescriptorSets();
+};
+
+struct LineShader
+{
+   static inline constexpr bool HAS_PUSHCONSTANTS = true;
+   static inline constexpr VkShaderStageFlags SHADER_STAGE_FLAGS = VK_SHADER_STAGE_FRAGMENT_BIT;
+   static inline constexpr VkPrimitiveTopology TOPOLOGY = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+
+   struct PushConstants
+   {
+      glm::vec4 color = {};
+   };
+
+   static void
+   CreateDescriptorPool();
+
+   static void
+   CreateDescriptorSetLayout();
+
+   static void
+   CreateDescriptorSets();
+};
+
 
 } // namespace shady::renderer
