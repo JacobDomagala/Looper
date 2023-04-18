@@ -182,7 +182,7 @@ CreatePipeline(std::string_view vertexShader, std::string_view fragmentShader, P
       VkPushConstantRange pushConstantRange{};
       pushConstantRange.stageFlags = ShaderType::SHADER_STAGE_FLAGS;
       pushConstantRange.offset = 0;
-      pushConstantRange.size = sizeof(ShaderType::PushConstants);
+      pushConstantRange.size = sizeof(typename ShaderType::PushConstants);
 
       pipelineLayoutInfo.pushConstantRangeCount = 1;
       pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;

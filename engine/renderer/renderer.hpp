@@ -49,7 +49,7 @@ class VulkanRenderer
       boundApplication_ = type;
    }
 
-   inline [[nodiscard]] static ApplicationType
+   [[nodiscard]] inline static ApplicationType
    GetCurrentlyBoundType()
    {
       return boundApplication_;
