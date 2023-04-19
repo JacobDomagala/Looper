@@ -608,18 +608,6 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 }
 
 void
-Editor::DrawBackgroundObjects()
-{
-   for (auto& object : m_editorObjects)
-   {
-      if (object->IsVisible() && object->GetIsBackground())
-      {
-         object->Render();
-      }
-   }
-}
-
-void
 Editor::DrawEditorObjects()
 {
    for (auto& object : m_editorObjects)

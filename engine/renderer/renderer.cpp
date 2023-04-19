@@ -300,11 +300,9 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
    }
 
    std::ranges::copy(vertices_in, std::back_inserter(*vertices));
-   std::transform(vertices->end() - 4, vertices->end(), vertices->end() - 4,
-                  [numObjects](auto& vtx) {
-                     vtx.m_texCoordsDraw.z = static_cast< float >(*numObjects);
-                     return vtx;
-                  });
+   std::for_each(vertices->end() - 4, vertices->end(), [numObjects](auto& vtx) {
+      vtx.m_texCoordsDraw.z = static_cast< float >(*numObjects);
+   });
 
    // Indices are handled in init
    // std::copy(indicies_in.begin(), indicies_in.end(), std::back_inserter(indices));
@@ -441,8 +439,8 @@ VulkanRenderer::SetupLineData()
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         Data::lineVertexBuffer, Data::lineVertexBufferMemory);
 
-   CreateIndexBuffer< INDICES_PER_LINE >(Data::lineIndices_, MAX_NUM_LINES,
-                                         Data::lineIndexBuffer, Data::lineIndexBufferMemory);
+   CreateIndexBuffer< INDICES_PER_LINE >(Data::lineIndices_, MAX_NUM_LINES, Data::lineIndexBuffer,
+                                         Data::lineIndexBufferMemory);
 }
 
 void
@@ -831,9 +829,9 @@ VulkanRenderer::Render(Application* app)
    vkWaitForFences(Data::vk_device, 1, &inFlightFences_[Data::currentFrame_], VK_TRUE, UINT64_MAX);
 
    uint32_t imageIndex = {};
-   vkAcquireNextImageKHR(Data::vk_device, renderData.swapChain,
-                         UINT64_MAX, imageAvailableSemaphores_[Data::currentFrame_],
-                         VK_NULL_HANDLE, &imageIndex);
+   vkAcquireNextImageKHR(Data::vk_device, renderData.swapChain, UINT64_MAX,
+                         imageAvailableSemaphores_[Data::currentFrame_], VK_NULL_HANDLE,
+                         &imageIndex);
 
    CreateCommandBuffers(app, imageIndex);
    UpdateUniformBuffer(Data::currentFrame_);
@@ -1270,12 +1268,12 @@ VulkanRenderer::CreateSyncObjects()
 
    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
    {
-      vk_check_error(vkCreateSemaphore(Data::vk_device, &semaphoreInfo, nullptr,
-                                       &imageAvailableSemaphores_[i]),
-                     fmt::format("Failed to create m_imageAvailableSemaphores[{}]!", i));
-      vk_check_error(vkCreateSemaphore(Data::vk_device, &semaphoreInfo, nullptr,
-                                       &renderFinishedSemaphores_[i]),
-                     fmt::format("Failed to create m_renderFinishedSemaphores[{}]!", i));
+      vk_check_error(
+         vkCreateSemaphore(Data::vk_device, &semaphoreInfo, nullptr, &imageAvailableSemaphores_[i]),
+         fmt::format("Failed to create m_imageAvailableSemaphores[{}]!", i));
+      vk_check_error(
+         vkCreateSemaphore(Data::vk_device, &semaphoreInfo, nullptr, &renderFinishedSemaphores_[i]),
+         fmt::format("Failed to create m_renderFinishedSemaphores[{}]!", i));
       vk_check_error(vkCreateFence(Data::vk_device, &fenceInfo, nullptr, &inFlightFences_[i]),
                      fmt::format("Failed to create m_inFlightFences[{}]!", i));
    }

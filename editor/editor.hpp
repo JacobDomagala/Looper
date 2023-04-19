@@ -150,9 +150,6 @@ class Editor : public Application
    ActionOnObject(ACTION action);
 
    void
-   DrawBackgroundObjects();
-
-   void
    DrawEditorObjects();
 
    void

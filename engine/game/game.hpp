@@ -115,9 +115,6 @@ class Game : public Application
    // all maps
    std::vector< std::string > m_levels = {};
 
-   // framebuffer for first pass
-   // Framebuffer m_frameBuffer;
-
    // set to true when game runs in reverse mode
    bool m_reverse = false;
 
