@@ -31,7 +31,7 @@ Game::MainLoop()
                TARGET_TIME * 1000.0f * static_cast< float >(Timer::AreTimersRunning())));
             ProcessInput(dt);
 
-            renderer::VulkanRenderer::Draw(this);
+            renderer::VulkanRenderer::Render(this);
             if (m_frameTimer > 1.0f)
             {
                m_framesLastSecond = m_frames;
@@ -360,8 +360,10 @@ Game::ProcessInput(Timer::milliseconds deltaTime)
    HandleReverseLogic();
    UpdateGameState();
 
-   renderer::VulkanRenderer::view_mat = m_camera.GetViewMatrix();
-   renderer::VulkanRenderer::proj_mat = m_camera.GetProjectionMatrix();
+    auto& renderData =
+      renderer::Data::renderData_.at(renderer::VulkanRenderer::GetCurrentlyBoundType());
+   renderData.viewMat = m_camera.GetViewMatrix();
+   renderData.projMat = m_camera.GetProjectionMatrix();
 }
 
 bool
@@ -406,7 +408,7 @@ Game::Render(VkCommandBuffer cmdBuffer)
    auto& renderData =
       renderer::Data::renderData_.at(renderer::VulkanRenderer::GetCurrentlyBoundType());
 
-   vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.graphicsPipeline);
+   vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipeline);
 
 
    auto offsets = std::to_array< const VkDeviceSize >({0});
@@ -422,7 +424,7 @@ Game::Render(VkCommandBuffer cmdBuffer)
    // const auto numObjects =
    // renderer::VulkanRenderer::GetNumMeshes(renderer::ApplicationType::GAME); numObjects_ =
    // numObjects.second - numObjects.first;
-   vkCmdDrawIndexed(cmdBuffer, renderData.numMeshes * 6, 1, 0, 0, 0);
+   vkCmdDrawIndexed(cmdBuffer, renderData.numMeshes * renderer::INDICES_PER_SPRITE, 1, 0, 0, 0);
 }
 
 } // namespace looper

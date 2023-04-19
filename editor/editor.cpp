@@ -4,6 +4,7 @@
 #include "input_manager.hpp"
 #include "renderer/renderer.hpp"
 #include "renderer/sprite.hpp"
+#include "renderer/shader.hpp"
 #include "renderer/vulkan_common.hpp"
 #include "renderer/window/window.hpp"
 #include "utils/file_manager.hpp"
@@ -508,7 +509,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 
       m_currentLevel->RenderGameObjects();
 
-      vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.graphicsPipeline);
+      vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipeline);
 
       auto offsets = std::to_array< const VkDeviceSize >({0});
       vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer, offsets.data());
@@ -519,7 +520,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
                               0, 1, &renderData.descriptorSets[renderer::Data::currentFrame_], 0,
                               nullptr);
 
-      renderer::PushConstants pushConstants = {};
+      renderer::QuadShader::PushConstants pushConstants = {};
       pushConstants.selectedIdx = -1.0f;
 
       if (m_currentSelectedGameObject)
@@ -529,7 +530,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       }
 
       vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                         sizeof(renderer::PushConstants), &pushConstants);
+                         sizeof(renderer::QuadShader::PushConstants), &pushConstants);
 
       const auto numObjects =
          renderData.numMeshes - renderer::EditorData::numNodes_ - renderer::EditorData::numPoints_;
@@ -540,7 +541,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
          const auto tmpIdx = m_currentSelectedGameObject->GetSprite().GetRenderIdx();
          pushConstants.selectedIdx = -1.0f;
          vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                            sizeof(renderer::PushConstants), &pushConstants);
+                            sizeof(renderer::QuadShader::PushConstants), &pushConstants);
          vkCmdDrawIndexed(cmdBuffer, 6, 1, tmpIdx * 6, 0, 0);
       }
 
@@ -583,11 +584,12 @@ Editor::Render(VkCommandBuffer cmdBuffer)
          cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::linePipelineLayout_, 0, 1,
          &renderer::Data::lineDescriptorSets_[renderer::Data::currentFrame_], 0, nullptr);
 
-      renderer::LinePushConstants linePushConstants = {};
+      renderer::LineShader::PushConstants linePushConstants = {};
       linePushConstants.color = glm::vec4(0.4f, 0.5f, 0.6f, static_cast< float >(m_drawGrid));
 
       vkCmdPushConstants(cmdBuffer, renderer::Data::linePipelineLayout_,
-                         VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(renderer::LinePushConstants),
+                         VK_SHADER_STAGE_FRAGMENT_BIT, 0,
+                         sizeof(renderer::LineShader::PushConstants),
                          &linePushConstants);
 
       vkCmdDrawIndexed(cmdBuffer, renderer::Data::numGridLines * renderer::INDICES_PER_LINE, 1, 0,
@@ -595,25 +597,14 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 
       linePushConstants.color = glm::vec4(0.5f, 0.8f, 0.8f, 1.0f);
       vkCmdPushConstants(cmdBuffer, renderer::Data::linePipelineLayout_,
-                         VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(renderer::LinePushConstants),
+                         VK_SHADER_STAGE_FRAGMENT_BIT, 0,
+                         sizeof(renderer::LineShader::PushConstants),
                          &linePushConstants);
       vkCmdDrawIndexed(cmdBuffer, renderer::Data::curDynLineIdx, 1,
                        renderer::Data::numGridLines * renderer::INDICES_PER_LINE, 0, 0);
    }
 
    EditorGUI::Render(cmdBuffer);
-}
-
-void
-Editor::DrawBackgroundObjects()
-{
-   for (auto& object : m_editorObjects)
-   {
-      if (object->IsVisible() && object->GetIsBackground())
-      {
-         object->Render();
-      }
-   }
 }
 
 void
@@ -1040,8 +1031,10 @@ Editor::Update()
 
    gui_.UpdateUI();
 
-   renderer::VulkanRenderer::view_mat = m_camera.GetViewMatrix();
-   renderer::VulkanRenderer::proj_mat = m_camera.GetProjectionMatrix();
+    auto& renderData =
+      renderer::Data::renderData_.at(renderer::VulkanRenderer::GetCurrentlyBoundType());
+   renderData.viewMat = m_camera.GetViewMatrix();
+   renderData.projMat = m_camera.GetProjectionMatrix();
 
    DrawBoundingBoxes();
 }
@@ -1102,7 +1095,7 @@ Editor::MainLoop()
       HandleCamera();
       Update();
 
-      renderer::VulkanRenderer::Draw(this);
+      renderer::VulkanRenderer::Render(this);
 
       timeLastFrame_ = watch.Stop();
 

@@ -21,6 +21,12 @@ enum class ObjectType
 
 namespace looper::renderer {
 
+enum class PrimitiveType
+{
+	TRIANGLE,
+	LINE
+};
+
 enum class ApplicationType
 {
    EDITOR,

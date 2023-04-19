@@ -1,8 +1,6 @@
 #pragma once
 
-#include "shader.hpp"
 #include "types.hpp"
-#include "vertex.hpp"
 
 #include <glm/glm.hpp>
 #include <vector>
@@ -17,6 +15,8 @@ class Application;
 
 namespace looper::renderer {
 
+struct Vertex;
+
 class VulkanRenderer
 {
  public:
@@ -27,7 +27,7 @@ class VulkanRenderer
    CreateRenderPipeline();
 
    static void
-   Draw(Application* app);
+   Render(Application* app);
 
    static void
    DrawLine(const glm::vec2& start, const glm::vec2& end);
@@ -43,13 +43,13 @@ class VulkanRenderer
    SubmitMeshData(const uint32_t idx, const TextureID textures_in, const glm::mat4& modelMat,
                   const glm::vec4& color);
 
-   static void
+   inline static void
    SetAppMarker(ApplicationType type)
    {
       boundApplication_ = type;
    }
 
-   [[nodiscard]] static ApplicationType
+   [[nodiscard]] inline static ApplicationType
    GetCurrentlyBoundType()
    {
       return boundApplication_;
@@ -68,9 +68,6 @@ class VulkanRenderer
    UpdateBuffers();
 
    static void
-   UpdatePerInstanceBuffer();
-
-   static void
    SetupEditorData(ObjectType type);
 
    static void
@@ -84,10 +81,6 @@ class VulkanRenderer
 
    static void
    UpdateDescriptors();
-
-   inline static glm::mat4 view_mat = {};
-   inline static glm::mat4 proj_mat = {};
-   inline static glm::mat4 model_mat = {};
 
  private:
    static void
@@ -106,9 +99,6 @@ class VulkanRenderer
    CreateImageViews();
 
    static void
-   CreateDescriptorSetLayout();
-
-   static void
    CreateRenderPass();
 
    static void
@@ -121,16 +111,13 @@ class VulkanRenderer
    CreateSyncObjects();
 
    static void
-   CreatePipeline();
-
-   static void
    CreatePipelineCache();
 
    static void
-   CreateVertexBuffer();
+   CreateQuadVertexBuffer();
 
    static void
-   CreateIndexBuffer();
+   CreateQuadIndexBuffer();
 
    static void
    CreateUniformBuffer();
@@ -140,24 +127,6 @@ class VulkanRenderer
 
    static void
    UpdateUniformBuffer(uint32_t currentImage);
-
-   static void
-   CreateDescriptorPool();
-
-   static void
-   CreateDescriptorSets();
-
-   static void
-   UpdateDescriptorSets();
-
-   static void
-   CreateLineDescriptorPool();
-
-   static void
-   CreateLineDescriptorSets();
-
-   static void
-   CreateLineDescriptorSetLayout();
 
    static void
    CreateDepthResources();
@@ -176,25 +145,24 @@ class VulkanRenderer
    inline static bool initialized_ = false;
    inline static bool isLoaded_ = false;
    inline static bool updateDescriptors_ = false;
-   inline static VkDebugUtilsMessengerCreateInfoEXT m_debugCreateInfo = {};
-   inline static VkDebugUtilsMessengerEXT m_debugMessenger = {};
+   inline static VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo_ = {};
+   inline static VkDebugUtilsMessengerEXT debugMessenger_ = {};
 
-   inline static VkQueue m_presentQueue = {};
+   inline static VkQueue presentQueue_ = {};
 
-   inline static VkRenderPass m_renderPass = {};
+   inline static VkRenderPass renderPass_ = {};
 
-   inline static std::vector< VkSemaphore > m_imageAvailableSemaphores = {};
-   inline static std::vector< VkSemaphore > m_renderFinishedSemaphores = {};
-   inline static std::vector< VkFence > m_inFlightFences = {};
-   inline static std::vector< VkFence > m_imagesInFlight = {};
+   inline static std::vector< VkSemaphore > imageAvailableSemaphores_ = {};
+   inline static std::vector< VkSemaphore > renderFinishedSemaphores_ = {};
+   inline static std::vector< VkFence > inFlightFences_ = {};
 
    inline static ApplicationType boundApplication_ = {};
 
    // inline static std::vector< VkDrawIndexedIndirectCommand > m_renderCommands = {};
    // inline static VkBuffer m_indirectDrawsBuffer = {};
    // inline static VkDeviceMemory m_indirectDrawsBufferMemory = {};
-   inline static uint32_t m_currentVertex = {};
-   inline static uint32_t m_currentIndex = {};
+   inline static uint32_t currentVertex_ = {};
+   inline static uint32_t currentIndex_ = {};
 };
 
 } // namespace looper::renderer

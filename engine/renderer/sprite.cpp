@@ -2,6 +2,7 @@
 #include "application.hpp"
 #include "renderer.hpp"
 #include "texture.hpp"
+#include "vertex.hpp"
 
 #include <glm/gtx/transform.hpp>
 
