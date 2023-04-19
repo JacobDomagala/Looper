@@ -362,8 +362,8 @@ Game::ProcessInput(Timer::milliseconds deltaTime)
 
     auto& renderData =
       renderer::Data::renderData_.at(renderer::VulkanRenderer::GetCurrentlyBoundType());
-   renderData.view_mat = m_camera.GetViewMatrix();
-   renderData.proj_mat = m_camera.GetProjectionMatrix();
+   renderData.viewMat = m_camera.GetViewMatrix();
+   renderData.projMat = m_camera.GetProjectionMatrix();
 }
 
 bool

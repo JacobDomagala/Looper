@@ -4,6 +4,7 @@
 #include "input_manager.hpp"
 #include "renderer/renderer.hpp"
 #include "renderer/sprite.hpp"
+#include "renderer/shader.hpp"
 #include "renderer/vulkan_common.hpp"
 #include "renderer/window/window.hpp"
 #include "utils/file_manager.hpp"
@@ -1044,8 +1045,8 @@ Editor::Update()
 
     auto& renderData =
       renderer::Data::renderData_.at(renderer::VulkanRenderer::GetCurrentlyBoundType());
-   renderData.view_mat = m_camera.GetViewMatrix();
-   renderData.proj_mat = m_camera.GetProjectionMatrix();
+   renderData.viewMat = m_camera.GetViewMatrix();
+   renderData.projMat = m_camera.GetProjectionMatrix();
 
    DrawBoundingBoxes();
 }

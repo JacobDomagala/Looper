@@ -1,8 +1,6 @@
 #pragma once
 
-#include "shader.hpp"
 #include "types.hpp"
-#include "vertex.hpp"
 
 #include <glm/glm.hpp>
 #include <vector>
@@ -16,6 +14,8 @@ class Application;
 }
 
 namespace looper::renderer {
+
+struct Vertex;
 
 class VulkanRenderer
 {
@@ -148,25 +148,24 @@ class VulkanRenderer
    inline static bool initialized_ = false;
    inline static bool isLoaded_ = false;
    inline static bool updateDescriptors_ = false;
-   inline static VkDebugUtilsMessengerCreateInfoEXT m_debugCreateInfo = {};
-   inline static VkDebugUtilsMessengerEXT m_debugMessenger = {};
+   inline static VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo_ = {};
+   inline static VkDebugUtilsMessengerEXT debugMessenger_ = {};
 
-   inline static VkQueue m_presentQueue = {};
+   inline static VkQueue presentQueue_ = {};
 
-   inline static VkRenderPass m_renderPass = {};
+   inline static VkRenderPass renderPass_ = {};
 
-   inline static std::vector< VkSemaphore > m_imageAvailableSemaphores = {};
-   inline static std::vector< VkSemaphore > m_renderFinishedSemaphores = {};
-   inline static std::vector< VkFence > m_inFlightFences = {};
-   inline static std::vector< VkFence > m_imagesInFlight = {};
+   inline static std::vector< VkSemaphore > imageAvailableSemaphores_ = {};
+   inline static std::vector< VkSemaphore > renderFinishedSemaphores_ = {};
+   inline static std::vector< VkFence > inFlightFences_ = {};
 
    inline static ApplicationType boundApplication_ = {};
 
    // inline static std::vector< VkDrawIndexedIndirectCommand > m_renderCommands = {};
    // inline static VkBuffer m_indirectDrawsBuffer = {};
    // inline static VkDeviceMemory m_indirectDrawsBufferMemory = {};
-   inline static uint32_t m_currentVertex = {};
-   inline static uint32_t m_currentIndex = {};
+   inline static uint32_t currentVertex_ = {};
+   inline static uint32_t currentIndex_ = {};
 };
 
 } // namespace looper::renderer

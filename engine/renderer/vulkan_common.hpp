@@ -34,9 +34,12 @@ static constexpr uint32_t VERTICES_PER_SPRITE = 4;
 static constexpr uint32_t INDICES_PER_LINE = 2;
 static constexpr uint32_t VERTICES_PER_LINE = 2;
 inline constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 3;
+inline constexpr uint32_t MAX_NUM_LINES = 100000;
 static constexpr bool ENABLE_VALIDATION = true;
 static constexpr std::array< const char*, 1 > VALIDATION_LAYERS = {"VK_LAYER_KHRONOS_validation"};
 static constexpr std::array< const char*, 1 > DEVICE_EXTENSIONS = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+struct Vertex;
 
 struct RenderData
 {  
@@ -88,8 +91,8 @@ struct RenderData
    
    uint32_t numMeshes = {};
 
-   glm::mat4 view_mat = {};
-   glm::mat4 proj_mat = {};
+   glm::mat4 viewMat = {};
+   glm::mat4 projMat = {};
 };
 
 /*
@@ -150,9 +153,6 @@ struct EditorData
    inline static VkBuffer animationIndexBuffer = {};
    inline static VkDeviceMemory animationIndexBufferMemory = {};
    inline static uint32_t numPoints_ = {};
-
-   // Dynamic Lines
-   inline static constexpr uint32_t MAX_NUM_LINES = 100000;
 };
 
 
