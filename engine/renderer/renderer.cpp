@@ -1217,8 +1217,8 @@ VulkanRenderer::UpdateUniformBuffer(uint32_t currentImage)
    {
       UniformBufferObject ubo = {};
 
-      ubo.view = view_mat;
-      ubo.proj = proj_mat;
+      ubo.view = renderData.view_mat;
+      ubo.proj = renderData.proj_mat;
 
       void* data = nullptr;
       vkMapMemory(Data::vk_device, renderData.uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0,

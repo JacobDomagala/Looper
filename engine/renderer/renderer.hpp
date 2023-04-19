@@ -85,10 +85,6 @@ class VulkanRenderer
    static void
    UpdateDescriptors();
 
-   inline static glm::mat4 view_mat = {};
-   inline static glm::mat4 proj_mat = {};
-   inline static glm::mat4 model_mat = {};
-
  private:
    static void
    DestroyPipeline();

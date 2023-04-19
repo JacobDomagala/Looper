@@ -1042,8 +1042,10 @@ Editor::Update()
 
    gui_.UpdateUI();
 
-   renderer::VulkanRenderer::view_mat = m_camera.GetViewMatrix();
-   renderer::VulkanRenderer::proj_mat = m_camera.GetProjectionMatrix();
+    auto& renderData =
+      renderer::Data::renderData_.at(renderer::VulkanRenderer::GetCurrentlyBoundType());
+   renderData.view_mat = m_camera.GetViewMatrix();
+   renderData.proj_mat = m_camera.GetProjectionMatrix();
 
    DrawBoundingBoxes();
 }

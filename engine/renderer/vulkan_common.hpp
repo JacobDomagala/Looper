@@ -87,6 +87,9 @@ struct RenderData
    VkImageView colorImageView = VK_NULL_HANDLE;
    
    uint32_t numMeshes = {};
+
+   glm::mat4 view_mat = {};
+   glm::mat4 proj_mat = {};
 };
 
 /*
