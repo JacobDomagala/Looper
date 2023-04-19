@@ -216,6 +216,60 @@ CreateVertexBuffer(size_t bufferSize, const std::vector< DataT >& vertices, VkBu
    vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
 }
 
+template < auto INDICES_PER_OBJECT >
+void
+CreateIndexBuffer(std::vector< IndexType >& indices, const size_t numObjects, VkBuffer& buffer,
+                  VkDeviceMemory& bufferMem)
+{
+   indices.resize(numObjects * static_cast< size_t >(INDICES_PER_OBJECT));
+
+   IndexType offset = 0;
+   for (uint32_t i = 0; i < indices.size(); i += INDICES_PER_OBJECT)
+   {
+      if constexpr (INDICES_PER_OBJECT == INDICES_PER_SPRITE)
+      {
+         indices[i + 0] = offset + 0;
+         indices[i + 1] = offset + 1;
+         indices[i + 2] = offset + 2;
+
+         indices[i + 3] = offset + 0;
+         indices[i + 4] = offset + 2;
+         indices[i + 5] = offset + 3;
+
+         offset += 4;
+      }
+      else
+      {
+         indices[i + 0] = offset + 0;
+         indices[i + 1] = offset + 1;
+
+         offset += 2;
+      }
+   }
+
+   const VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+   VkBuffer stagingBuffer = {};
+   VkDeviceMemory stagingBufferMemory = {};
+   Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                        stagingBuffer, stagingBufferMemory);
+
+   void* data = nullptr;
+   vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
+   memcpy(data, indices.data(), bufferSize);
+   vkUnmapMemory(Data::vk_device, stagingBufferMemory);
+
+   Buffer::CreateBuffer(bufferSize,
+                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMem);
+
+   Buffer::CopyBuffer(stagingBuffer, buffer, bufferSize);
+
+   vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
+   vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
+}
+
 void
 VulkanRenderer::UpdateDescriptors()
 {
@@ -390,43 +444,8 @@ VulkanRenderer::SetupLineData()
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                         Data::lineVertexBuffer, Data::lineVertexBufferMemory);
 
-   {
-      auto& indices = Data::lineIndices_;
-      indices.resize(static_cast< size_t >(EditorData::MAX_NUM_LINES)
-                     * static_cast< size_t >(INDICES_PER_LINE));
-
-      uint32_t offset = 0;
-      for (uint32_t i = 0; i < indices.size(); i += INDICES_PER_LINE)
-      {
-         indices[i + 0] = offset + 0;
-         indices[i + 1] = offset + 1;
-
-         offset += 2;
-      }
-
-      const VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
-
-      VkBuffer stagingBuffer = {};
-      VkDeviceMemory stagingBufferMemory = {};
-      Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-                              | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                           stagingBuffer, stagingBufferMemory);
-
-      void* data = nullptr;
-      vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
-      memcpy(data, indices.data(), bufferSize);
-      vkUnmapMemory(Data::vk_device, stagingBufferMemory);
-
-      Buffer::CreateBuffer(
-         bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, Data::lineIndexBuffer, Data::lineIndexBufferMemory);
-
-      Buffer::CopyBuffer(stagingBuffer, Data::lineIndexBuffer, bufferSize);
-
-      vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
-      vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
-   }
+   CreateIndexBuffer< INDICES_PER_LINE >(Data::lineIndices_, EditorData::MAX_NUM_LINES,
+                                         Data::lineIndexBuffer, Data::lineIndexBufferMemory);
 }
 
 void
@@ -435,108 +454,27 @@ VulkanRenderer::SetupEditorData(ObjectType type)
    switch (type)
    {
       case ObjectType::ANIMATION_POINT: {
-         
-            auto& vertices = EditorData::animationVertices_;
+         auto& vertices = EditorData::animationVertices_;
 
-            CreateVertexBuffer(sizeof(Vertex) * vertices.size(), vertices,
-                               EditorData::animationVertexBuffer,
-                               EditorData::animationVertexBufferMemory);
-         {
-            auto& indices = EditorData::animationIndices_;
-            indices.resize(static_cast< size_t >(EditorData::numPoints_)
-                           * static_cast< size_t >(INDICES_PER_SPRITE));
+         CreateVertexBuffer(sizeof(Vertex) * vertices.size(), vertices,
+                            EditorData::animationVertexBuffer,
+                            EditorData::animationVertexBufferMemory);
 
-            uint32_t offset = 0;
-            for (uint32_t i = 0; i < indices.size(); i += INDICES_PER_SPRITE)
-            {
-               indices[i + 0] = offset + 0;
-               indices[i + 1] = offset + 1;
-               indices[i + 2] = offset + 2;
-
-               indices[i + 3] = offset + 0;
-               indices[i + 4] = offset + 2;
-               indices[i + 5] = offset + 3;
-
-               offset += 4;
-            }
-
-            const VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
-
-            VkBuffer stagingBuffer = {};
-            VkDeviceMemory stagingBufferMemory = {};
-            Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                 stagingBuffer, stagingBufferMemory);
-
-            void* data = nullptr;
-            vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
-            memcpy(data, indices.data(), bufferSize);
-            vkUnmapMemory(Data::vk_device, stagingBufferMemory);
-
-            Buffer::CreateBuffer(
-               bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, EditorData::animationIndexBuffer,
-               EditorData::animationIndexBufferMemory);
-
-            Buffer::CopyBuffer(stagingBuffer, EditorData::animationIndexBuffer, bufferSize);
-
-            vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
-            vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
-         }
+         CreateIndexBuffer< INDICES_PER_SPRITE >(
+            EditorData::animationIndices_, EditorData::numPoints_, EditorData::animationIndexBuffer,
+            EditorData::animationIndexBufferMemory);
       }
       break;
       case ObjectType::PATHFINDER_NODE: {
-         
-            auto& vertices = EditorData::pathfinderVertices_;
+         auto& vertices = EditorData::pathfinderVertices_;
 
-            CreateVertexBuffer(sizeof(Vertex) * vertices.size(), vertices,
-                               EditorData::pathfinderVertexBuffer,
-                               EditorData::pathfinderVertexBufferMemory);
+         CreateVertexBuffer(sizeof(Vertex) * vertices.size(), vertices,
+                            EditorData::pathfinderVertexBuffer,
+                            EditorData::pathfinderVertexBufferMemory);
 
-         {
-            auto& indices = EditorData::pathfinderIndices_;
-            indices.resize(static_cast< size_t >(EditorData::numNodes_)
-                           * static_cast< size_t >(INDICES_PER_SPRITE));
-
-            uint32_t offset = 0;
-            for (uint32_t i = 0; i < indices.size(); i += INDICES_PER_SPRITE)
-            {
-               indices[i + 0] = offset + 0;
-               indices[i + 1] = offset + 1;
-               indices[i + 2] = offset + 2;
-
-               indices[i + 3] = offset + 0;
-               indices[i + 4] = offset + 2;
-               indices[i + 5] = offset + 3;
-
-               offset += 4;
-            }
-
-            const VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
-
-            VkBuffer stagingBuffer = {};
-            VkDeviceMemory stagingBufferMemory = {};
-            Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                 stagingBuffer, stagingBufferMemory);
-
-            void* data = nullptr;
-            vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
-            memcpy(data, indices.data(), bufferSize);
-            vkUnmapMemory(Data::vk_device, stagingBufferMemory);
-
-            Buffer::CreateBuffer(
-               bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, EditorData::pathfinderIndexBuffer,
-               EditorData::pathfinderIndexBufferMemory);
-
-            Buffer::CopyBuffer(stagingBuffer, EditorData::pathfinderIndexBuffer, bufferSize);
-
-            vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
-            vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
-         }
+         CreateIndexBuffer< INDICES_PER_SPRITE >(
+            EditorData::pathfinderIndices_, EditorData::numNodes_,
+            EditorData::pathfinderIndexBuffer, EditorData::pathfinderIndexBufferMemory);
       }
       break;
       default: {
@@ -552,7 +490,7 @@ VulkanRenderer::UpdateBuffers()
    vkDeviceWaitIdle(Data::vk_device);
 
    CreateQuadVertexBuffer();
-   CreateIndexBuffer();
+   CreateQuadIndexBuffer();
    CreateUniformBuffer();
    CreatePerInstanceBuffer();
 }
@@ -689,48 +627,12 @@ VulkanRenderer::FreeData(renderer::ApplicationType type)
 }
 
 void
-VulkanRenderer::CreateIndexBuffer()
+VulkanRenderer::CreateQuadIndexBuffer()
 {
-   auto& indices = Data::renderData_[boundApplication_].indices;
-   indices.resize(static_cast< size_t >(Data::renderData_[boundApplication_].numMeshes)
-                  * static_cast< size_t >(INDICES_PER_SPRITE));
+   auto& renderData = Data::renderData_.at(boundApplication_);
 
-   uint32_t offset = 0;
-   for (uint32_t i = 0; i < indices.size(); i += INDICES_PER_SPRITE)
-   {
-      indices[i + 0] = offset + 0;
-      indices[i + 1] = offset + 1;
-      indices[i + 2] = offset + 2;
-
-      indices[i + 3] = offset + 0;
-      indices[i + 4] = offset + 2;
-      indices[i + 5] = offset + 3;
-
-      offset += 4;
-   }
-
-   const VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
-
-   VkBuffer stagingBuffer = {};
-   VkDeviceMemory stagingBufferMemory = {};
-   Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        stagingBuffer, stagingBufferMemory);
-
-   void* data = nullptr;
-   vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
-   memcpy(data, indices.data(), bufferSize);
-   vkUnmapMemory(Data::vk_device, stagingBufferMemory);
-
-   Buffer::CreateBuffer(
-      bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, Data::renderData_[boundApplication_].indexBuffer,
-      Data::renderData_[boundApplication_].indexBufferMemory);
-
-   Buffer::CopyBuffer(stagingBuffer, Data::renderData_[boundApplication_].indexBuffer, bufferSize);
-
-   vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
-   vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
+   CreateIndexBuffer< INDICES_PER_SPRITE >(renderData.indices, renderData.numMeshes,
+                                           renderData.indexBuffer, renderData.indexBufferMemory);
 }
 
 void

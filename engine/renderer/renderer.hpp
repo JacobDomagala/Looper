@@ -120,7 +120,7 @@ class VulkanRenderer
    CreateQuadVertexBuffer();
 
    static void
-   CreateIndexBuffer();
+   CreateQuadIndexBuffer();
 
    static void
    CreateUniformBuffer();
