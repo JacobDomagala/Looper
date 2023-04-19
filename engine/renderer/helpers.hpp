@@ -5,6 +5,8 @@
 
 #include <GLFW/glfw3.h>
 
+#include <algorithm>
+#include <optional>
 #include <set>
 
 namespace looper::renderer {
@@ -297,11 +299,10 @@ GetMaxUsableSampleCount(VkPhysicalDevice& physicalDevice)
 VkSurfaceFormatKHR
 ChooseSwapSurfaceFormat(const std::vector< VkSurfaceFormatKHR >& availableFormats)
 {
-   const auto format = std::find_if(
-      availableFormats.begin(), availableFormats.end(), [](const auto& availableFormat) {
-         return availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB
-                && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-      });
+   const auto format = std::ranges::find_if(availableFormats, [](const auto& availableFormat) {
+      return availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB
+             && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+   });
 
 
    return format != availableFormats.end() ? *format : availableFormats[0];
@@ -310,10 +311,10 @@ ChooseSwapSurfaceFormat(const std::vector< VkSurfaceFormatKHR >& availableFormat
 VkPresentModeKHR
 ChooseSwapPresentMode(const std::vector< VkPresentModeKHR >& availablePresentModes)
 {
-   const auto mode = std::find_if(availablePresentModes.begin(), availablePresentModes.end(),
-                                  [](const auto& availablePresentMode) {
-                                     return availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR;
-                                  });
+   const auto mode =
+      std::ranges::find_if(availablePresentModes, [](const auto& availablePresentMode) {
+         return availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR;
+      });
 
 
    return mode != availablePresentModes.end() ? *mode : VK_PRESENT_MODE_FIFO_KHR;

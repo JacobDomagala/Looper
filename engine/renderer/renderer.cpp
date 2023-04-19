@@ -185,6 +185,37 @@ CreatePipeline(std::string_view vertexShader, std::string_view fragmentShader, P
    fragmentInfo.Destroy();
 }
 
+template < typename DataT >
+void
+CreateVertexBuffer(size_t bufferSize, const std::vector< DataT >& vertices, VkBuffer& buffer,
+                   VkDeviceMemory& bufferMem)
+{
+   if (vertices.empty())
+   {
+      return;
+   }
+
+   VkBuffer stagingBuffer = {};
+   VkDeviceMemory stagingBufferMemory = {};
+   Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                        stagingBuffer, stagingBufferMemory);
+
+   void* data = nullptr;
+   vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
+   memcpy(data, vertices.data(), bufferSize);
+   vkUnmapMemory(Data::vk_device, stagingBufferMemory);
+
+   Buffer::CreateBuffer(bufferSize,
+                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMem);
+
+   Buffer::CopyBuffer(stagingBuffer, buffer, bufferSize);
+
+   vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
+   vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
+}
+
 void
 VulkanRenderer::UpdateDescriptors()
 {
@@ -217,7 +248,7 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
       }
    }
 
-   std::copy(vertices_in.begin(), vertices_in.end(), std::back_inserter(*vertices));
+   std::ranges::copy(vertices_in, std::back_inserter(*vertices));
    std::transform(vertices->end() - 4, vertices->end(), vertices->end() - 4,
                   [numObjects](auto& vtx) {
                      vtx.m_texCoordsDraw.z = static_cast< float >(*numObjects);
@@ -243,6 +274,7 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
    newInstance.model = modelMat;
    newInstance.color = color;
 
+   // Leaving this in case we need Normal/Specular maps in future
    for (const auto& texture : textures_in)
    {
       if (texture.empty())
@@ -288,32 +320,14 @@ VulkanRenderer::SubmitMeshData(const uint32_t idx, const TextureID id, const glm
 }
 
 void
-VulkanRenderer::CreateVertexBuffer()
+VulkanRenderer::CreateQuadVertexBuffer()
 {
    auto& renderData = Data::renderData_.at(boundApplication_);
    auto& vertices = renderData.vertices;
 
    const VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
-
-   VkBuffer stagingBuffer = {};
-   VkDeviceMemory stagingBufferMemory = {};
-   Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        stagingBuffer, stagingBufferMemory);
-
-   void* data = nullptr;
-   vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
-   memcpy(data, vertices.data(), bufferSize);
-   vkUnmapMemory(Data::vk_device, stagingBufferMemory);
-
-   Buffer::CreateBuffer(
-      bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, renderData.vertexBuffer, renderData.vertexBufferMemory);
-
-   Buffer::CopyBuffer(stagingBuffer, renderData.vertexBuffer, bufferSize);
-
-   vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
-   vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
+   CreateVertexBuffer(bufferSize, renderData.vertices, renderData.vertexBuffer,
+                      renderData.vertexBufferMemory);
 }
 
 void
@@ -371,14 +385,11 @@ VulkanRenderer::UpdateLineData(uint32_t startingLine)
 void
 VulkanRenderer::SetupLineData()
 {
-   {
-      const VkDeviceSize bufferSize = sizeof(Vertex) * EditorData::MAX_NUM_LINES * 2;
+   Buffer::CreateBuffer(sizeof(LineVertex) * EditorData::MAX_NUM_LINES * 2,
+                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                        Data::lineVertexBuffer, Data::lineVertexBufferMemory);
 
-      Buffer::CreateBuffer(
-         bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-         Data::lineVertexBuffer, Data::lineVertexBufferMemory);
-   }
    {
       auto& indices = Data::lineIndices_;
       indices.resize(static_cast< size_t >(EditorData::MAX_NUM_LINES)
@@ -424,39 +435,12 @@ VulkanRenderer::SetupEditorData(ObjectType type)
    switch (type)
    {
       case ObjectType::ANIMATION_POINT: {
-         {
+         
             auto& vertices = EditorData::animationVertices_;
 
-            if (vertices.empty())
-            {
-               return;
-            }
-
-            const VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
-
-            VkBuffer stagingBuffer = {};
-            VkDeviceMemory stagingBufferMemory = {};
-            Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                 stagingBuffer, stagingBufferMemory);
-
-            void* data = nullptr;
-            vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
-            memcpy(data, vertices.data(), bufferSize);
-            vkUnmapMemory(Data::vk_device, stagingBufferMemory);
-
-            Buffer::CreateBuffer(
-               bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, EditorData::animationVertexBuffer,
-               EditorData::animationVertexBufferMemory);
-
-            Buffer::CopyBuffer(stagingBuffer, EditorData::animationVertexBuffer, bufferSize);
-
-            vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
-            vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
-         }
-
+            CreateVertexBuffer(sizeof(Vertex) * vertices.size(), vertices,
+                               EditorData::animationVertexBuffer,
+                               EditorData::animationVertexBufferMemory);
          {
             auto& indices = EditorData::animationIndices_;
             indices.resize(static_cast< size_t >(EditorData::numPoints_)
@@ -503,33 +487,12 @@ VulkanRenderer::SetupEditorData(ObjectType type)
       }
       break;
       case ObjectType::PATHFINDER_NODE: {
-         {
+         
             auto& vertices = EditorData::pathfinderVertices_;
 
-            const VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
-
-            VkBuffer stagingBuffer = {};
-            VkDeviceMemory stagingBufferMemory = {};
-            Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                 stagingBuffer, stagingBufferMemory);
-
-            void* data = nullptr;
-            vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
-            memcpy(data, vertices.data(), bufferSize);
-            vkUnmapMemory(Data::vk_device, stagingBufferMemory);
-
-            Buffer::CreateBuffer(
-               bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, EditorData::pathfinderVertexBuffer,
-               EditorData::pathfinderVertexBufferMemory);
-
-            Buffer::CopyBuffer(stagingBuffer, EditorData::pathfinderVertexBuffer, bufferSize);
-
-            vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
-            vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
-         }
+            CreateVertexBuffer(sizeof(Vertex) * vertices.size(), vertices,
+                               EditorData::pathfinderVertexBuffer,
+                               EditorData::pathfinderVertexBufferMemory);
 
          {
             auto& indices = EditorData::pathfinderIndices_;
@@ -588,7 +551,7 @@ VulkanRenderer::UpdateBuffers()
 {
    vkDeviceWaitIdle(Data::vk_device);
 
-   CreateVertexBuffer();
+   CreateQuadVertexBuffer();
    CreateIndexBuffer();
    CreateUniformBuffer();
    CreatePerInstanceBuffer();

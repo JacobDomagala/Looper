@@ -114,13 +114,10 @@ class VulkanRenderer
    CreateSyncObjects();
 
    static void
-   CreateTrianglePipeline();
-
-   static void
    CreatePipelineCache();
 
    static void
-   CreateVertexBuffer();
+   CreateQuadVertexBuffer();
 
    static void
    CreateIndexBuffer();
