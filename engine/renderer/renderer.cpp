@@ -476,7 +476,7 @@ VulkanRenderer::SetupEditorData(ObjectType type)
       }
    }
 
-   UpdatePerInstanceBuffer();
+   CreatePerInstanceBuffer();
 }
 
 void
@@ -488,26 +488,6 @@ VulkanRenderer::UpdateBuffers()
    CreateQuadIndexBuffer();
    CreateUniformBuffer();
    CreatePerInstanceBuffer();
-}
-
-void
-VulkanRenderer::UpdatePerInstanceBuffer()
-{
-   auto& renderData = Data::renderData_[boundApplication_];
-   const VkDeviceSize SSBObufferSize = renderData.perInstance.size() * sizeof(PerInstanceBuffer);
-
-   const auto swapchainImagesSize = MAX_FRAMES_IN_FLIGHT;
-
-   renderData.ssbo.resize(swapchainImagesSize);
-   renderData.ssboMemory.resize(swapchainImagesSize);
-
-   for (size_t i = 0; i < swapchainImagesSize; i++)
-   {
-      Buffer::CreateBuffer(SSBObufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-                              | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                           renderData.ssbo[i], renderData.ssboMemory[i]);
-   }
 }
 
 void

@@ -155,8 +155,4 @@ struct EditorData
    inline static uint32_t numPoints_ = {};
 };
 
-
-uint32_t
-FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-
 } // namespace looper::renderer
