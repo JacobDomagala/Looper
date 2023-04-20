@@ -19,7 +19,7 @@
 namespace looper {
 
 static ImGuiKey
-ImGui_ImplGlfw_KeyToImGuiKey(int key)
+KeyToImGuiKey(int key)
 {
    switch (key)
    {
@@ -350,8 +350,8 @@ EditorGUI::KeyCallback(const KeyEvent& event)
    io.AddKeyEvent(ImGuiMod_Super, (glfwGetKey(window, GLFW_KEY_LEFT_SUPER) == GLFW_PRESS)
                                      || (glfwGetKey(window, GLFW_KEY_RIGHT_SUPER) == GLFW_PRESS));
 
-   ImGuiKey imgui_key = ImGui_ImplGlfw_KeyToImGuiKey(event.m_key);
-   io.AddKeyEvent(imgui_key, (event.m_action == GLFW_PRESS));
+   const auto imguiKey = KeyToImGuiKey(event.m_key);
+   io.AddKeyEvent(imguiKey, (event.m_action == GLFW_PRESS));
 }
 
 void
@@ -381,7 +381,6 @@ void
 EditorGUI::MouseScrollCallback(const MouseScrollEvent& /*event*/)
 {
 }
-
 
 void
 EditorGUI::Init()

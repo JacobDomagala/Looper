@@ -331,7 +331,7 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
          continue;
       }
 
-      const auto loadedTexture = TextureLibrary::GetTexture(texture);
+      const auto* loadedTexture = TextureLibrary::GetTexture(texture);
       const auto idx = loadedTexture->GetID();
 
       switch (loadedTexture->GetType())
@@ -426,7 +426,9 @@ VulkanRenderer::UpdateLineData(uint32_t startingLine)
 
       void* data = nullptr;
       vkMapMemory(Data::vk_device, Data::lineVertexBufferMemory, offset, bufferSize, 0, &data);
-      memcpy(data, Data::lineVertices_.data() + startingLine * VERTICES_PER_LINE, bufferSize);
+      memcpy(data,
+             Data::lineVertices_.data() + static_cast< size_t >(startingLine) * VERTICES_PER_LINE,
+             bufferSize);
       vkUnmapMemory(Data::vk_device, Data::lineVertexBufferMemory);
    }
 }

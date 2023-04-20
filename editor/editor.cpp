@@ -342,7 +342,7 @@ Editor::SetVisibleAnimationPoints(const std::shared_ptr< Animatable >& animatabl
 {
    const auto& animationPoints = animatablePtr->GetAnimationKeypoints();
 
-   for (auto& animationPoint : animationPoints)
+   for (const auto& animationPoint : animationPoints)
    {
       auto it = std::ranges::find_if(animationPoints_, [&animationPoint](auto& editorObject) {
          return editorObject->GetLinkedObjectID() == animationPoint.GetID();
