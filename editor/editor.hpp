@@ -18,6 +18,7 @@
 namespace looper {
 
 class Player;
+class Animatable;
 
 class Editor : public Application
 {
@@ -154,6 +155,9 @@ class Editor : public Application
 
    void
    DrawAnimationPoints();
+
+   void
+   SetVisibleAnimationPoints(const std::shared_ptr< Animatable >& animatablePtr, bool visible);
 
    // void
    // DrawBoundingBoxes();

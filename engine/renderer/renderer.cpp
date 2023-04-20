@@ -372,7 +372,7 @@ void
 VulkanRenderer::CreateQuadVertexBuffer()
 {
    auto& renderData = Data::renderData_.at(boundApplication_);
-   auto& vertices = renderData.vertices;
+   const auto& vertices = renderData.vertices;
 
    const VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
    CreateVertexBuffer(bufferSize, renderData.vertices, renderData.vertexBuffer,

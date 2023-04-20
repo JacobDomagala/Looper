@@ -2,11 +2,11 @@
 #include "animatable.hpp"
 #include "editor.hpp"
 #include "game_object.hpp"
+#include "renderer/renderer.hpp"
 #include "renderer/shader.hpp"
 #include "renderer/texture.hpp"
 #include "renderer/types.hpp"
 #include "renderer/vulkan_common.hpp"
-#include "renderer/renderer.hpp"
 #include "utils/file_manager.hpp"
 
 #include <GLFW/glfw3.h>
@@ -374,7 +374,7 @@ void
 EditorGUI::CursorPositionCallback(const CursorPositionEvent& event)
 {
    ImGuiIO& io = ImGui::GetIO();
-   io.MousePos = ImVec2(static_cast<float>(event.m_xPos), static_cast<float>(event.m_yPos));
+   io.MousePos = ImVec2(static_cast< float >(event.m_xPos), static_cast< float >(event.m_yPos));
 }
 
 void
@@ -404,9 +404,7 @@ EditorGUI::Init()
    SetStyle();
 
    PrepareResources();
-
-   auto& renderData = renderer::Data::renderData_.at(renderer::VulkanRenderer::GetCurrentlyBoundType());
-   PreparePipeline(renderData.pipelineCache, renderData.renderPass);
+   PreparePipeline();
 }
 
 void
@@ -452,7 +450,7 @@ EditorGUI::UpdateBuffers()
          indexBufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
       indexCount_[currentFrame] = imDrawData->TotalIdxCount;
       m_indexBuffer[currentFrame].Map();
-    }
+   }
 
    // Upload data
    auto* vtxDst = static_cast< ImDrawVert* >(m_vertexBuffer[currentFrame].m_mappedMemory);
@@ -635,8 +633,10 @@ EditorGUI::PrepareResources()
 }
 
 void
-EditorGUI::PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPass)
+EditorGUI::PreparePipeline()
 {
+   const auto& renderData =
+      renderer::Data::renderData_.at(renderer::VulkanRenderer::GetCurrentlyBoundType());
    // Pipeline layout
    // Push constants for UI rendering parameters
    VkPushConstantRange pushConstantRange{};
@@ -732,7 +732,7 @@ EditorGUI::PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPas
    VkGraphicsPipelineCreateInfo pipelineCreateInfo{};
    pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
    pipelineCreateInfo.layout = m_pipelineLayout;
-   pipelineCreateInfo.renderPass = renderPass;
+   pipelineCreateInfo.renderPass = renderData.renderPass;
    pipelineCreateInfo.flags = 0;
    pipelineCreateInfo.basePipelineIndex = -1;
    pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
@@ -793,7 +793,8 @@ EditorGUI::PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPas
 
    pipelineCreateInfo.pVertexInputState = &pipelineVertexInputStateCreateInfo;
 
-   renderer::vk_check_error(vkCreateGraphicsPipelines(renderer::Data::vk_device, pipelineCache, 1,
+   renderer::vk_check_error(vkCreateGraphicsPipelines(renderer::Data::vk_device,
+                                                      renderData.pipelineCache, 1,
                                                       &pipelineCreateInfo, nullptr, &m_pipeline),
                             "");
 }
