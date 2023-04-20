@@ -38,7 +38,7 @@ struct KeyEvent : public Event
 
 struct CharEvent : public Event
 {
-   CharEvent(uint32_t key) : Event(EventType::CHAR), m_key(key)
+   explicit CharEvent(uint32_t key) : Event(EventType::CHAR), m_key(key)
    {
    }
 

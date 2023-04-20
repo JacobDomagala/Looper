@@ -151,8 +151,8 @@ CreatePipeline(std::string_view vertexShader, std::string_view fragmentShader, P
       pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
    }
 
-
    vk_check_error(
+      // cppcheck-suppress invalidLifetime
       vkCreatePipelineLayout(Data::vk_device, &pipelineLayoutInfo, nullptr, &pipeLineLayout),
       "failed to create pipeline layout!");
 
@@ -331,7 +331,7 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
          continue;
       }
 
-      const auto loadedTexture = TextureLibrary::GetTexture(texture);
+      const auto* loadedTexture = TextureLibrary::GetTexture(texture);
       const auto idx = loadedTexture->GetID();
 
       switch (loadedTexture->GetType())
@@ -372,7 +372,7 @@ void
 VulkanRenderer::CreateQuadVertexBuffer()
 {
    auto& renderData = Data::renderData_.at(boundApplication_);
-   auto& vertices = renderData.vertices;
+   const auto& vertices = renderData.vertices;
 
    const VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
    CreateVertexBuffer(bufferSize, renderData.vertices, renderData.vertexBuffer,
@@ -426,7 +426,9 @@ VulkanRenderer::UpdateLineData(uint32_t startingLine)
 
       void* data = nullptr;
       vkMapMemory(Data::vk_device, Data::lineVertexBufferMemory, offset, bufferSize, 0, &data);
-      memcpy(data, Data::lineVertices_.data() + startingLine * VERTICES_PER_LINE, bufferSize);
+      memcpy(data,
+             Data::lineVertices_.data() + static_cast< size_t >(startingLine) * VERTICES_PER_LINE,
+             bufferSize);
       vkUnmapMemory(Data::vk_device, Data::lineVertexBufferMemory);
    }
 }
@@ -919,7 +921,7 @@ VulkanRenderer::CreateDevice()
       FindQueueFamilies(Data::vk_physicalDevice, Data::renderData_[boundApplication_].surface);
 
    std::vector< VkDeviceQueueCreateInfo > queueCreateInfos = {};
-   const std::set< uint32_t > uniqueQueueFamilies = {indices_.GetGraphics(), indices_.GetPresent()};
+   const std::set< uint32_t > uniqueQueueFamilies = {indices_.graphicsFamily, indices_.presentFamily};
 
    constexpr float queuePriority = 1.0f;
    for (const auto queueFamily : uniqueQueueFamilies)
@@ -967,8 +969,8 @@ VulkanRenderer::CreateDevice()
    vk_check_error(vkCreateDevice(Data::vk_physicalDevice, &createInfo, nullptr, &Data::vk_device),
                   "failed to create logical device!");
 
-   vkGetDeviceQueue(Data::vk_device, indices_.graphicsFamily.value(), 0, &Data::vk_graphicsQueue);
-   vkGetDeviceQueue(Data::vk_device, indices_.presentFamily.value(), 0, &presentQueue_);
+   vkGetDeviceQueue(Data::vk_device, indices_.graphicsFamily, 0, &Data::vk_graphicsQueue);
+   vkGetDeviceQueue(Data::vk_device, indices_.presentFamily, 0, &presentQueue_);
 }
 
 void
@@ -1001,7 +1003,7 @@ VulkanRenderer::CreateSwapchain()
 
    const auto indicesSecond = FindQueueFamilies(Data::vk_physicalDevice, renderData.surface);
    const auto queueFamilyIndices =
-      std::to_array({indicesSecond.GetGraphics(), indicesSecond.GetPresent()});
+      std::to_array({indicesSecond.graphicsFamily, indicesSecond.presentFamily});
 
    if (indicesSecond.graphicsFamily != indicesSecond.presentFamily)
    {
@@ -1162,7 +1164,7 @@ VulkanRenderer::CreateCommandPool()
    VkCommandPoolCreateInfo poolInfo = {};
    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-   poolInfo.queueFamilyIndex = queueFamilyIndicesTwo.GetGraphics();
+   poolInfo.queueFamilyIndex = queueFamilyIndicesTwo.graphicsFamily;
 
    vk_check_error(vkCreateCommandPool(Data::vk_device, &poolInfo, nullptr, &Data::commandPool),
                   "Failed to create command pool!");

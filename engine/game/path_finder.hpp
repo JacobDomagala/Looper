@@ -204,7 +204,7 @@ class PathFinder
    ClearPerFrameData();
 
    const std::unordered_set< Node::NodeID >&
-   GetNodesModifiedLastFrame();
+   GetNodesModifiedLastFrame() const;
 
  private:
    bool m_initialized = false;

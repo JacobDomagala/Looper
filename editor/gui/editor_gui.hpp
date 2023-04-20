@@ -104,7 +104,7 @@ class EditorGUI : public InputListener
    PrepareResources();
 
    static void
-   PreparePipeline(VkPipelineCache pipelineCache, VkRenderPass renderPass);
+   PreparePipeline();
 
    Editor& m_parent;
 

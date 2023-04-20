@@ -3,8 +3,8 @@
 #include "game.hpp"
 #include "input_manager.hpp"
 #include "renderer/renderer.hpp"
-#include "renderer/sprite.hpp"
 #include "renderer/shader.hpp"
+#include "renderer/sprite.hpp"
 #include "renderer/vulkan_common.hpp"
 #include "renderer/window/window.hpp"
 #include "utils/file_manager.hpp"
@@ -337,6 +337,23 @@ Editor::SelectGameObject()
 {
    // m_currentSelectedGameObject->SetColor({1.0f, 1.0f, 1.0f, 0.0f});
 }
+void 
+Editor::SetVisibleAnimationPoints(const std::shared_ptr< Animatable >& animatablePtr, bool visible)
+{
+   const auto& animationPoints = animatablePtr->GetAnimationKeypoints();
+
+   for (const auto& animationPoint : animationPoints)
+   {
+      auto it = std::ranges::find_if(animationPoints_, [&animationPoint](auto& editorObject) {
+         return editorObject->GetLinkedObjectID() == animationPoint.GetID();
+      });
+
+      if (it != animationPoints_.end())
+      {
+         (*it)->SetVisible(visible);
+      }
+   }
+}
 
 void
 Editor::UnselectGameObject()
@@ -344,22 +361,11 @@ Editor::UnselectGameObject()
    m_gameObjectSelected = false;
    m_movementOnGameObject = false;
    gui_.GameObjectUnselected();
+
    auto animatablePtr = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
    if (animatablePtr and animatablePtr->GetRenderAnimationSteps())
    {
-      const auto& animationPoints = animatablePtr->GetAnimationKeypoints();
-
-      for (auto& animationPoint : animationPoints)
-      {
-         auto it = std::ranges::find_if(animationPoints_, [&animationPoint](auto& editorObject) {
-            return editorObject->GetLinkedObjectID() == animationPoint.GetID();
-         });
-
-         if (it != animationPoints_.end())
-         {
-            (*it)->SetVisible(false);
-         }
-      }
+      SetVisibleAnimationPoints(animatablePtr, false);
    }
 
    if (m_currentSelectedGameObject)
@@ -589,8 +595,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 
       vkCmdPushConstants(cmdBuffer, renderer::Data::linePipelineLayout_,
                          VK_SHADER_STAGE_FRAGMENT_BIT, 0,
-                         sizeof(renderer::LineShader::PushConstants),
-                         &linePushConstants);
+                         sizeof(renderer::LineShader::PushConstants), &linePushConstants);
 
       vkCmdDrawIndexed(cmdBuffer, renderer::Data::numGridLines * renderer::INDICES_PER_LINE, 1, 0,
                        0, 0);
@@ -598,8 +603,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       linePushConstants.color = glm::vec4(0.5f, 0.8f, 0.8f, 1.0f);
       vkCmdPushConstants(cmdBuffer, renderer::Data::linePipelineLayout_,
                          VK_SHADER_STAGE_FRAGMENT_BIT, 0,
-                         sizeof(renderer::LineShader::PushConstants),
-                         &linePushConstants);
+                         sizeof(renderer::LineShader::PushConstants), &linePushConstants);
       vkCmdDrawIndexed(cmdBuffer, renderer::Data::curDynLineIdx, 1,
                        renderer::Data::numGridLines * renderer::INDICES_PER_LINE, 0, 0);
    }
@@ -948,13 +952,7 @@ Editor::LaunchGameLoop()
 void
 Editor::RenderNodes(bool render)
 {
-   if (m_renderPathfinderNodes != render)
-   {
-      m_renderPathfinderNodes = render;
-
-      // std::for_each(pathfinderNodes_.begin(), pathfinderNodes_.end(),
-      //               [render](auto& node) { node->SetVisible(render); });
-   }
+   m_renderPathfinderNodes = render;
 }
 
 bool
@@ -971,21 +969,7 @@ Editor::SetRenderAnimationPoints(bool render)
    if (animatablePtr)
    {
       animatablePtr->RenderAnimationSteps(render);
-      const auto& animationPoints = animatablePtr->GetAnimationKeypoints();
-
-      for (auto& animationPoint : animationPoints)
-      {
-         auto it =
-            std::find_if(animationPoints_.begin(), animationPoints_.end(),
-                         [&animationPoint](auto& editorObject) {
-                            return editorObject->GetLinkedObjectID() == animationPoint.GetID();
-                         });
-
-         if (it != animationPoints_.end())
-         {
-            (*it)->SetVisible(render);
-         }
-      }
+      SetVisibleAnimationPoints(animatablePtr, render);
    }
 }
 
@@ -1031,7 +1015,7 @@ Editor::Update()
 
    gui_.UpdateUI();
 
-    auto& renderData =
+   auto& renderData =
       renderer::Data::renderData_.at(renderer::VulkanRenderer::GetCurrentlyBoundType());
    renderData.viewMat = m_camera.GetViewMatrix();
    renderData.projMat = m_camera.GetProjectionMatrix();

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "logger/logger.hpp"
 #include "utils/assert.hpp"
 #include "vulkan_common.hpp"
 
@@ -20,33 +21,17 @@ struct SwapChainSupportDetails
 
 struct QueueFamilyIndices
 {
-   std::optional< uint32_t > graphicsFamily = {};
-   std::optional< uint32_t > presentFamily = {};
-
-   [[nodiscard]] uint32_t
-   GetGraphics() const
-   {
-      utils::Assert(graphicsFamily.has_value(),
-                    "QueueFamilyIndices::GetGraphics: graphicsFamily not initialized!");
-      return graphicsFamily.value();
-   }
-
-   [[nodiscard]] uint32_t
-   GetPresent() const
-   {
-      utils::Assert(presentFamily.has_value(),
-                    "QueueFamilyIndices::GetPresent: presentFamily not initialized!");
-      return presentFamily.value();
-   }
+   uint32_t graphicsFamily = UINT32_MAX;
+   uint32_t presentFamily = UINT32_MAX;
 
    [[nodiscard]] bool
    IsComplete() const
    {
-      return graphicsFamily.has_value() && presentFamily.has_value();
+      return graphicsFamily != UINT32_MAX && presentFamily != UINT32_MAX;
    }
 };
 
-std::set< std::string >
+inline std::set< std::string >
 GetSupportedExtensions()
 {
    uint32_t count = {};
@@ -61,7 +46,7 @@ GetSupportedExtensions()
    return results;
 }
 
-std::vector< const char* >
+inline std::vector< const char* >
 GetRequiredExtensions()
 {
    uint32_t glfwExtensionCount = 0;
@@ -77,7 +62,7 @@ GetRequiredExtensions()
    return extensions;
 }
 
-bool
+inline bool
 CheckValidationLayerSupport()
 {
    uint32_t layerCount = {};
@@ -96,7 +81,7 @@ CheckValidationLayerSupport()
    return validationLayers.empty();
 }
 
-void
+inline void
 PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
 {
    auto callback = [](VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -120,11 +105,7 @@ PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
          }
          break;
 
-         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT: {
-            Logger::Fatal("validation layer: {}", pCallbackData->pMessage);
-         }
-         break;
-
+         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
          default: {
             Logger::Fatal("validation layer: {}", pCallbackData->pMessage);
          }
@@ -136,6 +117,7 @@ PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
    createInfo = {};
    createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT
+                                | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT
                                 | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
                                 | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
@@ -144,7 +126,7 @@ PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
    createInfo.pfnUserCallback = callback;
 }
 
-QueueFamilyIndices
+inline QueueFamilyIndices
 FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
    QueueFamilyIndices indices_ = {};
@@ -155,21 +137,20 @@ FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
    std::vector< VkQueueFamilyProperties > queueFamilies(queueFamilyCount);
    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 
-   int i = 0;
-   for (const auto& queueFamily : queueFamilies)
+   for (uint32_t index = 0; const auto& queueFamily : queueFamilies)
    {
       if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
       {
-         indices_.graphicsFamily = i;
+         indices_.graphicsFamily = index;
       }
 
       VkBool32 presentSupport = false;
-      vkGetPhysicalDeviceSurfaceSupportKHR(device, static_cast< uint32_t >(i), surface,
+      vkGetPhysicalDeviceSurfaceSupportKHR(device, index, surface,
                                            &presentSupport);
 
       if (presentSupport)
       {
-         indices_.presentFamily = i;
+         indices_.presentFamily = index;
       }
 
       if (indices_.IsComplete())
@@ -177,14 +158,13 @@ FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
          break;
       }
 
-      i++;
+      index++;
    }
 
-   utils::Assert(indices_.IsComplete(), "findQueueFamilies: indices_ are not complete!");
    return indices_;
 }
 
-SwapChainSupportDetails
+inline SwapChainSupportDetails
 QuerySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
    SwapChainSupportDetails details = {};
@@ -213,7 +193,7 @@ QuerySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
    return details;
 }
 
-bool
+inline bool
 CheckDeviceExtensionSupport(VkPhysicalDevice device)
 {
    uint32_t extensionCount = {};
@@ -233,7 +213,7 @@ CheckDeviceExtensionSupport(VkPhysicalDevice device)
    return requiredExtensions.empty();
 }
 
-bool
+inline bool
 IsDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
    static_cast< void >(FindQueueFamilies(device, surface));
@@ -260,7 +240,7 @@ IsDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface)
           && supportedFeatures.samplerAnisotropy && supportedFeatures.multiDrawIndirect;
 }
 
-VkSampleCountFlagBits
+inline VkSampleCountFlagBits
 GetMaxUsableSampleCount(VkPhysicalDevice& physicalDevice)
 {
    VkPhysicalDeviceProperties physicalDeviceProperties = {};
@@ -296,7 +276,7 @@ GetMaxUsableSampleCount(VkPhysicalDevice& physicalDevice)
    return VK_SAMPLE_COUNT_1_BIT;
 }
 
-VkSurfaceFormatKHR
+inline VkSurfaceFormatKHR
 ChooseSwapSurfaceFormat(const std::vector< VkSurfaceFormatKHR >& availableFormats)
 {
    const auto format = std::ranges::find_if(availableFormats, [](const auto& availableFormat) {
@@ -308,7 +288,7 @@ ChooseSwapSurfaceFormat(const std::vector< VkSurfaceFormatKHR >& availableFormat
    return format != availableFormats.end() ? *format : availableFormats[0];
 }
 
-VkPresentModeKHR
+inline VkPresentModeKHR
 ChooseSwapPresentMode(const std::vector< VkPresentModeKHR >& availablePresentModes)
 {
    const auto mode =
@@ -320,7 +300,7 @@ ChooseSwapPresentMode(const std::vector< VkPresentModeKHR >& availablePresentMod
    return mode != availablePresentModes.end() ? *mode : VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkExtent2D
+inline VkExtent2D
 ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* windowHandle)
 {
    if (capabilities.currentExtent.width != UINT32_MAX)

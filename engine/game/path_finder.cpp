@@ -331,7 +331,7 @@ PathFinder::ClearPerFrameData()
 }
 
 const std::unordered_set< Node::NodeID >&
-PathFinder::GetNodesModifiedLastFrame()
+PathFinder::GetNodesModifiedLastFrame() const
 {
    return nodesModifiedLastFrame_;
 }
