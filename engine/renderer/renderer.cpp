@@ -151,8 +151,8 @@ CreatePipeline(std::string_view vertexShader, std::string_view fragmentShader, P
       pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
    }
 
-   // cppcheck-suppress invalidLifetime
    vk_check_error(
+      // cppcheck-suppress invalidLifetime
       vkCreatePipelineLayout(Data::vk_device, &pipelineLayoutInfo, nullptr, &pipeLineLayout),
       "failed to create pipeline layout!");
 

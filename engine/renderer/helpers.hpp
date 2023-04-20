@@ -137,21 +137,20 @@ FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
    std::vector< VkQueueFamilyProperties > queueFamilies(queueFamilyCount);
    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 
-   int i = 0;
-   for (const auto& queueFamily : queueFamilies)
+   for (uint32_t index = 0; const auto& queueFamily : queueFamilies)
    {
       if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
       {
-         indices_.graphicsFamily = i;
+         indices_.graphicsFamily = index;
       }
 
       VkBool32 presentSupport = false;
-      vkGetPhysicalDeviceSurfaceSupportKHR(device, static_cast< uint32_t >(i), surface,
+      vkGetPhysicalDeviceSurfaceSupportKHR(device, index, surface,
                                            &presentSupport);
 
       if (presentSupport)
       {
-         indices_.presentFamily = i;
+         indices_.presentFamily = index;
       }
 
       if (indices_.IsComplete())
@@ -159,7 +158,7 @@ FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
          break;
       }
 
-      i++;
+      index++;
    }
 
    return indices_;
