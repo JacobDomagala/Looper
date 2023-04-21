@@ -83,8 +83,8 @@ class Camera
    float m_rotationValue = 0.0f;
    float m_zoomSpeed = 0.10f;
    float m_zoomScale = 0.0f;
-   float m_maxZoomIn = 1.5f;
-   float m_maxZoomOut = -1.5f;
+   float m_maxZoomIn = 2.5f;
+   float m_maxZoomOut = -1.9f;
 
    const float nearPlane_ = 1.0f;
    const float farPlane_ = -1.0f;
