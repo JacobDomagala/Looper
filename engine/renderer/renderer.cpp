@@ -218,6 +218,11 @@ void
 CreateIndexBuffer(std::vector< IndexType >& indices, const size_t numObjects, VkBuffer& buffer,
                   VkDeviceMemory& bufferMem)
 {
+   if (!numObjects)
+   {
+      return;
+   }
+
    indices.resize(numObjects * static_cast< size_t >(INDICES_PER_OBJECT));
 
    IndexType offset = 0;
