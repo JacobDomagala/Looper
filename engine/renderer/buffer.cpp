@@ -179,6 +179,16 @@ Buffer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 }
 
 void
+Buffer::FreeMemory(VkBuffer& buffer, VkDeviceMemory& memory)
+{
+   vkDestroyBuffer(Data::vk_device, buffer, nullptr);
+   vkFreeMemory(Data::vk_device, memory, nullptr);
+
+   buffer = VK_NULL_HANDLE;
+   memory = VK_NULL_HANDLE;
+}
+
+void
 Buffer::Flush(VkDeviceSize size, VkDeviceSize offset) const
 {
    VkMappedMemoryRange mappedRange = {};

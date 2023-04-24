@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
 #include <vector>
+#include <vulkan/vulkan.h>
 
 namespace looper::renderer {
 
@@ -25,6 +25,9 @@ class Buffer
 
    static void
    CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+
+   static void
+   FreeMemory(VkBuffer& buffer, VkDeviceMemory& memory);
 
    void
    Map(VkDeviceSize size = VK_WHOLE_SIZE);
@@ -61,4 +64,4 @@ class Buffer
 };
 
 
-} // namespace shady::renderer
+} // namespace looper::renderer
