@@ -760,7 +760,7 @@ Editor::SetupPathfinderNodes()
 }
 
 void
-Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
+Editor::FreeLevelData()
 {
    if (m_levelLoaded)
    {
@@ -773,6 +773,12 @@ Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
 
       renderer::VulkanRenderer::FreeData(renderer::ApplicationType::EDITOR, false);
    }
+}
+
+void
+Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
+{
+   FreeLevelData();
 
    m_currentLevel = std::make_shared< Level >();
    m_currentLevel->Create(this, name, size);
@@ -792,14 +798,7 @@ Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
 void
 Editor::LoadLevel(const std::string& levelPath)
 {
-   if (m_levelLoaded)
-   {
-      UnselectEditorObject();
-      UnselectGameObject();
-      m_currentLevel.reset();
-      m_editorObjects.clear();
-      pathfinderNodes_.clear();
-   }
+   FreeLevelData();
 
    renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::EDITOR);
 
