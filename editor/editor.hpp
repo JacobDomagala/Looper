@@ -192,6 +192,9 @@ class Editor : public Application
    void
    SetupPathfinderNodes();
 
+   void
+   FreeLevelData();
+
    std::unique_ptr< Game > m_game = {};
 
    std::string m_levelFileName = {};
