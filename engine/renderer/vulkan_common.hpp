@@ -62,19 +62,19 @@ struct RenderData
    std::vector< VkBuffer > ssbo = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
    std::vector< VkDeviceMemory > ssboMemory = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
    
-   VkSurfaceKHR surface = {};
+   VkSurfaceKHR surface = VK_NULL_HANDLE;
    GLFWwindow* windowHandle = nullptr;
 
    // Swapchain
    VkSwapchainKHR swapChain = {};
    VkExtent2D swapChainExtent = {};
-   std::vector< VkImage > swapChainImages = {};
-   std::vector< VkImageView > swapChainImageViews = {};
-   std::vector< VkFramebuffer > swapChainFramebuffers = {};
-   VkDescriptorSetLayout descriptorSetLayout = {};
-   VkDescriptorPool descriptorPool = {};
-   std::vector< VkDescriptorSet > descriptorSets = {};
-   VkFormat swapChainImageFormat = {};
+   std::vector< VkImage > swapChainImages = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
+   std::vector< VkImageView > swapChainImageViews = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
+   std::vector< VkFramebuffer > swapChainFramebuffers = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
+   VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
+   VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+   std::vector< VkDescriptorSet > descriptorSets = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
+   VkFormat swapChainImageFormat = VK_FORMAT_UNDEFINED;
 
    VkRenderPass renderPass = VK_NULL_HANDLE;
    VkPipeline pipeline = VK_NULL_HANDLE;
@@ -111,24 +111,6 @@ struct Data
    inline static VkCommandPool commandPool = {};
    inline static std::vector< VkCommandBuffer > commandBuffers = {};
 
-   // Line pipeline
-   inline static VkPipeline linePipeline_ = {};
-   inline static VkPipelineLayout linePipelineLayout_ = {};
-   inline static VkDescriptorPool lineDescriptorPool = {};
-   inline static VkDescriptorSetLayout lineDescriptorSetLayout_ = {};
-   inline static std::vector< VkDescriptorSet > lineDescriptorSets_ = {};
-   inline static VkBuffer lineVertexBuffer = {};
-   inline static VkDeviceMemory lineVertexBufferMemory = {};
-   inline static VkBuffer lineIndexBuffer = {};
-   inline static VkDeviceMemory lineIndexBufferMemory = {};
-   inline static std::vector< LineVertex > lineVertices_ = {};
-   inline static std::vector< uint32_t > lineIndices_ = {};
-   inline static std::vector< VkBuffer > lineUniformBuffers_ = {};
-   inline static std::vector< VkDeviceMemory > lineUniformBuffersMemory_ = {};
-   inline static uint32_t numGridLines = {};
-   inline static uint32_t numLines = {};
-   inline static uint32_t curDynLineIdx = {};
-
    inline static std::unordered_map< ApplicationType, RenderData > renderData_ = {};
 
    inline static uint32_t currentFrame_ = {};
@@ -153,6 +135,24 @@ struct EditorData
    inline static VkBuffer animationIndexBuffer = {};
    inline static VkDeviceMemory animationIndexBufferMemory = {};
    inline static uint32_t numPoints_ = {};
+
+   // Lines
+   inline static VkPipeline linePipeline_ = {};
+   inline static VkPipelineLayout linePipelineLayout_ = {};
+   inline static VkDescriptorPool lineDescriptorPool = {};
+   inline static VkDescriptorSetLayout lineDescriptorSetLayout_ = {};
+   inline static std::vector< VkDescriptorSet > lineDescriptorSets_ = {};
+   inline static VkBuffer lineVertexBuffer = {};
+   inline static VkDeviceMemory lineVertexBufferMemory = {};
+   inline static VkBuffer lineIndexBuffer = {};
+   inline static VkDeviceMemory lineIndexBufferMemory = {};
+   inline static std::vector< LineVertex > lineVertices_ = {};
+   inline static std::vector< uint32_t > lineIndices_ = {};
+   inline static std::vector< VkBuffer > lineUniformBuffers_ = {};
+   inline static std::vector< VkDeviceMemory > lineUniformBuffersMemory_ = {};
+   inline static uint32_t numGridLines = {};
+   inline static uint32_t numLines = {};
+   inline static uint32_t curDynLineIdx = {};
 };
 
 } // namespace looper::renderer

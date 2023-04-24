@@ -323,7 +323,7 @@ std::vector< Tile_t >
 Level::GameObjectMoved(const std::array< glm::vec2, 4 >& box,
                        const std::vector< Tile_t >& currentTiles, Object::ID objectID)
 {
-   auto new_tiles = GetTilesFromBoundingBox(box);
+   auto newTiles = GetTilesFromBoundingBox(box);
 
    if (m_pathFinder.IsInitialized())
    {
@@ -332,13 +332,13 @@ Level::GameObjectMoved(const std::array< glm::vec2, 4 >& box,
          m_pathFinder.SetNodeFreed(tileID, objectID);
       }
 
-      for (auto tileID : new_tiles)
+      for (auto tileID : newTiles)
       {
          m_pathFinder.SetNodeOccupied(tileID, objectID);
       }
    }
 
-   return new_tiles;
+   return newTiles;
 }
 
 std::vector< Tile_t >

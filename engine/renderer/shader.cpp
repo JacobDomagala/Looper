@@ -243,7 +243,7 @@ LineShader::CreateDescriptorPool()
    poolInfo.maxSets = static_cast< uint32_t >(renderData.swapChainImages.size());
 
    vk_check_error(
-      vkCreateDescriptorPool(Data::vk_device, &poolInfo, nullptr, &Data::lineDescriptorPool),
+      vkCreateDescriptorPool(Data::vk_device, &poolInfo, nullptr, &EditorData::lineDescriptorPool),
       "Failed to create line descriptor pool!");
 }
 
@@ -265,7 +265,7 @@ LineShader::CreateDescriptorSetLayout()
    lineLayoutInfo.pBindings = bindings.data();
 
    vk_check_error(vkCreateDescriptorSetLayout(Data::vk_device, &lineLayoutInfo, nullptr,
-                                              &Data::lineDescriptorSetLayout_),
+                                              &EditorData::lineDescriptorSetLayout_),
                   "Failed to create line descriptor set layout!");
 }
 
@@ -275,17 +275,17 @@ LineShader::CreateDescriptorSets()
    auto& renderData = Data::renderData_.at(VulkanRenderer::GetCurrentlyBoundType());
 
    const auto size = MAX_FRAMES_IN_FLIGHT;
-   std::vector< VkDescriptorSetLayout > layouts(size, Data::lineDescriptorSetLayout_);
+   std::vector< VkDescriptorSetLayout > layouts(size, EditorData::lineDescriptorSetLayout_);
 
    VkDescriptorSetAllocateInfo allocInfo = {};
    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-   allocInfo.descriptorPool = Data::lineDescriptorPool;
+   allocInfo.descriptorPool = EditorData::lineDescriptorPool;
    allocInfo.descriptorSetCount = static_cast< uint32_t >(size);
    allocInfo.pSetLayouts = layouts.data();
 
-   Data::lineDescriptorSets_.resize(size);
+   EditorData::lineDescriptorSets_.resize(size);
    vk_check_error(
-      vkAllocateDescriptorSets(Data::vk_device, &allocInfo, Data::lineDescriptorSets_.data()),
+      vkAllocateDescriptorSets(Data::vk_device, &allocInfo, EditorData::lineDescriptorSets_.data()),
       "Failed to allocate descriptor sets!");
 
    for (size_t i = 0; i < size; i++)
@@ -298,7 +298,7 @@ LineShader::CreateDescriptorSets()
       std::array< VkWriteDescriptorSet, 1 > descriptorWrites = {};
 
       descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      descriptorWrites[0].dstSet = Data::lineDescriptorSets_[i];
+      descriptorWrites[0].dstSet = EditorData::lineDescriptorSets_[i];
       descriptorWrites[0].dstBinding = 0;
       descriptorWrites[0].dstArrayElement = 0;
       descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;

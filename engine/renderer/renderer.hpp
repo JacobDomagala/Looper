@@ -62,7 +62,7 @@ class VulkanRenderer
    SetupData(bool recreatePipeline = true);
 
    static void
-   FreeData(renderer::ApplicationType type);
+   FreeData(renderer::ApplicationType type, bool destroyPipeline);
 
    static void
    UpdateBuffers();

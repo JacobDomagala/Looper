@@ -580,32 +580,33 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 
 
       // DRAW LINES
-      vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::linePipeline_);
+      vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::EditorData::linePipeline_);
 
-      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::Data::lineVertexBuffer, offsets.data());
+      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::EditorData::lineVertexBuffer, offsets.data());
 
-      vkCmdBindIndexBuffer(cmdBuffer, renderer::Data::lineIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+      vkCmdBindIndexBuffer(cmdBuffer, renderer::EditorData::lineIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
       vkCmdBindDescriptorSets(
-         cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::Data::linePipelineLayout_, 0, 1,
-         &renderer::Data::lineDescriptorSets_[renderer::Data::currentFrame_], 0, nullptr);
+         cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::EditorData::linePipelineLayout_, 0, 1,
+         &renderer::EditorData::lineDescriptorSets_[renderer::Data::currentFrame_], 0, nullptr);
 
       renderer::LineShader::PushConstants linePushConstants = {};
       linePushConstants.color = glm::vec4(0.4f, 0.5f, 0.6f, static_cast< float >(m_drawGrid));
 
-      vkCmdPushConstants(cmdBuffer, renderer::Data::linePipelineLayout_,
+      vkCmdPushConstants(cmdBuffer, renderer::EditorData::linePipelineLayout_,
                          VK_SHADER_STAGE_FRAGMENT_BIT, 0,
                          sizeof(renderer::LineShader::PushConstants), &linePushConstants);
 
-      vkCmdDrawIndexed(cmdBuffer, renderer::Data::numGridLines * renderer::INDICES_PER_LINE, 1, 0,
+      vkCmdDrawIndexed(cmdBuffer, renderer::EditorData::numGridLines * renderer::INDICES_PER_LINE,
+                       1, 0,
                        0, 0);
 
       linePushConstants.color = glm::vec4(0.5f, 0.8f, 0.8f, 1.0f);
-      vkCmdPushConstants(cmdBuffer, renderer::Data::linePipelineLayout_,
+      vkCmdPushConstants(cmdBuffer, renderer::EditorData::linePipelineLayout_,
                          VK_SHADER_STAGE_FRAGMENT_BIT, 0,
                          sizeof(renderer::LineShader::PushConstants), &linePushConstants);
-      vkCmdDrawIndexed(cmdBuffer, renderer::Data::curDynLineIdx, 1,
-                       renderer::Data::numGridLines * renderer::INDICES_PER_LINE, 0, 0);
+      vkCmdDrawIndexed(cmdBuffer, renderer::EditorData::curDynLineIdx, 1,
+                       renderer::EditorData::numGridLines * renderer::INDICES_PER_LINE, 0, 0);
    }
 
    EditorGUI::Render(cmdBuffer);
@@ -668,7 +669,7 @@ Editor::DrawAnimationPoints()
       }
    }
 
-   renderer::VulkanRenderer::UpdateLineData(renderer::Data::numGridLines);
+   renderer::VulkanRenderer::UpdateLineData(renderer::EditorData::numGridLines);
 }
 
 void
@@ -713,7 +714,7 @@ Editor::DrawGrid()
       renderer::VulkanRenderer::DrawLine(glm::vec2(i * grad, 0), glm::vec2(i * grad, levelSize.y));
    }
 
-   renderer::Data::numGridLines = renderer::Data::numLines;
+   renderer::EditorData::numGridLines = renderer::EditorData::numLines;
 }
 
 void
@@ -768,6 +769,9 @@ Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
       m_currentLevel.reset();
       m_editorObjects.clear();
       pathfinderNodes_.clear();
+      animationPoints_.clear();
+
+      renderer::VulkanRenderer::FreeData(renderer::ApplicationType::EDITOR, false);
    }
 
    m_currentLevel = std::make_shared< Level >();
@@ -929,7 +933,7 @@ Editor::LaunchGameLoop()
    m_game->MainLoop();
    m_game.reset();
 
-   renderer::VulkanRenderer::FreeData(renderer::ApplicationType::GAME);
+   renderer::VulkanRenderer::FreeData(renderer::ApplicationType::GAME, true);
    m_playGame = false;
 
    renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::EDITOR);
@@ -1083,7 +1087,7 @@ Editor::MainLoop()
 
       timeLastFrame_ = watch.Stop();
 
-      renderer::Data::curDynLineIdx = 0;
+      renderer::EditorData::curDynLineIdx = 0;
       if (m_levelLoaded and m_currentLevel->GetPathfinder().IsInitialized())
       {
          m_currentLevel->GetPathfinder().ClearPerFrameData();

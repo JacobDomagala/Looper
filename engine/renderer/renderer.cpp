@@ -28,12 +28,12 @@ CreatePipeline(std::string_view vertexShader, std::string_view fragmentShader, P
 
    // Create switch in future if we support more types
    auto& pipeLineLayout =
-      type == PrimitiveType::LINE ? Data::linePipelineLayout_ : renderData.pipelineLayout;
+      type == PrimitiveType::LINE ? EditorData::linePipelineLayout_ : renderData.pipelineLayout;
 
-   auto& pipeline = type == PrimitiveType::LINE ? Data::linePipeline_ : renderData.pipeline;
+   auto& pipeline = type == PrimitiveType::LINE ? EditorData::linePipeline_ : renderData.pipeline;
 
-   auto& descriptorSetLayout =
-      type == PrimitiveType::LINE ? Data::lineDescriptorSetLayout_ : renderData.descriptorSetLayout;
+   auto& descriptorSetLayout = type == PrimitiveType::LINE ? EditorData::lineDescriptorSetLayout_
+                                                           : renderData.descriptorSetLayout;
 
    auto [vertexInfo, fragmentInfo] =
       VulkanShader::CreateShader(Data::vk_device, vertexShader, fragmentShader);
@@ -397,32 +397,35 @@ VulkanRenderer::CreateLinePipeline()
 void
 VulkanRenderer::DrawLine(const glm::vec2& start, const glm::vec2& end)
 {
-   Data::lineVertices_.push_back(LineVertex{glm::vec3{start, 0.0f}});
-   Data::lineVertices_.push_back(LineVertex{glm::vec3{end, 0.0f}});
+   EditorData::lineVertices_.push_back(LineVertex{glm::vec3{start, 0.0f}});
+   EditorData::lineVertices_.push_back(LineVertex{glm::vec3{end, 0.0f}});
 
-   ++Data::numLines;
+   ++EditorData::numLines;
 }
 
 void
 VulkanRenderer::DrawDynamicLine(const glm::vec2& start, const glm::vec2& end)
 {
-   const auto totalNumVtx = Data::numGridLines * VERTICES_PER_LINE;
-   if (Data::lineVertices_.size() < (totalNumVtx + Data::curDynLineIdx + VERTICES_PER_LINE))
+   const auto totalNumVtx = EditorData::numGridLines * VERTICES_PER_LINE;
+   if (EditorData::lineVertices_.size()
+       < (totalNumVtx + EditorData::curDynLineIdx + VERTICES_PER_LINE))
    {
-      Data::lineVertices_.push_back(LineVertex{glm::vec3{start, 0.0f}});
-      Data::lineVertices_.push_back(LineVertex{glm::vec3{end, 0.0f}});
+      EditorData::lineVertices_.push_back(LineVertex{glm::vec3{start, 0.0f}});
+      EditorData::lineVertices_.push_back(LineVertex{glm::vec3{end, 0.0f}});
    }
    else
    {
-      Data::lineVertices_[totalNumVtx + Data::curDynLineIdx++] = LineVertex{glm::vec3{start, 0.0f}};
-      Data::lineVertices_[totalNumVtx + Data::curDynLineIdx++] = LineVertex{glm::vec3{end, 0.0f}};
+      EditorData::lineVertices_[totalNumVtx + EditorData::curDynLineIdx++] =
+         LineVertex{glm::vec3{start, 0.0f}};
+      EditorData::lineVertices_[totalNumVtx + EditorData::curDynLineIdx++] =
+         LineVertex{glm::vec3{end, 0.0f}};
    }
 }
 
 void
 VulkanRenderer::UpdateLineData(uint32_t startingLine)
 {
-   const auto lastLine = (Data::curDynLineIdx / VERTICES_PER_LINE) + Data::numGridLines;
+   const auto lastLine = (EditorData::curDynLineIdx / VERTICES_PER_LINE) + EditorData::numGridLines;
    const auto numLines = lastLine - startingLine;
    const auto bufferSize = numLines * sizeof(LineVertex) * VERTICES_PER_LINE;
    if (bufferSize)
@@ -430,11 +433,13 @@ VulkanRenderer::UpdateLineData(uint32_t startingLine)
       const auto offset = startingLine * sizeof(LineVertex) * VERTICES_PER_LINE;
 
       void* data = nullptr;
-      vkMapMemory(Data::vk_device, Data::lineVertexBufferMemory, offset, bufferSize, 0, &data);
+      vkMapMemory(Data::vk_device, EditorData::lineVertexBufferMemory, offset, bufferSize, 0,
+                  &data);
       memcpy(data,
-             Data::lineVertices_.data() + static_cast< size_t >(startingLine) * VERTICES_PER_LINE,
+             EditorData::lineVertices_.data()
+                + static_cast< size_t >(startingLine) * VERTICES_PER_LINE,
              bufferSize);
-      vkUnmapMemory(Data::vk_device, Data::lineVertexBufferMemory);
+      vkUnmapMemory(Data::vk_device, EditorData::lineVertexBufferMemory);
    }
 }
 
@@ -444,10 +449,11 @@ VulkanRenderer::SetupLineData()
    Buffer::CreateBuffer(sizeof(LineVertex) * MAX_NUM_LINES * 2,
                         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        Data::lineVertexBuffer, Data::lineVertexBufferMemory);
+                        EditorData::lineVertexBuffer, EditorData::lineVertexBufferMemory);
 
-   CreateIndexBuffer< INDICES_PER_LINE >(Data::lineIndices_, MAX_NUM_LINES, Data::lineIndexBuffer,
-                                         Data::lineIndexBufferMemory);
+   CreateIndexBuffer< INDICES_PER_LINE >(EditorData::lineIndices_, MAX_NUM_LINES,
+                                         EditorData::lineIndexBuffer,
+                                         EditorData::lineIndexBufferMemory);
 }
 
 void
@@ -502,9 +508,6 @@ VulkanRenderer::SetupData(bool recreatePipeline)
 {
    vkDeviceWaitIdle(Data::vk_device);
 
-   auto& renderData = renderer::Data::renderData_.at(boundApplication_);
-   vkDestroyDescriptorPool(Data::vk_device, renderData.descriptorPool, nullptr);
-
    UpdateBuffers();
 
    // Indirect render stuff
@@ -553,6 +556,14 @@ VulkanRenderer::DestroyPipeline()
    vkDestroySwapchainKHR(Data::vk_device, renderData.swapChain, nullptr);
    vkDestroySurfaceKHR(Data::vk_instance, renderData.surface, nullptr);
 
+   if (renderData.descriptorPool != VK_NULL_HANDLE)
+   {
+      vkDestroyDescriptorPool(Data::vk_device, renderData.descriptorPool, nullptr);
+      vkDestroyDescriptorSetLayout(Data::vk_device, renderData.descriptorSetLayout, nullptr);
+
+      renderData.descriptorPool = VK_NULL_HANDLE;
+   }
+
    renderData.swapChainImages.clear();
    renderData.swapChainImageViews.clear();
    renderData.swapChainFramebuffers.clear();
@@ -574,37 +585,85 @@ VulkanRenderer::DestroyPipeline()
 }
 
 void
-VulkanRenderer::FreeData(renderer::ApplicationType type)
+VulkanRenderer::FreeData(renderer::ApplicationType type, bool destroyPipeline)
 {
    vkDeviceWaitIdle(Data::vk_device);
 
    if (Data::renderData_.find(type) != Data::renderData_.end())
    {
       auto& renderData = Data::renderData_.at(type);
-      vkDestroyBuffer(Data::vk_device, renderData.indexBuffer, nullptr);
-      vkFreeMemory(Data::vk_device, renderData.indexBufferMemory, nullptr);
+      Buffer::FreeMemory(renderData.indexBuffer, renderData.indexBufferMemory);
       renderData.indices.clear();
 
-      vkDestroyBuffer(Data::vk_device, renderData.vertexBuffer, nullptr);
-      vkFreeMemory(Data::vk_device, renderData.vertexBufferMemory, nullptr);
+      Buffer::FreeMemory(renderData.vertexBuffer, renderData.vertexBufferMemory);
       renderData.vertices.clear();
 
       for (size_t i = 0; i < renderData.uniformBuffers.size(); ++i)
       {
-         vkDestroyBuffer(Data::vk_device, renderData.uniformBuffers[i], nullptr);
-         vkFreeMemory(Data::vk_device, renderData.uniformBuffersMemory[i], nullptr);
-
-         vkDestroyBuffer(Data::vk_device, renderData.ssbo[i], nullptr);
-         vkFreeMemory(Data::vk_device, renderData.ssboMemory[i], nullptr);
+         Buffer::FreeMemory(renderData.uniformBuffers[i], renderData.uniformBuffersMemory[i]);
+         Buffer::FreeMemory(renderData.ssbo[i], renderData.ssboMemory[i]);
       }
 
-      renderData.perInstance.clear();
-      renderData.ssbo.clear();
-      renderData.ssboMemory.clear();
+      if (type == ApplicationType::EDITOR)
+      {
+         // Pathfinder
+         EditorData::pathfinderVertices_.clear();
+         EditorData::pathfinderIndices_.clear();
+         Buffer::FreeMemory(EditorData::pathfinderVertexBuffer,
+                            EditorData::pathfinderVertexBufferMemory);
+         Buffer::FreeMemory(EditorData::pathfinderIndexBuffer,
+                            EditorData::pathfinderIndexBufferMemory);
+         EditorData::numNodes_ = 0;
 
-      DestroyPipeline();
+         // Animation
+         EditorData::animationVertices_.clear();
+         EditorData::animationIndices_.clear();
+         Buffer::FreeMemory(EditorData::animationVertexBuffer,
+                            EditorData::animationVertexBufferMemory);
+         Buffer::FreeMemory(EditorData::animationIndexBuffer,
+                            EditorData::animationIndexBufferMemory);
+         EditorData::numPoints_ = 0;
 
-      Data::renderData_.erase(type);
+         // Lines
+         Buffer::FreeMemory(EditorData::lineVertexBuffer, EditorData::lineVertexBufferMemory);
+         Buffer::FreeMemory(EditorData::lineIndexBuffer, EditorData::lineIndexBufferMemory);
+         EditorData::lineVertices_.clear();
+         EditorData::lineIndices_.clear();
+         for (size_t i = 0; i < EditorData::lineUniformBuffers_.size(); ++i)
+         {
+            Buffer::FreeMemory(EditorData::lineUniformBuffers_.at(i),
+                               EditorData::lineUniformBuffersMemory_.at(i));
+         }
+         EditorData::lineIndices_.clear();
+
+         if (EditorData::lineDescriptorPool != VK_NULL_HANDLE)
+         {
+            vkDestroyDescriptorPool(Data::vk_device, EditorData::lineDescriptorPool, nullptr);
+            vkDestroyDescriptorSetLayout(Data::vk_device, EditorData::lineDescriptorSetLayout_,
+                                         nullptr);
+
+            EditorData::lineDescriptorPool = VK_NULL_HANDLE;
+         }
+
+         vkDestroyPipeline(Data::vk_device, EditorData::linePipeline_, nullptr);
+         vkDestroyPipelineLayout(Data::vk_device, EditorData::linePipelineLayout_, nullptr);
+
+         EditorData::numGridLines = 0;
+         EditorData::numLines = 0;
+         EditorData::curDynLineIdx = 0;
+      }
+
+      if (destroyPipeline)
+      {
+         renderData.perInstance.clear();
+         renderData.ssbo.clear();
+         renderData.ssboMemory.clear();
+
+         DestroyPipeline();
+         Data::renderData_.erase(type);
+      }
+
+      isLoaded_ = false;
    }
 }
 
@@ -926,7 +985,8 @@ VulkanRenderer::CreateDevice()
       FindQueueFamilies(Data::vk_physicalDevice, Data::renderData_[boundApplication_].surface);
 
    std::vector< VkDeviceQueueCreateInfo > queueCreateInfos = {};
-   const std::set< uint32_t > uniqueQueueFamilies = {indices_.graphicsFamily, indices_.presentFamily};
+   const std::set< uint32_t > uniqueQueueFamilies = {indices_.graphicsFamily,
+                                                     indices_.presentFamily};
 
    constexpr float queuePriority = 1.0f;
    for (const auto queueFamily : uniqueQueueFamilies)
