@@ -2,14 +2,22 @@
 [![Ubuntu](https://github.com/JacobDomagala/Looper/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/JacobDomagala/Looper/actions/workflows/ubuntu.yml?query=branch%3Amaster)
 
 # Looper
-2D Top-down shooter game (and level editor) written in modern C++.
+Looper is a game engine with an integrated editor and a 2D type game with a level editor, all written in modern C++20. It uses Vulkan for rendering and ImGui/glfw3 for UI and window/input handling. The project is compatible with Ubuntu and Windows.
+
+
+[![Watch the video](https://i.imgur.com/BpkWCSF.png)](https://www.youtube.com/watch?v=cyZFLKrvoPc)
+
+## Requirements
+- C++20 compatible compiler (e.g. GCC, Clang, MSVC)
+- CMake version 3.22 or higher
+- Vulkan SDK
+- Conan package manager
 
 ## Build
+Looper is a CMake-based project working on both Linux (Ubuntu) and Windows. To build it, you will need at least a C++20 compiler and CMake version 3.22. Most of the dependencies will be handled by Conan/CMake, but it's required that you have Vulkan installed on your machine.
 
-Looper is CMake based project working both on Linux (Ubuntu) and Windows. To build it, you will need at least C++20 compiler and CMake version 3.22.
-While most of the dependencies will be handled by Conan/CMake, it's required that you have Vulkan installed on your machine.</br>
+The typical build process would look like this:
 
-Typical build process would look like this:
 ```bash
 # Create build directory
 mkdir build && cd build
@@ -25,3 +33,15 @@ cmake -G "Ninja" ..
 # Build
 cmake --build .
 ```
+
+## Usage
+1. Run the compiled binary to launch the Looper game engine and editor.
+2. Create custom levels in the level editor.
+3. Save and load levels.
+4. Switch to "game-mode" to play your custom levels in the 2D type game.
+
+## Contributing
+If you would like to contribute to the project, please fork the repository and submit a pull request with your proposed changes. We welcome any improvements or new features that enhance the functionality and user experience of Looper.
+
+## License
+Please refer to the LICENSE file in the repository for details on the licensing of this project.
