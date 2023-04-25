@@ -4,12 +4,8 @@
 # Looper
 Looper is a game engine with an integrated editor and a 2D type game with a level editor, all written in modern C++20. It uses Vulkan for rendering and ImGui/glfw3 for UI and window/input handling. The project is compatible with Ubuntu and Windows.
 
-## Table of Contents
-- [Requirements](#requirements)
-- [Build](#build)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
+
+[![Watch the video](https://i.imgur.com/BpkWCSF.png)](https://www.youtube.com/watch?v=cyZFLKrvoPc)
 
 ## Requirements
 - C++20 compatible compiler (e.g. GCC, Clang, MSVC)
@@ -40,14 +36,9 @@ cmake --build .
 
 ## Usage
 1. Run the compiled binary to launch the Looper game engine and editor.
-
 2. Create custom levels in the level editor.
-
 3. Save and load levels.
-
 4. Switch to "game-mode" to play your custom levels in the 2D type game.
-
-5. Customize the engine settings using the provided options.
 
 ## Contributing
 If you would like to contribute to the project, please fork the repository and submit a pull request with your proposed changes. We welcome any improvements or new features that enhance the functionality and user experience of Looper.
