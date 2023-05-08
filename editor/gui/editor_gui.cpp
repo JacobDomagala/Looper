@@ -815,27 +815,65 @@ void
 EditorGUI::RenderCreateNewLevelWindow()
 {
    const auto halfSize = m_windowSize / 2.0f;
+   std::unordered_map< std::string, glm::ivec2 > sizes = {{"Small", glm::ivec2{4096, 4096}},
+                                                          {"Medium", glm::ivec2{16384, 16384}},
+                                                          {"Large", glm::ivec2{65536, 65536}}};
    static glm::ivec2 size = {1024, 1024};
    static std::string name = "DummyLevelName";
+   static std::string currentSize = "Small";
 
-   ImGui::SetNextWindowPos({halfSize.x, halfSize.y});
-   ImGui::SetNextWindowSize({320, 120});
-   ImGui::Begin("Create New");
-   ImGui::InputInt2("Size", &size.x);
-   ImGui::InputText("Name", name.data(), name.length());
-   if (ImGui::Button("Create", {150, 35}))
+   ImGui::SetNextWindowPos({halfSize.x - 160, halfSize.y - 60});
+   ImGui::SetNextWindowSize({300, 180});
+   ImGui::Begin("Create New", nullptr, ImGuiWindowFlags_NoResize);
+
+   ImGui::Text("Size:");
+   ImGui::Dummy(ImVec2(2.0f, 0.0f));
+   ImGui::SameLine();
+   ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.6f);
+
+   const auto items = std::to_array< std::string >({"Small", "Medium", "Large"});
+   // The second parameter is the label previewed before opening the combo.
+   if (ImGui::BeginCombo("##combo", currentSize.c_str()))
+   {
+      for (const auto& item : items)
+      {
+         if (ImGui::Selectable(item.c_str()))
+         {
+            size = sizes.at(item);
+            currentSize = item;
+         }
+      }
+      ImGui::EndCombo();
+   }
+
+   ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+   ImGui::Text("Name:");
+   ImGui::Dummy(ImVec2(2.0f, 0.0f));
+   ImGui::SameLine();
+   ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.6f);
+   ImGui::InputText("##Name", name.data(), name.capacity() + 1);
+
+   ImGui::Dummy(ImVec2(0.0f, 5.0f));
+   ImGui::Dummy(ImVec2(ImGui::GetWindowWidth() / 10.0f, 0.0f));
+   ImGui::SameLine();
+   // ImGui::SetCursorPosX((ImGui::GetWindowWidth() - 300) / 2);
+   if (ImGui::Button("Create", {ImGui::GetWindowWidth() / 3.0f, 35}))
    {
       m_parent.CreateLevel(name, size);
       m_createPushed = false;
    }
    ImGui::SameLine();
-   if (ImGui::Button("Cancel", {150, 35}))
+   ImGui::Dummy(ImVec2(2.0f, 0.0f));
+   ImGui::SameLine();
+   if (ImGui::Button("Cancel", {ImGui::GetWindowWidth() / 3.0f, 35}))
    {
       m_createPushed = false;
    }
 
    ImGui::End();
 }
+
 
 void
 EditorGUI::RenderMainPanel()
