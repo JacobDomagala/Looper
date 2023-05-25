@@ -972,6 +972,8 @@ Editor::SetLockAnimationPoints(bool lock)
 void
 Editor::Update()
 {
+   HandleCamera();
+
    if (m_animateGameObject && m_currentSelectedGameObject)
    {
       auto moveBy = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject)

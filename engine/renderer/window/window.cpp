@@ -78,14 +78,6 @@ Window::MakeFocus()
 }
 
 void
-Window::Clear()
-{
-   // glfwMakeContextCurrent(window_);
-
-   // RenderCommand::Clear();
-}
-
-void
 Window::ShowCursor(bool choice)
 {
    const int mode = choice ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED;
