@@ -11,7 +11,7 @@ Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& s
 {
    m_name = name;
    m_currentState.m_velocity = {0.0f, 0.0f};
-   m_currentState.m_speed = 0.0005f;
+   m_currentState.m_speed = 0.05f;
 
    m_currentState.m_currentHP = m_maxHP;
    // m_currentGameObjectState.m_position = position;

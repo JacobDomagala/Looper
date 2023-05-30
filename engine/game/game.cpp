@@ -134,8 +134,8 @@ Game::KeyEvents() // NOLINT
 {
    const auto floatDeltaTime = static_cast< float >(m_deltaTime.count());
    // Camera movement is disabled
-   const auto cameraMovement = 0.00025f * floatDeltaTime;
-   const auto playerMovement = 0.025f * floatDeltaTime;
+   const auto cameraMovement = 0.05f * floatDeltaTime;
+   const auto playerMovement = 0.5f * floatDeltaTime;
 
    auto playerMoveBy = glm::vec2();
    auto cameraMoveBy = glm::vec2();
@@ -231,7 +231,7 @@ Game::MouseEvents()
 
       // cursor's position from center of the screen to trigger camera movement
       constexpr float borderValue = 0.5f;
-      constexpr float modifier = 0.1f;
+      constexpr float modifier = 1.f;
 
       const auto cameraMovement = modifier * floorf(static_cast< float >(m_deltaTime.count()));
       auto cameraMoveBy = glm::vec2();
@@ -400,6 +400,7 @@ Game::HandleReverseLogic()
       {
          ++m_frameCount;
       }
+ 
    }
 }
 
