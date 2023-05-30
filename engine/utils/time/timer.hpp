@@ -8,6 +8,7 @@ namespace looper {
 class Timer
 {
  public:
+   using microseconds = std::chrono::microseconds;
    using milliseconds = std::chrono::milliseconds;
    using seconds = std::chrono::seconds;
 
@@ -34,6 +35,9 @@ class Timer
    [[nodiscard]] float
    GetFloatDeltaTime() const;
 
+   [[nodiscard]] microseconds
+   GetMicroDeltaTime() const;
+
    [[nodiscard]] milliseconds
    GetMsDeltaTime() const;
 
@@ -51,13 +55,13 @@ class Timer
 
  private:
    // Time period between last Toggle() function call
-   milliseconds m_deltaTime;
+   microseconds m_deltaTime;
 
    // Total time
    milliseconds m_totalTime;
 
-   // Used to tore temporary timepoint which is then used to calculate time between
-   // each Toggle() function call
+   // Used to store temporary timepoint which is then used to calculate time between
+   // each Toggle() function calls
    std::chrono::steady_clock::time_point m_timeStamp;
 
    // NOLINTNEXTLINE

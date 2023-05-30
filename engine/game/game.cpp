@@ -17,6 +17,7 @@ Game::MainLoop()
 {
    if (m_currentLevel)
    {
+      // timer in microseconds
       auto singleFrameTimer = 0.0f;
 
       while (IsRunning())
@@ -24,11 +25,15 @@ Game::MainLoop()
          m_timer.ToggleTimer();
          singleFrameTimer += m_timer.GetFloatDeltaTime();
 
-         while (IsRunning() && (singleFrameTimer > TARGET_TIME))
+         // Debugging output
+         Logger::Info("singleFrameTimer: {} Delta time: {}", singleFrameTimer,
+                      m_timer.GetMicroDeltaTime().count());
+
+         while ((singleFrameTimer / 1000.0f) >= TARGET_TIME)
          {
             m_window->Clear();
-            const auto dt = Timer::milliseconds(static_cast< long >(
-               TARGET_TIME * 1000.0f * static_cast< float >(Timer::AreTimersRunning())));
+            const auto dt = Timer::milliseconds(
+               static_cast< long >(TARGET_TIME * static_cast< float >(Timer::AreTimersRunning())));
             ProcessInput(dt);
 
             renderer::VulkanRenderer::Render(this);
@@ -38,15 +43,13 @@ Game::MainLoop()
                m_frameTimer = 0.0f;
                m_frames = 0;
             }
-            // RenderText(std::to_string(m_framesLastSecond) + " FPS",
-            //            glm::vec2(-WIDTH / 2.0f, -HEIGHT / 2.0f), 0.4f, glm::vec3(1.0f,
-            //            0.0f, 1.0f));
 
+            // Increment frame count and frame timer
             ++m_frames;
-            m_frameTimer += singleFrameTimer;
-            // singleFrameTimer = 0.0f;
+            m_frameTimer += TARGET_TIME;
 
-            singleFrameTimer -= TARGET_TIME;
+            // Decrement frame timer for next frame
+            singleFrameTimer -= TARGET_TIME * 1000.0f;
 
             InputManager::PollEvents();
          }
@@ -54,6 +57,7 @@ Game::MainLoop()
    }
    InputManager::UnregisterFromInput(this);
 }
+
 
 void
 Game::Init(const std::string& configFile, bool loadLevel)
@@ -360,7 +364,7 @@ Game::ProcessInput(Timer::milliseconds deltaTime)
    HandleReverseLogic();
    UpdateGameState();
 
-    auto& renderData =
+   auto& renderData =
       renderer::Data::renderData_.at(renderer::VulkanRenderer::GetCurrentlyBoundType());
    renderData.viewMat = m_camera.GetViewMatrix();
    renderData.projMat = m_camera.GetProjectionMatrix();
