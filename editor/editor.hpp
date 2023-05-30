@@ -1,9 +1,9 @@
 #pragma once
 
 #include "application.hpp"
-#include "gui/editor_gui.hpp"
 #include "editor_object.hpp"
 #include "game.hpp"
+#include "gui/editor_gui.hpp"
 #include "level.hpp"
 #include "logger.hpp"
 #include "object.hpp"
@@ -120,7 +120,7 @@ class Editor : public Application
    [[nodiscard]] time::TimeStep
    GetRenderTime() const;
 
-   [[nodiscard]] std::pair<uint32_t, uint32_t>
+   [[nodiscard]] std::pair< uint32_t, uint32_t >
    GetRenderOffsets() const;
 
    void
@@ -224,8 +224,8 @@ class Editor : public Application
 
    bool m_renderPathfinderNodes = false;
 
-   uint32_t numPathfinderNodes_= {};
-   
+   uint32_t numPathfinderNodes_ = {};
+
    bool m_drawGrid = false;
    int32_t m_gridCellSize = 128;
 
@@ -233,7 +233,7 @@ class Editor : public Application
    EditorGUI gui_;
 
    bool m_playGame = false;
-   time::TimeStep timeLastFrame_ = time::TimeStep{};
+   time::TimeStep timeLastFrame_ = time::TimeStep{time::microseconds{}};
 };
 
 } // namespace looper

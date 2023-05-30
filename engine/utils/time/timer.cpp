@@ -34,19 +34,25 @@ Timer::AreTimersRunning()
 float
 Timer::GetFloatDeltaTime() const
 {
-   return static_cast< float >(m_deltaTime.count());
+   return static_cast< float >(GetMicroDeltaTime().count());
+}
+
+Timer::microseconds
+Timer::GetMicroDeltaTime() const
+{
+   return m_deltaTime;
 }
 
 Timer::milliseconds
 Timer::GetMsDeltaTime() const
 {
-   return m_deltaTime;
+   return std::chrono::duration_cast< milliseconds >(m_deltaTime);
 }
 
 float
 Timer::GetTotalTime() const
 {
-   return static_cast< float >(std::chrono::duration_cast< milliseconds >(m_totalTime).count());
+   return static_cast< float >(m_totalTime.count());
 }
 
 void
@@ -59,9 +65,9 @@ void
 Timer::ToggleTimer()
 {
    auto currentTimeStamp = std::chrono::steady_clock::now();
-   m_deltaTime = std::chrono::duration_cast< milliseconds >(currentTimeStamp - m_timeStamp);
+   m_deltaTime = std::chrono::duration_cast< microseconds >(currentTimeStamp - m_timeStamp);
    m_timeStamp = currentTimeStamp;
-   m_totalTime += m_deltaTime;
+   m_totalTime += std::chrono::duration_cast< milliseconds >(m_deltaTime);
 }
 
 Timer::milliseconds

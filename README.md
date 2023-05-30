@@ -5,7 +5,7 @@
 Looper is a game engine with an integrated editor and a 2D type game with a level editor, all written in modern C++20. It uses Vulkan for rendering and ImGui/glfw3 for UI and window/input handling. The project is compatible with Ubuntu and Windows.
 
 
-[![Watch the video](https://i.imgur.com/BpkWCSF.png)](https://www.youtube.com/watch?v=cyZFLKrvoPc)
+[![Watch the video](https://raw.githubusercontent.com/wiki/JacobDomagala/Looper/Looper_github.gif)](https://www.youtube.com/watch?v=Qh-vOKMPQGQ)
 
 ## Requirements
 - C++20 compatible compiler (e.g. GCC, Clang, MSVC)

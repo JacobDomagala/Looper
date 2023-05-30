@@ -88,7 +88,7 @@ class Enemy : public GameObject, public Animatable
       bool m_isChasingPlayer = false;
       bool m_isAtInitialPos = true;
 
-      Timer::milliseconds m_timeSinceCombatEnded = Timer::milliseconds(0);
+      Timer::microseconds m_timeSinceCombatEnded = Timer::microseconds(0);
       float m_timeSinceCombatStarted = 0.0f;
       float m_timeSinceLastShot = 0.0f;
       float m_reactionTime = 0.1f;
