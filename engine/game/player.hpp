@@ -16,7 +16,7 @@ class Enemy;
 class Player : public GameObject
 {
  public:
-   Player(Application& game, const glm::vec2& position, const glm::ivec2& size,
+   Player(Application& game, const glm::vec3& position, const glm::ivec2& size,
           const std::string& sprite, const std::string& name = "Anonymous");
 
    // check if player got git by enemy

@@ -25,10 +25,6 @@ Game::MainLoop()
          m_timer.ToggleTimer();
          singleFrameTimer += m_timer.GetFloatDeltaTime();
 
-         // Debugging output
-         Logger::Info("singleFrameTimer: {} Delta time: {}", singleFrameTimer,
-                      m_timer.GetMicroDeltaTime().count());
-
          while ((singleFrameTimer / 1000.0f) >= TARGET_TIME)
          {
             m_window->Clear();

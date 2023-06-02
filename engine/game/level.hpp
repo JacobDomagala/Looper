@@ -15,15 +15,14 @@ class Game;
 class Level
 {
  public:
-   static constexpr Tile_t invalidTile = Tile_t{-1, -1};
 
    std::shared_ptr< GameObject >
    AddGameObject(ObjectType objectType);
 
-   [[nodiscard]] std::vector< Tile_t >
+   [[nodiscard]] std::vector< Tile >
    GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const;
 
-   [[nodiscard]] Tile_t
+   [[nodiscard]] Tile
    GetTileFromPosition(const glm::vec2& local) const;
 
    void
@@ -39,8 +38,8 @@ class Level
     *
     * \return Vector of tiles/nodes occupied by given object
     */
-   std::vector< Tile_t >
-   GameObjectMoved(const std::array< glm::vec2, 4 >& box, const std::vector< Tile_t >& currentTiles,
+   std::vector< Tile >
+   GameObjectMoved(const std::array< glm::vec2, 4 >& box, const std::vector< Tile >& currentTiles,
                    Object::ID objectID);
 
    void
@@ -118,7 +117,7 @@ class Level
     *
     * \return Vector of tiles
     */
-   [[nodiscard]] std::vector< Tile_t >
+   [[nodiscard]] std::vector< Tile >
    GetTilesAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos) const;
 
    void

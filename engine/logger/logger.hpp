@@ -9,6 +9,7 @@
 #include <string_view>
 #include <unordered_map>
 #if defined(_WIN32)
+#define NOMINMAX
 #include <Windows.h>
 #endif //  WIN
 

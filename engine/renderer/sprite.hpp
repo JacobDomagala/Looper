@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "texture.hpp"
+#include "vertex.hpp"
 #include "types.hpp"
 
 #include <deque>
@@ -26,7 +27,7 @@ class Sprite
 
    // Create sprite without texture
    void
-   SetSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
+   SetSprite(const glm::vec3& position = glm::vec3(0.0f, 0.0f, 0.0f),
              const glm::vec2& size = glm::vec2(10, 10));
 
    // Create sprite with texture
@@ -49,12 +50,12 @@ class Sprite
    SetTextureFromFile(const std::string& filePath);
 
    void
-   SetTranslateValue(const glm::vec2& translateBy);
+   SetTranslateValue(const glm::vec3& translateBy);
 
    void
-   SetInitialPosition(const glm::vec2& globalPosition);
+   SetInitialPosition(const glm::vec3& globalPosition);
 
-   [[nodiscard]] glm::vec2
+   [[nodiscard]] glm::vec3
    GetPosition() const;
 
    [[nodiscard]] glm::vec2
@@ -68,7 +69,7 @@ class Sprite
    [[nodiscard]] std::string
    GetTextureName() const;
 
-   [[nodiscard]] glm::vec2
+   [[nodiscard]] glm::vec3
    GetTranslation() const;
 
    [[nodiscard]] float
@@ -106,7 +107,7 @@ class Sprite
    GetTransformedRectangle() const;
 
    void
-   Translate(const glm::vec2& translateValue);
+   Translate(const glm::vec3& translateValue);
 
    void
    Update(bool isReverse);
@@ -140,10 +141,10 @@ class Sprite
       glm::vec4 m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
       // sprite's position
-      glm::vec2 m_currentPosition = {0.0f, 0.0f};
+      glm::vec3 m_currentPosition = {0.0f, 0.0f, 0.0f};
 
       // transofmation values
-      glm::vec2 m_translateVal = {0.0f, 0.0f};
+      glm::vec3 m_translateVal = {0.0f, 0.0f, 0.0f};
       glm::vec2 m_scaleVal = {1.0f, 1.0f};
 
       // angle in radians
@@ -166,6 +167,8 @@ class Sprite
    glm::vec2 m_size = {};
    bool changed_ = false;
    uint32_t rendererIdx_ = static_cast< uint32_t >(~0);
+
+   std::vector< renderer::Vertex > vertices_ = {};
 };
 
 } // namespace looper::renderer

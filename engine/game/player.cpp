@@ -5,7 +5,7 @@
 
 namespace looper {
 
-Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& size,
+Player::Player(Application& game, const glm::vec3& position, const glm::ivec2& size,
                const std::string& sprite, const std::string& name)
    : GameObject(game, position, size, sprite, ObjectType::PLAYER)
 {
@@ -26,7 +26,7 @@ bool
 Player::CheckCollision(const glm::vec2& bulletPosition, Enemy const* enemy, bool enemyShooting)
 {
    // if the bullet is inside collision zone then player got hit
-   if (glm::length(bulletPosition - m_currentGameObjectState.m_centeredPosition)
+   if (glm::length(bulletPosition - glm::vec2(m_currentGameObjectState.m_centeredPosition))
        < (static_cast< float >(m_sprite.GetSize().x)) / 2.5f)
    {
       if (enemyShooting)
@@ -68,7 +68,7 @@ Player::UpdateInternal(bool isReverse)
       }
 
       m_sprite.Rotate(m_currentState.m_viewAngle);
-      m_sprite.SetColor({1.0f, 1.0f, 1.0f, 0.75f});
+      m_sprite.SetColor({1.0f, 1.0f, 1.0f, 1.0f});
 
       m_statesQueue.push_back(m_currentState);
 
@@ -84,7 +84,7 @@ Player::Shoot()
 {
    auto* gameHandle = ConvertToGameHandle();
 
-   const auto direction = gameHandle->GetCursor() - m_currentGameObjectState.m_position;
+   const auto direction = gameHandle->GetCursor() - glm::vec2(m_currentGameObjectState.m_position);
    m_currentWeapon->Shoot(direction);
 }
 
