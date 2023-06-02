@@ -123,7 +123,7 @@ EditorObject::GetSprite()
 void
 EditorObject::CreateSprite(const glm::vec2& globalPosition, const glm::ivec2& size)
 {
-   m_sprite.SetSprite(globalPosition, size);
+   m_sprite.SetSprite(glm::vec3(globalPosition, 0.0f), size);
    m_position = m_sprite.GetPosition();
 }
 
@@ -187,7 +187,7 @@ EditorObject::DeleteLinkedObject()
 
          case ObjectType::PATHFINDER_NODE: {
             auto& node = dynamic_cast< Node& >(m_editor.GetLevel().GetObjectRef(m_objectID));
-            m_editor.GetLevel().GetPathfinder().DeleteNode(node.m_ID);
+            m_editor.GetLevel().GetPathfinder().DeleteNode(node.id_);
          }
          break;
 
@@ -200,7 +200,7 @@ EditorObject::DeleteLinkedObject()
 void
 EditorObject::Move(const glm::vec2& moveBy)
 {
-   m_sprite.Translate(moveBy);
+   m_sprite.Translate(glm::vec3(moveBy, 0.0f));
    m_position += moveBy;
    m_centeredPosition += moveBy;
 
@@ -218,7 +218,7 @@ EditorObject::Move(const glm::vec2& moveBy)
 
          case ObjectType::PATHFINDER_NODE: {
             auto& node = dynamic_cast< Node& >(m_editor.GetLevel().GetObjectRef(m_objectID));
-            node.m_position += moveBy;
+            node.position_ += moveBy;
          }
          break;
 
@@ -272,7 +272,7 @@ EditorObject::Render()
             auto& pathfinderNode =
                dynamic_cast< Node& >(m_editor.GetLevel().GetObjectRef(m_objectID));
 
-            if (pathfinderNode.m_occupied)
+            if (pathfinderNode.occupied_)
             {
                SetColor({1.0f, 0.0f, 0.0f, 1.0f});
             }

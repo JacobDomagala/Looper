@@ -9,7 +9,7 @@
 
 namespace looper {
 
-Enemy::Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size,
+Enemy::Enemy(Application& context, const glm::vec3& pos, const glm::ivec2& size,
              const std::string& textureName, const std::vector< AnimationPoint >& keypoints,
              Animatable::ANIMATION_TYPE animationType)
    : GameObject(context, pos, size, textureName, ObjectType::ENEMY),
@@ -172,13 +172,13 @@ Enemy::MoveToPosition(const glm::vec2& targetPosition, bool exactPosition)
 
    auto& pathFinder = gameHandle->GetLevel().GetPathfinder();
 
-   const auto curPosition = m_currentGameObjectState.m_centeredPosition;
+   const auto curPosition = glm::vec2(m_currentGameObjectState.m_centeredPosition);
    const auto tiles = pathFinder.GetPath(curPosition, targetPosition);
 
    if (!tiles.empty())
    {
       const auto moveVal =
-         moveBy * glm::normalize(pathFinder.GetNodeFromID(tiles.back()).m_position - curPosition);
+         moveBy * glm::normalize(pathFinder.GetNodeFromID(tiles.back()).position_ - curPosition);
       Move(moveVal);
    }
    else if (exactPosition)
@@ -187,7 +187,7 @@ Enemy::MoveToPosition(const glm::vec2& targetPosition, bool exactPosition)
       Move(moveVal);
 
       constexpr auto errorTreshold = 3.0f;
-      const auto distanceToDest = targetPosition - m_currentGameObjectState.m_centeredPosition;
+      const auto distanceToDest = targetPosition - glm::vec2(m_currentGameObjectState.m_centeredPosition);
 
       // If Enemy is really close to target destination, just put it there
       if (glm::length(distanceToDest) < errorTreshold)

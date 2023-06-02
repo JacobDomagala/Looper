@@ -224,7 +224,7 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
          {
             m_currentSelectedGameObject->Move(m_camera.ConvertToCameraVector(moveBy));
             m_currentSelectedGameObject->GetSprite().SetInitialPosition(
-               m_currentSelectedGameObject->GetPosition());
+               m_currentSelectedGameObject->GetSprite().GetPosition());
             gui_.ObjectUpdated(m_currentSelectedGameObject->GetID());
             auto animatable = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
             if (animatable)
@@ -751,7 +751,7 @@ Editor::SetupPathfinderNodes()
          const auto tileSize = m_currentLevel->GetTileSize();
 
          auto pathfinderNode = std::make_shared< EditorObject >(
-            *this, node.m_position, glm::ivec2(tileSize, tileSize), "white.png", node.GetID());
+            *this, node.position_, glm::ivec2(tileSize, tileSize), "white.png", node.GetID());
 
          pathfinderNode->Render();
 

@@ -4,18 +4,19 @@
 #include "object.hpp"
 
 #include <glm/glm.hpp>
-#include <vector>
+#include <limits>
 #include <unordered_set>
+#include <vector>
 
 #undef max
 
 namespace looper {
 
+class Level;
+
 // Should be Tile probably
 struct Node : public Object
 {
-   using NodeID = int32_t;
-
    Node() : Object(ObjectType::PATHFINDER_NODE)
    {
    }
@@ -24,66 +25,64 @@ struct Node : public Object
         std::vector< NodeID > connectedTo = {}, bool occupied = false,
         std::vector< Object::ID > objectOccupying = {})
       : Object(ObjectType::PATHFINDER_NODE),
-        m_xPos(coords.x),
-        m_yPos(coords.y),
-        m_position(posOnMap),
-        m_occupied(occupied),
-        m_ID(nodeID),
-        m_connectedNodes(std::move(connectedTo)),
-        m_objectsOccupyingThisNode(std::move(objectOccupying))
+        xPos_(coords.x),
+        yPos_(coords.y),
+        position_(posOnMap),
+        occupied_(occupied),
+        id_(nodeID),
+        connectedNodes_(std::move(connectedTo)),
+        objectsOccupyingThisNode_(std::move(objectOccupying))
    {
    }
 
    // X.Y coords
-   int32_t m_xPos = {};
-   int32_t m_yPos = {};
+   int32_t xPos_ = {};
+   int32_t yPos_ = {};
 
-   glm::vec2 m_position = {};
+   glm::vec2 position_ = {};
 
-   bool m_occupied = false;
+   bool occupied_ = false;
 
-   NodeID m_ID = -1;
+   NodeID id_ = INVALID_NODE;
 
    // Node which updated this node
-   NodeID m_parentNode = -1;
+   NodeID parentNode_ = INVALID_NODE;
 
-   std::vector< NodeID > m_connectedNodes = {};
-   std::vector< Object::ID > m_objectsOccupyingThisNode = {};
+   std::vector< NodeID > connectedNodes_ = {};
+   std::vector< Object::ID > objectsOccupyingThisNode_ = {};
 
-   bool m_visited = false;
-   int32_t m_localCost = std::numeric_limits< int32_t >::max();
-   int32_t m_globalCost = std::numeric_limits< int32_t >::max();
+   bool visited_ = false;
+   int32_t localCost_ = std::numeric_limits< int32_t >::max();
+   int32_t globalCost_ = std::numeric_limits< int32_t >::max();
 };
 
 inline bool
 operator==(const Node& left, const Node& right)
 {
-   return left.m_ID == right.m_ID;
+   return left.id_ == right.id_;
 }
 
 class PathFinder
 {
  public:
    PathFinder() = default;
-   PathFinder(const glm::ivec2& levelSize, uint32_t tileSize, std::vector< Node >&& nodes);
+   PathFinder(Level* level, std::vector< Node >&& nodes);
 
    /**
     * \brief Initialize Pathfinder. This will create nodes for entire Level.
     *
-    * \param[in] levelSize Size of the current Level
-    * \param[in] tileSize Size of tile
+    * \param[in] level Level that created Pathfinder
     */
    void
-   Initialize(const glm::ivec2& levelSize, uint32_t tileSize);
+   Initialize(Level* level);
 
    /**
     * \brief Initialize Pathfinder. This will not create nodes.
     *
-    * \param[in] levelSize Size of the current Level
-    * \param[in] tileSize Size of tile
+    * \param[in] level Level that created Pathfinder
     */
    void
-   InitializeEmpty(const glm::ivec2& levelSize, uint32_t tileSize);
+   InitializeEmpty(Level* level);
 
    /**
     * \brief Mark Pathfinder as initialized
@@ -113,7 +112,7 @@ class PathFinder
     * \param[in] nodeToDelete Node to delete
     */
    void
-   DeleteNode(Node::NodeID nodeToDelete);
+   DeleteNode(NodeID nodeToDelete);
 
    /**
     * \brief Get nodes (const version)
@@ -138,8 +137,8 @@ class PathFinder
     *
     * \return NodeID
     */
-   [[nodiscard]] Node::NodeID
-   GetNodeIDFromPosition(const glm::vec2& position) const;
+   [[nodiscard]] NodeID
+   GetNodeIDFromPosition(const glm::vec2& position);
 
    /**
     * \brief Get Node from position
@@ -158,8 +157,8 @@ class PathFinder
     *
     * \return NodeID
     */
-   [[nodiscard]] Node::NodeID
-   GetNodeIDFromTile(const glm::ivec2& tile) const;
+   [[nodiscard]] NodeID
+   GetNodeIDFromTile(const Tile& tile);
 
    /**
     * \brief Get Node from NodeID
@@ -169,7 +168,7 @@ class PathFinder
     * \return Node
     */
    Node&
-   GetNodeFromID(Node::NodeID ID);
+   GetNodeFromID(NodeID ID);
 
    /**
     * \brief Get path from \c source to \c destination. Uses A* algorithm.
@@ -179,7 +178,7 @@ class PathFinder
     *
     * \return Nodes along the way
     */
-   std::vector< Node::NodeID >
+   std::vector< NodeID >
    GetPath(const glm::vec2& source, const glm::vec2& destination);
 
    /**
@@ -189,7 +188,7 @@ class PathFinder
     * \param[in] objectID Object that occupies this node/tile
     */
    void
-   SetNodeOccupied(const Tile_t& nodeCoords, Object::ID objectID);
+   SetNodeOccupied(const Tile& nodeCoords, Object::ID objectID);
 
    /**
     * \brief Set node (on the given tile) freed
@@ -198,20 +197,19 @@ class PathFinder
     * \param[in] objectID Object that no longer occupies this node/tile
     */
    void
-   SetNodeFreed(const Tile_t& nodeCoords, Object::ID objectID);
+   SetNodeFreed(const Tile& nodeCoords, Object::ID objectID);
 
    void
    ClearPerFrameData();
 
-   const std::unordered_set< Node::NodeID >&
+   const std::unordered_set< NodeID >&
    GetNodesModifiedLastFrame() const;
 
  private:
-   bool m_initialized = false;
-   std::vector< Node > m_nodes = {};
-   std::unordered_set< Node::NodeID > nodesModifiedLastFrame_ = {};
-   glm::ivec2 m_levelSize = {};
-   uint32_t m_tileSize = {};
+   bool initialized_ = false;
+   std::vector< Node > nodes_ = {};
+   std::unordered_set< NodeID > nodesModifiedLastFrame_ = {};
+   Level* levelHandle_ = nullptr;
 };
 
 } // namespace looper

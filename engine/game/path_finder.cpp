@@ -1,27 +1,52 @@
 #include "path_finder.hpp"
+#include "level.hpp"
+#include "utils/assert.hpp"
 
 #include <algorithm>
 #include <list>
 
 namespace looper {
 
-PathFinder::PathFinder(const glm::ivec2& levelSize, const uint32_t tileSize,
-                       std::vector< Node >&& nodes)
-   : m_nodes(std::move(nodes)), m_levelSize(levelSize), m_tileSize(tileSize)
+inline auto
+GetNodeItFromTile(std::vector< Node >& nodes, const Tile& tile)
+{
+   auto nodeFound = stl::find_if(nodes, [tile](const auto& node) {
+      return node.xPos_ == tile.first and node.yPos_ == tile.second;
+   });
+
+   utils::Assert(nodeFound != nodes.end(), "PathFinder::GetNodeIDFromPosition node not found!");
+
+   return nodeFound;
+}
+
+auto
+GetNodeItFromID(std::vector< Node >& nodes, NodeID id)
+{
+   auto nodeFound = stl::find_if(nodes, [id](const auto& node) { return node.id_ == id; });
+
+   utils::Assert(nodeFound != nodes.end(), "PathFinder::GetNodeItFromID node not found!");
+
+   return nodeFound;
+}
+
+PathFinder::PathFinder(Level* level, std::vector< Node >&& nodes)
+   : nodes_(std::move(nodes)), levelHandle_(level)
 {
 }
 
 void
-PathFinder::InitializeEmpty(const glm::ivec2& levelSize, const uint32_t tileSize)
+PathFinder::InitializeEmpty(Level* level)
 {
-   m_levelSize = levelSize;
-   m_tileSize = tileSize;
+   levelHandle_ = level;
 }
 
 void
-PathFinder::Initialize(const glm::ivec2& levelSize, const uint32_t tileSize)
+PathFinder::Initialize(Level* level)
 {
-   InitializeEmpty(levelSize, tileSize);
+   InitializeEmpty(level);
+
+   const auto tileSize = levelHandle_->GetTileSize();
+   const auto levelSize = levelHandle_->GetSize();
 
    const auto grad = static_cast< int32_t >(tileSize);
 
@@ -29,6 +54,8 @@ PathFinder::Initialize(const glm::ivec2& levelSize, const uint32_t tileSize)
    const auto h = levelSize.y / grad;
    const auto offset =
       glm::vec2(static_cast< float >(grad) / 2.0f, static_cast< float >(grad) / 2.0f);
+
+   // TODO: parallelize!
 
    // height
    for (int y = 0; y < h; ++y)
@@ -38,7 +65,7 @@ PathFinder::Initialize(const glm::ivec2& levelSize, const uint32_t tileSize)
       {
          const bool obstacle = false;
 
-         std::vector< Node::NodeID > connectedTo{};
+         std::vector< NodeID > connectedTo{};
 
          if (y > 0)
          {
@@ -62,67 +89,56 @@ PathFinder::Initialize(const glm::ivec2& levelSize, const uint32_t tileSize)
 
          Node node(glm::ivec2{x, y}, glm::vec2(x * grad, y * grad) + offset, x + y * w,
                    connectedTo);
-         node.m_occupied = obstacle;
+         node.occupied_ = obstacle;
 
 
          AddNode(std::move(node));
       }
    }
 
-   m_initialized = true;
+   initialized_ = true;
 }
 
 void
 PathFinder::AddNode(Node&& newNode)
 {
-   m_nodes.push_back(std::move(newNode));
+   nodes_.push_back(std::move(newNode));
 }
 
 void
-PathFinder::DeleteNode(Node::NodeID nodeToDelete)
+PathFinder::DeleteNode(NodeID nodeToDelete)
 {
-   m_nodes.erase(std::find_if(m_nodes.begin(), m_nodes.end(), [nodeToDelete](const auto& node) {
-      return nodeToDelete == node.m_ID;
-   }));
+   nodes_.erase(GetNodeItFromID(nodes_, nodeToDelete));
 
-   if (m_nodes.empty())
+   if (nodes_.empty())
    {
-      m_initialized = false;
+      initialized_ = false;
    }
 }
 
 const std::vector< Node >&
 PathFinder::GetAllNodes() const
 {
-   return m_nodes;
+   return nodes_;
 }
 
 std::vector< Node >&
 PathFinder::GetAllNodes()
 {
-   return m_nodes;
+   return nodes_;
 }
 
-Node::NodeID
-PathFinder::GetNodeIDFromPosition(const glm::vec2& position) const
+NodeID
+PathFinder::GetNodeIDFromPosition(const glm::vec2& position)
 {
-   if (position.x < 0 or position.x >= static_cast< float >(m_levelSize.x) or position.y < 0
-       or position.y >= static_cast< float >(m_levelSize.y))
+   if (not levelHandle_->IsInLevelBoundaries(position))
    {
-      return -1;
+      return INVALID_NODE;
    }
 
-   const auto w = static_cast< int32_t >(glm::floor(position.x / static_cast< float >(m_tileSize)));
-   const auto h = static_cast< int32_t >(glm::floor(position.y / static_cast< float >(m_tileSize)));
+   auto nodeFound = GetNodeItFromTile(nodes_, levelHandle_->GetTileFromPosition(position));
 
-   const auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(), [w, h](const auto& node) {
-      return node.m_xPos == w and node.m_yPos == h;
-   });
-
-   // NOLINTNEXTLINE
-   assert(nodeFound != m_nodes.end());
-
-   return nodeFound->m_ID;
+   return nodeFound->id_;
 }
 
 Node&
@@ -132,49 +148,36 @@ PathFinder::GetNodeFromPosition(const glm::vec2& position)
 }
 
 Node&
-PathFinder::GetNodeFromID(Node::NodeID ID)
+PathFinder::GetNodeFromID(NodeID ID)
 {
-   const auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(),
-                                       [ID](const auto& node) { return node.m_ID == ID; });
-
-   // NOLINTNEXTLINE
-   assert(nodeFound != m_nodes.end());
-
-   return *nodeFound;
+   return *GetNodeItFromID(nodes_, ID);
 }
 
-Node::NodeID
-PathFinder::GetNodeIDFromTile(const glm::ivec2& tile) const
+NodeID
+PathFinder::GetNodeIDFromTile(const Tile& tile)
 {
-   const auto nodeFound = std::find_if(m_nodes.begin(), m_nodes.end(), [tile](const auto& node) {
-      return node.m_xPos == tile.x and node.m_yPos == tile.y;
-   });
-
-   // NOLINTNEXTLINE
-   assert(nodeFound != m_nodes.end());
-
-   return nodeFound->m_ID;
+   return GetNodeItFromTile(nodes_, tile)->id_;
 }
 
-std::vector< Node::NodeID >
+std::vector< NodeID >
 PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
 {
    auto& nodeStart = GetNodeFromPosition(source);
    auto& nodeEnd = GetNodeFromPosition(destination);
 
    // Reset Navigation Graph - default all node states
-   std::for_each(m_nodes.begin(), m_nodes.end(), [](auto& node) {
-      node.m_parentNode = -1;
-      node.m_visited = false;
-      node.m_localCost = std::numeric_limits< int32_t >::max();
-      node.m_globalCost = std::numeric_limits< int32_t >::max();
+   stl::for_each(nodes_, [](auto& node) {
+      node.parentNode_ = -1;
+      node.visited_ = false;
+      node.localCost_ = std::numeric_limits< int32_t >::max();
+      node.globalCost_ = std::numeric_limits< int32_t >::max();
    });
 
    // Setup starting conditions
    Node* nodeCurrent = &nodeStart;
-   nodeStart.m_localCost = 0;
-   nodeStart.m_globalCost =
-      static_cast< int32_t >(glm::distance(nodeStart.m_position, nodeEnd.m_position));
+   nodeStart.localCost_ = 0;
+   nodeStart.globalCost_ =
+      static_cast< int32_t >(glm::distance(nodeStart.position_, nodeEnd.position_));
 
    // Add start node to not tested list - this will ensure it gets tested.
    // As the algorithm progresses, newly discovered nodes get added to this
@@ -191,11 +194,11 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
    {
       // Sort Untested nodes by global goal, so lowest is first
       listNotTestedNodes.sort(
-         [](const Node* lhs, const Node* rhs) { return lhs->m_globalCost < rhs->m_globalCost; });
+         [](const Node* lhs, const Node* rhs) { return lhs->globalCost_ < rhs->globalCost_; });
 
       // Front of listNotTestedNodes is potentially the lowest distance node. Our
       // list may also contain nodes that have been visited, so ditch these...
-      while (!listNotTestedNodes.empty() && listNotTestedNodes.front()->m_visited)
+      while (!listNotTestedNodes.empty() && listNotTestedNodes.front()->visited_)
       {
          listNotTestedNodes.pop_front();
       }
@@ -207,56 +210,56 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
       }
 
       nodeCurrent = listNotTestedNodes.front();
-      nodeCurrent->m_visited = true; // We only explore a node once
+      nodeCurrent->visited_ = true; // We only explore a node once
 
 
       // Check each of this node's neighbours...
-      for (auto nodeNeighbourID : nodeCurrent->m_connectedNodes)
+      for (auto nodeNeighbourID : nodeCurrent->connectedNodes_)
       {
          auto& nodeNeighbour = GetNodeFromID(nodeNeighbourID);
 
          // ... and only if the neighbour is not visited and is
          // not an obstacle, add it to NotTested List
-         if (!nodeNeighbour.m_visited && !nodeNeighbour.m_occupied)
+         if (!nodeNeighbour.visited_ && !nodeNeighbour.occupied_)
          {
             listNotTestedNodes.push_back(&nodeNeighbour);
          }
 
          // Calculate the neighbours potential lowest parent distance
          const auto fPossiblyLowerGoal =
-            static_cast< float >(nodeCurrent->m_localCost)
-            + glm::distance(nodeCurrent->m_position, nodeNeighbour.m_position);
+            static_cast< float >(nodeCurrent->localCost_)
+            + glm::distance(nodeCurrent->position_, nodeNeighbour.position_);
 
          // If choosing to path through this node is a lower distance than what
          // the neighbour currently has set, update the neighbour to use this node
          // as the path source, and set its distance scores as necessary
-         if (fPossiblyLowerGoal < static_cast< float >(nodeNeighbour.m_localCost))
+         if (fPossiblyLowerGoal < static_cast< float >(nodeNeighbour.localCost_))
          {
-            nodeNeighbour.m_parentNode = nodeCurrent->m_ID;
-            nodeNeighbour.m_localCost = static_cast< int32_t >(fPossiblyLowerGoal);
+            nodeNeighbour.parentNode_ = nodeCurrent->id_;
+            nodeNeighbour.localCost_ = static_cast< int32_t >(fPossiblyLowerGoal);
 
             // The best path length to the neighbour being tested has changed, so
             // update the neighbour's score. The heuristic is used to globally bias
             // the path algorithm, so it knows if its getting better or worse. At some
             // point the algo will realise this path is worse and abandon it, and then go
             // and search along the next best path.
-            nodeNeighbour.m_globalCost = nodeNeighbour.m_localCost
-                                         + static_cast< int32_t >(glm::distance(
-                                            nodeNeighbour.m_position, nodeEnd.m_position));
+            nodeNeighbour.globalCost_ =
+               nodeNeighbour.localCost_
+               + static_cast< int32_t >(glm::distance(nodeNeighbour.position_, nodeEnd.position_));
          }
       }
    }
 
-   std::vector< Node::NodeID > nodePath;
+   std::vector< NodeID > nodePath;
 
    // Assume we found the path
    auto* currentNode = &nodeEnd;
    while (*currentNode != nodeStart)
    {
-      nodePath.push_back(currentNode->m_ID);
-      if (currentNode->m_parentNode != -1)
+      nodePath.push_back(currentNode->id_);
+      if (currentNode->parentNode_ != -1)
       {
-         currentNode = &GetNodeFromID(currentNode->m_parentNode);
+         currentNode = &GetNodeFromID(currentNode->parentNode_);
       }
       else
       {
@@ -268,46 +271,36 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
 }
 
 void
-PathFinder::SetNodeOccupied(const Tile_t& nodeCoords, Object::ID objectID)
+PathFinder::SetNodeOccupied(const Tile& nodeCoords, Object::ID objectID)
 {
-   if (nodeCoords != Tile_t{-1, -1})
+   if (nodeCoords != INVALID_TILE)
    {
-      auto node_found =
-         std::find_if(m_nodes.begin(), m_nodes.end(), [nodeCoords](const auto& node) {
-            return (node.m_xPos == nodeCoords.first) and (node.m_yPos == nodeCoords.second);
-         });
+      auto node_found = GetNodeItFromTile(nodes_, nodeCoords);
+      node_found->occupied_ = true;
+      node_found->objectsOccupyingThisNode_.push_back(objectID);
 
-      // NOLINTNEXTLINE
-      assert(node_found != m_nodes.end());
-
-      node_found->m_occupied = true;
-      node_found->m_objectsOccupyingThisNode.push_back(objectID);
-
-      nodesModifiedLastFrame_.insert(node_found->m_ID);
+      nodesModifiedLastFrame_.insert(node_found->id_);
    }
 }
 
 void
-PathFinder::SetNodeFreed(const Tile_t& nodeCoords, Object::ID objectID)
+PathFinder::SetNodeFreed(const Tile& nodeCoords, Object::ID objectID)
 {
-   if (nodeCoords != Tile_t{-1, -1})
+   if (nodeCoords != INVALID_TILE)
    {
-      auto node_found =
-         std::find_if(m_nodes.begin(), m_nodes.end(), [nodeCoords](const auto& node) {
-            return (node.m_xPos == nodeCoords.first) and (node.m_yPos == nodeCoords.second);
-         });
+      auto nodeFound = GetNodeItFromTile(nodes_, nodeCoords);
 
-      // NOLINTNEXTLINE
-      assert(node_found != m_nodes.end());
+      auto objectFound = stl::find(nodeFound->objectsOccupyingThisNode_, objectID);
 
-      node_found->m_objectsOccupyingThisNode.erase(
-         std::find(node_found->m_objectsOccupyingThisNode.begin(),
-                   node_found->m_objectsOccupyingThisNode.end(), objectID));
+      utils::Assert(objectFound != nodeFound->objectsOccupyingThisNode_.end(),
+                    "PathFinder::SetNodeFreed object not found!");
 
-      if (node_found->m_objectsOccupyingThisNode.empty())
+      nodeFound->objectsOccupyingThisNode_.erase(objectFound);
+
+      if (nodeFound->objectsOccupyingThisNode_.empty())
       {
-         node_found->m_occupied = false;
-         nodesModifiedLastFrame_.insert(node_found->m_ID);
+         nodeFound->occupied_ = false;
+         nodesModifiedLastFrame_.insert(nodeFound->id_);
       }
    }
 }
@@ -315,13 +308,13 @@ PathFinder::SetNodeFreed(const Tile_t& nodeCoords, Object::ID objectID)
 void
 PathFinder::SetInitialized()
 {
-   m_initialized = true;
+   initialized_ = true;
 }
 
 bool
 PathFinder::IsInitialized() const
 {
-   return m_initialized;
+   return initialized_;
 }
 
 void
@@ -330,7 +323,7 @@ PathFinder::ClearPerFrameData()
    nodesModifiedLastFrame_.clear();
 }
 
-const std::unordered_set< Node::NodeID >&
+const std::unordered_set< NodeID >&
 PathFinder::GetNodesModifiedLastFrame() const
 {
    return nodesModifiedLastFrame_;

@@ -6,12 +6,24 @@
 
 namespace looper {
 
-GameObject::GameObject(Application& application, const glm::vec2& position, const glm::vec2& size,
+GameObject::GameObject(Application& application, const glm::vec3& position, const glm::vec2& size,
                        const std::string& sprite, ObjectType type)
    : Object(type), m_appHandle(application)
 {
-   m_sprite.SetSpriteTextured(position, size, sprite, type);
-   m_currentGameObjectState.m_position = position;
+   auto newPosition = position;
+   switch (type)
+   {
+      case looper::ObjectType::OBJECT: {
+         newPosition.z = 0.1f;
+      }
+      break;
+
+      default:
+         break;
+   }
+
+   m_sprite.SetSpriteTextured(newPosition, size, sprite, type);
+   m_currentGameObjectState.m_position = glm::vec2(position);
    m_currentGameObjectState.m_visible = true;
    m_currentGameObjectState.m_centeredPosition = m_sprite.GetPosition();
 
@@ -96,14 +108,14 @@ GameObject::SetShaders(const std::string& shader)
 }
 
 void
-GameObject::CreateSprite(const glm::vec2& position, const glm::ivec2& size)
+GameObject::CreateSprite(const glm::vec3& position, const glm::ivec2& size)
 {
    m_sprite.SetSprite(position, size);
    m_currentGameObjectState.m_position = m_sprite.GetPosition();
 }
 
 void
-GameObject::CreateSpriteTextured(const glm::vec2& position, const glm::ivec2& size,
+GameObject::CreateSpriteTextured(const glm::vec3& position, const glm::ivec2& size,
                                  const std::string& fileName)
 {
    m_sprite.SetSpriteTextured(position, size, fileName, m_type);
@@ -156,7 +168,7 @@ GameObject::UpdateCollision()
    }
 }
 
-std::vector< Tile_t >
+std::vector< Tile >
 GameObject::GetOccupiedNodes() const
 {
    return m_currentGameObjectState.m_occupiedNodes;
@@ -165,7 +177,7 @@ GameObject::GetOccupiedNodes() const
 void
 GameObject::Move(const glm::vec2& moveBy)
 {
-   m_sprite.Translate(moveBy);
+   m_sprite.Translate(glm::vec3(moveBy, 0.0f));
    m_currentGameObjectState.m_position += moveBy;
    m_currentGameObjectState.m_centeredPosition += moveBy;
 

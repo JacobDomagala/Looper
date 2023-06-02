@@ -45,6 +45,9 @@ class Object
    [[nodiscard]] ID
    GetID() const;
 
+   void
+   SetID(ID);
+
  protected:
    ObjectType m_type;
 

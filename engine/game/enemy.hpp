@@ -16,7 +16,7 @@ class Application;
 class Enemy : public GameObject, public Animatable
 {
  public:
-   Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size,
+   Enemy(Application& context, const glm::vec3& pos, const glm::ivec2& size,
          const std::string& textureName, const std::vector< AnimationPoint >& keypoints = {},
          Animatable::ANIMATION_TYPE animationType = Animatable::ANIMATION_TYPE::REVERSABLE);
 
@@ -92,7 +92,7 @@ class Enemy : public GameObject, public Animatable
       float m_timeSinceCombatStarted = 0.0f;
       float m_timeSinceLastShot = 0.0f;
       float m_reactionTime = 0.1f;
-      float m_movementSpeed = 0.025f;
+      float m_movementSpeed = 0.5f;
       float m_visionRange = 0.0f;
 
       bool m_combatStarted = false;

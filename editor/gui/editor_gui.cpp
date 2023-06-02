@@ -1026,8 +1026,8 @@ EditorGUI::RenderLevelMenu() // NOLINT
       curNode = pathfinder.GetNodeFromID(nodeID);
    }
 
-   ImGui::Text("Cursor on tile ID = %d Coords(%d, %d)", curNode.m_ID, curNode.m_xPos,
-               curNode.m_yPos);
+   ImGui::Text("Cursor on tile ID = %d Coords(%d, %d)", curNode.id_, curNode.xPos_,
+               curNode.yPos_);
 
    ImGui::End();
 }
@@ -1045,12 +1045,15 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
       auto name = m_currentlySelectedGameObject->GetName();
       const auto nameLength = 20;
       name.resize(nameLength);
+      
+      ImGui::Text("%s",
+                  fmt::format("Type: {} (ID: {})", m_currentlySelectedGameObject->GetTypeString(),
+                              m_currentlySelectedGameObject->GetID())
+                     .c_str());
+      ImGui::Text("Name: ");
+      ImGui::SameLine();
 
-      auto type = m_currentlySelectedGameObject->GetTypeString();
-
-      ImGui::InputText("Type", type.data(), type.size(), ImGuiInputTextFlags_ReadOnly);
-
-      if (ImGui::InputText("Name", name.data(), nameLength))
+      if (ImGui::InputText("##", name.data(), nameLength))
       {
          m_currentlySelectedGameObject->SetName(name);
       }
@@ -1065,12 +1068,12 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Transform"))
    {
-      auto objectPosition = m_currentlySelectedGameObject->GetPosition();
+      auto objectPosition = m_currentlySelectedGameObject->GetSprite().GetPosition();
       auto sprite_size = m_currentlySelectedGameObject->GetSprite().GetSize();
       auto rotation = m_currentlySelectedGameObject->GetSprite().GetRotation(
          renderer::Sprite::RotationType::DEGREES);
 
-      ImGui::InputFloat2("Position", &objectPosition.x);
+      ImGui::InputFloat3("Position", &objectPosition.x);
 
       if (ImGui::SliderFloat2("Size", &sprite_size.x, 10, 1000))
       {
@@ -1158,7 +1161,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          if (ImGui::SliderFloat("##", &timer, 0.0f, animationDuration, "%.3f ms"))
          {
             m_currentlySelectedGameObject->GetSprite().SetTranslateValue(
-               animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(timer))));
+               glm::vec3(animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(timer))), 0.0f));
          }
 
          // static int selected = 0;

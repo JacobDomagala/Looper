@@ -2,23 +2,21 @@
 #include "application.hpp"
 #include "renderer.hpp"
 #include "texture.hpp"
-#include "vertex.hpp"
 
 #include <glm/gtx/transform.hpp>
 
 namespace looper::renderer {
 
 void
-Sprite::SetSprite(const glm::vec2& position, const glm::vec2& size)
+Sprite::SetSprite(const glm::vec3& position, const glm::vec2& size)
 {
    // m_texture = std::make_shared< Texture >();
    // m_texture->CreateColorTexture(size, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
    m_currentState.m_currentPosition = position;
-   m_initialPosition = glm::vec3(position, 0.0f);
+   m_initialPosition = position;
+   m_currentState.m_translateVal = position;
    m_size = size;
-
-   m_currentState.m_translateVal = glm::vec3(position, 0.0f);
    m_currentState.m_angle = 0.0f;
    m_currentState.m_scaleVal = glm::vec2(1.0f, 1.0f);
    m_currentState.m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -52,25 +50,23 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
         x (3) [-0.5f, -0.5f]    |     x (2) [0.5f, -0.5f]
 
    */
-   const std::vector< renderer::Vertex > vtcs = {
-      {glm::vec3{-0.5f, 0.5f, m_initialPosition.z}, glm::vec3{0.0f, 0.0f, 1.0f}},
-      {glm::vec3{0.5f, 0.5f, m_initialPosition.z}, glm::vec3{1.0f, 0.0f, 1.0f}},
-      {glm::vec3(0.5f, -0.5f, m_initialPosition.z), glm::vec3{1.0f, 1.0f, 1.0f}},
-      {glm::vec3{-0.5f, -0.5f, m_initialPosition.z}, glm::vec3{0.0f, 1.0f, 1.0f}}};
+   vertices_ = std::vector< renderer::Vertex >{
+      {glm::vec3{-0.5f, 0.5f, 0.0f}, glm::vec3{0.0f, 0.0f, 1.0f}},
+      {glm::vec3{0.5f, 0.5f, 0.0f}, glm::vec3{1.0f, 0.0f, 1.0f}},
+      {glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3{1.0f, 1.0f, 1.0f}},
+      {glm::vec3{-0.5f, -0.5f, 0.0f}, glm::vec3{0.0f, 1.0f, 1.0f}}};
 
    const auto transformMat =
-      glm::translate(glm::mat4(1.0f), glm::vec3(m_currentState.m_translateVal, 0.0f))
-      // glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f))
+      glm::translate(glm::mat4(1.0f), m_currentState.m_translateVal)
       * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
       * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
 
-   const std::array< std::string, 3 > txts = {
-      TextureLibrary::GetTexture(texture_)->GetName(),
-      TextureLibrary::GetTexture(texture_)->GetName(),
-      TextureLibrary::GetTexture(texture_)->GetName()};
+   const std::array< std::string, 3 > txts = {TextureLibrary::GetTexture(texture_)->GetName(),
+                                              TextureLibrary::GetTexture(texture_)->GetName(),
+                                              TextureLibrary::GetTexture(texture_)->GetName()};
 
    rendererIdx_ =
-      VulkanRenderer::MeshLoaded(vtcs, txts, transformMat, m_currentState.m_color, type);
+      VulkanRenderer::MeshLoaded(vertices_, txts, transformMat, m_currentState.m_color, type);
 }
 
 void
@@ -104,8 +100,7 @@ Sprite::Render()
    if (changed_)
    {
       const glm::mat4 transformMat =
-         glm::translate(glm::mat4(1.0f),
-                        glm::vec3(m_currentState.m_translateVal, m_initialPosition.z))
+         glm::translate(glm::mat4(1.0f), m_currentState.m_translateVal)
          * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
          * glm::scale(glm::mat4(1.0f), {m_size * m_currentState.modifiers.scale, 1.0f});
 
@@ -116,7 +111,7 @@ Sprite::Render()
    }
 }
 
-glm::vec2
+glm::vec3
 Sprite::GetPosition() const
 {
    return m_currentState.m_currentPosition;
@@ -147,7 +142,7 @@ Sprite::GetTextureName() const
    return renderer::TextureLibrary::GetTexture(texture_)->GetName();
 }
 
-glm::vec2
+glm::vec3
 Sprite::GetTranslation() const
 {
    return m_currentState.m_translateVal;
@@ -190,18 +185,18 @@ Sprite::SetTextureFromFile(const std::string& filePath)
 }
 
 void
-Sprite::SetTranslateValue(const glm::vec2& translateBy)
+Sprite::SetTranslateValue(const glm::vec3& translateBy)
 {
-   m_currentState.m_currentPosition = glm::vec2(m_initialPosition) + translateBy;
-   m_currentState.m_translateVal = m_currentState.m_currentPosition;
+   m_currentState.m_currentPosition = m_initialPosition + translateBy;
+   m_currentState.m_translateVal += translateBy;
 
    changed_ = true;
 }
 
 void
-Sprite::SetInitialPosition(const glm::vec2& globalPosition)
+Sprite::SetInitialPosition(const glm::vec3& globalPosition)
 {
-   m_initialPosition = glm::vec3(globalPosition, m_initialPosition.z);
+   m_initialPosition = globalPosition;
 }
 
 const renderer::Texture*
@@ -261,7 +256,7 @@ Sprite::ScaleCumulative(const glm::vec2& scaleValue)
 }
 
 void
-Sprite::Translate(const glm::vec2& translateValue)
+Sprite::Translate(const glm::vec3& translateValue)
 {
    m_currentState.m_currentPosition += translateValue;
    m_currentState.m_translateVal += translateValue;
@@ -291,14 +286,14 @@ std::array< glm::vec2, 4 >
 Sprite::GetTransformedRectangle() const
 {
    const auto transformMat =
-      glm::translate(glm::mat4(1.0f), glm::vec3(m_currentState.m_translateVal, m_initialPosition.z))
+      glm::translate(glm::mat4(1.0f), m_currentState.m_translateVal)
       * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
       * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
 
-   const glm::vec2 topLeft = transformMat * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
-   const glm::vec2 bottomLeft = transformMat * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);
-   const glm::vec2 topRight = transformMat * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
-   const glm::vec2 bottomRight = transformMat * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
+   const glm::vec2 topLeft = transformMat * glm::vec4(vertices_[0].m_position, 1.0f);
+   const glm::vec2 bottomLeft = transformMat * glm::vec4(vertices_[3].m_position, 1.0f);
+   const glm::vec2 topRight = transformMat * glm::vec4(vertices_[1].m_position, 1.0f);
+   const glm::vec2 bottomRight = transformMat * glm::vec4(vertices_[2].m_position, 1.0f);
 
    return {topRight, topLeft, bottomLeft, bottomRight};
 }

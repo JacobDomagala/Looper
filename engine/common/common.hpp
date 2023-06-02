@@ -1,11 +1,10 @@
 #pragma once
 
+#include "types.hpp"
+
 #include <glm/glm.hpp>
 
 namespace looper {
-
-using byte_vec4 = glm::tvec4< uint8_t >;
-using Tile_t = std::pair< int32_t, int32_t >;
 
 constexpr float TARGET_FPS = 144.0f;
 constexpr float TARGET_TIME = (1.0f / TARGET_FPS) * 1000.0f; // milliseconds

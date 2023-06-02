@@ -7,12 +7,11 @@
 #include "renderer/window/window.hpp"
 #include "renderer/renderer.hpp"
 
+#include <nlohmann/json.hpp>
+
 #include <algorithm>
 #include <fstream>
 #include <functional>
-#undef max
-#undef min
-#include <nlohmann/json.hpp>
 #include <set>
 
 namespace looper {
@@ -28,7 +27,7 @@ Level::Create(Application* context, const std::string& name, const glm::ivec2& s
                                   size, "white.png", ObjectType::NONE);
  
    m_contextPointer = context;
-   m_pathFinder.Initialize(m_levelSize, m_tileWidth);
+   m_pathFinder.Initialize(this);
 }
 
 void
@@ -49,14 +48,14 @@ Level::Load(Application* context, const std::string& pathToLevel)
       }
       else if (key == "PATHFINDER")
       {
-         m_pathFinder.InitializeEmpty(m_levelSize, m_tileWidth);
+         m_pathFinder.InitializeEmpty(this);
 
          for (const auto& nodeJson : json[key]["nodes"])
          {
             m_pathFinder.AddNode(Node(glm::ivec2(nodeJson["coords"][0], nodeJson["coords"][1]),
                                       glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]),
                                       nodeJson["id"],
-                                      std::vector< Node::NodeID >(nodeJson["connected to"].begin(),
+                                      std::vector< NodeID >(nodeJson["connected to"].begin(),
                                                                   nodeJson["connected to"].end()),
                                       nodeJson["occupied"],
                                       std::vector< Object::ID >(nodeJson["nodesOccupying"].begin(),
@@ -72,16 +71,18 @@ Level::Load(Application* context, const std::string& pathToLevel)
       }
       else if (key == "PLAYER")
       {
-         const auto position = json[key]["position"];
-         const auto size = json[key]["size"];
-         const auto texture = json[key]["texture"];
+         const auto& player = json[key];
+         const auto& position = player["position"];
+         const auto& size = player["size"];
+         const auto& texture = player["texture"];
          // const auto weapons = json[key]["weapons"];
-         const auto name = json[key]["name"];
+         const auto& name = player["name"];
 
-         m_player = std::make_shared< Player >(*context, glm::vec2(position[0], position[1]),
+         m_player = std::make_shared< Player >(*context, glm::vec3(position[0], position[1], 0.0f),
                                                glm::ivec2(size[0], size[1]), texture, name);
-         m_player->GetSprite().Scale(glm::vec2(json[key]["scale"][0], json[key]["scale"][1]));
-         m_player->GetSprite().Rotate(json[key]["rotation"]);
+         m_player->GetSprite().Scale(glm::vec2(player["scale"][0], player["scale"][1]));
+         m_player->GetSprite().Rotate(player["rotation"]);
+         m_player->SetID(player["id"]);
          m_objects.emplace_back(m_player);
       }
       else if (key == "ENEMIES")
@@ -94,10 +95,11 @@ Level::Load(Application* context, const std::string& pathToLevel)
             // const auto weapons = enemy["weapons"];
             const auto& name = enemy["name"];
 
-            auto object = std::make_shared< Enemy >(*context, glm::vec2(position[0], position[1]),
+            auto object = std::make_shared< Enemy >(*context, glm::vec3(position[0], position[1], 0.0f),
                                                     glm::ivec2(size[0], size[1]), texture,
                                                     std::vector< AnimationPoint >{});
             object->SetName(name);
+            object->SetID(enemy["id"]);
             object->GetSprite().Scale(glm::vec2(enemy["scale"][0], enemy["scale"][1]));
             object->GetSprite().Rotate(enemy["rotation"]);
 
@@ -129,9 +131,10 @@ Level::Load(Application* context, const std::string& pathToLevel)
             const auto& name = object["name"];
 
             auto gameObject = std::make_shared< GameObject >(
-               *context, glm::vec2(position[0], position[1]), glm::ivec2(size[0], size[1]), texture,
+               *context, glm::vec3(position[0], position[1], 0.0f), glm::ivec2(size[0], size[1]), texture,
                ObjectType::OBJECT);
             gameObject->SetName(name);
+            gameObject->SetID(object["id"]);
             gameObject->GetSprite().Scale(glm::vec2(object["scale"][0], object["scale"][1]));
             gameObject->GetSprite().Rotate(object["rotation"]);
             gameObject->SetHasCollision(object["has collision"]);
@@ -155,12 +158,12 @@ Level::Save(const std::string& pathToLevel)
    for (const auto& node : nodes)
    {
       nlohmann::json nodeJson;
-      nodeJson["id"] = node.m_ID;
-      nodeJson["coords"] = {node.m_xPos, node.m_yPos};
-      nodeJson["position"] = {node.m_position.x, node.m_position.y};
-      nodeJson["connected to"] = node.m_connectedNodes;
-      nodeJson["occupied"] = node.m_occupied;
-      nodeJson["nodesOccupying"] = node.m_objectsOccupyingThisNode;
+      nodeJson["id"] = node.id_;
+      nodeJson["coords"] = {node.xPos_, node.yPos_};
+      nodeJson["position"] = {node.position_.x, node.position_.y};
+      nodeJson["connected to"] = node.connectedNodes_;
+      nodeJson["occupied"] = node.occupied_;
+      nodeJson["nodesOccupying"] = node.objectsOccupyingThisNode_;
 
       json["PATHFINDER"]["nodes"].emplace_back(nodeJson);
    }
@@ -175,10 +178,13 @@ Level::Save(const std::string& pathToLevel)
    // Serialize game objects
    for (const auto& object : m_objects)
    {
+      const auto id = object->GetID();
+
       switch (object->GetType())
       {
          case ObjectType::PLAYER: {
             json["PLAYER"]["name"] = m_player->GetName();
+            json["PLAYER"]["id"] = id;
             json["PLAYER"]["position"] = {m_player->GetPosition().x, m_player->GetPosition().y};
             json["PLAYER"]["scale"] = {m_player->GetSprite().GetScale().x,
                                        m_player->GetSprite().GetScale().y};
@@ -194,6 +200,7 @@ Level::Save(const std::string& pathToLevel)
             nlohmann::json enemyJson;
 
             enemyJson["name"] = object->GetName();
+            enemyJson["id"] = id;
             enemyJson["position"] = {object->GetPosition().x, object->GetPosition().y};
             enemyJson["size"] = {object->GetSprite().GetOriginalSize().x,
                                  object->GetSprite().GetOriginalSize().y};
@@ -227,6 +234,7 @@ Level::Save(const std::string& pathToLevel)
             nlohmann::json objectJson;
 
             objectJson["name"] = object->GetName();
+            objectJson["id"] = id;
             objectJson["has collision"] = object->GetHasCollision();
 
             const auto occupiedNodes = object->GetOccupiedNodes();
@@ -319,9 +327,9 @@ Level::AddGameObject(ObjectType objectType)
    return newObject;
 }
 
-std::vector< Tile_t >
+std::vector< Tile >
 Level::GameObjectMoved(const std::array< glm::vec2, 4 >& box,
-                       const std::vector< Tile_t >& currentTiles, Object::ID objectID)
+                       const std::vector< Tile >& currentTiles, Object::ID objectID)
 {
    auto newTiles = GetTilesFromBoundingBox(box);
 
@@ -341,12 +349,12 @@ Level::GameObjectMoved(const std::array< glm::vec2, 4 >& box,
    return newTiles;
 }
 
-std::vector< Tile_t >
+std::vector< Tile >
 Level::GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const
 {
-   std::vector< Tile_t > ret;
+   std::vector< Tile > ret;
 
-   auto insertToVec = [&ret](std::vector< Tile_t > tiles) {
+   auto insertToVec = [&ret](std::vector< Tile > tiles) {
       ret.insert(ret.end(), tiles.begin(), tiles.end());
    };
 
@@ -358,12 +366,12 @@ Level::GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const
    return ret;
 }
 
-Tile_t
+Tile
 Level::GetTileFromPosition(const glm::vec2& local) const
 {
    if (!IsInLevelBoundaries(local))
    {
-      return invalidTile;
+      return INVALID_TILE;
    }
 
    const auto w = static_cast< int32_t >(glm::floor(local.x / static_cast< float >(m_tileWidth)));
@@ -394,7 +402,7 @@ Level::GetCollidedPosition(const glm::vec2& fromPos, const glm::vec2& toPos)
    {
       auto curPos = fromPos + (stepSize * static_cast< float >(i));
 
-      if (!IsInLevelBoundaries(curPos) or m_pathFinder.GetNodeFromPosition(curPos).m_occupied)
+      if (!IsInLevelBoundaries(curPos) or m_pathFinder.GetNodeFromPosition(curPos).occupied_)
       {
          break;
       }
@@ -420,7 +428,7 @@ Level::CheckCollisionAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toP
    for (int i = 0; i < numSteps; ++i)
    {
       const auto curPos = fromPos + (stepSize * static_cast< float >(i));
-      if (!IsInLevelBoundaries(curPos) or m_pathFinder.GetNodeFromPosition(curPos).m_occupied)
+      if (!IsInLevelBoundaries(curPos) or m_pathFinder.GetNodeFromPosition(curPos).occupied_)
       {
          noCollision = false;
          break;
@@ -430,10 +438,10 @@ Level::CheckCollisionAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toP
    return noCollision;
 }
 
-std::vector< Tile_t >
+std::vector< Tile >
 Level::GetTilesAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos) const
 {
-   std::set< Tile_t > tiles;
+   std::set< Tile > tiles;
 
    constexpr auto numSteps = 100;
    constexpr auto singleStep = 1 / static_cast< float >(numSteps);
@@ -654,7 +662,7 @@ Level::SetSize(const glm::ivec2& newSize)
    // Make sure top left is always 0,0
    const auto diff = oldSize / 2.0f - static_cast< glm::vec2 >(newSize) / 2.0f;
 
-   m_background.Translate(-diff);
+   m_background.Translate(glm::vec3(-diff, 0.0f));
 }
 
 } // namespace looper

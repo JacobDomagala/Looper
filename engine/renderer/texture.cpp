@@ -7,8 +7,6 @@
 #include "vulkan_common.hpp"
 #include "renderer.hpp"
 
-#undef max
-
 #include <string_view>
 #include <ranges>
 

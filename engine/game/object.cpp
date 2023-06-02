@@ -114,4 +114,10 @@ Object::GetID() const
    return m_id;
 }
 
+void
+Object::SetID(Object::ID id)
+{
+   m_id = id;
+}
+
 } // namespace looper
