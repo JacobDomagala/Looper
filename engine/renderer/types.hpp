@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 
 #include <array>
+#include <ranges>
 #include <string>
 
 namespace looper {
@@ -17,14 +18,24 @@ enum class ObjectType
    PATHFINDER_NODE = 8
 };
 
-}
+namespace stl = std::ranges;
+
+using NodeID = int32_t;
+constexpr NodeID INVALID_NODE = -1;
+
+using byte_vec4 = glm::tvec4< uint8_t >;
+using Tile = std::pair< int32_t, int32_t >;
+
+constexpr Tile INVALID_TILE = Tile{-1, -1};
+
+} // namespace looper
 
 namespace looper::renderer {
 
 enum class PrimitiveType
 {
-	TRIANGLE,
-	LINE
+   TRIANGLE,
+   LINE
 };
 
 enum class ApplicationType
