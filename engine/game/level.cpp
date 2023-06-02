@@ -72,11 +72,11 @@ Level::Load(Application* context, const std::string& pathToLevel)
       else if (key == "PLAYER")
       {
          const auto& player = json[key];
-         const auto position = player["position"];
-         const auto size = player["size"];
-         const auto texture = player["texture"];
+         const auto& position = player["position"];
+         const auto& size = player["size"];
+         const auto& texture = player["texture"];
          // const auto weapons = json[key]["weapons"];
-         const auto name = player["name"];
+         const auto& name = player["name"];
 
          m_player = std::make_shared< Player >(*context, glm::vec3(position[0], position[1], 0.0f),
                                                glm::ivec2(size[0], size[1]), texture, name);
