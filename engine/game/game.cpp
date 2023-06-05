@@ -414,18 +414,23 @@ Game::Render(VkCommandBuffer cmdBuffer)
 
    auto offsets = std::to_array< const VkDeviceSize >({0});
 
-   vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer, offsets.data());
-
-   vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
    vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipelineLayout, 0,
                            1, &renderData.descriptorSets[renderer::Data::currentFrame_], 0,
                            nullptr);
 
-   // const auto numObjects =
-   // renderer::VulkanRenderer::GetNumMeshes(renderer::ApplicationType::GAME); numObjects_ =
-   // numObjects.second - numObjects.first;
-   vkCmdDrawIndexed(cmdBuffer, renderData.numMeshes * renderer::INDICES_PER_SPRITE, 1, 0, 0, 0);
+   for (int layer = renderer::NUM_LAYERS; layer >= 0; --layer)
+   {
+      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer.at(layer), offsets.data());
+
+      vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer.at(layer), 0, VK_INDEX_TYPE_UINT32);
+
+      // const auto numObjects =
+      // renderer::VulkanRenderer::GetNumMeshes(renderer::ApplicationType::GAME); numObjects_ =
+      // numObjects.second - numObjects.first;
+      vkCmdDrawIndexed(cmdBuffer, renderData.numMeshes.at(layer) * renderer::INDICES_PER_SPRITE, 1,
+                       0, 0, 0);
+   }
+
 }
 
 } // namespace looper

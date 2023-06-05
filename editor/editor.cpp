@@ -518,65 +518,60 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipeline);
 
       auto offsets = std::to_array< const VkDeviceSize >({0});
-      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer, offsets.data());
-
-      vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
       vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipelineLayout,
                               0, 1, &renderData.descriptorSets[renderer::Data::currentFrame_], 0,
                               nullptr);
-
-      renderer::QuadShader::PushConstants pushConstants = {};
-      pushConstants.selectedIdx = -1.0f;
-
-      if (m_currentSelectedGameObject)
+      for (int layer = renderer::NUM_LAYERS - 1; layer >= 0; --layer)
       {
-         const auto tmpIdx = m_currentSelectedGameObject->GetSprite().GetRenderIdx();
-         pushConstants.selectedIdx = static_cast< float >(tmpIdx);
-      }
+         const auto& numObjects = renderData.numMeshes.at(layer);
+         if (numObjects <= 0 or (layer == 9 and not m_renderPathfinderNodes) /* layer 9 means pathfinder nodes*/)
+         {
+            continue;
+         }
 
-      vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                         sizeof(renderer::QuadShader::PushConstants), &pushConstants);
+         vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer.at(layer), offsets.data());
 
-      const auto numObjects =
-         renderData.numMeshes - renderer::EditorData::numNodes_ - renderer::EditorData::numPoints_;
-      vkCmdDrawIndexed(cmdBuffer, numObjects * renderer::INDICES_PER_SPRITE, 1, 0, 0, 0);
+         vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer.at(layer), 0, VK_INDEX_TYPE_UINT32);
 
-      if (m_currentSelectedGameObject)
-      {
-         const auto tmpIdx = m_currentSelectedGameObject->GetSprite().GetRenderIdx();
+
+         renderer::QuadShader::PushConstants pushConstants = {};
          pushConstants.selectedIdx = -1.0f;
+
+         if (m_currentSelectedGameObject)
+         {
+            const auto tmpIdx = m_currentSelectedGameObject->GetSprite().GetRenderIdx();
+            pushConstants.selectedIdx = static_cast< float >(tmpIdx);
+         }
+
          vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                             sizeof(renderer::QuadShader::PushConstants), &pushConstants);
-         vkCmdDrawIndexed(cmdBuffer, 6, 1, tmpIdx * 6, 0, 0);
+
+         /*const auto numObjects = renderData.totalNumMeshes - renderer::EditorData::numNodes_
+                                 - renderer::EditorData::numPoints_;*/
+         vkCmdDrawIndexed(cmdBuffer, numObjects * renderer::INDICES_PER_SPRITE, 1, 0, 0, 0);
       }
-
-      // DRAW PATHFINDER NODES
-      if (m_renderPathfinderNodes)
-      {
-         vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::EditorData::pathfinderVertexBuffer,
-                                offsets.data());
-
-         vkCmdBindIndexBuffer(cmdBuffer, renderer::EditorData::pathfinderIndexBuffer, 0,
-                              VK_INDEX_TYPE_UINT32);
-
-         vkCmdDrawIndexed(cmdBuffer, renderer::EditorData::numNodes_ * renderer::INDICES_PER_SPRITE,
-                          1, 0, 0, 0);
-      }
+      //if (m_currentSelectedGameObject)
+      //{
+      //   const auto tmpIdx = m_currentSelectedGameObject->GetSprite().GetRenderIdx();
+      //   pushConstants.selectedIdx = -1.0f;
+      //   vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+      //                      sizeof(renderer::QuadShader::PushConstants), &pushConstants);
+      //   vkCmdDrawIndexed(cmdBuffer, 6, 1, tmpIdx * 6, 0, 0);
+      //}
 
 
-      if (renderer::EditorData::numPoints_)
-      {
-         // DRAW ANIMATION POINTS
-         vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::EditorData::animationVertexBuffer,
-                                offsets.data());
+      //if (renderer::EditorData::numPoints_)
+      //{
+      //   // DRAW ANIMATION POINTS
+      //   vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::EditorData::animationVertexBuffer,
+      //                          offsets.data());
 
-         vkCmdBindIndexBuffer(cmdBuffer, renderer::EditorData::animationIndexBuffer, 0,
-                              VK_INDEX_TYPE_UINT32);
+      //   vkCmdBindIndexBuffer(cmdBuffer, renderer::EditorData::animationIndexBuffer, 0,
+      //                        VK_INDEX_TYPE_UINT32);
 
-         vkCmdDrawIndexed(
-            cmdBuffer, renderer::EditorData::numPoints_ * renderer::INDICES_PER_SPRITE, 1, 0, 0, 0);
-      }
+      //   vkCmdDrawIndexed(
+      //      cmdBuffer, renderer::EditorData::numPoints_ * renderer::INDICES_PER_SPRITE, 1, 0, 0, 0);
+      //}
 
 
       // DRAW LINES

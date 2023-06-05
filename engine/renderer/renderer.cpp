@@ -283,19 +283,23 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
                            const glm::mat4& modelMat, const glm::vec4& color, ObjectType type)
 {
    auto* renderData = &Data::renderData_[boundApplication_];
-   auto* vertices = &renderData->vertices;
-   auto* numObjects = &renderData->numMeshes;
+   // convert from depth value to render layer
+   const auto layer =
+      static_cast< uint32_t >(vertices_in.front().m_position.z * 20.0f);
+   auto* vertices = &renderData->vertices.at(layer);
+   auto& numObjects = renderData->numMeshes.at(layer);
+
    if (boundApplication_ == ApplicationType::EDITOR)
    {
       switch (type)
       {
          case ObjectType::ANIMATION_POINT: {
-            vertices = &EditorData::animationVertices_;
+            // vertices = &EditorData::animationVertices_;
             ++EditorData::numPoints_;
          }
          break;
          case ObjectType::PATHFINDER_NODE: {
-            vertices = &EditorData::pathfinderVertices_;
+         //   vertices = &EditorData::pathfinderVertices_;
             ++EditorData::numNodes_;
          }
          break;
@@ -304,9 +308,10 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
       }
    }
 
-   std::ranges::copy(vertices_in, std::back_inserter(*vertices));
-   std::for_each(vertices->end() - 4, vertices->end(), [numObjects](auto& vtx) {
-      vtx.m_texCoordsDraw.z = static_cast< float >(*numObjects);
+   stl::copy(vertices_in, std::back_inserter(*vertices));
+   std::for_each(vertices->end() - 4, vertices->end(),
+                 [drawID = renderData->totalNumMeshes](auto& vtx) {
+      vtx.m_texCoordsDraw.z = static_cast< float >(drawID);
    });
 
    // Indices are handled in init
@@ -351,10 +356,10 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
    }
 
    renderData->perInstance.push_back(newInstance);
-
    UpdateDescriptors();
 
-   return (*numObjects)++;
+   numObjects++;
+   return (renderData->totalNumMeshes)++;
 }
 
 void
@@ -377,11 +382,14 @@ void
 VulkanRenderer::CreateQuadVertexBuffer()
 {
    auto& renderData = Data::renderData_.at(boundApplication_);
-   const auto& vertices = renderData.vertices;
+   const auto& layers = renderData.vertices;
 
-   const VkDeviceSize bufferSize = sizeof(Vertex) * vertices.size();
-   CreateVertexBuffer(bufferSize, renderData.vertices, renderData.vertexBuffer,
-                      renderData.vertexBufferMemory);
+   for (int layer = 0; layer < NUM_LAYERS; layer++)
+   {
+      const VkDeviceSize bufferSize = sizeof(Vertex) * layers.at(layer).size();
+      CreateVertexBuffer(bufferSize, layers.at(layer), renderData.vertexBuffer.at(layer),
+                         renderData.vertexBufferMemory.at(layer));
+   }
 }
 
 void
@@ -592,11 +600,17 @@ VulkanRenderer::FreeData(renderer::ApplicationType type, bool destroyPipeline)
    if (Data::renderData_.find(type) != Data::renderData_.end())
    {
       auto& renderData = Data::renderData_.at(type);
-      Buffer::FreeMemory(renderData.indexBuffer, renderData.indexBufferMemory);
-      renderData.indices.clear();
 
-      Buffer::FreeMemory(renderData.vertexBuffer, renderData.vertexBufferMemory);
-      renderData.vertices.clear();
+      for (int layer = 0; layer < NUM_LAYERS; ++layer)
+      {
+         Buffer::FreeMemory(renderData.indexBuffer.at(layer),
+                            renderData.indexBufferMemory.at(layer));
+         renderData.indices.at(layer).clear();
+
+         Buffer::FreeMemory(renderData.vertexBuffer.at(layer),
+                            renderData.vertexBufferMemory.at(layer));
+         renderData.vertices.at(layer).clear();
+      }
 
       for (size_t i = 0; i < renderData.uniformBuffers.size(); ++i)
       {
@@ -656,8 +670,6 @@ VulkanRenderer::FreeData(renderer::ApplicationType type, bool destroyPipeline)
       if (destroyPipeline)
       {
          renderData.perInstance.clear();
-         renderData.ssbo.clear();
-         renderData.ssboMemory.clear();
 
          DestroyPipeline();
          Data::renderData_.erase(type);
@@ -672,8 +684,12 @@ VulkanRenderer::CreateQuadIndexBuffer()
 {
    auto& renderData = Data::renderData_.at(boundApplication_);
 
-   CreateIndexBuffer< INDICES_PER_SPRITE >(renderData.indices, renderData.numMeshes,
-                                           renderData.indexBuffer, renderData.indexBufferMemory);
+   for (int layer = 0; layer < NUM_LAYERS; ++layer)
+   {
+      CreateIndexBuffer< INDICES_PER_SPRITE >(
+         renderData.indices.at(layer), renderData.numMeshes.at(layer),
+         renderData.indexBuffer.at(layer), renderData.indexBufferMemory.at(layer));
+   }
 }
 
 void
@@ -712,19 +728,19 @@ VulkanRenderer::CreatePerInstanceBuffer()
    // first one
    if (renderData.ssboMemory[0] != VK_NULL_HANDLE)
    {
-      for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+      for (size_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; frame++)
       {
-         vkDestroyBuffer(Data::vk_device, renderData.ssbo[i], nullptr);
-         vkFreeMemory(Data::vk_device, renderData.ssboMemory[i], nullptr);
+         vkDestroyBuffer(Data::vk_device, renderData.ssbo.at(frame), nullptr);
+         vkFreeMemory(Data::vk_device, renderData.ssboMemory.at(frame), nullptr);
       }
    }
 
-   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+   for (size_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; frame++)
    {
       Buffer::CreateBuffer(SSBObufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
                               | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                           renderData.ssbo[i], renderData.ssboMemory[i]);
+                           renderData.ssbo.at(frame), renderData.ssboMemory.at(frame));
    }
 }
 

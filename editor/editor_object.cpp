@@ -13,7 +13,17 @@ EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const
      m_objectID(linkedObject),
      m_hasLinkedObject(true)
 {
-   m_sprite.SetSpriteTextured(glm::vec3{m_position, 0.1f}, size, sprite,
+   auto depth = 0.0f;
+   switch (Object::GetTypeFromID(m_objectID))
+   {
+      case ObjectType::PATHFINDER_NODE: {
+         depth = 0.45f;
+      }
+      default:
+         break;
+   }
+
+   m_sprite.SetSpriteTextured(glm::vec3{m_position, depth}, size, sprite,
                               Object::GetTypeFromID(m_objectID));
 }
 

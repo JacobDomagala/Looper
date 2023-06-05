@@ -40,7 +40,7 @@ class VulkanRenderer
               const glm::mat4& modelMat, const glm::vec4& color, ObjectType type);
 
    static void
-   SubmitMeshData(const uint32_t idx, const TextureID id, const glm::mat4& modelMat,
+   SubmitMeshData(const uint32_t info, const TextureID id, const glm::mat4& modelMat,
                   const glm::vec4& color);
 
    inline static void

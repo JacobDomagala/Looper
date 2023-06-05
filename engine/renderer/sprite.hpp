@@ -4,6 +4,7 @@
 #include "texture.hpp"
 #include "vertex.hpp"
 #include "types.hpp"
+#include "vulkan_common.hpp"
 
 #include <deque>
 #include <glm/glm.hpp>

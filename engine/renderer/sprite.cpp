@@ -51,10 +51,10 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
 
    */
    vertices_ = std::vector< renderer::Vertex >{
-      {glm::vec3{-0.5f, 0.5f, 0.0f}, glm::vec3{0.0f, 0.0f, 1.0f}},
-      {glm::vec3{0.5f, 0.5f, 0.0f}, glm::vec3{1.0f, 0.0f, 1.0f}},
-      {glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3{1.0f, 1.0f, 1.0f}},
-      {glm::vec3{-0.5f, -0.5f, 0.0f}, glm::vec3{0.0f, 1.0f, 1.0f}}};
+      {glm::vec3{-0.5f, 0.5f, position.z}, glm::vec3{0.0f, 0.0f, 1.0f}},
+      {glm::vec3{0.5f, 0.5f, position.z}, glm::vec3{1.0f, 0.0f, 1.0f}},
+      {glm::vec3(0.5f, -0.5f, position.z), glm::vec3{1.0f, 1.0f, 1.0f}},
+      {glm::vec3{-0.5f, -0.5f, position.z}, glm::vec3{0.0f, 1.0f, 1.0f}}};
 
    const auto transformMat =
       glm::translate(glm::mat4(1.0f), m_currentState.m_translateVal)
