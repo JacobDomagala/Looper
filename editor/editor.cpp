@@ -337,7 +337,7 @@ Editor::SelectGameObject()
 {
    // m_currentSelectedGameObject->SetColor({1.0f, 1.0f, 1.0f, 0.0f});
 }
-void 
+void
 Editor::SetVisibleAnimationPoints(const std::shared_ptr< Animatable >& animatablePtr, bool visible)
 {
    const auto& animationPoints = animatablePtr->GetAnimationKeypoints();
@@ -449,9 +449,6 @@ Editor::SetupRendererData()
    renderer::VulkanRenderer::CreateLinePipeline();
    renderer::VulkanRenderer::SetupLineData();
    renderer::VulkanRenderer::UpdateLineData();
-
-   renderer::VulkanRenderer::SetupEditorData(ObjectType::PATHFINDER_NODE);
-   renderer::VulkanRenderer::SetupEditorData(ObjectType::ANIMATION_POINT);
 }
 
 void
@@ -521,69 +518,56 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipelineLayout,
                               0, 1, &renderData.descriptorSets[renderer::Data::currentFrame_], 0,
                               nullptr);
+      renderer::QuadShader::PushConstants pushConstants = {};
+      pushConstants.selectedIdx = -1.0f;
+
+      if (m_currentSelectedGameObject)
+      {
+         const auto tmpIdx = m_currentSelectedGameObject->GetSprite().GetRenderIdx();
+         pushConstants.selectedIdx = static_cast< float >(tmpIdx);
+      }
+
+      vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                         sizeof(renderer::QuadShader::PushConstants), &pushConstants);
+
       for (int layer = renderer::NUM_LAYERS - 1; layer >= 0; --layer)
       {
          const auto& numObjects = renderData.numMeshes.at(layer);
-         if (numObjects <= 0 or (layer == 9 and not m_renderPathfinderNodes) /* layer 9 means pathfinder nodes*/)
+         if (numObjects <= 0
+             or (layer == 9 and not m_renderPathfinderNodes) /* layer 9 means pathfinder nodes*/)
          {
             continue;
          }
 
-         vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer.at(layer), offsets.data());
+         vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer.at(layer),
+                                offsets.data());
 
          vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer.at(layer), 0, VK_INDEX_TYPE_UINT32);
 
-
-         renderer::QuadShader::PushConstants pushConstants = {};
-         pushConstants.selectedIdx = -1.0f;
-
-         if (m_currentSelectedGameObject)
-         {
-            const auto tmpIdx = m_currentSelectedGameObject->GetSprite().GetRenderIdx();
-            pushConstants.selectedIdx = static_cast< float >(tmpIdx);
-         }
-
-         vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                            sizeof(renderer::QuadShader::PushConstants), &pushConstants);
-
-         /*const auto numObjects = renderData.totalNumMeshes - renderer::EditorData::numNodes_
-                                 - renderer::EditorData::numPoints_;*/
          vkCmdDrawIndexed(cmdBuffer, numObjects * renderer::INDICES_PER_SPRITE, 1, 0, 0, 0);
       }
-      //if (m_currentSelectedGameObject)
-      //{
-      //   const auto tmpIdx = m_currentSelectedGameObject->GetSprite().GetRenderIdx();
-      //   pushConstants.selectedIdx = -1.0f;
-      //   vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-      //                      sizeof(renderer::QuadShader::PushConstants), &pushConstants);
-      //   vkCmdDrawIndexed(cmdBuffer, 6, 1, tmpIdx * 6, 0, 0);
-      //}
-
-
-      //if (renderer::EditorData::numPoints_)
-      //{
-      //   // DRAW ANIMATION POINTS
-      //   vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::EditorData::animationVertexBuffer,
-      //                          offsets.data());
-
-      //   vkCmdBindIndexBuffer(cmdBuffer, renderer::EditorData::animationIndexBuffer, 0,
-      //                        VK_INDEX_TYPE_UINT32);
-
-      //   vkCmdDrawIndexed(
-      //      cmdBuffer, renderer::EditorData::numPoints_ * renderer::INDICES_PER_SPRITE, 1, 0, 0, 0);
-      //}
-
+      if (m_currentSelectedGameObject)
+      {
+         const auto tmpIdx = m_currentSelectedGameObject->GetSprite().GetRenderIdx();
+         pushConstants.selectedIdx = -1.0f;
+         vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                            sizeof(renderer::QuadShader::PushConstants), &pushConstants);
+         vkCmdDrawIndexed(cmdBuffer, 6, 1, tmpIdx * 6, 0, 0);
+      }
 
       // DRAW LINES
-      vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::EditorData::linePipeline_);
+      vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                        renderer::EditorData::linePipeline_);
 
-      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::EditorData::lineVertexBuffer, offsets.data());
+      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::EditorData::lineVertexBuffer,
+                             offsets.data());
 
-      vkCmdBindIndexBuffer(cmdBuffer, renderer::EditorData::lineIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+      vkCmdBindIndexBuffer(cmdBuffer, renderer::EditorData::lineIndexBuffer, 0,
+                           VK_INDEX_TYPE_UINT32);
 
       vkCmdBindDescriptorSets(
-         cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::EditorData::linePipelineLayout_, 0, 1,
-         &renderer::EditorData::lineDescriptorSets_[renderer::Data::currentFrame_], 0, nullptr);
+         cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::EditorData::linePipelineLayout_, 0,
+         1, &renderer::EditorData::lineDescriptorSets_[renderer::Data::currentFrame_], 0, nullptr);
 
       renderer::LineShader::PushConstants linePushConstants = {};
       linePushConstants.color = glm::vec4(0.4f, 0.5f, 0.6f, static_cast< float >(m_drawGrid));
@@ -593,8 +577,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
                          sizeof(renderer::LineShader::PushConstants), &linePushConstants);
 
       vkCmdDrawIndexed(cmdBuffer, renderer::EditorData::numGridLines * renderer::INDICES_PER_LINE,
-                       1, 0,
-                       0, 0);
+                       1, 0, 0, 0);
 
       linePushConstants.color = glm::vec4(0.5f, 0.8f, 0.8f, 1.0f);
       vkCmdPushConstants(cmdBuffer, renderer::EditorData::linePipelineLayout_,
@@ -880,7 +863,7 @@ Editor::AddObject(ObjectType objectType)
       animationPoints_.push_back(newObject);
       animatablePtr->ResetAnimation();
 
-      renderer::VulkanRenderer::SetupEditorData(ObjectType::ANIMATION_POINT);
+      // renderer::VulkanRenderer::SetupEditorData(ObjectType::ANIMATION_POINT);
    }
 
    HandleEditorObjectSelected(newObject);

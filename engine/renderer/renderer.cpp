@@ -289,25 +289,6 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
    auto* vertices = &renderData->vertices.at(layer);
    auto& numObjects = renderData->numMeshes.at(layer);
 
-   if (boundApplication_ == ApplicationType::EDITOR)
-   {
-      switch (type)
-      {
-         case ObjectType::ANIMATION_POINT: {
-            // vertices = &EditorData::animationVertices_;
-            ++EditorData::numPoints_;
-         }
-         break;
-         case ObjectType::PATHFINDER_NODE: {
-         //   vertices = &EditorData::pathfinderVertices_;
-            ++EditorData::numNodes_;
-         }
-         break;
-         default: {
-         }
-      }
-   }
-
    stl::copy(vertices_in, std::back_inserter(*vertices));
    std::for_each(vertices->end() - 4, vertices->end(),
                  [drawID = renderData->totalNumMeshes](auto& vtx) {
@@ -465,42 +446,6 @@ VulkanRenderer::SetupLineData()
 }
 
 void
-VulkanRenderer::SetupEditorData(ObjectType type)
-{
-   switch (type)
-   {
-      case ObjectType::ANIMATION_POINT: {
-         auto& vertices = EditorData::animationVertices_;
-
-         CreateVertexBuffer(sizeof(Vertex) * vertices.size(), vertices,
-                            EditorData::animationVertexBuffer,
-                            EditorData::animationVertexBufferMemory);
-
-         CreateIndexBuffer< INDICES_PER_SPRITE >(
-            EditorData::animationIndices_, EditorData::numPoints_, EditorData::animationIndexBuffer,
-            EditorData::animationIndexBufferMemory);
-      }
-      break;
-      case ObjectType::PATHFINDER_NODE: {
-         auto& vertices = EditorData::pathfinderVertices_;
-
-         CreateVertexBuffer(sizeof(Vertex) * vertices.size(), vertices,
-                            EditorData::pathfinderVertexBuffer,
-                            EditorData::pathfinderVertexBufferMemory);
-
-         CreateIndexBuffer< INDICES_PER_SPRITE >(
-            EditorData::pathfinderIndices_, EditorData::numNodes_,
-            EditorData::pathfinderIndexBuffer, EditorData::pathfinderIndexBufferMemory);
-      }
-      break;
-      default: {
-      }
-   }
-
-   CreatePerInstanceBuffer();
-}
-
-void
 VulkanRenderer::UpdateBuffers()
 {
    vkDeviceWaitIdle(Data::vk_device);
@@ -620,24 +565,6 @@ VulkanRenderer::FreeData(renderer::ApplicationType type, bool destroyPipeline)
 
       if (type == ApplicationType::EDITOR)
       {
-         // Pathfinder
-         EditorData::pathfinderVertices_.clear();
-         EditorData::pathfinderIndices_.clear();
-         Buffer::FreeMemory(EditorData::pathfinderVertexBuffer,
-                            EditorData::pathfinderVertexBufferMemory);
-         Buffer::FreeMemory(EditorData::pathfinderIndexBuffer,
-                            EditorData::pathfinderIndexBufferMemory);
-         EditorData::numNodes_ = 0;
-
-         // Animation
-         EditorData::animationVertices_.clear();
-         EditorData::animationIndices_.clear();
-         Buffer::FreeMemory(EditorData::animationVertexBuffer,
-                            EditorData::animationVertexBufferMemory);
-         Buffer::FreeMemory(EditorData::animationIndexBuffer,
-                            EditorData::animationIndexBufferMemory);
-         EditorData::numPoints_ = 0;
-
          // Lines
          Buffer::FreeMemory(EditorData::lineVertexBuffer, EditorData::lineVertexBufferMemory);
          Buffer::FreeMemory(EditorData::lineIndexBuffer, EditorData::lineIndexBufferMemory);
