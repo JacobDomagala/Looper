@@ -23,8 +23,7 @@ EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const
          break;
    }
 
-   m_sprite.SetSpriteTextured(glm::vec3{m_position, depth}, size, sprite,
-                              Object::GetTypeFromID(m_objectID));
+   m_sprite.SetSpriteTextured(glm::vec3{m_position, depth}, size, sprite);
 }
 
 bool

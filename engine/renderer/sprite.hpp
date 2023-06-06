@@ -35,14 +35,12 @@ class Sprite
    void
    SetSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
                      const glm::vec2& size = glm::vec2(10, 10),
-                     const std::string& fileName = "Default128.png",
-                     ObjectType type = ObjectType::NONE);
+                     const std::string& fileName = "Default128.png");
 
    void
    SetSpriteTextured(const glm::vec3& position = glm::vec3(0.0f, 0.0f, 0.0f),
                      const glm::vec2& size = glm::vec2(10, 10),
-                     const std::string& fileName = "Default128.png",
-                     ObjectType type = ObjectType::NONE);
+                     const std::string& fileName = "Default128.png");
 
    void
    SetColor(const glm::vec4& color);

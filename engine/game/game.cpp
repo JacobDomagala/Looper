@@ -418,16 +418,24 @@ Game::Render(VkCommandBuffer cmdBuffer)
                            1, &renderData.descriptorSets[renderer::Data::currentFrame_], 0,
                            nullptr);
 
-   for (int layer = renderer::NUM_LAYERS; layer >= 0; --layer)
+   for (int32_t layer = renderer::NUM_LAYERS - 1; layer >= 0; --layer)
    {
-      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer.at(layer), offsets.data());
+      const auto idx = static_cast< size_t >(layer);
 
-      vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer.at(layer), 0, VK_INDEX_TYPE_UINT32);
+      const auto& numObjects = renderData.numMeshes.at(idx);
+      if (numObjects == 0)
+      {
+         continue;
+      }
+
+      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer.at(idx), offsets.data());
+
+      vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer.at(idx), 0, VK_INDEX_TYPE_UINT32);
 
       // const auto numObjects =
       // renderer::VulkanRenderer::GetNumMeshes(renderer::ApplicationType::GAME); numObjects_ =
       // numObjects.second - numObjects.first;
-      vkCmdDrawIndexed(cmdBuffer, renderData.numMeshes.at(layer) * renderer::INDICES_PER_SPRITE, 1,
+      vkCmdDrawIndexed(cmdBuffer, renderData.numMeshes.at(idx) * renderer::INDICES_PER_SPRITE, 1,
                        0, 0, 0);
    }
 

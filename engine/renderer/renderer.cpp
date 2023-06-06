@@ -280,20 +280,19 @@ VulkanRenderer::UpdateDescriptors()
 
 uint32_t
 VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureMaps& textures_in,
-                           const glm::mat4& modelMat, const glm::vec4& color, ObjectType type)
+                           const glm::mat4& modelMat, const glm::vec4& color)
 {
    auto* renderData = &Data::renderData_[boundApplication_];
    // convert from depth value to render layer
-   const auto layer =
-      static_cast< uint32_t >(vertices_in.front().m_position.z * 20.0f);
+   const auto layer = static_cast< uint32_t >(vertices_in.front().m_position.z * 20.0f);
    auto* vertices = &renderData->vertices.at(layer);
    auto& numObjects = renderData->numMeshes.at(layer);
 
    stl::copy(vertices_in, std::back_inserter(*vertices));
    std::for_each(vertices->end() - 4, vertices->end(),
                  [drawID = renderData->totalNumMeshes](auto& vtx) {
-      vtx.m_texCoordsDraw.z = static_cast< float >(drawID);
-   });
+                    vtx.m_texCoordsDraw.z = static_cast< float >(drawID);
+                 });
 
    // Indices are handled in init
    // std::copy(indicies_in.begin(), indicies_in.end(), std::back_inserter(indices));
@@ -365,9 +364,9 @@ VulkanRenderer::CreateQuadVertexBuffer()
    auto& renderData = Data::renderData_.at(boundApplication_);
    const auto& layers = renderData.vertices;
 
-   for (int layer = 0; layer < NUM_LAYERS; layer++)
+   for (size_t layer = 0; layer < static_cast< size_t >(NUM_LAYERS); layer++)
    {
-      const VkDeviceSize bufferSize = sizeof(Vertex) * layers.at(layer).size();
+      const auto bufferSize = sizeof(Vertex) * layers.at(layer).size();
       CreateVertexBuffer(bufferSize, layers.at(layer), renderData.vertexBuffer.at(layer),
                          renderData.vertexBufferMemory.at(layer));
    }
@@ -546,7 +545,7 @@ VulkanRenderer::FreeData(renderer::ApplicationType type, bool destroyPipeline)
    {
       auto& renderData = Data::renderData_.at(type);
 
-      for (int layer = 0; layer < NUM_LAYERS; ++layer)
+      for (size_t layer = 0; layer < static_cast< size_t >(NUM_LAYERS); ++layer)
       {
          Buffer::FreeMemory(renderData.indexBuffer.at(layer),
                             renderData.indexBufferMemory.at(layer));
@@ -559,8 +558,8 @@ VulkanRenderer::FreeData(renderer::ApplicationType type, bool destroyPipeline)
 
       for (size_t i = 0; i < renderData.uniformBuffers.size(); ++i)
       {
-         Buffer::FreeMemory(renderData.uniformBuffers[i], renderData.uniformBuffersMemory[i]);
-         Buffer::FreeMemory(renderData.ssbo[i], renderData.ssboMemory[i]);
+         Buffer::FreeMemory(renderData.uniformBuffers.at(i), renderData.uniformBuffersMemory.at(i));
+         Buffer::FreeMemory(renderData.ssbo.at(i), renderData.ssboMemory.at(i));
       }
 
       if (type == ApplicationType::EDITOR)
@@ -611,7 +610,7 @@ VulkanRenderer::CreateQuadIndexBuffer()
 {
    auto& renderData = Data::renderData_.at(boundApplication_);
 
-   for (int layer = 0; layer < NUM_LAYERS; ++layer)
+   for (size_t layer = 0; layer < static_cast < size_t>(NUM_LAYERS); ++layer)
    {
       CreateIndexBuffer< INDICES_PER_SPRITE >(
          renderData.indices.at(layer), renderData.numMeshes.at(layer),
@@ -723,8 +722,8 @@ void
 VulkanRenderer::UpdateUniformBuffer(uint32_t currentImage)
 {
    auto& renderData = Data::renderData_.at(boundApplication_);
-   if (renderData.uniformBuffersMemory[currentImage] != VK_NULL_HANDLE
-       and renderData.ssboMemory[currentImage] != VK_NULL_HANDLE)
+   if (renderData.uniformBuffersMemory.at(currentImage) != VK_NULL_HANDLE
+       and renderData.ssboMemory.at(currentImage) != VK_NULL_HANDLE)
    {
       UniformBufferObject ubo = {};
 
@@ -738,11 +737,11 @@ VulkanRenderer::UpdateUniformBuffer(uint32_t currentImage)
       vkUnmapMemory(Data::vk_device, renderData.uniformBuffersMemory[currentImage]);
 
       void* data2 = nullptr;
-      vkMapMemory(Data::vk_device, renderData.ssboMemory[currentImage], 0,
+      vkMapMemory(Data::vk_device, renderData.ssboMemory.at(currentImage), 0,
                   renderData.perInstance.size() * sizeof(PerInstanceBuffer), 0, &data2);
       memcpy(data2, renderData.perInstance.data(),
              renderData.perInstance.size() * sizeof(PerInstanceBuffer));
-      vkUnmapMemory(Data::vk_device, renderData.ssboMemory[currentImage]);
+      vkUnmapMemory(Data::vk_device, renderData.ssboMemory.at(currentImage));
    }
 }
 

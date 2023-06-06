@@ -177,7 +177,7 @@ QuadShader::UpdateDescriptorSets()
 
 
       VkDescriptorBufferInfo instanceBufferInfo = {};
-      instanceBufferInfo.buffer = renderData.ssbo[i];
+      instanceBufferInfo.buffer = renderData.ssbo.at(i);
       instanceBufferInfo.offset = 0;
       instanceBufferInfo.range = renderData.perInstance.size() * sizeof(PerInstanceBuffer);
 

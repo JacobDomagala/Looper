@@ -530,19 +530,20 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                          sizeof(renderer::QuadShader::PushConstants), &pushConstants);
 
-      for (int layer = renderer::NUM_LAYERS - 1; layer >= 0; --layer)
+      for (int32_t layer = renderer::NUM_LAYERS - 1; layer >= 0; --layer)
       {
-         const auto& numObjects = renderData.numMeshes.at(layer);
-         if (numObjects <= 0
-             or (layer == 9 and not m_renderPathfinderNodes) /* layer 9 means pathfinder nodes*/)
+         const auto idx = static_cast< size_t >(layer);
+         const auto& numObjects = renderData.numMeshes.at(idx);
+         if (numObjects == 0
+             or (idx == 9 and not m_renderPathfinderNodes) /* layer 9 means pathfinder nodes*/)
          {
             continue;
          }
 
-         vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer.at(layer),
+         vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer.at(idx),
                                 offsets.data());
 
-         vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer.at(layer), 0, VK_INDEX_TYPE_UINT32);
+         vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer.at(idx), 0, VK_INDEX_TYPE_UINT32);
 
          vkCmdDrawIndexed(cmdBuffer, numObjects * renderer::INDICES_PER_SPRITE, 1, 0, 0, 0);
       }
