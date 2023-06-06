@@ -546,14 +546,6 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 
          vkCmdDrawIndexed(cmdBuffer, numObjects * renderer::INDICES_PER_SPRITE, 1, 0, 0, 0);
       }
-      if (m_currentSelectedGameObject)
-      {
-         const auto tmpIdx = m_currentSelectedGameObject->GetSprite().GetRenderIdx();
-         pushConstants.selectedIdx = -1.0f;
-         vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                            sizeof(renderer::QuadShader::PushConstants), &pushConstants);
-         vkCmdDrawIndexed(cmdBuffer, 6, 1, tmpIdx * 6, 0, 0);
-      }
 
       // DRAW LINES
       vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -863,7 +855,8 @@ Editor::AddObject(ObjectType objectType)
       animationPoints_.push_back(newObject);
       animatablePtr->ResetAnimation();
 
-      // renderer::VulkanRenderer::SetupEditorData(ObjectType::ANIMATION_POINT);
+      renderer::VulkanRenderer::UpdateBuffers();
+      renderer::VulkanRenderer::CreateLinePipeline();
    }
 
    HandleEditorObjectSelected(newObject);
