@@ -166,8 +166,7 @@ Enemy::EnemyMove(const glm::vec2& moveBy)
    if (m_appHandle.IsGame())
    {
       auto prevPosition = m_initialPosition;
-      // Assuming that spritePosition is the current position
-      // and that prevPosition is the previous position
+
       if (GameObject::m_gameObjectStatesQueue.size() > 1)
       {
          prevPosition = glm::vec2(GameObject::m_gameObjectStatesQueue.back().previousPosition_);
@@ -175,7 +174,6 @@ Enemy::EnemyMove(const glm::vec2& moveBy)
       
       const auto direction = m_currentGameObjectState.m_position - prevPosition;
 
-      // Calculate the angle based on the direction vector
       m_currentState.m_viewAngle = glm::atan(direction.y, direction.x);
 
       m_sprite.Rotate(m_currentState.m_viewAngle);
