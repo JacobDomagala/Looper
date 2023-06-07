@@ -26,7 +26,7 @@ GameObject::GameObject(Application& application, const glm::vec3& position, cons
    m_currentGameObjectState.m_position = glm::vec2(position);
    m_currentGameObjectState.m_visible = true;
    m_currentGameObjectState.m_centeredPosition = m_sprite.GetPosition();
-
+   m_currentGameObjectState.previousPosition_ = glm::vec2(position);
    UpdateCollision();
 }
 
@@ -177,6 +177,7 @@ GameObject::GetOccupiedNodes() const
 void
 GameObject::Move(const glm::vec2& moveBy)
 {
+   m_currentGameObjectState.previousPosition_ = m_currentGameObjectState.m_position;
    m_sprite.Translate(glm::vec3(moveBy, 0.0f));
    m_currentGameObjectState.m_position += moveBy;
    m_currentGameObjectState.m_centeredPosition += moveBy;

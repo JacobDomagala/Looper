@@ -62,6 +62,9 @@ class Enemy : public GameObject, public Animatable
    MoveToPosition(const glm::vec2& targetPosition, bool exactPosition = false);
 
    void
+   EnemyMove(const glm::vec2& moveBy);
+
+   void
    Shoot();
 
    void
@@ -96,6 +99,7 @@ class Enemy : public GameObject, public Animatable
       float m_visionRange = 0.0f;
 
       bool m_combatStarted = false;
+      float m_viewAngle = {};
    };
 
    std::deque< EnemyState > m_statesQueue;

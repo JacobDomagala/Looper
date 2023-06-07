@@ -132,6 +132,8 @@ class GameObject : public Object
       // center of global's position (in OpenGL coords)
       glm::vec2 m_centeredPosition;
 
+      glm::vec2 previousPosition_ = {};
+
       // should this object be visible
       bool m_visible;
 
