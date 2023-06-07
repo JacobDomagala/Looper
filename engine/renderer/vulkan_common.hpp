@@ -1,9 +1,9 @@
 #pragma once
 
+#include "buffer.hpp"
 #include "types.hpp"
 #include "utils/assert.hpp"
 #include "vertex.hpp"
-#include "buffer.hpp"
 
 #include <array>
 #include <fmt/format.h>
@@ -35,33 +35,54 @@ static constexpr uint32_t INDICES_PER_LINE = 2;
 static constexpr uint32_t VERTICES_PER_LINE = 2;
 inline constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 3;
 inline constexpr uint32_t MAX_NUM_LINES = 100000;
+inline constexpr uint32_t NUM_LAYERS = 11;
 static constexpr bool ENABLE_VALIDATION = true;
 static constexpr std::array< const char*, 1 > VALIDATION_LAYERS = {"VK_LAYER_KHRONOS_validation"};
 static constexpr std::array< const char*, 1 > DEVICE_EXTENSIONS = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 struct Vertex;
 
+struct RenderInfo
+{
+   uint32_t idx;
+   uint32_t layer;
+};
+
 struct RenderData
-{  
+{
+   ////////////////////////////////////
+   // RENDER LAYERS (from near to far (values ranging from 0.0 to -0.9))
+   ////////////////////////////////////
+
    // Vertex
-   std::vector< Vertex > vertices = {};
-   VkBuffer vertexBuffer = VK_NULL_HANDLE;
-   VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
+   std::array< std::vector< Vertex >, NUM_LAYERS > vertices = {};
+   std::array< VkBuffer, NUM_LAYERS > vertexBuffer = {VK_NULL_HANDLE};
+   std::array< VkDeviceMemory, NUM_LAYERS > vertexBufferMemory = {VK_NULL_HANDLE};
 
    // Index
-   std::vector< IndexType > indices = {};
-   VkBuffer indexBuffer = VK_NULL_HANDLE;
-   VkDeviceMemory indexBufferMemory = VK_NULL_HANDLE;
-   
+   std::array< std::vector< IndexType >, NUM_LAYERS > indices = {};
+   std::array< VkBuffer, NUM_LAYERS > indexBuffer = {VK_NULL_HANDLE};
+   std::array< VkDeviceMemory, NUM_LAYERS > indexBufferMemory = {VK_NULL_HANDLE};
+
+   std::array< uint32_t, NUM_LAYERS > numMeshes = {};
+   uint32_t totalNumMeshes = {};
+
+
+   ////////////////////////////////////
+   //                                //
+   ////////////////////////////////////
+
+   // SSBO (PerInstanceBuffer)
+   std::vector< PerInstanceBuffer > perInstance = {};
+   std::array< VkBuffer, MAX_FRAMES_IN_FLIGHT > ssbo = {VK_NULL_HANDLE};
+   std::array< VkDeviceMemory, MAX_FRAMES_IN_FLIGHT > ssboMemory = {VK_NULL_HANDLE};
+
+
    // UBO (UniformBufferObject)
    std::vector< VkBuffer > uniformBuffers = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
    std::vector< VkDeviceMemory > uniformBuffersMemory = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
 
-   // SSBO (PerInstanceBuffer) 
-   std::vector< PerInstanceBuffer > perInstance = {MAX_FRAMES_IN_FLIGHT, PerInstanceBuffer{}};
-   std::vector< VkBuffer > ssbo = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
-   std::vector< VkDeviceMemory > ssboMemory = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
-   
+
    VkSurfaceKHR surface = VK_NULL_HANDLE;
    GLFWwindow* windowHandle = nullptr;
 
@@ -80,7 +101,7 @@ struct RenderData
    VkPipeline pipeline = VK_NULL_HANDLE;
    VkPipelineCache pipelineCache = VK_NULL_HANDLE;
    VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
-   
+
    VkImage depthImage = VK_NULL_HANDLE;
    VkDeviceMemory depthImageMemory = VK_NULL_HANDLE;
    VkImageView depthImageView = VK_NULL_HANDLE;
@@ -88,8 +109,6 @@ struct RenderData
    VkImage colorImage = VK_NULL_HANDLE;
    VkDeviceMemory colorImageMemory = VK_NULL_HANDLE;
    VkImageView colorImageView = VK_NULL_HANDLE;
-   
-   uint32_t numMeshes = {};
 
    glm::mat4 viewMat = {};
    glm::mat4 projMat = {};

@@ -24,7 +24,7 @@ Level::Create(Application* context, const std::string& name, const glm::ivec2& s
  
    m_background.SetSpriteTextured(glm::vec3(static_cast< float >(m_levelSize.x) / 2.0f,
                                             static_cast< float >(m_levelSize.y) / 2.0f, 0.3f),
-                                  size, "white.png", ObjectType::NONE);
+                                  size, "white.png");
  
    m_contextPointer = context;
    m_pathFinder.Initialize(this);
@@ -464,8 +464,8 @@ Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
    m_levelSize = size;
 
    m_background.SetSpriteTextured(glm::vec3(static_cast< float >(m_levelSize.x) / 2.0f,
-                                            static_cast< float >(m_levelSize.y) / 2.0f, 0.3f),
-                                  size, fileName, ObjectType::NONE);
+                                            static_cast< float >(m_levelSize.y) / 2.0f, 0.5f),
+                                  size, fileName);
 }
 
 void
