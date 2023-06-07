@@ -160,6 +160,28 @@ Enemy::Shoot()
    }
 }
 
+void
+Enemy::EnemyMove(const glm::vec2& moveBy)
+{
+   if (m_appHandle.IsGame())
+   {
+      auto prevPosition = m_initialPosition;
+
+      if (GameObject::m_gameObjectStatesQueue.size() > 1)
+      {
+         prevPosition = glm::vec2(GameObject::m_gameObjectStatesQueue.back().previousPosition_);
+      }
+      
+      const auto direction = m_currentGameObjectState.m_position - prevPosition;
+
+      m_currentState.m_viewAngle = glm::atan(direction.y, direction.x);
+
+      m_sprite.Rotate(m_currentState.m_viewAngle);
+   }
+
+   Move(moveBy);
+}
+
 bool
 Enemy::MoveToPosition(const glm::vec2& targetPosition, bool exactPosition)
 {
@@ -179,20 +201,21 @@ Enemy::MoveToPosition(const glm::vec2& targetPosition, bool exactPosition)
    {
       const auto moveVal =
          moveBy * glm::normalize(pathFinder.GetNodeFromID(tiles.back()).position_ - curPosition);
-      Move(moveVal);
+      EnemyMove(moveVal);
    }
    else if (exactPosition)
    {
       const auto moveVal = moveBy * glm::normalize(targetPosition - curPosition);
-      Move(moveVal);
+      EnemyMove(moveVal);
 
       constexpr auto errorTreshold = 3.0f;
-      const auto distanceToDest = targetPosition - glm::vec2(m_currentGameObjectState.m_centeredPosition);
+      const auto distanceToDest =
+         targetPosition - glm::vec2(m_currentGameObjectState.m_centeredPosition);
 
       // If Enemy is really close to target destination, just put it there
       if (glm::length(distanceToDest) < errorTreshold)
       {
-         Move(distanceToDest);
+         EnemyMove(distanceToDest);
          destinationReached = true;
       }
    }
@@ -233,9 +256,11 @@ Enemy::UpdateInternal(bool isReverse)
    }
    else
    {
+      DealWithPlayer();
+
       if (!m_currentState.m_combatStarted && m_currentState.m_isAtInitialPos)
       {
-         Move(Animate(m_appHandle.GetDeltaTime()));
+         EnemyMove(Animate(m_appHandle.GetDeltaTime()));
       }
 
       m_statesQueue.push_back(m_currentState);

@@ -1,11 +1,11 @@
 #include "level.hpp"
 #include "enemy.hpp"
-#include "utils/file_manager.hpp"
 #include "game.hpp"
 #include "player.hpp"
-#include "utils/time/timer.hpp"
-#include "renderer/window/window.hpp"
 #include "renderer/renderer.hpp"
+#include "renderer/window/window.hpp"
+#include "utils/file_manager.hpp"
+#include "utils/time/timer.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -21,11 +21,11 @@ Level::Create(Application* context, const std::string& name, const glm::ivec2& s
 {
    m_name = name;
    m_levelSize = size;
- 
+
    m_background.SetSpriteTextured(glm::vec3(static_cast< float >(m_levelSize.x) / 2.0f,
                                             static_cast< float >(m_levelSize.y) / 2.0f, 0.3f),
                                   size, "white.png");
- 
+
    m_contextPointer = context;
    m_pathFinder.Initialize(this);
 }
@@ -56,7 +56,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
                                       glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]),
                                       nodeJson["id"],
                                       std::vector< NodeID >(nodeJson["connected to"].begin(),
-                                                                  nodeJson["connected to"].end()),
+                                                            nodeJson["connected to"].end()),
                                       nodeJson["occupied"],
                                       std::vector< Object::ID >(nodeJson["nodesOccupying"].begin(),
                                                                 nodeJson["nodesOccupying"].end())));
@@ -95,9 +95,9 @@ Level::Load(Application* context, const std::string& pathToLevel)
             // const auto weapons = enemy["weapons"];
             const auto& name = enemy["name"];
 
-            auto object = std::make_shared< Enemy >(*context, glm::vec3(position[0], position[1], 0.0f),
-                                                    glm::ivec2(size[0], size[1]), texture,
-                                                    std::vector< AnimationPoint >{});
+            auto object = std::make_shared< Enemy >(
+               *context, glm::vec3(position[0], position[1], 0.0f), glm::ivec2(size[0], size[1]),
+               texture, std::vector< AnimationPoint >{});
             object->SetName(name);
             object->SetID(enemy["id"]);
             object->GetSprite().Scale(glm::vec2(enemy["scale"][0], enemy["scale"][1]));
@@ -131,8 +131,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
             const auto& name = object["name"];
 
             auto gameObject = std::make_shared< GameObject >(
-               *context, glm::vec3(position[0], position[1], 0.0f), glm::ivec2(size[0], size[1]), texture,
-               ObjectType::OBJECT);
+               *context, glm::vec3(position[0], position[1], 0.0f), glm::ivec2(size[0], size[1]),
+               texture, ObjectType::OBJECT);
             gameObject->SetName(name);
             gameObject->SetID(object["id"]);
             gameObject->GetSprite().Scale(glm::vec2(object["scale"][0], object["scale"][1]));
@@ -259,8 +259,7 @@ Level::Save(const std::string& pathToLevel)
          break;
 
          default: {
-            Logger::Warn(
-                         "Level: Unhandled Object type {} present in game level file!",
+            Logger::Warn("Level: Unhandled Object type {} present in game level file!",
                          object->GetTypeString());
          }
       }
@@ -484,9 +483,8 @@ Level::DeleteObject(Object::ID deletedObject)
 
    if (objectIter == m_objects.end())
    {
-      Logger::Fatal(
-                   "Level: Trying to delete an object that doesn't exist! Object type: {}",
-                   Object::GetTypeString(deletedObject));
+      Logger::Fatal("Level: Trying to delete an object that doesn't exist! Object type: {}",
+                    Object::GetTypeString(deletedObject));
    }
    else
    {
@@ -569,15 +567,15 @@ Level::Update(bool isReverse)
 {
    m_background.Update(isReverse);
 
+   // TODO: Parallelize for larger groups of objects
+   // Player and Enemies should be handled by a single thread,
+   // since they're dependent of eachother
    for (auto& obj : m_objects)
    {
+      // We probably should update only objects that are
+      // in some range of camera
       if (obj->Visible())
       {
-         if (obj->GetType() == ObjectType::ENEMY)
-         {
-            std::dynamic_pointer_cast< Enemy >(obj)->DealWithPlayer();
-         }
-
          obj->Update(isReverse);
       }
    }

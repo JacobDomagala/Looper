@@ -25,7 +25,7 @@ Game::MainLoop()
          m_timer.ToggleTimer();
          singleFrameTimer += m_timer.GetFloatDeltaTime();
 
-         while ((singleFrameTimer / 1000.0f) >= TARGET_TIME)
+         while (IsRunning() and singleFrameTimer >= TARGET_TIME)
          {
             m_window->Clear();
             const auto dt = Timer::milliseconds(
@@ -45,7 +45,7 @@ Game::MainLoop()
             m_frameTimer += TARGET_TIME;
 
             // Decrement frame timer for next frame
-            singleFrameTimer -= TARGET_TIME * 1000.0f;
+            singleFrameTimer -= TARGET_TIME;
 
             InputManager::PollEvents();
          }

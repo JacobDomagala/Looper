@@ -64,7 +64,7 @@ Player::UpdateInternal(bool isReverse)
          const auto spritePosition = m_currentGameObjectState.m_position;
 
          m_currentState.m_viewAngle =
-            glm::atan(spritePosition.y - cursorPos.y, spritePosition.x - cursorPos.x);
+            glm::atan(cursorPos.y - spritePosition.y, cursorPos.x - spritePosition.x);
       }
 
       m_sprite.Rotate(m_currentState.m_viewAngle);
