@@ -233,6 +233,8 @@ Enemy::UpdateInternal(bool isReverse)
    }
    else
    {
+      DealWithPlayer();
+
       if (!m_currentState.m_combatStarted && m_currentState.m_isAtInitialPos)
       {
          Move(Animate(m_appHandle.GetDeltaTime()));
