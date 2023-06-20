@@ -298,6 +298,7 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
       const auto idx = renderData->deletedObjs_.at(layer).back();
       
       SubmitMeshData(idx, TextureLibrary::GetTexture(textures_in.front())->GetID(), modelMat, color);
+      UpdateDescriptors();
 
       renderData->deletedObjs_.at(layer).pop_back();
 

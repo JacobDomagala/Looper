@@ -7,6 +7,18 @@
 
 namespace looper::renderer {
 
+Sprite::~Sprite()
+{
+   const glm::mat4 transformMat =
+      glm::translate(glm::mat4(1.0f), m_currentState.m_translateVal)
+      * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
+      * glm::scale(glm::mat4(1.0f), {m_size * m_currentState.modifiers.scale, 1.0f});
+
+   renderer::VulkanRenderer::SubmitMeshData(renderInfo_.idx, texture_, transformMat, {0.0f, 0.0f, 0.0f, 0.0f});
+
+   renderer::VulkanRenderer::MeshDeleted(renderInfo_);
+}
+
 void
 Sprite::SetSprite(const glm::vec3& position, const glm::vec2& size)
 {
@@ -65,8 +77,7 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
                                               TextureLibrary::GetTexture(texture_)->GetName(),
                                               TextureLibrary::GetTexture(texture_)->GetName()};
 
-   renderInfo_ =
-      VulkanRenderer::MeshLoaded(vertices_, txts, transformMat, m_currentState.m_color);
+   renderInfo_ = VulkanRenderer::MeshLoaded(vertices_, txts, transformMat, m_currentState.m_color);
 }
 
 void
