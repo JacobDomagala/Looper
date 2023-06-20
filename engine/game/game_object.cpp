@@ -3,6 +3,7 @@
 #include "game.hpp"
 #include "renderer/camera/collision_camera.hpp"
 #include "renderer/window/window.hpp"
+#include "renderer/renderer.hpp"
 
 namespace looper {
 
@@ -28,6 +29,11 @@ GameObject::GameObject(Application& application, const glm::vec3& position, cons
    m_currentGameObjectState.m_centeredPosition = m_sprite.GetPosition();
    m_currentGameObjectState.previousPosition_ = glm::vec2(position);
    UpdateCollision();
+}
+
+GameObject::~GameObject()
+{
+   renderer::VulkanRenderer::MeshDeleted(m_sprite.GetRenderInfo());
 }
 
 bool

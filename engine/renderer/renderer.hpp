@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.hpp"
+#include "vulkan_common.hpp"
 
 #include <glm/glm.hpp>
 #include <vector>
@@ -35,7 +36,10 @@ class VulkanRenderer
    static void
    DrawDynamicLine(const glm::vec2& start, const glm::vec2& end);
 
-   [[nodiscard]] static uint32_t
+   static void
+   MeshDeleted(const RenderInfo& renderInfo);
+
+   [[nodiscard]] static RenderInfo
    MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureMaps& textures_in,
               const glm::mat4& modelMat, const glm::vec4& color);
 

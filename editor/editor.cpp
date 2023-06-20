@@ -473,22 +473,14 @@ Editor::ActionOnObject(Editor::ACTION action)
          if (m_editorObjectSelected && m_currentEditorObjectSelected)
          {
             gui_.ObjectDeleted(m_currentEditorObjectSelected->GetLinkedObjectID());
-            m_editorObjects.erase(std::find(m_editorObjects.begin(), m_editorObjects.end(),
-                                            m_currentEditorObjectSelected));
+            m_editorObjects.erase(stl::find(m_editorObjects, m_currentEditorObjectSelected));
             m_currentEditorObjectSelected->DeleteLinkedObject();
             UnselectEditorObject();
          }
          else if (m_gameObjectSelected && m_currentSelectedGameObject)
          {
-            if (m_currentSelectedGameObject->GetType() == ObjectType::PLAYER)
-            {
-               m_player.reset();
-            }
-            else
-            {
-               m_currentLevel->DeleteObject(m_currentSelectedGameObject->GetID());
-            }
-
+            m_currentLevel->DeleteObject(m_currentSelectedGameObject->GetID());
+            
             gui_.ObjectDeleted(m_currentSelectedGameObject->GetID());
 
             UnselectGameObject();
