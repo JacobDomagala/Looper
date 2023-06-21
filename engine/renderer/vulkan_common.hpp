@@ -50,6 +50,7 @@ struct RenderInfo
 
 struct RenderData
 {
+   std::array< std::vector< uint32_t >, NUM_LAYERS > deletedObjs_ = {};
    ////////////////////////////////////
    // RENDER LAYERS (from near to far (values ranging from 0.0 to -0.9))
    ////////////////////////////////////

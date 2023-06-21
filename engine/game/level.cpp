@@ -477,7 +477,7 @@ void
 Level::DeleteObject(Object::ID deletedObject)
 {
    auto objectIter =
-      std::find_if(m_objects.begin(), m_objects.end(), [deletedObject](const auto& object) {
+      stl::find_if(m_objects, [deletedObject](const auto& object) {
          return object->GetID() == deletedObject;
       });
 
@@ -488,6 +488,11 @@ Level::DeleteObject(Object::ID deletedObject)
    }
    else
    {
+      if (objectIter->get()->GetType() == ObjectType::PLAYER)
+      {
+         m_player.reset();
+      }
+
       m_objects.erase(objectIter);
    }
 }

@@ -278,68 +278,92 @@ VulkanRenderer::UpdateDescriptors()
    updateDescriptors_ = true;
 }
 
-uint32_t
+void
+VulkanRenderer::MeshDeleted(const RenderInfo& renderInfo)
+{
+   auto* renderData = &Data::renderData_[boundApplication_];
+
+   renderData->deletedObjs_.at(renderInfo.layer).push_back(renderInfo.idx);
+}
+
+RenderInfo
 VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureMaps& textures_in,
                            const glm::mat4& modelMat, const glm::vec4& color)
 {
    auto* renderData = &Data::renderData_[boundApplication_];
    // convert from depth value to render layer
    const auto layer = static_cast< uint32_t >(vertices_in.front().m_position.z * 20.0f);
-   auto* vertices = &renderData->vertices.at(layer);
-   auto& numObjects = renderData->numMeshes.at(layer);
+   uint32_t idx = 0;
 
-   stl::copy(vertices_in, std::back_inserter(*vertices));
-   std::for_each(vertices->end() - 4, vertices->end(),
-                 [drawID = renderData->totalNumMeshes](auto& vtx) {
-                    vtx.m_texCoordsDraw.z = static_cast< float >(drawID);
-                 });
-
-   // Indices are handled in init
-   // std::copy(indicies_in.begin(), indicies_in.end(), std::back_inserter(indices));
-
-   // TODO: If we go back to indirect draw, this also should be updated to editor/game
-   // VkDrawIndexedIndirectCommand newModel = {};
-   // newModel.firstIndex = m_currentIndex;
-   // newModel.indexCount = INDICES_PER_SPRITE;
-   // newModel.firstInstance = 0;
-   // newModel.instanceCount = 1;
-   // newModel.vertexOffset = static_cast< int32_t >(m_currentVertex);
-   //  m_renderCommands.push_back(newModel);
-
-   // m_currentVertex += static_cast< uint32_t >(vertices_in.size());
-   // m_currentIndex += INDICES_PER_SPRITE;
-
-   PerInstanceBuffer newInstance = {};
-   newInstance.model = modelMat;
-   newInstance.color = color;
-
-   // Leaving this in case we need Normal/Specular maps in future
-   for (const auto& texture : textures_in)
+   if (not renderData->deletedObjs_.at(layer).empty())
    {
-      if (texture.empty())
-      {
-         continue;
-      }
+      idx = renderData->deletedObjs_.at(layer).back();
+      
+      SubmitMeshData(idx, TextureLibrary::GetTexture(textures_in.front())->GetID(), modelMat, color);
+      UpdateDescriptors();
 
-      const auto* loadedTexture = TextureLibrary::GetTexture(texture);
-      const auto idx = loadedTexture->GetID();
+      renderData->deletedObjs_.at(layer).pop_back();
+   }
+   else
+   {
+      auto* vertices = &renderData->vertices.at(layer);
+      auto& numObjects = renderData->numMeshes.at(layer);
 
-      switch (loadedTexture->GetType())
+      stl::copy(vertices_in, std::back_inserter(*vertices));
+      std::for_each(vertices->end() - 4, vertices->end(),
+                    [drawID = renderData->totalNumMeshes](auto& vtx) {
+                       vtx.m_texCoordsDraw.z = static_cast< float >(drawID);
+                    });
+
+      // Indices are handled in init
+      // std::copy(indicies_in.begin(), indicies_in.end(), std::back_inserter(indices));
+
+      // TODO: If we go back to indirect draw, this also should be updated to editor/game
+      // VkDrawIndexedIndirectCommand newModel = {};
+      // newModel.firstIndex = m_currentIndex;
+      // newModel.indexCount = INDICES_PER_SPRITE;
+      // newModel.firstInstance = 0;
+      // newModel.instanceCount = 1;
+      // newModel.vertexOffset = static_cast< int32_t >(m_currentVertex);
+      //  m_renderCommands.push_back(newModel);
+
+      // m_currentVertex += static_cast< uint32_t >(vertices_in.size());
+      // m_currentIndex += INDICES_PER_SPRITE;
+
+      PerInstanceBuffer newInstance = {};
+      newInstance.model = modelMat;
+      newInstance.color = color;
+
+      // Leaving this in case we need Normal/Specular maps in future
+      for (const auto& texture : textures_in)
       {
-         case TextureType::DIFFUSE_MAP: {
-            newInstance.diffuse = idx;
+         if (texture.empty())
+         {
+            continue;
          }
-         break;
-         default:
+
+         const auto* loadedTexture = TextureLibrary::GetTexture(texture);
+         const auto texIdx = loadedTexture->GetID();
+
+         switch (loadedTexture->GetType())
+         {
+            case TextureType::DIFFUSE_MAP: {
+               newInstance.diffuse = texIdx;
+            }
             break;
+            default:
+               break;
+         }
       }
+
+      renderData->perInstance.push_back(newInstance);
+      UpdateDescriptors();
+
+      numObjects++;
+      idx = (renderData->totalNumMeshes)++;
    }
 
-   renderData->perInstance.push_back(newInstance);
-   UpdateDescriptors();
-
-   numObjects++;
-   return (renderData->totalNumMeshes)++;
+   return {idx, layer};
 }
 
 void

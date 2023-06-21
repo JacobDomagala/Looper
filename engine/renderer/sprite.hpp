@@ -26,6 +26,8 @@ class Sprite
       glm::vec2 scale = {1.0f, 1.0f};
    };
 
+   ~Sprite();
+
    // Create sprite without texture
    void
    SetSprite(const glm::vec3& position = glm::vec3(0.0f, 0.0f, 0.0f),
@@ -117,16 +119,22 @@ class Sprite
    void
    SetModifiers(const Modifiers& mod);
 
+   [[nodiscard]] RenderInfo
+   GetRenderInfo() const
+   {
+      return renderInfo_;
+   }
+
    [[nodiscard]] uint32_t
    GetRenderIdx() const
    {
-      return rendererIdx_;
+      return renderInfo_.idx;
    }
 
    void
    SetRenderIdx(uint32_t idx)
    {
-      rendererIdx_ = idx;
+      renderInfo_.idx = idx;
    }
 
    static constexpr std::pair< float, float > ROTATION_RANGE = {glm::radians(-360.0f),
@@ -165,7 +173,7 @@ class Sprite
    // width and height
    glm::vec2 m_size = {};
    bool changed_ = false;
-   uint32_t rendererIdx_ = static_cast< uint32_t >(~0);
+   RenderInfo renderInfo_ = {};
 
    std::vector< renderer::Vertex > vertices_ = {};
 };
