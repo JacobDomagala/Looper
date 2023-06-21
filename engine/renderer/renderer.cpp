@@ -293,16 +293,16 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
    auto* renderData = &Data::renderData_[boundApplication_];
    // convert from depth value to render layer
    const auto layer = static_cast< uint32_t >(vertices_in.front().m_position.z * 20.0f);
+   uint32_t idx = 0;
+
    if (not renderData->deletedObjs_.at(layer).empty())
    {
-      const auto idx = renderData->deletedObjs_.at(layer).back();
+      idx = renderData->deletedObjs_.at(layer).back();
       
       SubmitMeshData(idx, TextureLibrary::GetTexture(textures_in.front())->GetID(), modelMat, color);
       UpdateDescriptors();
 
       renderData->deletedObjs_.at(layer).pop_back();
-
-      return {idx, layer};
    }
    else
    {
@@ -343,12 +343,12 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
          }
 
          const auto* loadedTexture = TextureLibrary::GetTexture(texture);
-         const auto idx = loadedTexture->GetID();
+         const auto texIdx = loadedTexture->GetID();
 
          switch (loadedTexture->GetType())
          {
             case TextureType::DIFFUSE_MAP: {
-               newInstance.diffuse = idx;
+               newInstance.diffuse = texIdx;
             }
             break;
             default:
@@ -360,8 +360,10 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
       UpdateDescriptors();
 
       numObjects++;
-      return {(renderData->totalNumMeshes)++, layer};
+      idx = (renderData->totalNumMeshes)++;
    }
+
+   return {idx, layer};
 }
 
 void
