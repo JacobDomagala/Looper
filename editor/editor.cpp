@@ -332,6 +332,19 @@ Editor::HandleObjectSelected(Object::ID objectID, bool fromGUI)
    }
 }
 
+Object::ID
+Editor::GetSelectedEditorObject() const
+{
+   Object::ID selected = Object::INVALID_ID;
+
+   if (m_currentEditorObjectSelected)
+   {
+      selected = m_currentEditorObjectSelected->GetLinkedObjectID();
+   }
+
+   return selected;
+}
+
 void
 Editor::SelectGameObject()
 {

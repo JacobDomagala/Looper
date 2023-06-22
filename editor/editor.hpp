@@ -130,6 +130,9 @@ class Editor : public Application
    void
    HandleObjectSelected(Object::ID objectID, bool fromGUI);
 
+   [[nodiscard]] Object::ID
+   GetSelectedEditorObject() const;
+
    void
    HandleEditorObjectSelected(const std::shared_ptr< EditorObject >& newSelectedEditorObject,
                               bool fromGUI = false);

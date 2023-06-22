@@ -1147,7 +1147,6 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
             m_parent.ToggleAnimateObject();
          }
 
-
          static float timer = 0.0f;
          const auto animationDuration =
             static_cast< float >(Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count());
@@ -1165,7 +1164,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          }
 
          // static int selected = 0;
-         auto animationPoints = animatablePtr->GetAnimationKeypoints();
+         auto& animationPoints = animatablePtr->GetAnimationKeypoints();
          auto newNodePosition = m_currentlySelectedGameObject->GetPosition();
          ImGui::BeginChild("Animation Points", {0, 100}, true);
          for (uint32_t i = 0; i < animationPoints.size(); ++i)
@@ -1190,6 +1189,20 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
             m_parent.SetRenderAnimationPoints(true);
          }
          ImGui::EndChild();
+
+         const auto selectedID = m_parent.GetSelectedEditorObject();
+         if (Object::GetTypeFromID(selectedID) == ObjectType::ANIMATION_POINT)
+         {
+            auto& node = dynamic_cast<AnimationPoint&>(m_parent.GetLevel().GetObjectRef(selectedID));
+
+            auto seconds = static_cast<int32_t>(node.m_timeDuration.count());
+            ImGui::Text(
+               fmt::format("\nAnimationPoint ({}, {})", node.m_end.x, node.m_end.y).data()); 
+            if (ImGui::SliderInt("Duration (sec)", &seconds, 0, 10))
+            {
+               node.m_timeDuration = std::chrono::seconds(seconds);
+            }
+         }
       }
    }
 
