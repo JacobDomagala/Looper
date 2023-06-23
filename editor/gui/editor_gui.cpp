@@ -244,7 +244,7 @@ SetStyle()
    ImVec4* colors = ImGui::GetStyle().Colors;
    colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
    colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-   colors[ImGuiCol_WindowBg] = ImVec4(0.01f, 0.01f, 0.01f, 1.00f);
+   colors[ImGuiCol_WindowBg] = ImVec4(0.01f, 0.01f, 0.01f, 0.99f);
    colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
    colors[ImGuiCol_PopupBg] = ImVec4(0.19f, 0.19f, 0.19f, 0.92f);
    colors[ImGuiCol_Border] = ImVec4(0.19f, 0.19f, 0.19f, 0.29f);
@@ -526,6 +526,8 @@ EditorGUI::PrepareResources()
    int32_t texHeight = 0;
 
    const auto fontFilename = (FONTS_DIR / "Roboto-Medium.ttf").string();
+   // const auto fontFilename = (FONTS_DIR / "fontawesome-webfont.ttf").string();
+
 
    io.Fonts->AddFontFromFileTTF(fontFilename.c_str(), 16.0f);
    io.Fonts->GetTexDataAsRGBA32(&fontData, &texWidth, &texHeight);
@@ -804,6 +806,29 @@ EditorGUI::IsBlockingEvents()
    return io.WantCaptureMouse || io.WantTextInput;
 }
 
+template < typename Action >
+static constexpr inline void
+DrawWidget(std::string_view label, const Action& action)
+{
+   ImGui::Text(label.data());
+   ImGui::PushItemWidth(-1);
+
+   action();
+
+   ImGui::PopItemWidth();
+   ImGui::Spacing();
+}
+
+static inline void
+CreateRow(std::string_view name, std::string_view value)
+{
+   ImGui::TableNextRow();
+   ImGui::TableNextColumn();
+   ImGui::Text(name.data());
+   ImGui::TableNextColumn();
+   ImGui::Text(value.data());
+}
+
 void
 EditorGUI::RenderCreateNewLevelWindow()
 {
@@ -922,32 +947,25 @@ EditorGUI::RenderLevelMenu() // NOLINT
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("General"))
    {
-      auto sprite_size = m_currentLevel->GetSprite().GetSize();
-      if (ImGui::InputFloat2("Size", &sprite_size.x))
-      {
-         m_currentLevel->SetSize(sprite_size);
-      }
+      DrawWidget("Size", [this]() {
+         auto sprite_size = m_currentLevel->GetSprite().GetSize();
+         if (ImGui::InputFloat2("##Size", &sprite_size.x))
+         {
+            m_currentLevel->SetSize(sprite_size);
+         }
+      });
 
       auto [drawGrid, gridSize] = m_parent.GetGridData();
-      if (ImGui::InputInt("cell size", &gridSize) || ImGui::Checkbox("Draw grid", &drawGrid))
+      if (ImGui::Checkbox("DrawGrid", &drawGrid))
       {
          m_parent.SetGridData(drawGrid, gridSize);
       }
-   }
 
-   ImGui::SetNextItemOpen(true);
-   if (ImGui::CollapsingHeader("Pathfinder"))
-   {
       static bool renderPathfinderNodes = m_parent.GetRenderNodes();
       if (ImGui::Checkbox("Render nodes", &renderPathfinderNodes))
       {
          m_parent.RenderNodes(renderPathfinderNodes);
       }
-   }
-
-   ImGui::SetNextItemOpen(true);
-   if (ImGui::CollapsingHeader("Shader"))
-   {
    }
 
    ImGui::SetNextItemOpen(true);
@@ -989,38 +1007,35 @@ EditorGUI::RenderLevelMenu() // NOLINT
       ImGui::EndChild();
    }
 
-
-   ImGui::End();
-
-   ImGui::SetNextWindowPos({m_windowWidth, m_windowSize.y - m_debugWindowHeight});
-   ImGui::SetNextWindowSize(ImVec2(m_debugWindowWidth, m_debugWindowHeight));
-   ImGui::Begin("Debug");
-   ImGui::Text("Render time %s", m_parent.GetRenderTime().ToString().c_str());
-   const auto cameraPos = m_parent.GetCamera().GetPosition();
-   ImGui::Text("Camera Position %f, %f", static_cast< double >(cameraPos.x),
-               static_cast< double >(cameraPos.y));
-
-   const auto cameraZoom = m_parent.GetCamera().GetZoomLevel();
-   const auto cameraRotation = m_parent.GetCamera().GetRotation();
-   ImGui::Text("Camera Zoom %f Camera Rotation %f", static_cast< double >(cameraZoom),
-               static_cast< double >(cameraRotation));
-
-   const auto cursorOpengGLPos = m_parent.ScreenToGlobal(InputManager::GetMousePos());
-   // const auto cursorOpengGLPos = InputManager::GetMousePos();
-   ImGui::Text("Cursor Position %f, %f", static_cast< double >(cursorOpengGLPos.x),
-               static_cast< double >(cursorOpengGLPos.y));
-
-   auto& pathfinder = m_parent.GetLevel().GetPathfinder();
-   const auto nodeID = pathfinder.GetNodeIDFromPosition(cursorOpengGLPos);
-   Node curNode{};
-
-   if (nodeID != -1)
+   ImGui::SetNextItemOpen(true);
+   if (ImGui::CollapsingHeader("Debug"))
    {
-      curNode = pathfinder.GetNodeFromID(nodeID);
+      if (ImGui::BeginTable("DebugTable", 2))
+      {
+         CreateRow("Render time", fmt::format("{}", m_parent.GetRenderTime().ToString().c_str()));
+         const auto cameraPos = m_parent.GetCamera().GetPosition();
+         CreateRow("Camera Position",
+                   fmt::format("{:.2f}, {:.2f}", static_cast< double >(cameraPos.x),
+                               static_cast< double >(cameraPos.y)));
+         CreateRow("Camera Zoom", fmt::format("{:.1f}", m_parent.GetCamera().GetZoomLevel()));
+
+         CreateRow("Camera Rotation", fmt::format("{:.1f}", m_parent.GetCamera().GetRotation()));
+
+         const auto cursorPos = m_parent.ScreenToGlobal(InputManager::GetMousePos());
+         CreateRow("Cursor Position", fmt::format("{}", cursorPos));
+
+         auto& pathfinder = m_parent.GetLevel().GetPathfinder();
+
+         const auto nodeID = pathfinder.GetNodeIDFromPosition(cursorPos);
+         const auto curNode = nodeID != -1 ? pathfinder.GetNodeFromID(nodeID) : Node{};
+
+         CreateRow("Cursor on TileID", fmt::format("{}", curNode.id_));
+         CreateRow("Cursor on Coords", fmt::format("({}, {})", curNode.xPos_, curNode.yPos_));
+
+         ImGui::EndTable();
+      }
    }
 
-   ImGui::Text("Cursor on tile ID = %d Coords(%d, %d)", curNode.id_, curNode.xPos_,
-               curNode.yPos_);
 
    ImGui::End();
 }
@@ -1038,7 +1053,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
       auto name = m_currentlySelectedGameObject->GetName();
       const auto nameLength = 20;
       name.resize(nameLength);
-      
+
       ImGui::Text("%s",
                   fmt::format("Type: {} (ID: {})", m_currentlySelectedGameObject->GetTypeString(),
                               m_currentlySelectedGameObject->GetID())
@@ -1152,8 +1167,9 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          ImGui::SameLine();
          if (ImGui::SliderFloat("##", &timer, 0.0f, animationDuration, "%.3f ms"))
          {
-            m_currentlySelectedGameObject->GetSprite().SetTranslateValue(
-               glm::vec3(animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(timer))), 0.0f));
+            m_currentlySelectedGameObject->GetSprite().SetTranslateValue(glm::vec3(
+               animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(timer))),
+               0.0f));
          }
 
          // static int selected = 0;
@@ -1186,19 +1202,18 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          const auto selectedID = m_parent.GetSelectedEditorObject();
          if (Object::GetTypeFromID(selectedID) == ObjectType::ANIMATION_POINT)
          {
-            auto& node = dynamic_cast<AnimationPoint&>(m_parent.GetLevel().GetObjectRef(selectedID));
+            auto& node =
+               dynamic_cast< AnimationPoint& >(m_parent.GetLevel().GetObjectRef(selectedID));
 
-            auto seconds = static_cast<int32_t>(node.m_timeDuration.count());
-            const auto label = fmt::format("\nAnimationPoint \n ({}, {})\n\n", node.m_end.x, node.m_end.y);
-            ImGui::Text(label.c_str()); 
-            ImGui::PushItemWidth(-1);
-            ImGui::Text("Distance (sec)");
-           
-            if (ImGui::SliderInt("##distance", &seconds, 0, 10))
-            {
-               node.m_timeDuration = std::chrono::seconds(seconds);
-            }
-            ImGui::PopItemWidth();
+
+            DrawWidget(fmt::format("\nAnimationPoint \n ({}, {})\n\n", node.m_end.x, node.m_end.y),
+                       [&node]() {
+                          auto seconds = static_cast< int32_t >(node.m_timeDuration.count());
+                          if (ImGui::SliderInt("##distance", &seconds, 0, 10))
+                          {
+                             node.m_timeDuration = std::chrono::seconds(seconds);
+                          }
+                       });
          }
       }
    }
@@ -1221,7 +1236,7 @@ EditorGUI::UpdateUI()
    m_levelWindowHeight = m_windowSize.y - m_toolsWindowHeight;
    m_gameObjectWindowHeight = m_windowSize.y;
    m_debugWindowWidth = m_windowSize.x - 2 * m_windowWidth;
-   m_debugWindowHeight = 100;
+   m_debugWindowHeight = 150;
 
    RenderMainPanel();
 
