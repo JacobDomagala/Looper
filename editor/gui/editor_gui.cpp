@@ -8,6 +8,7 @@
 #include "renderer/types.hpp"
 #include "renderer/vulkan_common.hpp"
 #include "utils/file_manager.hpp"
+#include "icons.hpp"
 
 #include <GLFW/glfw3.h>
 #include <fmt/format.h>
@@ -305,8 +306,8 @@ SetStyle()
    ImGuiStyle& style = ImGui::GetStyle();
    style.WindowPadding = ImVec2(8.00f, 8.00f);
    style.FramePadding = ImVec2(5.00f, 2.00f);
-   style.CellPadding = ImVec2(6.00f, 6.00f);
-   style.ItemSpacing = ImVec2(6.00f, 6.00f);
+   style.CellPadding = ImVec2(2.00f, 2.00f);
+   style.ItemSpacing = ImVec2(5.00f, 5.00f);
    style.ItemInnerSpacing = ImVec2(6.00f, 6.00f);
    style.TouchExtraPadding = ImVec2(0.00f, 0.00f);
    style.IndentSpacing = 25;
@@ -526,10 +527,23 @@ EditorGUI::PrepareResources()
    int32_t texHeight = 0;
 
    const auto fontFilename = (FONTS_DIR / "Roboto-Medium.ttf").string();
-   // const auto fontFilename = (FONTS_DIR / "fontawesome-webfont.ttf").string();
 
+   constexpr auto baseFontSize = 13.0f; 
+   io.Fonts->AddFontFromFileTTF(fontFilename.c_str(), baseFontSize);
+   
+   // FontAwesome fonts need to have their sizes reduced by 2.0f/3.0f in order to align correctly
+   constexpr auto iconFontSize = baseFontSize * 2.0f / 3.0f; 
 
-   io.Fonts->AddFontFromFileTTF(fontFilename.c_str(), 16.0f);
+   static const ImWchar icons_ranges[] = {ICON_MIN_FA, ICON_MAX_16_FA, 0};
+   ImFontConfig icons_config;
+   icons_config.MergeMode = true;
+   icons_config.PixelSnapH = true;
+   icons_config.GlyphMinAdvanceX = iconFontSize;
+   
+   io.Fonts->AddFontFromFileTTF((FONTS_DIR / FONT_ICON_FILE_NAME_FAS).string().c_str(), iconFontSize,
+                                &icons_config,
+                                icons_ranges);
+   
    io.Fonts->GetTexDataAsRGBA32(&fontData, &texWidth, &texHeight);
 
    std::tie(m_fontImage, m_fontMemory) = renderer::Texture::CreateImage(
@@ -829,6 +843,17 @@ CreateRow(std::string_view name, std::string_view value)
    ImGui::Text(value.data());
 }
 
+template < typename Action >
+static inline void
+CreateActionRow(std::string_view name, const Action& action)
+{
+   ImGui::TableNextRow();
+   ImGui::TableNextColumn();
+   ImGui::Text(name.data());
+   ImGui::TableNextColumn();
+   action();
+}
+
 void
 EditorGUI::RenderCreateNewLevelWindow()
 {
@@ -892,7 +917,6 @@ EditorGUI::RenderCreateNewLevelWindow()
    ImGui::End();
 }
 
-
 void
 EditorGUI::RenderMainPanel()
 {
@@ -943,28 +967,30 @@ EditorGUI::RenderLevelMenu() // NOLINT
    ImGui::SetNextWindowPos({0, m_toolsWindowHeight});
    ImGui::SetNextWindowSize(ImVec2(m_windowWidth, m_levelWindowHeight));
    ImGui::Begin("Level");
-
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("General"))
    {
-      DrawWidget("Size", [this]() {
-         auto sprite_size = m_currentLevel->GetSprite().GetSize();
-         if (ImGui::InputFloat2("##Size", &sprite_size.x))
-         {
-            m_currentLevel->SetSize(sprite_size);
-         }
-      });
-
-      auto [drawGrid, gridSize] = m_parent.GetGridData();
-      if (ImGui::Checkbox("DrawGrid", &drawGrid))
+      if (ImGui::BeginTable("LevelTable", 2))
       {
-         m_parent.SetGridData(drawGrid, gridSize);
-      }
+         CreateRow("Size", fmt::format("{}", m_currentLevel->GetSprite().GetSize()));
 
-      static bool renderPathfinderNodes = m_parent.GetRenderNodes();
-      if (ImGui::Checkbox("Render nodes", &renderPathfinderNodes))
-      {
-         m_parent.RenderNodes(renderPathfinderNodes);
+         CreateActionRow("Render grid", [this] {
+            auto [drawGrid, gridSize] = m_parent.GetGridData();
+            if (ImGui::Checkbox("##Render grid", &drawGrid))
+            {
+               m_parent.DrawGrid();
+            }
+         });
+
+         CreateActionRow("Render collision", [this] {
+            static bool renderPathfinderNodes = m_parent.GetRenderNodes();
+            if (ImGui::Checkbox("##Render collision", &renderPathfinderNodes))
+            {
+               m_parent.RenderNodes(renderPathfinderNodes);
+            }
+         });
+
+         ImGui::EndTable();
       }
    }
 
@@ -1050,50 +1076,58 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
 
    if (ImGui::CollapsingHeader("General"))
    {
-      auto name = m_currentlySelectedGameObject->GetName();
-      const auto nameLength = 20;
-      name.resize(nameLength);
+      DrawWidget("Name", [this]() {
+         auto name = m_currentlySelectedGameObject->GetName();
+         const auto nameLength = 20;
+         name.resize(nameLength);
+         if (ImGui::InputText("##Name", name.data(), nameLength))
+         {
+            m_currentlySelectedGameObject->SetName(name);
+         }
+      });
 
-      ImGui::Text("%s",
-                  fmt::format("Type: {} (ID: {})", m_currentlySelectedGameObject->GetTypeString(),
-                              m_currentlySelectedGameObject->GetID())
-                     .c_str());
-      ImGui::Text("Name: ");
-      ImGui::SameLine();
-
-      if (ImGui::InputText("##", name.data(), nameLength))
+      if (ImGui::BeginTable("DebugTable", 2))
       {
-         m_currentlySelectedGameObject->SetName(name);
-      }
+         CreateRow("Type", fmt::format("{}", m_currentlySelectedGameObject->GetTypeString()));
+         CreateRow("ID", fmt::format("{}", m_currentlySelectedGameObject->GetID()));
+         CreateActionRow("Has Collision", [this] {
+            auto collision = m_currentlySelectedGameObject->GetHasCollision();
+            if (ImGui::Checkbox("##Has Collision", &collision))
+            {
+               m_currentlySelectedGameObject->SetHasCollision(collision);
+            }
+         });
 
-      auto collision = m_currentlySelectedGameObject->GetHasCollision();
-      if (ImGui::Checkbox("Has Collision", &collision))
-      {
-         m_currentlySelectedGameObject->SetHasCollision(collision);
+         ImGui::EndTable();
       }
    }
 
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Transform"))
    {
-      auto objectPosition = m_currentlySelectedGameObject->GetSprite().GetPosition();
-      auto sprite_size = m_currentlySelectedGameObject->GetSprite().GetSize();
-      auto rotation = m_currentlySelectedGameObject->GetSprite().GetRotation(
-         renderer::Sprite::RotationType::DEGREES);
+      DrawWidget("Position", [this]() {
+         auto objectPosition = m_currentlySelectedGameObject->GetSprite().GetPosition();
+         ImGui::InputFloat3("##Position", &objectPosition.x);
+      });
 
-      ImGui::InputFloat3("Position", &objectPosition.x);
+      DrawWidget("Size", [this]() {
+         auto sprite_size = m_currentlySelectedGameObject->GetSprite().GetSize();
+         if (ImGui::SliderFloat2("##Size", &sprite_size.x, 10, 1000))
+         {
+            m_currentlySelectedGameObject->SetSize(sprite_size);
+         }
+      });
 
-      if (ImGui::SliderFloat2("Size", &sprite_size.x, 10, 1000))
-      {
-         m_currentlySelectedGameObject->SetSize(sprite_size);
-      }
-
-      if (ImGui::SliderFloat("Rotate", &rotation,
-                             glm::degrees(renderer::Sprite::ROTATION_RANGE.first),
-                             glm::degrees(renderer::Sprite::ROTATION_RANGE.second)))
-      {
-         m_currentlySelectedGameObject->Rotate(glm::radians(rotation));
-      }
+      DrawWidget("Rotate", [this]() {
+         auto rotation = m_currentlySelectedGameObject->GetSprite().GetRotation(
+            renderer::Sprite::RotationType::DEGREES);
+         if (ImGui::SliderFloat("##Rotate", &rotation,
+                                glm::degrees(renderer::Sprite::ROTATION_RANGE.first),
+                                glm::degrees(renderer::Sprite::ROTATION_RANGE.second)))
+         {
+            m_currentlySelectedGameObject->Rotate(glm::radians(rotation));
+         }
+      });
    }
 
    ImGui::SetNextItemOpen(true);
@@ -1101,22 +1135,38 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
    {
       if (m_currentLevel)
       {
-         auto& sprite = m_currentlySelectedGameObject->GetSprite();
          // TODO: fix it!
          // ImGui::Image(reinterpret_cast< void* >( // NOLINT
          //                 static_cast< size_t >(sprite.GetTexture().GetImage())),
          //              {150, 150});
-         ImGui::InputText("FileName", sprite.GetTextureName().data(),
-                          sprite.GetTextureName().size(), ImGuiInputTextFlags_ReadOnly);
-         if (ImGui::Button("Change Texture"))
-         {
-            auto textureName = FileManager::FileDialog(
-               IMAGES_DIR, {{"PNG texture", "png"}, {"JPEG texture", "jpg"}}, false);
-            if (!textureName.empty())
+
+         DrawWidget("Texture", [this]() {
+            auto& sprite = m_currentlySelectedGameObject->GetSprite();
+
+            float fullWidth = ImGui::GetContentRegionAvail().x;
+            float inputTextWidth = fullWidth * 0.75f;
+            float buttonWidth = fullWidth * 0.25f;
+
+            ImGui::PushItemWidth(inputTextWidth);
+            ImGui::InputText("##Texture", sprite.GetTextureName().data(),
+                             sprite.GetTextureName().size(), ImGuiInputTextFlags_ReadOnly);
+            ImGui::PopItemWidth(); // Always pair a Push call with a Pop
+
+            ImGui::SameLine();
+
+            ImGui::PushItemWidth(buttonWidth);
+            if (ImGui::Button(ICON_FA_PENCIL ""))
             {
-               sprite.SetTextureFromFile(textureName);
+               auto textureName = FileManager::FileDialog(
+                  IMAGES_DIR, {{"PNG texture", "png"}, {"JPEG texture", "jpg"}}, false);
+               if (!textureName.empty())
+               {
+                  sprite.SetTextureFromFile(textureName);
+               }
             }
-         }
+            ImGui::PopItemWidth(); // Always pair a Push call with a Pop
+
+         });
       }
    }
 
