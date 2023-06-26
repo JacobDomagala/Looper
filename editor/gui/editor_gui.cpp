@@ -242,7 +242,9 @@ KeyToImGuiKey(int key)
 static inline void
 SetStyle()
 {
+   //NOLINTNEXTLINE
    ImVec4* colors = ImGui::GetStyle().Colors;
+
    colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
    colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
    colors[ImGuiCol_WindowBg] = ImVec4(0.01f, 0.01f, 0.01f, 0.99f);
@@ -330,9 +332,9 @@ SetStyle()
 
 template < typename Action >
 static constexpr inline void
-DrawWidget(std::string_view label, const Action& action)
+DrawWidget(const std::string& label, const Action& action)
 {
-   ImGui::Text(label.data());
+   ImGui::Text(label.c_str());
    ImGui::PushItemWidth(-1);
 
    action();
@@ -342,13 +344,13 @@ DrawWidget(std::string_view label, const Action& action)
 }
 
 static inline void
-CreateRow(std::string_view name, std::string_view value)
+CreateRow(const std::string& name, const std::string& value)
 {
    ImGui::TableNextRow();
    ImGui::TableNextColumn();
-   ImGui::Text(name.data());
+   ImGui::Text(name.c_str());
    ImGui::TableNextColumn();
-   ImGui::Text(value.data());
+   ImGui::Text(value.c_str());
 }
 
 template < typename Action >
@@ -583,14 +585,15 @@ EditorGUI::PrepareResources()
    // FontAwesome fonts need to have their sizes reduced by 2.0f/3.0f in order to align correctly
    constexpr auto iconFontSize = baseFontSize * 2.0f / 3.0f;
 
-   static const ImWchar icons_ranges[] = {ICON_MIN_FA, ICON_MAX_16_FA, 0};
+   // NOLINTNEXTLINE
+   static constexpr std::array<ImWchar, 3> icons_ranges = {ICON_MIN_FA, ICON_MAX_16_FA, 0};
    ImFontConfig icons_config;
    icons_config.MergeMode = true;
    icons_config.PixelSnapH = true;
    icons_config.GlyphMinAdvanceX = iconFontSize;
 
    io.Fonts->AddFontFromFileTTF((FONTS_DIR / FONT_ICON_FILE_NAME_FAS).string().c_str(),
-                                iconFontSize, &icons_config, icons_ranges);
+                                iconFontSize, &icons_config, icons_ranges.data());
 
    io.Fonts->GetTexDataAsRGBA32(&fontData, &texWidth, &texHeight);
 
@@ -1166,9 +1169,9 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          DrawWidget("Texture", [this]() {
             auto& sprite = m_currentlySelectedGameObject->GetSprite();
 
-            float fullWidth = ImGui::GetContentRegionAvail().x;
-            float inputTextWidth = fullWidth * 0.90f;
-            float buttonWidth = fullWidth * 0.10f;
+            const float fullWidth = ImGui::GetContentRegionAvail().x;
+            const float inputTextWidth = fullWidth * 0.90f;
+            const float buttonWidth = fullWidth * 0.10f;
 
             ImGui::PushItemWidth(inputTextWidth);
             ImGui::InputText("##Texture", sprite.GetTextureName().data(),
