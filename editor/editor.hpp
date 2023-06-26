@@ -23,6 +23,11 @@ class Animatable;
 class Editor : public Application
 {
  public:
+   enum class ACTION
+   {
+      UNSELECT,
+      REMOVE
+   };
    explicit Editor(const glm::ivec2& screenSize);
 
    // APPLICATION OVERRIDES
@@ -137,21 +142,17 @@ class Editor : public Application
    HandleEditorObjectSelected(const std::shared_ptr< EditorObject >& newSelectedEditorObject,
                               bool fromGUI = false);
 
+   void
+   ActionOnObject(ACTION action);
+
  private:
-   enum class ACTION
-   {
-      UNSELECT,
-      REMOVE
-   };
+   
 
    // [[nodiscard]] std::shared_ptr< EditorObject >
    // GetEditorObjectByID(Object::ID ID);
 
    void
    SetupRendererData();
-
-   void
-   ActionOnObject(ACTION action);
 
    void
    DrawEditorObjects();

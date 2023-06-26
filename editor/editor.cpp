@@ -34,7 +34,7 @@ Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
                                         renderer::ApplicationType::EDITOR);
    gui_.Init();
 
-   m_deltaTime = Timer::milliseconds(static_cast< long >(TARGET_TIME * 1000.0f));
+   m_deltaTime = Timer::milliseconds(static_cast< long >(TARGET_TIME));
 }
 
 void
@@ -46,8 +46,8 @@ Editor::ShowCursor(bool choice)
 void
 Editor::HandleCamera()
 {
-   m_timer.ToggleTimer();
-   m_deltaTime = m_timer.GetMsDeltaTime();
+   //m_timer.ToggleTimer();
+   //m_deltaTime = m_timer.GetMsDeltaTime();
 
    auto cameraMoveBy = glm::vec2();
 
@@ -486,7 +486,11 @@ Editor::ActionOnObject(Editor::ACTION action)
          if (m_editorObjectSelected && m_currentEditorObjectSelected)
          {
             gui_.ObjectDeleted(m_currentEditorObjectSelected->GetLinkedObjectID());
-            m_editorObjects.erase(stl::find(m_editorObjects, m_currentEditorObjectSelected));
+            if (Object::GetTypeFromID(m_currentEditorObjectSelected->GetLinkedObjectID())
+                == ObjectType::ANIMATION_POINT)
+            {
+               animationPoints_.erase(stl::find(animationPoints_, m_currentEditorObjectSelected));
+            }
             m_currentEditorObjectSelected->DeleteLinkedObject();
             UnselectEditorObject();
          }

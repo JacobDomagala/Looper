@@ -2,13 +2,13 @@
 #include "animatable.hpp"
 #include "editor.hpp"
 #include "game_object.hpp"
+#include "icons.hpp"
 #include "renderer/renderer.hpp"
 #include "renderer/shader.hpp"
 #include "renderer/texture.hpp"
 #include "renderer/types.hpp"
 #include "renderer/vulkan_common.hpp"
 #include "utils/file_manager.hpp"
-#include "icons.hpp"
 
 #include <GLFW/glfw3.h>
 #include <fmt/format.h>
@@ -328,6 +328,55 @@ SetStyle()
    style.TabRounding = 4;
 }
 
+template < typename Action >
+static constexpr inline void
+DrawWidget(std::string_view label, const Action& action)
+{
+   ImGui::Text(label.data());
+   ImGui::PushItemWidth(-1);
+
+   action();
+
+   ImGui::PopItemWidth();
+   ImGui::Spacing();
+}
+
+static inline void
+CreateRow(std::string_view name, std::string_view value)
+{
+   ImGui::TableNextRow();
+   ImGui::TableNextColumn();
+   ImGui::Text(name.data());
+   ImGui::TableNextColumn();
+   ImGui::Text(value.data());
+}
+
+template < typename Action >
+void
+ExecuteActionInColumn(const Action& action)
+{
+   ImGui::TableNextColumn();
+   action();
+}
+
+template < typename FirstAction, typename... Actions >
+static inline void
+CreateActionRow(std::string_view name, const FirstAction& firstAction, const Actions&... actions)
+{
+   ImGui::TableNextRow();
+   ImGui::TableNextColumn();
+   ImGui::Text(name.data());
+   ExecuteActionInColumn(firstAction);
+
+   (ExecuteActionInColumn(actions), ...);
+}
+
+static inline void
+BlankLine()
+{
+   ImGui::Dummy(ImVec2(0.0f, 5.0f));
+}
+
 EditorGUI::EditorGUI(Editor& parent) : m_parent(parent)
 {
 }
@@ -528,22 +577,21 @@ EditorGUI::PrepareResources()
 
    const auto fontFilename = (FONTS_DIR / "Roboto-Medium.ttf").string();
 
-   constexpr auto baseFontSize = 13.0f; 
+   constexpr auto baseFontSize = 16.0f;
    io.Fonts->AddFontFromFileTTF(fontFilename.c_str(), baseFontSize);
-   
+
    // FontAwesome fonts need to have their sizes reduced by 2.0f/3.0f in order to align correctly
-   constexpr auto iconFontSize = baseFontSize * 2.0f / 3.0f; 
+   constexpr auto iconFontSize = baseFontSize * 2.0f / 3.0f;
 
    static const ImWchar icons_ranges[] = {ICON_MIN_FA, ICON_MAX_16_FA, 0};
    ImFontConfig icons_config;
    icons_config.MergeMode = true;
    icons_config.PixelSnapH = true;
    icons_config.GlyphMinAdvanceX = iconFontSize;
-   
-   io.Fonts->AddFontFromFileTTF((FONTS_DIR / FONT_ICON_FILE_NAME_FAS).string().c_str(), iconFontSize,
-                                &icons_config,
-                                icons_ranges);
-   
+
+   io.Fonts->AddFontFromFileTTF((FONTS_DIR / FONT_ICON_FILE_NAME_FAS).string().c_str(),
+                                iconFontSize, &icons_config, icons_ranges);
+
    io.Fonts->GetTexDataAsRGBA32(&fontData, &texWidth, &texHeight);
 
    std::tie(m_fontImage, m_fontMemory) = renderer::Texture::CreateImage(
@@ -820,40 +868,6 @@ EditorGUI::IsBlockingEvents()
    return io.WantCaptureMouse || io.WantTextInput;
 }
 
-template < typename Action >
-static constexpr inline void
-DrawWidget(std::string_view label, const Action& action)
-{
-   ImGui::Text(label.data());
-   ImGui::PushItemWidth(-1);
-
-   action();
-
-   ImGui::PopItemWidth();
-   ImGui::Spacing();
-}
-
-static inline void
-CreateRow(std::string_view name, std::string_view value)
-{
-   ImGui::TableNextRow();
-   ImGui::TableNextColumn();
-   ImGui::Text(name.data());
-   ImGui::TableNextColumn();
-   ImGui::Text(value.data());
-}
-
-template < typename Action >
-static inline void
-CreateActionRow(std::string_view name, const Action& action)
-{
-   ImGui::TableNextRow();
-   ImGui::TableNextColumn();
-   ImGui::Text(name.data());
-   ImGui::TableNextColumn();
-   action();
-}
-
 void
 EditorGUI::RenderCreateNewLevelWindow()
 {
@@ -923,10 +937,10 @@ EditorGUI::RenderMainPanel()
    ImGui::SetNextWindowPos({0, 0});
    ImGui::SetNextWindowSize(ImVec2(m_windowWidth, m_toolsWindowHeight));
    ImGui::Begin("Tools");
-   ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.45f, 0.0f, 0.2f, 0.8f});
+   ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.0f, 0.5f, 0.0f, 0.8f});
    ImGui::BeginDisabled(m_currentLevel == nullptr);
 
-   if (ImGui::Button("Play"))
+   if (ImGui::Button(ICON_FA_PLAY "Play"))
    {
       m_parent.PlayLevel();
    }
@@ -972,13 +986,14 @@ EditorGUI::RenderLevelMenu() // NOLINT
    {
       if (ImGui::BeginTable("LevelTable", 2))
       {
-         CreateRow("Size", fmt::format("{}", m_currentLevel->GetSprite().GetSize()));
+         CreateRow("Size", fmt::format("{:.0f}, {:.0f}", m_currentLevel->GetSprite().GetSize().x,
+                                       m_currentLevel->GetSprite().GetSize().y));
 
          CreateActionRow("Render grid", [this] {
             auto [drawGrid, gridSize] = m_parent.GetGridData();
             if (ImGui::Checkbox("##Render grid", &drawGrid))
             {
-               m_parent.DrawGrid();
+               m_parent.SetGridData(drawGrid, gridSize);
             }
          });
 
@@ -993,6 +1008,8 @@ EditorGUI::RenderLevelMenu() // NOLINT
          ImGui::EndTable();
       }
    }
+
+   BlankLine();
 
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Objects"))
@@ -1019,7 +1036,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
 
       for (const auto& object : gameObjects)
       {
-         auto label = fmt::format("[{}] {} ({}, {})", object->GetTypeString().c_str(),
+         auto label = fmt::format("[{}] {} ({:.2f}, {:.2f})", object->GetTypeString().c_str(),
                                   object->GetName().c_str(), object->GetPosition().x,
                                   object->GetPosition().y);
 
@@ -1032,6 +1049,8 @@ EditorGUI::RenderLevelMenu() // NOLINT
 
       ImGui::EndChild();
    }
+
+   BlankLine();
 
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Debug"))
@@ -1102,6 +1121,8 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
       }
    }
 
+   BlankLine();
+
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Transform"))
    {
@@ -1130,6 +1151,8 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
       });
    }
 
+   BlankLine();
+
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Shader"))
    {
@@ -1144,8 +1167,8 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
             auto& sprite = m_currentlySelectedGameObject->GetSprite();
 
             float fullWidth = ImGui::GetContentRegionAvail().x;
-            float inputTextWidth = fullWidth * 0.75f;
-            float buttonWidth = fullWidth * 0.25f;
+            float inputTextWidth = fullWidth * 0.90f;
+            float buttonWidth = fullWidth * 0.10f;
 
             ImGui::PushItemWidth(inputTextWidth);
             ImGui::InputText("##Texture", sprite.GetTextureName().data(),
@@ -1165,7 +1188,6 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
                }
             }
             ImGui::PopItemWidth(); // Always pair a Push call with a Pop
-
          });
       }
    }
@@ -1175,24 +1197,25 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
       const auto animatablePtr =
          std::dynamic_pointer_cast< Animatable >(m_currentlySelectedGameObject);
 
+      BlankLine();
+
       ImGui::SetNextItemOpen(true);
       if (ImGui::CollapsingHeader("Animation"))
       {
-         ImGui::Text("Type\n"); // NOLINT
-         ImGui::SameLine();
+         DrawWidget("Type", [animatablePtr]() {
+            if (ImGui::RadioButton("Loop", animatablePtr->GetAnimationType()
+                                              == Animatable::ANIMATION_TYPE::LOOP))
+            {
+               animatablePtr->SetAnimationType(Animatable::ANIMATION_TYPE::LOOP);
+            }
 
-         if (ImGui::RadioButton("Loop", animatablePtr->GetAnimationType()
-                                           == Animatable::ANIMATION_TYPE::LOOP))
-         {
-            animatablePtr->SetAnimationType(Animatable::ANIMATION_TYPE::LOOP);
-         }
-
-         ImGui::SameLine();
-         if (ImGui::RadioButton("Reversal", animatablePtr->GetAnimationType()
-                                               == Animatable::ANIMATION_TYPE::REVERSABLE))
-         {
-            animatablePtr->SetAnimationType(Animatable::ANIMATION_TYPE::REVERSABLE);
-         }
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Reversal", animatablePtr->GetAnimationType()
+                                                  == Animatable::ANIMATION_TYPE::REVERSABLE))
+            {
+               animatablePtr->SetAnimationType(Animatable::ANIMATION_TYPE::REVERSABLE);
+            }
+         });
 
          bool animationVisible = animatablePtr->GetRenderAnimationSteps();
          if (ImGui::Checkbox("Animation points visible", &animationVisible))
@@ -1226,20 +1249,45 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          auto& animationPoints = animatablePtr->GetAnimationKeypoints();
          auto newNodePosition = m_currentlySelectedGameObject->GetPosition();
          ImGui::BeginChild("Animation Points", {0, 100}, true);
-         for (uint32_t i = 0; i < animationPoints.size(); ++i)
+         if (ImGui::BeginTable("AnimationPointTable", 2))
          {
-            const auto& node = animationPoints[i];
-            auto label = fmt::format("[{}] Pos({:.{}f},{:.{}f}) Time={}s", i, node.m_end.x, 1,
-                                     node.m_end.y, 1, node.m_timeDuration.count());
-            if (ImGui::Selectable(label.c_str()))
-            {
-               m_parent.GetCamera().SetCameraAtPosition(node.m_end);
-               m_parent.HandleObjectSelected(node.GetID(), true);
-               m_parent.SetRenderAnimationPoints(true);
-            }
+            auto contentWidth = ImGui::GetContentRegionAvail().x;
+            ImGui::TableSetupColumn("Column 1", ImGuiTableColumnFlags_WidthStretch,
+                                    contentWidth * 0.95f);
+            ImGui::TableSetupColumn("Column 2", ImGuiTableColumnFlags_WidthStretch,
+                                    contentWidth * 0.05f);
+            /*ImGui::TableSetupColumn("Column 3", ImGuiTableColumnFlags_WidthStretch,
+                                    contentWidth * 0.05f);*/
 
-            newNodePosition = node.m_end;
+            for (uint32_t i = 0; i < animationPoints.size(); ++i)
+            {
+               const auto& node = animationPoints[i];
+               const auto label = fmt::format("[{}] Time={}s", i, node.m_end.x, 1, node.m_end.y, 1,
+                                              node.m_timeDuration.count());
+
+               ImGui::TableNextRow();
+               ImGui::TableNextColumn();
+               if (ImGui::Selectable(label.c_str()))
+               {
+                  m_parent.GetCamera().SetCameraAtPosition(node.m_end);
+                  m_parent.HandleObjectSelected(node.GetID(), true);
+                  m_parent.SetRenderAnimationPoints(true);
+               }
+               ImGui::TableNextColumn();
+
+               
+               ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.0f, 0.0f, 0.0f, 1.0f});
+               if (ImGui::Selectable(ICON_FA_XMARK))
+               {
+                  m_parent.HandleObjectSelected(node.GetID(), true);
+                  m_parent.ActionOnObject(Editor::ACTION::REMOVE);
+               }
+               ImGui::PopStyleColor(1);
+
+               newNodePosition = node.m_end;
+            }
          }
+         ImGui::EndTable();
 
          if (ImGui::Button("New"))
          {
@@ -1252,18 +1300,35 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          const auto selectedID = m_parent.GetSelectedEditorObject();
          if (Object::GetTypeFromID(selectedID) == ObjectType::ANIMATION_POINT)
          {
-            auto& node =
-               dynamic_cast< AnimationPoint& >(m_parent.GetLevel().GetObjectRef(selectedID));
+            BlankLine();
+            ImGui::SetNextItemOpen(true);
+            if (ImGui::CollapsingHeader("Selected point"))
+            {
+               auto& node =
+                  dynamic_cast< AnimationPoint& >(m_parent.GetLevel().GetObjectRef(selectedID));
 
+               if (ImGui::BeginTable("AnimationPointTable", 2))
+               {
+                  const auto it =
+                     stl::find_if(animationPoints, [selectedID](const auto& animationPoint) {
+                        return animationPoint.GetID() == selectedID;
+                     });
+                  const auto idx = std::distance(animationPoints.begin(), it);
 
-            DrawWidget(fmt::format("\nAnimationPoint \n ({}, {})\n\n", node.m_end.x, node.m_end.y),
-                       [&node]() {
-                          auto seconds = static_cast< int32_t >(node.m_timeDuration.count());
-                          if (ImGui::SliderInt("##distance", &seconds, 0, 10))
-                          {
-                             node.m_timeDuration = std::chrono::seconds(seconds);
-                          }
-                       });
+                  CreateRow("Idx", fmt::format("{}", idx));
+                  CreateRow("Position", fmt::format("{:.2f},{:.2f}", node.m_end.x, node.m_end.y));
+
+                  ImGui::EndTable();
+               }
+
+               DrawWidget(fmt::format("Duration (sec)", node.m_end.x, node.m_end.y), [&node]() {
+                  auto seconds = static_cast< int32_t >(node.m_timeDuration.count());
+                  if (ImGui::SliderInt("##distance", &seconds, 0, 10))
+                  {
+                     node.m_timeDuration = std::chrono::seconds(seconds);
+                  }
+               });
+            }
          }
       }
    }

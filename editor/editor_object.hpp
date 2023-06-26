@@ -129,7 +129,6 @@ class EditorObject
    Object::ID m_objectID = Object::INVALID_ID;
    bool m_hasLinkedObject = false;
 
-
    bool m_selected = false;
    bool m_isBackground = false;
 
