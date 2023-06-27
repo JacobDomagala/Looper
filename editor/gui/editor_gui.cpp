@@ -242,7 +242,7 @@ KeyToImGuiKey(int key)
 static inline void
 SetStyle()
 {
-   //NOLINTNEXTLINE
+   // NOLINTNEXTLINE
    ImVec4* colors = ImGui::GetStyle().Colors;
 
    colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
@@ -332,9 +332,9 @@ SetStyle()
 
 template < typename Action >
 static constexpr inline void
-DrawWidget(const std::string& label, const Action& action)
+DrawWidget(std::string_view label, const Action& action)
 {
-   ImGui::Text(label.c_str());
+   ImGui::Text("%s", label.data());
    ImGui::PushItemWidth(-1);
 
    action();
@@ -344,13 +344,13 @@ DrawWidget(const std::string& label, const Action& action)
 }
 
 static inline void
-CreateRow(const std::string& name, const std::string& value)
+CreateRow(std::string_view name, std::string_view value)
 {
    ImGui::TableNextRow();
    ImGui::TableNextColumn();
-   ImGui::Text(name.c_str());
+   ImGui::Text("%s", name.data());
    ImGui::TableNextColumn();
-   ImGui::Text(value.c_str());
+   ImGui::Text("%s", value.data());
 }
 
 template < typename Action >
@@ -367,16 +367,16 @@ CreateActionRow(std::string_view name, const FirstAction& firstAction, const Act
 {
    ImGui::TableNextRow();
    ImGui::TableNextColumn();
-   ImGui::Text(name.data());
+   ImGui::Text("%s", name.data());
    ExecuteActionInColumn(firstAction);
 
    (ExecuteActionInColumn(actions), ...);
 }
 
 static inline void
-BlankLine()
+BlankLine(const ImVec2& line = ImVec2(0.0f, 5.0f))
 {
-   ImGui::Dummy(ImVec2(0.0f, 5.0f));
+   ImGui::Dummy(line);
 }
 
 EditorGUI::EditorGUI(Editor& parent) : m_parent(parent)
@@ -586,7 +586,7 @@ EditorGUI::PrepareResources()
    constexpr auto iconFontSize = baseFontSize * 2.0f / 3.0f;
 
    // NOLINTNEXTLINE
-   static constexpr std::array<ImWchar, 3> icons_ranges = {ICON_MIN_FA, ICON_MAX_16_FA, 0};
+   static constexpr std::array< ImWchar, 3 > icons_ranges = {ICON_MIN_FA, ICON_MAX_16_FA, 0};
    ImFontConfig icons_config;
    icons_config.MergeMode = true;
    icons_config.PixelSnapH = true;
@@ -887,7 +887,7 @@ EditorGUI::RenderCreateNewLevelWindow()
    ImGui::Begin("Create New", nullptr, ImGuiWindowFlags_NoResize);
 
    ImGui::Text("Size:");
-   ImGui::Dummy(ImVec2(2.0f, 0.0f));
+   BlankLine(ImVec2(2.0f, 0.0f));
    ImGui::SameLine();
    ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.6f);
 
@@ -1062,9 +1062,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
       {
          CreateRow("Render time", fmt::format("{}", m_parent.GetRenderTime().ToString().c_str()));
          const auto cameraPos = m_parent.GetCamera().GetPosition();
-         CreateRow("Camera Position",
-                   fmt::format("{:.2f}, {:.2f}", static_cast< double >(cameraPos.x),
-                               static_cast< double >(cameraPos.y)));
+         CreateRow("Camera Position", fmt::format("{}", static_cast< glm::vec2 >(cameraPos)));
          CreateRow("Camera Zoom", fmt::format("{:.1f}", m_parent.GetCamera().GetZoomLevel()));
 
          CreateRow("Camera Rotation", fmt::format("{:.1f}", m_parent.GetCamera().GetRotation()));
@@ -1108,7 +1106,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          }
       });
 
-      if (ImGui::BeginTable("DebugTable", 2))
+      if (ImGui::BeginTable("ObjectTable", 2))
       {
          CreateRow("Type", fmt::format("{}", m_currentlySelectedGameObject->GetTypeString()));
          CreateRow("ID", fmt::format("{}", m_currentlySelectedGameObject->GetID()));
@@ -1248,7 +1246,6 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
                0.0f));
          }
 
-         // static int selected = 0;
          auto& animationPoints = animatablePtr->GetAnimationKeypoints();
          auto newNodePosition = m_currentlySelectedGameObject->GetPosition();
          ImGui::BeginChild("Animation Points", {0, 100}, true);
@@ -1259,14 +1256,11 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
                                     contentWidth * 0.95f);
             ImGui::TableSetupColumn("Column 2", ImGuiTableColumnFlags_WidthStretch,
                                     contentWidth * 0.05f);
-            /*ImGui::TableSetupColumn("Column 3", ImGuiTableColumnFlags_WidthStretch,
-                                    contentWidth * 0.05f);*/
 
             for (uint32_t i = 0; i < animationPoints.size(); ++i)
             {
                const auto& node = animationPoints[i];
-               const auto label = fmt::format("[{}] Time={}s", i, node.m_end.x, 1, node.m_end.y, 1,
-                                              node.m_timeDuration.count());
+               const auto label = fmt::format("[{}] Time={}s", i, node.m_timeDuration.count());
 
                ImGui::TableNextRow();
                ImGui::TableNextColumn();
@@ -1278,9 +1272,8 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
                }
                ImGui::TableNextColumn();
 
-               
                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.0f, 0.0f, 0.0f, 1.0f});
-               if (ImGui::Selectable(ICON_FA_XMARK))
+               if (ImGui::Selectable(fmt::format("{}##{}", ICON_FA_XMARK, i).c_str()))
                {
                   m_parent.HandleObjectSelected(node.GetID(), true);
                   m_parent.ActionOnObject(Editor::ACTION::REMOVE);
