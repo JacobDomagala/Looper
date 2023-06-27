@@ -2,6 +2,7 @@
 #include "animatable.hpp"
 #include "editor.hpp"
 #include "game_object.hpp"
+#include "icons.hpp"
 #include "renderer/renderer.hpp"
 #include "renderer/shader.hpp"
 #include "renderer/texture.hpp"
@@ -241,94 +242,141 @@ KeyToImGuiKey(int key)
 static inline void
 SetStyle()
 {
-   ImGuiStyle& style = ImGui::GetStyle();
-   auto* colors = style.Colors; // NOLINT
-
-   /// 0 = FLAT APPEARENCE
-   /// 1 = MORE "3D" LOOK
-   constexpr int is3D = 1;
+   // NOLINTNEXTLINE
+   ImVec4* colors = ImGui::GetStyle().Colors;
 
    colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-   colors[ImGuiCol_TextDisabled] = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
-   colors[ImGuiCol_ChildBg] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
-   colors[ImGuiCol_WindowBg] = ImVec4(0.025f, 0.025f, 0.025f, 1.00f);
-   colors[ImGuiCol_PopupBg] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
-   colors[ImGuiCol_Border] = ImVec4(0.12f, 0.12f, 0.12f, 0.71f);
-   colors[ImGuiCol_BorderShadow] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
-   colors[ImGuiCol_FrameBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.54f);
-   colors[ImGuiCol_FrameBgHovered] = ImVec4(0.42f, 0.42f, 0.42f, 0.40f);
-   colors[ImGuiCol_FrameBgActive] = ImVec4(0.56f, 0.56f, 0.56f, 0.67f);
-   colors[ImGuiCol_TitleBg] = ImVec4(0.02f, 0.02f, 0.02f, 1.00f);
-   colors[ImGuiCol_TitleBgActive] = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
-   colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.05f, 0.05f, 0.05f, 0.90f);
-   colors[ImGuiCol_MenuBarBg] = ImVec4(0.335f, 0.335f, 0.335f, 1.000f);
-   colors[ImGuiCol_ScrollbarBg] = ImVec4(0.24f, 0.24f, 0.24f, 0.53f);
-   colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
-   colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.52f, 0.52f, 0.52f, 1.00f);
-   colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.76f, 0.76f, 0.76f, 1.00f);
-   colors[ImGuiCol_CheckMark] = ImVec4(0.65f, 0.65f, 0.65f, 1.00f);
-   colors[ImGuiCol_SliderGrab] = ImVec4(0.52f, 0.52f, 0.52f, 1.00f);
-   colors[ImGuiCol_SliderGrabActive] = ImVec4(0.64f, 0.64f, 0.64f, 1.00f);
-   colors[ImGuiCol_Button] = ImVec4(0.54f, 0.54f, 0.54f, 0.35f);
-   colors[ImGuiCol_ButtonHovered] = ImVec4(0.52f, 0.52f, 0.52f, 0.59f);
-   colors[ImGuiCol_ButtonActive] = ImVec4(0.76f, 0.76f, 0.76f, 1.00f);
-   colors[ImGuiCol_Header] = ImVec4(0.38f, 0.38f, 0.38f, 1.00f);
-   colors[ImGuiCol_HeaderHovered] = ImVec4(0.47f, 0.47f, 0.47f, 1.00f);
-   colors[ImGuiCol_HeaderActive] = ImVec4(0.76f, 0.76f, 0.76f, 0.77f);
-   colors[ImGuiCol_Separator] = ImVec4(0.000f, 0.000f, 0.000f, 0.137f);
-   colors[ImGuiCol_SeparatorHovered] = ImVec4(0.700f, 0.671f, 0.600f, 0.290f);
-   colors[ImGuiCol_SeparatorActive] = ImVec4(0.702f, 0.671f, 0.600f, 0.674f);
-   colors[ImGuiCol_ResizeGrip] = ImVec4(0.26f, 0.59f, 0.98f, 0.25f);
-   colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
-   colors[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
-   colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
-   colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
-   colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
-   colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
-   colors[ImGuiCol_TextSelectedBg] = ImVec4(0.73f, 0.73f, 0.73f, 0.35f);
-   colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
-   colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
-   colors[ImGuiCol_NavHighlight] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-   colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
-   colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+   colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+   colors[ImGuiCol_WindowBg] = ImVec4(0.01f, 0.01f, 0.01f, 0.99f);
+   colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+   colors[ImGuiCol_PopupBg] = ImVec4(0.19f, 0.19f, 0.19f, 0.92f);
+   colors[ImGuiCol_Border] = ImVec4(0.19f, 0.19f, 0.19f, 0.29f);
+   colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.24f);
+   colors[ImGuiCol_FrameBg] = ImVec4(0.05f, 0.05f, 0.05f, 0.54f);
+   colors[ImGuiCol_FrameBgHovered] = ImVec4(0.19f, 0.19f, 0.19f, 0.54f);
+   colors[ImGuiCol_FrameBgActive] = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
+   colors[ImGuiCol_TitleBg] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+   colors[ImGuiCol_TitleBgActive] = ImVec4(0.06f, 0.06f, 0.06f, 1.00f);
+   colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+   colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+   colors[ImGuiCol_ScrollbarBg] = ImVec4(0.05f, 0.05f, 0.05f, 0.54f);
+   colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.34f, 0.34f, 0.34f, 0.54f);
+   colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.40f, 0.40f, 0.40f, 0.54f);
+   colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.56f, 0.56f, 0.56f, 0.54f);
+   colors[ImGuiCol_CheckMark] = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
+   colors[ImGuiCol_SliderGrab] = ImVec4(0.34f, 0.34f, 0.34f, 0.54f);
+   colors[ImGuiCol_SliderGrabActive] = ImVec4(0.56f, 0.56f, 0.56f, 0.54f);
+   colors[ImGuiCol_Button] = ImVec4(0.05f, 0.05f, 0.05f, 0.54f);
+   colors[ImGuiCol_ButtonHovered] = ImVec4(0.19f, 0.19f, 0.19f, 0.54f);
+   colors[ImGuiCol_ButtonActive] = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
+   colors[ImGuiCol_Header] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
+   colors[ImGuiCol_HeaderHovered] = ImVec4(0.00f, 0.00f, 0.00f, 0.36f);
+   colors[ImGuiCol_HeaderActive] = ImVec4(0.20f, 0.22f, 0.23f, 0.33f);
+   colors[ImGuiCol_Separator] = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
+   colors[ImGuiCol_SeparatorHovered] = ImVec4(0.44f, 0.44f, 0.44f, 0.29f);
+   colors[ImGuiCol_SeparatorActive] = ImVec4(0.40f, 0.44f, 0.47f, 1.00f);
+   colors[ImGuiCol_ResizeGrip] = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
+   colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.44f, 0.44f, 0.44f, 0.29f);
+   colors[ImGuiCol_ResizeGripActive] = ImVec4(0.40f, 0.44f, 0.47f, 1.00f);
+   colors[ImGuiCol_Tab] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
+   colors[ImGuiCol_TabHovered] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+   colors[ImGuiCol_TabActive] = ImVec4(0.20f, 0.20f, 0.20f, 0.36f);
+   colors[ImGuiCol_TabUnfocused] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
+   colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
 
-   style.PopupRounding = 3;
+#ifdef IMGUI_HAS_DOCK
+   colors[ImGuiCol_DockingPreview] = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
+   colors[ImGuiCol_DockingEmptyBg] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+#endif
 
-   style.WindowPadding = ImVec2(4, 4);
-   style.FramePadding = ImVec2(6, 4);
-   style.ItemSpacing = ImVec2(6, 2);
+   colors[ImGuiCol_PlotLines] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+   colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+   colors[ImGuiCol_PlotHistogram] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+   colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+   colors[ImGuiCol_TableHeaderBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
+   colors[ImGuiCol_TableBorderStrong] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
+   colors[ImGuiCol_TableBorderLight] = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
+   colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+   colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
+   colors[ImGuiCol_TextSelectedBg] = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
+   colors[ImGuiCol_DragDropTarget] = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
+   colors[ImGuiCol_NavHighlight] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+   colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 0.00f, 0.00f, 0.70f);
+   colors[ImGuiCol_NavWindowingDimBg] = ImVec4(1.00f, 0.00f, 0.00f, 0.20f);
+   colors[ImGuiCol_ModalWindowDimBg] = ImVec4(1.00f, 0.00f, 0.00f, 0.35f);
 
-   style.ScrollbarSize = 18;
-
+   ImGuiStyle& style = ImGui::GetStyle();
+   style.WindowPadding = ImVec2(8.00f, 8.00f);
+   style.FramePadding = ImVec2(5.00f, 2.00f);
+   style.CellPadding = ImVec2(2.00f, 2.00f);
+   style.ItemSpacing = ImVec2(5.00f, 5.00f);
+   style.ItemInnerSpacing = ImVec2(6.00f, 6.00f);
+   style.TouchExtraPadding = ImVec2(0.00f, 0.00f);
+   style.IndentSpacing = 25;
+   style.ScrollbarSize = 15;
+   style.GrabMinSize = 10;
    style.WindowBorderSize = 1;
    style.ChildBorderSize = 1;
    style.PopupBorderSize = 1;
-   style.FrameBorderSize = static_cast< float >(is3D);
-
-   style.WindowRounding = 3;
-   style.ChildRounding = 3;
+   style.FrameBorderSize = 1;
+   style.TabBorderSize = 1;
+   style.WindowRounding = 7;
+   style.ChildRounding = 4;
    style.FrameRounding = 3;
-   style.ScrollbarRounding = 2;
+   style.PopupRounding = 4;
+   style.ScrollbarRounding = 9;
    style.GrabRounding = 3;
+   style.LogSliderDeadzone = 4;
+   style.TabRounding = 4;
+}
 
-#ifdef IMGUI_HAS_DOCK
-   style.TabBorderSize = is3D;
-   style.TabRounding = 3;
+template < typename Action >
+static constexpr inline void
+DrawWidget(std::string_view label, const Action& action)
+{
+   ImGui::Text("%s", label.data());
+   ImGui::PushItemWidth(-1);
 
-   colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.38f, 0.38f, 0.38f, 1.00f);
-   colors[ImGuiCol_Tab] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
-   colors[ImGuiCol_TabHovered] = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
-   colors[ImGuiCol_TabActive] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
-   colors[ImGuiCol_TabUnfocused] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
-   colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
-   colors[ImGuiCol_DockingPreview] = ImVec4(0.85f, 0.85f, 0.85f, 0.28f);
+   action();
 
-   if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-   {
-      style.WindowRounding = 0.0f;
-      style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-   }
-#endif
+   ImGui::PopItemWidth();
+   ImGui::Spacing();
+}
+
+static inline void
+CreateRow(std::string_view name, std::string_view value)
+{
+   ImGui::TableNextRow();
+   ImGui::TableNextColumn();
+   ImGui::Text("%s", name.data());
+   ImGui::TableNextColumn();
+   ImGui::Text("%s", value.data());
+}
+
+template < typename Action >
+void
+ExecuteActionInColumn(const Action& action)
+{
+   ImGui::TableNextColumn();
+   action();
+}
+
+template < typename FirstAction, typename... Actions >
+static inline void
+CreateActionRow(std::string_view name, const FirstAction& firstAction, const Actions&... actions)
+{
+   ImGui::TableNextRow();
+   ImGui::TableNextColumn();
+   ImGui::Text("%s", name.data());
+   ExecuteActionInColumn(firstAction);
+
+   (ExecuteActionInColumn(actions), ...);
+}
+
+static inline void
+BlankLine(const ImVec2& line = ImVec2(0.0f, 5.0f))
+{
+   ImGui::Dummy(line);
 }
 
 EditorGUI::EditorGUI(Editor& parent) : m_parent(parent)
@@ -396,9 +444,6 @@ EditorGUI::Init()
    ImGui::CreateContext();
    ImGuiIO& io = ImGui::GetIO();
    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls NOLINT
-
-   // Setup Dear ImGui style
-   ImGui::StyleColorsDark();
 
    SetStyle();
 
@@ -534,7 +579,22 @@ EditorGUI::PrepareResources()
 
    const auto fontFilename = (FONTS_DIR / "Roboto-Medium.ttf").string();
 
-   io.Fonts->AddFontFromFileTTF(fontFilename.c_str(), 16.0f);
+   constexpr auto baseFontSize = 16.0f;
+   io.Fonts->AddFontFromFileTTF(fontFilename.c_str(), baseFontSize);
+
+   // FontAwesome fonts need to have their sizes reduced by 2.0f/3.0f in order to align correctly
+   constexpr auto iconFontSize = baseFontSize * 2.0f / 3.0f;
+
+   // NOLINTNEXTLINE
+   static constexpr std::array< ImWchar, 3 > icons_ranges = {ICON_MIN_FA, ICON_MAX_16_FA, 0};
+   ImFontConfig icons_config;
+   icons_config.MergeMode = true;
+   icons_config.PixelSnapH = true;
+   icons_config.GlyphMinAdvanceX = iconFontSize;
+
+   io.Fonts->AddFontFromFileTTF((FONTS_DIR / FONT_ICON_FILE_NAME_FAS).string().c_str(),
+                                iconFontSize, &icons_config, icons_ranges.data());
+
    io.Fonts->GetTexDataAsRGBA32(&fontData, &texWidth, &texHeight);
 
    std::tie(m_fontImage, m_fontMemory) = renderer::Texture::CreateImage(
@@ -827,7 +887,7 @@ EditorGUI::RenderCreateNewLevelWindow()
    ImGui::Begin("Create New", nullptr, ImGuiWindowFlags_NoResize);
 
    ImGui::Text("Size:");
-   ImGui::Dummy(ImVec2(2.0f, 0.0f));
+   BlankLine(ImVec2(2.0f, 0.0f));
    ImGui::SameLine();
    ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.6f);
 
@@ -874,17 +934,16 @@ EditorGUI::RenderCreateNewLevelWindow()
    ImGui::End();
 }
 
-
 void
 EditorGUI::RenderMainPanel()
 {
    ImGui::SetNextWindowPos({0, 0});
    ImGui::SetNextWindowSize(ImVec2(m_windowWidth, m_toolsWindowHeight));
    ImGui::Begin("Tools");
-   ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.45f, 0.0f, 0.2f, 0.8f});
+   ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.0f, 0.5f, 0.0f, 0.8f});
    ImGui::BeginDisabled(m_currentLevel == nullptr);
 
-   if (ImGui::Button("Play"))
+   if (ImGui::Button(ICON_FA_PLAY "Play"))
    {
       m_parent.PlayLevel();
    }
@@ -925,37 +984,35 @@ EditorGUI::RenderLevelMenu() // NOLINT
    ImGui::SetNextWindowPos({0, m_toolsWindowHeight});
    ImGui::SetNextWindowSize(ImVec2(m_windowWidth, m_levelWindowHeight));
    ImGui::Begin("Level");
-
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("General"))
    {
-      auto sprite_size = m_currentLevel->GetSprite().GetSize();
-      if (ImGui::InputFloat2("Size", &sprite_size.x))
+      if (ImGui::BeginTable("LevelTable", 2))
       {
-         m_currentLevel->SetSize(sprite_size);
-      }
+         CreateRow("Size", fmt::format("{:.0f}, {:.0f}", m_currentLevel->GetSprite().GetSize().x,
+                                       m_currentLevel->GetSprite().GetSize().y));
 
-      auto [drawGrid, gridSize] = m_parent.GetGridData();
-      if (ImGui::InputInt("cell size", &gridSize) || ImGui::Checkbox("Draw grid", &drawGrid))
-      {
-         m_parent.SetGridData(drawGrid, gridSize);
+         CreateActionRow("Render grid", [this] {
+            auto [drawGrid, gridSize] = m_parent.GetGridData();
+            if (ImGui::Checkbox("##Render grid", &drawGrid))
+            {
+               m_parent.SetGridData(drawGrid, gridSize);
+            }
+         });
+
+         CreateActionRow("Render collision", [this] {
+            static bool renderPathfinderNodes = m_parent.GetRenderNodes();
+            if (ImGui::Checkbox("##Render collision", &renderPathfinderNodes))
+            {
+               m_parent.RenderNodes(renderPathfinderNodes);
+            }
+         });
+
+         ImGui::EndTable();
       }
    }
 
-   ImGui::SetNextItemOpen(true);
-   if (ImGui::CollapsingHeader("Pathfinder"))
-   {
-      static bool renderPathfinderNodes = m_parent.GetRenderNodes();
-      if (ImGui::Checkbox("Render nodes", &renderPathfinderNodes))
-      {
-         m_parent.RenderNodes(renderPathfinderNodes);
-      }
-   }
-
-   ImGui::SetNextItemOpen(true);
-   if (ImGui::CollapsingHeader("Shader"))
-   {
-   }
+   BlankLine();
 
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Objects"))
@@ -982,7 +1039,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
 
       for (const auto& object : gameObjects)
       {
-         auto label = fmt::format("[{}] {} ({}, {})", object->GetTypeString().c_str(),
+         auto label = fmt::format("[{}] {} ({:.2f}, {:.2f})", object->GetTypeString().c_str(),
                                   object->GetName().c_str(), object->GetPosition().x,
                                   object->GetPosition().y);
 
@@ -996,38 +1053,35 @@ EditorGUI::RenderLevelMenu() // NOLINT
       ImGui::EndChild();
    }
 
+   BlankLine();
 
-   ImGui::End();
-
-   ImGui::SetNextWindowPos({m_windowWidth, m_windowSize.y - m_debugWindowHeight});
-   ImGui::SetNextWindowSize(ImVec2(m_debugWindowWidth, m_debugWindowHeight));
-   ImGui::Begin("Debug");
-   ImGui::Text("Render time %s", m_parent.GetRenderTime().ToString().c_str());
-   const auto cameraPos = m_parent.GetCamera().GetPosition();
-   ImGui::Text("Camera Position %f, %f", static_cast< double >(cameraPos.x),
-               static_cast< double >(cameraPos.y));
-
-   const auto cameraZoom = m_parent.GetCamera().GetZoomLevel();
-   const auto cameraRotation = m_parent.GetCamera().GetRotation();
-   ImGui::Text("Camera Zoom %f Camera Rotation %f", static_cast< double >(cameraZoom),
-               static_cast< double >(cameraRotation));
-
-   const auto cursorOpengGLPos = m_parent.ScreenToGlobal(InputManager::GetMousePos());
-   // const auto cursorOpengGLPos = InputManager::GetMousePos();
-   ImGui::Text("Cursor Position %f, %f", static_cast< double >(cursorOpengGLPos.x),
-               static_cast< double >(cursorOpengGLPos.y));
-
-   auto& pathfinder = m_parent.GetLevel().GetPathfinder();
-   const auto nodeID = pathfinder.GetNodeIDFromPosition(cursorOpengGLPos);
-   Node curNode{};
-
-   if (nodeID != -1)
+   ImGui::SetNextItemOpen(true);
+   if (ImGui::CollapsingHeader("Debug"))
    {
-      curNode = pathfinder.GetNodeFromID(nodeID);
+      if (ImGui::BeginTable("DebugTable", 2))
+      {
+         CreateRow("Render time", fmt::format("{}", m_parent.GetRenderTime().ToString().c_str()));
+         const auto cameraPos = m_parent.GetCamera().GetPosition();
+         CreateRow("Camera Position", fmt::format("{}", static_cast< glm::vec2 >(cameraPos)));
+         CreateRow("Camera Zoom", fmt::format("{:.1f}", m_parent.GetCamera().GetZoomLevel()));
+
+         CreateRow("Camera Rotation", fmt::format("{:.1f}", m_parent.GetCamera().GetRotation()));
+
+         const auto cursorPos = m_parent.ScreenToGlobal(InputManager::GetMousePos());
+         CreateRow("Cursor Position", fmt::format("{}", cursorPos));
+
+         auto& pathfinder = m_parent.GetLevel().GetPathfinder();
+
+         const auto nodeID = pathfinder.GetNodeIDFromPosition(cursorPos);
+         const auto curNode = nodeID != -1 ? pathfinder.GetNodeFromID(nodeID) : Node{};
+
+         CreateRow("Cursor on TileID", fmt::format("{}", curNode.id_));
+         CreateRow("Cursor on Coords", fmt::format("({}, {})", curNode.xPos_, curNode.yPos_));
+
+         ImGui::EndTable();
+      }
    }
 
-   ImGui::Text("Cursor on tile ID = %d Coords(%d, %d)", curNode.id_, curNode.xPos_,
-               curNode.yPos_);
 
    ImGui::End();
 }
@@ -1042,73 +1096,100 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
 
    if (ImGui::CollapsingHeader("General"))
    {
-      auto name = m_currentlySelectedGameObject->GetName();
-      const auto nameLength = 20;
-      name.resize(nameLength);
-      
-      ImGui::Text("%s",
-                  fmt::format("Type: {} (ID: {})", m_currentlySelectedGameObject->GetTypeString(),
-                              m_currentlySelectedGameObject->GetID())
-                     .c_str());
-      ImGui::Text("Name: ");
-      ImGui::SameLine();
+      DrawWidget("Name", [this]() {
+         auto name = m_currentlySelectedGameObject->GetName();
+         const auto nameLength = 20;
+         name.resize(nameLength);
+         if (ImGui::InputText("##Name", name.data(), nameLength))
+         {
+            m_currentlySelectedGameObject->SetName(name);
+         }
+      });
 
-      if (ImGui::InputText("##", name.data(), nameLength))
+      if (ImGui::BeginTable("ObjectTable", 2))
       {
-         m_currentlySelectedGameObject->SetName(name);
-      }
+         CreateRow("Type", fmt::format("{}", m_currentlySelectedGameObject->GetTypeString()));
+         CreateRow("ID", fmt::format("{}", m_currentlySelectedGameObject->GetID()));
+         CreateActionRow("Has Collision", [this] {
+            auto collision = m_currentlySelectedGameObject->GetHasCollision();
+            if (ImGui::Checkbox("##Has Collision", &collision))
+            {
+               m_currentlySelectedGameObject->SetHasCollision(collision);
+            }
+         });
 
-      auto collision = m_currentlySelectedGameObject->GetHasCollision();
-      if (ImGui::Checkbox("Has Collision", &collision))
-      {
-         m_currentlySelectedGameObject->SetHasCollision(collision);
+         ImGui::EndTable();
       }
    }
+
+   BlankLine();
 
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Transform"))
    {
-      auto objectPosition = m_currentlySelectedGameObject->GetSprite().GetPosition();
-      auto sprite_size = m_currentlySelectedGameObject->GetSprite().GetSize();
-      auto rotation = m_currentlySelectedGameObject->GetSprite().GetRotation(
-         renderer::Sprite::RotationType::DEGREES);
+      DrawWidget("Position", [this]() {
+         auto objectPosition = m_currentlySelectedGameObject->GetSprite().GetPosition();
+         ImGui::InputFloat3("##Position", &objectPosition.x);
+      });
 
-      ImGui::InputFloat3("Position", &objectPosition.x);
+      DrawWidget("Size", [this]() {
+         auto sprite_size = m_currentlySelectedGameObject->GetSprite().GetSize();
+         if (ImGui::SliderFloat2("##Size", &sprite_size.x, 10, 1000))
+         {
+            m_currentlySelectedGameObject->SetSize(sprite_size);
+         }
+      });
 
-      if (ImGui::SliderFloat2("Size", &sprite_size.x, 10, 1000))
-      {
-         m_currentlySelectedGameObject->SetSize(sprite_size);
-      }
-
-      if (ImGui::SliderFloat("Rotate", &rotation,
-                             glm::degrees(renderer::Sprite::ROTATION_RANGE.first),
-                             glm::degrees(renderer::Sprite::ROTATION_RANGE.second)))
-      {
-         m_currentlySelectedGameObject->Rotate(glm::radians(rotation));
-      }
+      DrawWidget("Rotate", [this]() {
+         auto rotation = m_currentlySelectedGameObject->GetSprite().GetRotation(
+            renderer::Sprite::RotationType::DEGREES);
+         if (ImGui::SliderFloat("##Rotate", &rotation,
+                                glm::degrees(renderer::Sprite::ROTATION_RANGE.first),
+                                glm::degrees(renderer::Sprite::ROTATION_RANGE.second)))
+         {
+            m_currentlySelectedGameObject->Rotate(glm::radians(rotation));
+         }
+      });
    }
+
+   BlankLine();
 
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Shader"))
    {
       if (m_currentLevel)
       {
-         auto& sprite = m_currentlySelectedGameObject->GetSprite();
          // TODO: fix it!
          // ImGui::Image(reinterpret_cast< void* >( // NOLINT
          //                 static_cast< size_t >(sprite.GetTexture().GetImage())),
          //              {150, 150});
-         ImGui::InputText("FileName", sprite.GetTextureName().data(),
-                          sprite.GetTextureName().size(), ImGuiInputTextFlags_ReadOnly);
-         if (ImGui::Button("Change Texture"))
-         {
-            auto textureName = FileManager::FileDialog(
-               IMAGES_DIR, {{"PNG texture", "png"}, {"JPEG texture", "jpg"}}, false);
-            if (!textureName.empty())
+
+         DrawWidget("Texture", [this]() {
+            auto& sprite = m_currentlySelectedGameObject->GetSprite();
+
+            const float fullWidth = ImGui::GetContentRegionAvail().x;
+            const float inputTextWidth = fullWidth * 0.90f;
+            const float buttonWidth = fullWidth * 0.10f;
+
+            ImGui::PushItemWidth(inputTextWidth);
+            ImGui::InputText("##Texture", sprite.GetTextureName().data(),
+                             sprite.GetTextureName().size(), ImGuiInputTextFlags_ReadOnly);
+            ImGui::PopItemWidth(); // Always pair a Push call with a Pop
+
+            ImGui::SameLine();
+
+            ImGui::PushItemWidth(buttonWidth);
+            if (ImGui::Button(ICON_FA_PENCIL ""))
             {
-               sprite.SetTextureFromFile(textureName);
+               auto textureName = FileManager::FileDialog(
+                  IMAGES_DIR, {{"PNG texture", "png"}, {"JPEG texture", "jpg"}}, false);
+               if (!textureName.empty())
+               {
+                  sprite.SetTextureFromFile(textureName);
+               }
             }
-         }
+            ImGui::PopItemWidth(); // Always pair a Push call with a Pop
+         });
       }
    }
 
@@ -1117,24 +1198,25 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
       const auto animatablePtr =
          std::dynamic_pointer_cast< Animatable >(m_currentlySelectedGameObject);
 
+      BlankLine();
+
       ImGui::SetNextItemOpen(true);
       if (ImGui::CollapsingHeader("Animation"))
       {
-         ImGui::Text("Type"); // NOLINT
-         ImGui::SameLine();
+         DrawWidget("Type", [animatablePtr]() {
+            if (ImGui::RadioButton("Loop", animatablePtr->GetAnimationType()
+                                              == Animatable::ANIMATION_TYPE::LOOP))
+            {
+               animatablePtr->SetAnimationType(Animatable::ANIMATION_TYPE::LOOP);
+            }
 
-         if (ImGui::RadioButton("Loop", animatablePtr->GetAnimationType()
-                                           == Animatable::ANIMATION_TYPE::LOOP))
-         {
-            animatablePtr->SetAnimationType(Animatable::ANIMATION_TYPE::LOOP);
-         }
-
-         ImGui::SameLine();
-         if (ImGui::RadioButton("Reversal", animatablePtr->GetAnimationType()
-                                               == Animatable::ANIMATION_TYPE::REVERSABLE))
-         {
-            animatablePtr->SetAnimationType(Animatable::ANIMATION_TYPE::REVERSABLE);
-         }
+            ImGui::SameLine();
+            if (ImGui::RadioButton("Reversal", animatablePtr->GetAnimationType()
+                                                  == Animatable::ANIMATION_TYPE::REVERSABLE))
+            {
+               animatablePtr->SetAnimationType(Animatable::ANIMATION_TYPE::REVERSABLE);
+            }
+         });
 
          bool animationVisible = animatablePtr->GetRenderAnimationSteps();
          if (ImGui::Checkbox("Animation points visible", &animationVisible))
@@ -1146,7 +1228,6 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          {
             m_parent.ToggleAnimateObject();
          }
-
 
          static float timer = 0.0f;
          const auto animationDuration =
@@ -1160,28 +1241,49 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          ImGui::SameLine();
          if (ImGui::SliderFloat("##", &timer, 0.0f, animationDuration, "%.3f ms"))
          {
-            m_currentlySelectedGameObject->GetSprite().SetTranslateValue(
-               glm::vec3(animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(timer))), 0.0f));
+            m_currentlySelectedGameObject->GetSprite().SetTranslateValue(glm::vec3(
+               animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(timer))),
+               0.0f));
          }
 
-         // static int selected = 0;
-         auto animationPoints = animatablePtr->GetAnimationKeypoints();
+         auto& animationPoints = animatablePtr->GetAnimationKeypoints();
          auto newNodePosition = m_currentlySelectedGameObject->GetPosition();
          ImGui::BeginChild("Animation Points", {0, 100}, true);
-         for (uint32_t i = 0; i < animationPoints.size(); ++i)
+         if (ImGui::BeginTable("AnimationPointTable", 2))
          {
-            const auto& node = animationPoints[i];
-            auto label = fmt::format("[{}] Pos({:.{}f},{:.{}f}) Time={}s", i, node.m_end.x, 1,
-                                     node.m_end.y, 1, node.m_timeDuration.count());
-            if (ImGui::Selectable(label.c_str()))
-            {
-               m_parent.GetCamera().SetCameraAtPosition(node.m_end);
-               m_parent.HandleObjectSelected(node.GetID(), true);
-               m_parent.SetRenderAnimationPoints(true);
-            }
+            auto contentWidth = ImGui::GetContentRegionAvail().x;
+            ImGui::TableSetupColumn("Column 1", ImGuiTableColumnFlags_WidthStretch,
+                                    contentWidth * 0.95f);
+            ImGui::TableSetupColumn("Column 2", ImGuiTableColumnFlags_WidthStretch,
+                                    contentWidth * 0.05f);
 
-            newNodePosition = node.m_end;
+            for (uint32_t i = 0; i < animationPoints.size(); ++i)
+            {
+               const auto& node = animationPoints[i];
+               const auto label = fmt::format("[{}] Time={}s", i, node.m_timeDuration.count());
+
+               ImGui::TableNextRow();
+               ImGui::TableNextColumn();
+               if (ImGui::Selectable(label.c_str()))
+               {
+                  m_parent.GetCamera().SetCameraAtPosition(node.m_end);
+                  m_parent.HandleObjectSelected(node.GetID(), true);
+                  m_parent.SetRenderAnimationPoints(true);
+               }
+               ImGui::TableNextColumn();
+
+               ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.0f, 0.0f, 0.0f, 1.0f});
+               if (ImGui::Selectable(fmt::format("{}##{}", ICON_FA_XMARK, i).c_str()))
+               {
+                  m_parent.HandleObjectSelected(node.GetID(), true);
+                  m_parent.ActionOnObject(Editor::ACTION::REMOVE);
+               }
+               ImGui::PopStyleColor(1);
+
+               newNodePosition = node.m_end;
+            }
          }
+         ImGui::EndTable();
 
          if (ImGui::Button("New"))
          {
@@ -1190,6 +1292,40 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
             m_parent.SetRenderAnimationPoints(true);
          }
          ImGui::EndChild();
+
+         const auto selectedID = m_parent.GetSelectedEditorObject();
+         if (Object::GetTypeFromID(selectedID) == ObjectType::ANIMATION_POINT)
+         {
+            BlankLine();
+            ImGui::SetNextItemOpen(true);
+            if (ImGui::CollapsingHeader("Selected point"))
+            {
+               auto& node =
+                  dynamic_cast< AnimationPoint& >(m_parent.GetLevel().GetObjectRef(selectedID));
+
+               if (ImGui::BeginTable("AnimationPointTable", 2))
+               {
+                  const auto it =
+                     stl::find_if(animationPoints, [selectedID](const auto& animationPoint) {
+                        return animationPoint.GetID() == selectedID;
+                     });
+                  const auto idx = std::distance(animationPoints.begin(), it);
+
+                  CreateRow("Idx", fmt::format("{}", idx));
+                  CreateRow("Position", fmt::format("{:.2f},{:.2f}", node.m_end.x, node.m_end.y));
+
+                  ImGui::EndTable();
+               }
+
+               DrawWidget(fmt::format("Duration (sec)", node.m_end.x, node.m_end.y), [&node]() {
+                  auto seconds = static_cast< int32_t >(node.m_timeDuration.count());
+                  if (ImGui::SliderInt("##distance", &seconds, 0, 10))
+                  {
+                     node.m_timeDuration = std::chrono::seconds(seconds);
+                  }
+               });
+            }
+         }
       }
    }
 
@@ -1211,7 +1347,7 @@ EditorGUI::UpdateUI()
    m_levelWindowHeight = m_windowSize.y - m_toolsWindowHeight;
    m_gameObjectWindowHeight = m_windowSize.y;
    m_debugWindowWidth = m_windowSize.x - 2 * m_windowWidth;
-   m_debugWindowHeight = 100;
+   m_debugWindowHeight = 150;
 
    RenderMainPanel();
 

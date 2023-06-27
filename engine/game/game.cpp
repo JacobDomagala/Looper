@@ -25,7 +25,7 @@ Game::MainLoop()
          m_timer.ToggleTimer();
          singleFrameTimer += m_timer.GetFloatDeltaTime();
 
-         while (IsRunning() and singleFrameTimer >= TARGET_TIME)
+         while (IsRunning() and (singleFrameTimer >= TARGET_TIME))
          {
             m_window->Clear();
             const auto dt = Timer::milliseconds(
