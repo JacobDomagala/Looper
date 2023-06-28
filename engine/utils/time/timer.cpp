@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <memory>
 
-namespace looper {
+namespace looper::time {
 
 Timer::Timer()
    : m_deltaTime(milliseconds(0)),
@@ -34,16 +34,16 @@ Timer::AreTimersRunning()
 float
 Timer::GetFloatDeltaTime() const
 {
-   return static_cast< float >(GetMicroDeltaTime().count());
+   return GetMicroDeltaTime().count();
 }
 
-Timer::microseconds
+time::microseconds
 Timer::GetMicroDeltaTime() const
 {
    return m_deltaTime;
 }
 
-Timer::milliseconds
+time::milliseconds
 Timer::GetMsDeltaTime() const
 {
    return std::chrono::duration_cast< milliseconds >(m_deltaTime);
@@ -70,10 +70,10 @@ Timer::ToggleTimer()
    m_totalTime += std::chrono::duration_cast< milliseconds >(m_deltaTime);
 }
 
-Timer::milliseconds
+time::milliseconds
 Timer::ConvertToMs(seconds sec)
 {
-   return std::chrono::duration_cast< Timer::milliseconds >(sec);
+   return std::chrono::duration_cast< time::milliseconds >(sec);
 }
 
 std::string
@@ -83,4 +83,4 @@ Timer::GetCurrentTime()
    return fmt::format("{:%H:%M:%S}", fmt::localtime(time));
 }
 
-} // namespace looper
+} // namespace looper::time

@@ -54,7 +54,7 @@ Logger::Log(fmt::format_string<Args...> buffer, Args&&... args)
          auto hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
          SetConsoleTextAttribute(hConsole, s_typeStyles.at(LogLevel));
 
-         fmt::print("[{}]{} {}\n", Timer::GetCurrentTime(), ToString(LogLevel),
+         fmt::print("[{}]{} {}\n", time::Timer::GetCurrentTime(), ToString(LogLevel),
                     fmt::format(buffer, std::forward< Args >(args)...));
 
          // Set the color to white

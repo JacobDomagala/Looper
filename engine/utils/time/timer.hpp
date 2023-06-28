@@ -1,17 +1,15 @@
 #pragma once
 
+#include "time_type.hpp"
+
 #include <chrono>
 #include <string>
 
-namespace looper {
+namespace looper::time {
 
 class Timer
 {
  public:
-   using microseconds = std::chrono::microseconds;
-   using milliseconds = std::chrono::milliseconds;
-   using seconds = std::chrono::seconds;
-
    Timer();
 
    static void
@@ -68,4 +66,4 @@ class Timer
    static inline bool m_timersPaused = false;
 };
 
-} // namespace looper
+} // namespace looper::time

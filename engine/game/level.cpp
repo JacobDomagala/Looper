@@ -110,7 +110,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
             {
                AnimationPoint animationPoint(object->GetID());
                animationPoint.m_end = glm::vec2(point["end position"][0], point["end position"][1]);
-               animationPoint.m_timeDuration = Timer::seconds(point["time duration"]);
+               animationPoint.m_timeDuration = time::seconds(point["time duration"]);
 
                keypointsPositions.emplace_back(animationPoint);
 

@@ -16,7 +16,7 @@ struct AnimationPoint : public Object
    {
    }
 
-   AnimationPoint(ID parentID, const glm::vec2& endPosition, Timer::seconds timeDuration)
+   AnimationPoint(ID parentID, const glm::vec2& endPosition, time::seconds timeDuration)
       : Object(ObjectType::ANIMATION_POINT),
         m_parent(parentID),
         m_timeDuration(timeDuration),
@@ -27,10 +27,10 @@ struct AnimationPoint : public Object
    ID m_parent = INVALID_ID;
 
    // duration of adnimation throughout entire animation section
-   Timer::seconds m_timeDuration = Timer::seconds(0);
+   time::seconds m_timeDuration = time::seconds(0);
 
    // duration of pause which object will make after reaching endpoint of this animation section
-   Timer::seconds m_pauseDuration = Timer::seconds(0);
+   time::seconds m_pauseDuration = time::seconds(0);
 
    glm::vec2 m_end = glm::vec2(0.0f, 0.0f);
 
@@ -54,17 +54,17 @@ class Animatable
    GetAnimationType() const;
 
    glm::vec2
-   SetAnimation(Timer::milliseconds updateTime);
+   SetAnimation(time::milliseconds updateTime);
 
    // Perform looped animation
    // Returns animate distance
    glm::vec2
-   Animate(Timer::milliseconds updateTime);
+   Animate(time::milliseconds updateTime);
 
    // Perform single animation route
    // Returns animate distance or empty when animation is finished
    glm::vec2
-   SingleAnimate(Timer::milliseconds updateTime);
+   SingleAnimate(time::milliseconds updateTime);
 
    AnimationPoint
    CreateAnimationNode(Object::ID parentID, const glm::vec2& position = glm::vec2{});
@@ -87,7 +87,7 @@ class Animatable
    [[nodiscard]] const std::vector< AnimationPoint >&
    GetAnimationKeypoints() const;
 
-   [[nodiscard]] Timer::seconds
+   [[nodiscard]] time::seconds
    GetAnimationDuration() const;
 
    void
@@ -133,10 +133,10 @@ class Animatable
       bool m_animationFinished = false;
 
       // time from current Animation Point start
-      Timer::milliseconds m_currentTimeElapsed = Timer::milliseconds(0);
+      time::milliseconds m_currentTimeElapsed = time::milliseconds(0);
 
       // time from Animation start
-      Timer::milliseconds m_totalTimeElapsed = Timer::milliseconds(0);
+      time::milliseconds m_totalTimeElapsed = time::milliseconds(0);
    };
 
    std::deque< AnimationState > m_animationStatesQueue;
@@ -168,12 +168,12 @@ class Animatable
    // - animationDistance -> (20,40)
    // - updateTime -> (2000ms -> 2s)
    glm::vec2
-   SetCorrectAnimationPoint(Timer::milliseconds& updateTime);
+   SetCorrectAnimationPoint(time::milliseconds& updateTime);
 
    // Updates animation in current section
    // This should only be called after SetCorrectAnimationPoint
    glm::vec2
-   AnimateInCurrentSection(Timer::milliseconds updateTime);
+   AnimateInCurrentSection(time::milliseconds updateTime);
 
    // Iterate to next animation point and set all internal data related to it
    // For Reverse it's backward iteration, forward otherwise
@@ -182,7 +182,7 @@ class Animatable
 
    // Calculate next animation step based on current animation point and 'updateTime'
    [[nodiscard]] glm::vec2
-   CalculateNextStep(Timer::milliseconds updateTime) const;
+   CalculateNextStep(time::milliseconds updateTime) const;
 };
 
 } // namespace looper

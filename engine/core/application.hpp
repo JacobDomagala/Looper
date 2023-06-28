@@ -1,7 +1,6 @@
 #pragma once
 
 #include "renderer/camera/camera.hpp"
-// #include "Font.hpp"
 #include "input_listener.hpp"
 #include "level.hpp"
 #include "logger.hpp"
@@ -45,8 +44,13 @@ class Application : public InputListener
    [[nodiscard]] renderer::Camera&
    GetCamera();
 
-   [[nodiscard]] Timer::milliseconds
+   [[nodiscard]] time::milliseconds
    GetDeltaTime() const;
+
+   [[nodiscard]] int32_t GetFramesLastSecond()
+   {
+      return m_framesLastSecond;
+   }
 
    [[nodiscard]] bool
    IsGame() const;
@@ -90,8 +94,11 @@ class Application : public InputListener
 
    std::unique_ptr< renderer::Window > m_window = nullptr;
    renderer::Camera m_camera = {};
-   Timer m_timer = {};
-   Timer::milliseconds m_deltaTime = {};
+   time::Timer m_timer = {};
+   time::milliseconds m_deltaTime = {};
+   int32_t m_frames = 0;
+   float m_frameTimer = 0.0f;
+   int32_t m_framesLastSecond = 0;
    uint32_t numObjects_ = {};
 };
 

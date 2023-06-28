@@ -28,7 +28,7 @@ class Game : public Application
    IsReverse() const;
 
    void
-   ProcessInput(Timer::milliseconds deltaTime);
+   ProcessInput(time::milliseconds deltaTime);
 
    void
    Render(VkCommandBuffer cmdBuffer) override;

@@ -1,13 +1,11 @@
 #pragma once
 
+#include "time_type.hpp"
+
 #include <chrono>
 #include <string>
 
 namespace looper::time {
-
-using microseconds = std::chrono::microseconds;
-using milliseconds = std::chrono::milliseconds;
-using seconds = std::chrono::seconds;
 
 struct TimeStep
 {

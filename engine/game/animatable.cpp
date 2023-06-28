@@ -79,14 +79,14 @@ Animatable::UpdateAnimationPoint()
 }
 
 glm::vec2
-Animatable::SetCorrectAnimationPoint(Timer::milliseconds& updateTime)
+Animatable::SetCorrectAnimationPoint(time::milliseconds& updateTime)
 {
    auto animationValue = glm::vec2();
 
    ResetAnimation();
 
    auto animationDurationMs =
-      Timer::ConvertToMs(m_currentAnimationState.m_currentAnimationPoint->m_timeDuration);
+      time::Timer::ConvertToMs(m_currentAnimationState.m_currentAnimationPoint->m_timeDuration);
 
    if (updateTime >= animationDurationMs)
    {
@@ -98,7 +98,7 @@ Animatable::SetCorrectAnimationPoint(Timer::milliseconds& updateTime)
 
          UpdateAnimationPoint();
          animationDurationMs =
-            Timer::ConvertToMs(m_currentAnimationState.m_currentAnimationPoint->m_timeDuration);
+            time::Timer::ConvertToMs(m_currentAnimationState.m_currentAnimationPoint->m_timeDuration);
       } while (updateTime >= animationDurationMs
                && m_currentAnimationState.m_currentAnimationPoint != m_animationPoints.begin());
    }
@@ -107,12 +107,12 @@ Animatable::SetCorrectAnimationPoint(Timer::milliseconds& updateTime)
 }
 
 glm::vec2
-Animatable::CalculateNextStep(Timer::milliseconds updateTime) const
+Animatable::CalculateNextStep(time::milliseconds updateTime) const
 {
    const auto startPosition = m_currentAnimationState.m_currentAnimationBegin;
    const auto destination = m_currentAnimationState.m_currentAnimationEnd;
    const auto animationDurationMs =
-      Timer::ConvertToMs(m_currentAnimationState.m_currentAnimationPoint->m_timeDuration);
+      time::Timer::ConvertToMs(m_currentAnimationState.m_currentAnimationPoint->m_timeDuration);
 
    const auto timeLeft = static_cast< float >(
       (animationDurationMs - m_currentAnimationState.m_currentTimeElapsed).count());
@@ -130,7 +130,7 @@ Animatable::CalculateNextStep(Timer::milliseconds updateTime) const
 }
 
 glm::vec2
-Animatable::AnimateInCurrentSection(Timer::milliseconds updateTime)
+Animatable::AnimateInCurrentSection(time::milliseconds updateTime)
 {
    auto animationValue = CalculateNextStep(updateTime);
 
@@ -143,7 +143,7 @@ Animatable::AnimateInCurrentSection(Timer::milliseconds updateTime)
 }
 
 glm::vec2
-Animatable::SetAnimation(Timer::milliseconds updateTime)
+Animatable::SetAnimation(time::milliseconds updateTime)
 {
    auto animationValue = SetCorrectAnimationPoint(updateTime);
    animationValue += AnimateInCurrentSection(updateTime);
@@ -152,7 +152,7 @@ Animatable::SetAnimation(Timer::milliseconds updateTime)
 }
 
 glm::vec2
-Animatable::Animate(Timer::milliseconds updateTime)
+Animatable::Animate(time::milliseconds updateTime)
 {
    auto animateBy = glm::vec2();
 
@@ -166,7 +166,7 @@ Animatable::Animate(Timer::milliseconds updateTime)
    }
    else
    {
-      m_currentAnimationState.m_currentTimeElapsed = Timer::milliseconds(0);
+      m_currentAnimationState.m_currentTimeElapsed = time::milliseconds(0);
       m_currentAnimationState.m_currentAnimationDistance = glm::vec2(0.0f, 0.0f);
 
       if (m_currentAnimationState.m_isReverse
@@ -185,7 +185,7 @@ Animatable::Animate(Timer::milliseconds updateTime)
 }
 
 glm::vec2
-Animatable::SingleAnimate(Timer::milliseconds updateTime)
+Animatable::SingleAnimate(time::milliseconds updateTime)
 {
    if (m_currentAnimationState.m_animationFinished)
    {
@@ -202,7 +202,7 @@ Animatable::CreateAnimationNode(Object::ID parentID, const glm::vec2& position)
    const auto nodePosition = m_animationPoints.empty()
                             ? position
                             : m_animationPoints.back().m_end + glm::vec2(20.0f, 20.0f);
-   auto newNode = AnimationPoint(parentID, nodePosition, Timer::seconds(2));
+   auto newNode = AnimationPoint(parentID, nodePosition, time::seconds(2));
    AddAnimationNode(newNode);
 
    return newNode;
@@ -270,10 +270,10 @@ Animatable::GetAnimationKeypoints() const
    return m_animationPoints;
 }
 
-Timer::seconds
+time::seconds
 Animatable::GetAnimationDuration() const
 {
-   auto totalDuration = Timer::seconds(0);
+   auto totalDuration = time::seconds(0);
 
    for (const auto& animationPoint : m_animationPoints)
    {
@@ -320,8 +320,8 @@ Animatable::ResetAnimation()
    m_currentAnimationState.m_currentAnimationDistance = glm::vec2(0.0f, 0.0f);
    m_currentAnimationState.m_isReverse = false;
    m_currentAnimationState.m_animationFinished = false;
-   m_currentAnimationState.m_currentTimeElapsed = Timer::milliseconds(0);
-   m_currentAnimationState.m_totalTimeElapsed = Timer::milliseconds(0);
+   m_currentAnimationState.m_currentTimeElapsed = time::milliseconds(0);
+   m_currentAnimationState.m_totalTimeElapsed = time::milliseconds(0);
 }
 
 void
@@ -394,7 +394,7 @@ Animatable::SetAnimationStartLocation(const glm::vec2& position)
       m_currentAnimationState.m_currentAnimationBegin = m_animationStartPosition;
       m_currentAnimationState.m_currentAnimationPosition = m_animationStartPosition;
       m_currentAnimationState.m_currentAnimationDistance = glm::vec2(0.0f, 0.0f);
-      m_currentAnimationState.m_currentTimeElapsed = Timer::milliseconds(0);
+      m_currentAnimationState.m_currentTimeElapsed = time::milliseconds(0);
    }
 }
 
