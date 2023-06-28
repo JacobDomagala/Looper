@@ -47,7 +47,7 @@ class Application : public InputListener
    [[nodiscard]] time::milliseconds
    GetDeltaTime() const;
 
-   [[nodiscard]] int32_t GetFramesLastSecond()
+   [[nodiscard]] int32_t GetFramesLastSecond() const
    {
       return m_framesLastSecond;
    }

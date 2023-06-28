@@ -41,7 +41,7 @@ Game::MainLoop()
 
             // Increment frame count and frame timer
             ++m_frames;
-            m_frameTimer += TARGET_TIME_MS;
+            m_frameTimer += TARGET_TIME_S;
 
             // Decrement frame timer for next frame
             singleFrameTimer -= time::microseconds(TARGET_TIME_MICRO);

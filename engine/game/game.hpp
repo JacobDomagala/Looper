@@ -108,10 +108,6 @@ class Game : public Application
 
    bool m_initialized = false;
 
-   int32_t m_frames = 0;
-   float m_frameTimer = 0.0f;
-   int32_t m_framesLastSecond = 0;
-
    // all maps
    std::vector< std::string > m_levels = {};
 

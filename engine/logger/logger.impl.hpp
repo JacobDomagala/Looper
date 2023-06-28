@@ -60,7 +60,7 @@ Logger::Log(fmt::format_string<Args...> buffer, Args&&... args)
          // Set the color to white
          SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_RED);
 #else
-         fmt::print(fmt::fg(s_typeStyles.at(LogLevel)), "[{}]{} {}\n", Timer::GetCurrentTime(),
+         fmt::print(fmt::fg(s_typeStyles.at(LogLevel)), "[{}]{} {}\n", time::Timer::GetCurrentTime(),
                     ToString(LogLevel),
                     fmt::format(buffer, std::forward< Args >(args)...));
 #endif
