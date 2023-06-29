@@ -139,20 +139,19 @@ CreatePipeline(std::string_view vertexShader, std::string_view fragmentShader, P
    pipelineLayoutInfo.setLayoutCount = 1;
    pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
 
+   // Define push constant range
+   VkPushConstantRange pushConstantRange{};
+   pushConstantRange.stageFlags = ShaderType::SHADER_STAGE_FLAGS;
+   pushConstantRange.offset = 0;
+   pushConstantRange.size = sizeof(typename ShaderType::PushConstants);
+
    if constexpr (ShaderType::HAS_PUSHCONSTANTS)
    {
-      // Define push constant range
-      VkPushConstantRange pushConstantRange{};
-      pushConstantRange.stageFlags = ShaderType::SHADER_STAGE_FLAGS;
-      pushConstantRange.offset = 0;
-      pushConstantRange.size = sizeof(typename ShaderType::PushConstants);
-
       pipelineLayoutInfo.pushConstantRangeCount = 1;
       pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
    }
 
    vk_check_error(
-      // cppcheck-suppress invalidLifetime
       vkCreatePipelineLayout(Data::vk_device, &pipelineLayoutInfo, nullptr, &pipeLineLayout),
       "failed to create pipeline layout!");
 
@@ -298,7 +297,7 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
    if (not renderData->deletedObjs_.at(layer).empty())
    {
       idx = renderData->deletedObjs_.at(layer).back();
-      
+
       SubmitMeshData(idx, TextureLibrary::GetTexture(textures_in.front())->GetID(), modelMat, color);
       UpdateDescriptors();
 

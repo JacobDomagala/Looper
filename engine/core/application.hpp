@@ -92,7 +92,7 @@ class Application : public InputListener
    std::shared_ptr< Player > m_player = nullptr;
    std::shared_ptr< Level > m_currentLevel = nullptr;
 
-   std::unique_ptr< renderer::Window > m_window = nullptr;
+   std::unique_ptr< renderer::Window > m_window = {};
    renderer::Camera m_camera = {};
    time::Timer m_timer = {};
    time::milliseconds m_deltaTime = {};
