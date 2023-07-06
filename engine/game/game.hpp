@@ -28,7 +28,7 @@ class Game : public Application
    IsReverse() const;
 
    void
-   ProcessInput(Timer::milliseconds deltaTime);
+   ProcessInput(time::milliseconds deltaTime);
 
    void
    Render(VkCommandBuffer cmdBuffer) override;
@@ -107,10 +107,6 @@ class Game : public Application
    IsRunning() const override;
 
    bool m_initialized = false;
-
-   int32_t m_frames = 0;
-   float m_frameTimer = 0.0f;
-   int32_t m_framesLastSecond = 0;
 
    // all maps
    std::vector< std::string > m_levels = {};

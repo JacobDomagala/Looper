@@ -17,19 +17,18 @@ Game::MainLoop()
 {
    if (m_currentLevel)
    {
-      // timer in microseconds
-      auto singleFrameTimer = 0.0f;
+      auto singleFrameTimer = time::microseconds(0);
 
       while (IsRunning())
       {
          m_timer.ToggleTimer();
-         singleFrameTimer += m_timer.GetFloatDeltaTime();
+         singleFrameTimer += m_timer.GetMicroDeltaTime();
 
-         while (IsRunning() and (singleFrameTimer >= TARGET_TIME))
+         while (IsRunning() and (singleFrameTimer.count() >= TARGET_TIME_MICRO))
          {
             m_window->Clear();
-            const auto dt = Timer::milliseconds(
-               static_cast< long >(TARGET_TIME * static_cast< float >(Timer::AreTimersRunning())));
+            const auto dt = time::milliseconds(
+               TARGET_TIME_MS * static_cast< float >(time::Timer::AreTimersRunning()));
             ProcessInput(dt);
 
             renderer::VulkanRenderer::Render(this);
@@ -42,10 +41,10 @@ Game::MainLoop()
 
             // Increment frame count and frame timer
             ++m_frames;
-            m_frameTimer += TARGET_TIME;
+            m_frameTimer += TARGET_TIME_S;
 
             // Decrement frame timer for next frame
-            singleFrameTimer -= TARGET_TIME;
+            singleFrameTimer -= time::microseconds(TARGET_TIME_MICRO);
 
             InputManager::PollEvents();
          }
@@ -192,11 +191,11 @@ Game::KeyEvents() // NOLINT
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_R))
       {
-         Timer::PauseAllTimers();
+         time::Timer::PauseAllTimers();
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_T))
       {
-         Timer::ResumeAllTimers();
+         time::Timer::ResumeAllTimers();
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_SPACE))
       {
@@ -350,7 +349,7 @@ Game::RegisterForKeyInput(InputListener* listener)
 }
 
 void
-Game::ProcessInput(Timer::milliseconds deltaTime)
+Game::ProcessInput(time::milliseconds deltaTime)
 {
    m_deltaTime = deltaTime;
 
@@ -396,7 +395,7 @@ Game::HandleReverseLogic()
       {
          ++m_frameCount;
       }
- 
+
    }
 }
 

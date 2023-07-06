@@ -91,7 +91,7 @@ class Enemy : public GameObject, public Animatable
       bool m_isChasingPlayer = false;
       bool m_isAtInitialPos = true;
 
-      Timer::microseconds m_timeSinceCombatEnded = Timer::microseconds(0);
+      time::microseconds m_timeSinceCombatEnded = time::microseconds(0);
       float m_timeSinceCombatStarted = 0.0f;
       float m_timeSinceLastShot = 0.0f;
       float m_reactionTime = 0.1f;
@@ -106,7 +106,7 @@ class Enemy : public GameObject, public Animatable
    EnemyState m_currentState;
 
    // helper timer
-   Timer m_timer;
+   time::Timer m_timer;
 
    // total HP
    int32_t m_maxHP = 100;

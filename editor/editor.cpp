@@ -33,8 +33,6 @@ Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
    renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle(),
                                         renderer::ApplicationType::EDITOR);
    gui_.Init();
-
-   m_deltaTime = Timer::milliseconds(static_cast< long >(TARGET_TIME));
 }
 
 void
@@ -46,9 +44,6 @@ Editor::ShowCursor(bool choice)
 void
 Editor::HandleCamera()
 {
-   //m_timer.ToggleTimer();
-   //m_deltaTime = m_timer.GetMsDeltaTime();
-
    auto cameraMoveBy = glm::vec2();
 
    if (!EditorGUI::IsBlockingEvents() && m_levelLoaded)
@@ -497,7 +492,7 @@ Editor::ActionOnObject(Editor::ACTION action)
          else if (m_gameObjectSelected && m_currentSelectedGameObject)
          {
             m_currentLevel->DeleteObject(m_currentSelectedGameObject->GetID());
-            
+
             gui_.ObjectDeleted(m_currentSelectedGameObject->GetID());
 
             UnselectGameObject();
@@ -549,8 +544,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
             continue;
          }
 
-         vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer.at(idx),
-                                offsets.data());
+         vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer.at(idx), offsets.data());
 
          vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer.at(idx), 0, VK_INDEX_TYPE_UINT32);
 
@@ -1051,31 +1045,45 @@ Editor::IsRunning() const
 void
 Editor::MainLoop()
 {
+   auto singleFrameTimer = time::microseconds(0);
    time::Stopwatch watch;
    while (IsRunning())
    {
       watch.Start();
+      m_timer.ToggleTimer();
+      singleFrameTimer += m_timer.GetMicroDeltaTime();
 
-      m_window->Clear();
-
-      InputManager::PollEvents();
-
-      HandleCamera();
-      Update();
-
-      renderer::VulkanRenderer::Render(this);
-
-      timeLastFrame_ = watch.Stop();
-
-      renderer::EditorData::curDynLineIdx = 0;
-      if (m_levelLoaded and m_currentLevel->GetPathfinder().IsInitialized())
+      while (IsRunning() and (singleFrameTimer.count() >= TARGET_TIME_MICRO))
       {
-         m_currentLevel->GetPathfinder().ClearPerFrameData();
-      }
+         InputManager::PollEvents();
 
-      if (m_playGame)
-      {
-         LaunchGameLoop();
+         HandleCamera();
+         Update();
+
+         renderer::VulkanRenderer::Render(this);
+
+         timeLastFrame_ = watch.Stop();
+
+         if (m_frameTimer > 1.0f)
+         {
+            m_framesLastSecond = m_frames;
+            m_frameTimer = 0.0f;
+            m_frames = 0;
+         }
+
+         ++m_frames;
+         m_frameTimer += TARGET_TIME_S;
+
+         renderer::EditorData::curDynLineIdx = 0;
+         if (m_levelLoaded and m_currentLevel->GetPathfinder().IsInitialized())
+         {
+            m_currentLevel->GetPathfinder().ClearPerFrameData();
+         }
+
+         if (m_playGame)
+         {
+            LaunchGameLoop();
+         }
       }
    }
 }

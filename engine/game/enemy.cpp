@@ -45,7 +45,7 @@ Enemy::DealWithPlayer()
    {
       m_currentState.m_action = ACTION::SHOOTING;
       m_currentState.m_lastPlayersPos = playerPosition;
-      m_currentState.m_timeSinceCombatEnded = Timer::milliseconds(0);
+      m_currentState.m_timeSinceCombatEnded = time::milliseconds(0);
       ResetAnimation();
 
       if (m_currentState.m_combatStarted)
@@ -67,7 +67,7 @@ Enemy::DealWithPlayer()
    else
    {
       m_currentState.m_timeSinceCombatEnded += m_timer.GetMsDeltaTime();
-      const auto chaseTime = Timer::seconds(3);
+      const auto chaseTime = time::seconds(3);
 
       if ((m_currentState.m_action != ACTION::IDLE)
           && (m_currentState.m_timeSinceCombatEnded < chaseTime))
@@ -171,7 +171,7 @@ Enemy::EnemyMove(const glm::vec2& moveBy)
       {
          prevPosition = glm::vec2(GameObject::m_gameObjectStatesQueue.back().previousPosition_);
       }
-      
+
       const auto direction = m_currentGameObjectState.m_position - prevPosition;
 
       m_currentState.m_viewAngle = glm::atan(direction.y, direction.x);

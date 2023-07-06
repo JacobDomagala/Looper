@@ -30,7 +30,7 @@ Application::GetCamera()
    return m_camera;
 }
 
-Timer::milliseconds
+time::milliseconds
 Application::GetDeltaTime() const
 {
    return m_deltaTime;

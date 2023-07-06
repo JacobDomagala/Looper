@@ -1060,7 +1060,8 @@ EditorGUI::RenderLevelMenu() // NOLINT
    {
       if (ImGui::BeginTable("DebugTable", 2))
       {
-         CreateRow("Render time", fmt::format("{}", m_parent.GetRenderTime().ToString().c_str()));
+         CreateRow("FPS", fmt::format("{}", m_parent.GetFramesLastSecond()));
+         CreateRow("Render time", fmt::format("{:.2f}ms", m_parent.GetRenderTime().GetMilliseconds().count()));
          const auto cameraPos = m_parent.GetCamera().GetPosition();
          CreateRow("Camera Position", fmt::format("{}", static_cast< glm::vec2 >(cameraPos)));
          CreateRow("Camera Zoom", fmt::format("{:.1f}", m_parent.GetCamera().GetZoomLevel()));
@@ -1230,8 +1231,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          }
 
          static float timer = 0.0f;
-         const auto animationDuration =
-            static_cast< float >(Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count());
+         const auto animationDuration = time::Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count();
          if (m_parent.IsObjectAnimated())
          {
             timer += static_cast< float >(m_parent.GetDeltaTime().count());
@@ -1242,7 +1242,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          if (ImGui::SliderFloat("##", &timer, 0.0f, animationDuration, "%.3f ms"))
          {
             m_currentlySelectedGameObject->GetSprite().SetTranslateValue(glm::vec3(
-               animatablePtr->SetAnimation(Timer::milliseconds(static_cast< uint64_t >(timer))),
+               animatablePtr->SetAnimation(time::milliseconds(static_cast< uint64_t >(timer))),
                0.0f));
          }
 
