@@ -12,9 +12,6 @@ struct TimeStep
    explicit TimeStep(milliseconds time = milliseconds{});
    explicit TimeStep(microseconds time = microseconds{});
 
-   [[nodiscard]] std::string
-   ToString() const;
-
    [[nodiscard]] seconds
    GetSeconds() const;
 

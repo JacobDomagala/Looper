@@ -11,7 +11,7 @@ ScopedTimer::ScopedTimer(std::string&& logMsg) : m_logMsg(std::move(logMsg))
 //NOLINTNEXTLINE
 ScopedTimer::~ScopedTimer()
 {
-   Logger::Debug("{} took {}", m_logMsg, m_timer.Stop().ToString());
+   Logger::Debug("{} took {}ms", m_logMsg, m_timer.Stop().GetMilliseconds().count());
 }
 
 } // namespace shady::time

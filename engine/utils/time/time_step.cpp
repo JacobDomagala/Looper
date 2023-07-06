@@ -13,12 +13,6 @@ TimeStep::TimeStep(microseconds time) : m_time(time)
 {
 }
 
-std::string
-TimeStep::ToString() const
-{
-   return fmt::format("{}ms", m_time.count());
-}
-
 seconds
 TimeStep::GetSeconds() const
 {

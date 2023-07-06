@@ -33,8 +33,6 @@ Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
    renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle(),
                                         renderer::ApplicationType::EDITOR);
    gui_.Init();
-
-   m_deltaTime = time::milliseconds((TARGET_TIME_MS));
 }
 
 void
@@ -46,9 +44,6 @@ Editor::ShowCursor(bool choice)
 void
 Editor::HandleCamera()
 {
-   // m_timer.ToggleTimer();
-   // m_deltaTime = m_timer.GetMsDeltaTime();
-
    auto cameraMoveBy = glm::vec2();
 
    if (!EditorGUI::IsBlockingEvents() && m_levelLoaded)

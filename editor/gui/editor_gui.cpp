@@ -1061,7 +1061,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
       if (ImGui::BeginTable("DebugTable", 2))
       {
          CreateRow("FPS", fmt::format("{}", m_parent.GetFramesLastSecond()));
-         CreateRow("Render time", fmt::format("{}", m_parent.GetRenderTime().ToString().c_str()));
+         CreateRow("Render time", fmt::format("{:.2f}ms", m_parent.GetRenderTime().GetMilliseconds().count()));
          const auto cameraPos = m_parent.GetCamera().GetPosition();
          CreateRow("Camera Position", fmt::format("{}", static_cast< glm::vec2 >(cameraPos)));
          CreateRow("Camera Zoom", fmt::format("{:.1f}", m_parent.GetCamera().GetZoomLevel()));
