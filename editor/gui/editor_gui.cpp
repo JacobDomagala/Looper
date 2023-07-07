@@ -8,6 +8,7 @@
 #include "renderer/texture.hpp"
 #include "renderer/types.hpp"
 #include "renderer/vulkan_common.hpp"
+#include "types.hpp"
 #include "utils/file_manager.hpp"
 
 #include <GLFW/glfw3.h>
@@ -17,7 +18,35 @@
 
 #include <cstdint>
 
+
 namespace looper {
+
+std::unordered_map< renderer::TextureID, VkDescriptorSet > textureDescriptors = {};
+
+VkDescriptorSet
+GetDescriptor(renderer::TextureID id, VkDescriptorPool descriptorPool,
+              VkDescriptorSetLayout descriptorSetLayout)
+{
+   const auto desc = textureDescriptors.find(id);
+
+   VkDescriptorSet descriptor = {};
+   if (desc != textureDescriptors.end())
+   {
+      descriptor = desc->second;
+   }
+   else
+   {
+      auto [view, sampler] = renderer::TextureLibrary::GetTexture(id)->GetImageViewAndSampler();
+      descriptor = renderer::Texture::CreateDescriptorSet(sampler, view,
+                                                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                                          descriptorPool, descriptorSetLayout);
+
+      textureDescriptors[id] = descriptor;
+   }
+
+   return descriptor;
+}
+
 
 static ImGuiKey
 KeyToImGuiKey(int key)
@@ -379,7 +408,7 @@ BlankLine(const ImVec2& line = ImVec2(0.0f, 5.0f))
    ImGui::Dummy(line);
 }
 
-EditorGUI::EditorGUI(Editor& parent) : m_parent(parent)
+EditorGUI::EditorGUI(Editor& parent) : parent_(parent)
 {
 }
 
@@ -387,7 +416,7 @@ EditorGUI::EditorGUI(Editor& parent) : m_parent(parent)
 void
 EditorGUI::KeyCallback(const KeyEvent& event)
 {
-   auto* window = m_parent.GetWindow().GetWindowHandle();
+   auto* window = parent_.GetWindow().GetWindowHandle();
    ImGuiIO& io = ImGui::GetIO();
    io.AddKeyEvent(ImGuiMod_Ctrl, (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
                                     || (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS));
@@ -471,34 +500,34 @@ EditorGUI::UpdateBuffers()
    const auto currentFrame = renderer::Data::currentFrame_;
 
    // Vertex buffer
-   if ((m_vertexBuffer[currentFrame].m_buffer == VK_NULL_HANDLE)
+   if ((vertexBuffer_[currentFrame].m_buffer == VK_NULL_HANDLE)
        || (vertexCount_[currentFrame] != imDrawData->TotalVtxCount))
    {
-      m_vertexBuffer[currentFrame].Unmap();
-      m_vertexBuffer[currentFrame].Destroy();
+      vertexBuffer_[currentFrame].Unmap();
+      vertexBuffer_[currentFrame].Destroy();
 
-      m_vertexBuffer[currentFrame] = renderer::Buffer::CreateBuffer(
+      vertexBuffer_[currentFrame] = renderer::Buffer::CreateBuffer(
          vertexBufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
       vertexCount_[currentFrame] = imDrawData->TotalVtxCount;
-      m_vertexBuffer[currentFrame].Map();
+      vertexBuffer_[currentFrame].Map();
    }
 
    // Index buffer
-   if ((m_indexBuffer[currentFrame].m_buffer == VK_NULL_HANDLE)
+   if ((indexBuffer_[currentFrame].m_buffer == VK_NULL_HANDLE)
        || (indexCount_[currentFrame] < imDrawData->TotalIdxCount))
    {
-      m_indexBuffer[currentFrame].Unmap();
-      m_indexBuffer[currentFrame].Destroy();
+      indexBuffer_[currentFrame].Unmap();
+      indexBuffer_[currentFrame].Destroy();
 
-      m_indexBuffer[currentFrame] = renderer::Buffer::CreateBuffer(
+      indexBuffer_[currentFrame] = renderer::Buffer::CreateBuffer(
          indexBufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
       indexCount_[currentFrame] = imDrawData->TotalIdxCount;
-      m_indexBuffer[currentFrame].Map();
+      indexBuffer_[currentFrame].Map();
    }
 
    // Upload data
-   auto* vtxDst = static_cast< ImDrawVert* >(m_vertexBuffer[currentFrame].m_mappedMemory);
-   auto* idxDst = static_cast< ImDrawIdx* >(m_indexBuffer[currentFrame].m_mappedMemory);
+   auto* vtxDst = static_cast< ImDrawVert* >(vertexBuffer_[currentFrame].m_mappedMemory);
+   auto* idxDst = static_cast< ImDrawIdx* >(indexBuffer_[currentFrame].m_mappedMemory);
 
    for (int n = 0; n < imDrawData->CmdListsCount; n++)
    {
@@ -512,8 +541,8 @@ EditorGUI::UpdateBuffers()
    }
 
    // Flush to make writes visible to GPU
-   m_vertexBuffer[currentFrame].Flush();
-   m_indexBuffer[currentFrame].Flush();
+   vertexBuffer_[currentFrame].Flush();
+   indexBuffer_[currentFrame].Flush();
 }
 
 void
@@ -533,19 +562,17 @@ EditorGUI::Render(VkCommandBuffer commandBuffer)
    const ImGuiIO& io = ImGui::GetIO();
    const auto currentFrame = renderer::Data::currentFrame_;
 
-   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
-   vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
-                           &m_descriptorSet, 0, nullptr);
+   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_);
 
-   m_pushConstant.scale = glm::vec2(2.0f / io.DisplaySize.x, 2.0f / io.DisplaySize.y);
-   m_pushConstant.translate = glm::vec2(-1.0f);
-   vkCmdPushConstants(commandBuffer, m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                      sizeof(PushConstBlock), &m_pushConstant);
+   pushConstant_.scale = glm::vec2(2.0f / io.DisplaySize.x, 2.0f / io.DisplaySize.y);
+   pushConstant_.translate = glm::vec2(-1.0f);
+   vkCmdPushConstants(commandBuffer, pipelineLayout_, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                      sizeof(PushConstBlock), &pushConstant_);
 
    std::array< VkDeviceSize, 1 > offsets = {0};
-   vkCmdBindVertexBuffers(commandBuffer, 0, 1, &m_vertexBuffer[currentFrame].m_buffer,
+   vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer_[currentFrame].m_buffer,
                           offsets.data());
-   vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer[currentFrame].m_buffer, 0,
+   vkCmdBindIndexBuffer(commandBuffer, indexBuffer_[currentFrame].m_buffer, 0,
                         VK_INDEX_TYPE_UINT16);
 
    for (int32_t i = 0; i < imDrawData->CmdListsCount; i++)
@@ -560,6 +587,18 @@ EditorGUI::Render(VkCommandBuffer commandBuffer)
          scissorRect.extent.width = static_cast< uint32_t >(pcmd->ClipRect.z - pcmd->ClipRect.x);
          scissorRect.extent.height = static_cast< uint32_t >(pcmd->ClipRect.w - pcmd->ClipRect.y);
          vkCmdSetScissor(commandBuffer, 0, 1, &scissorRect);
+         if (static_cast<VkDescriptorSet>(pcmd->TextureId) != VK_NULL_HANDLE)
+         {
+            VkDescriptorSet desc_set[1] = {static_cast< VkDescriptorSet >(pcmd->TextureId)};
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout_,
+                                    0, 1, desc_set, 0, nullptr);
+         }
+         else
+         {
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout_,
+                                    0, 1, &descriptorSet_, 0, nullptr);
+         }
+
          vkCmdDrawIndexed(commandBuffer, pcmd->ElemCount, 1, indexOffset, vertexOffset, 0);
          indexOffset += pcmd->ElemCount;
       }
@@ -570,12 +609,7 @@ EditorGUI::Render(VkCommandBuffer commandBuffer)
 void
 EditorGUI::PrepareResources()
 {
-   ImGuiIO& io = ImGui::GetIO();
-
-   // Create font texture
-   unsigned char* fontData = nullptr;
-   int32_t texWidth = 0;
-   int32_t texHeight = 0;
+   auto& io = ImGui::GetIO();
 
    const auto fontFilename = (FONTS_DIR / "Roboto-Medium.ttf").string();
 
@@ -594,30 +628,33 @@ EditorGUI::PrepareResources()
 
    io.Fonts->AddFontFromFileTTF((FONTS_DIR / FONT_ICON_FILE_NAME_FAS).string().c_str(),
                                 iconFontSize, &icons_config, icons_ranges.data());
-
+   // Create font texture
+   unsigned char* fontData = nullptr;
+   int32_t texWidth = 0;
+   int32_t texHeight = 0;
    io.Fonts->GetTexDataAsRGBA32(&fontData, &texWidth, &texHeight);
 
-   std::tie(m_fontImage, m_fontMemory) = renderer::Texture::CreateImage(
+   std::tie(fontImage_, fontMemory_) = renderer::Texture::CreateImage(
       static_cast< uint32_t >(texWidth), static_cast< uint32_t >(texHeight), 1,
       VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-   m_fontView = renderer::Texture::CreateImageView(m_fontImage, VK_FORMAT_R8G8B8A8_UNORM,
+   m_fontView = renderer::Texture::CreateImageView(fontImage_, VK_FORMAT_R8G8B8A8_UNORM,
                                                    VK_IMAGE_ASPECT_COLOR_BIT, 1);
 
-   renderer::Texture::TransitionImageLayout(m_fontImage, VK_IMAGE_LAYOUT_UNDEFINED,
+   renderer::Texture::TransitionImageLayout(fontImage_, VK_IMAGE_LAYOUT_UNDEFINED,
                                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1);
 
-   renderer::Texture::CopyBufferToImage(m_fontImage, static_cast< uint32_t >(texWidth),
+   renderer::Texture::CopyBufferToImage(fontImage_, static_cast< uint32_t >(texWidth),
                                         static_cast< uint32_t >(texHeight), fontData);
 
-   renderer::Texture::TransitionImageLayout(m_fontImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+   renderer::Texture::TransitionImageLayout(fontImage_, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1);
 
    // Font texture Sampler
-   m_sampler = renderer::Texture::CreateSampler();
-
+   sampler_ = renderer::Texture::CreateSampler();
+   
    // Descriptor pool
    VkDescriptorPoolSize descriptorPoolSize{};
    descriptorPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -628,11 +665,11 @@ EditorGUI::PrepareResources()
    descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
    descriptorPoolInfo.poolSizeCount = static_cast< uint32_t >(poolSizes.size());
    descriptorPoolInfo.pPoolSizes = poolSizes.data();
-   descriptorPoolInfo.maxSets = 2;
+   descriptorPoolInfo.maxSets = renderer::MAX_NUM_TEXTURES;
 
    renderer::vk_check_error(vkCreateDescriptorPool(renderer::Data::vk_device, &descriptorPoolInfo,
-                                                   nullptr, &m_descriptorPool),
-                            "");
+                                                   nullptr, &descriptorPool_),
+                            "vkCreateDescriptorPool failed for UI setup!");
 
    // Descriptor set layout
    VkDescriptorSetLayoutBinding setLayoutBinding{};
@@ -651,29 +688,29 @@ EditorGUI::PrepareResources()
 
    renderer::vk_check_error(vkCreateDescriptorSetLayout(renderer::Data::vk_device,
                                                         &descriptorSetLayoutCreateInfo, nullptr,
-                                                        &m_descriptorSetLayout),
-                            "");
+                                                        &descriptorSetLayout_),
+                            "vkCreateDescriptorSetLayout failed for UI setup!");
 
    // Descriptor set
    VkDescriptorSetAllocateInfo descriptorSetAllocateInfo{};
    descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-   descriptorSetAllocateInfo.descriptorPool = m_descriptorPool;
-   descriptorSetAllocateInfo.pSetLayouts = &m_descriptorSetLayout;
+   descriptorSetAllocateInfo.descriptorPool = descriptorPool_;
+   descriptorSetAllocateInfo.pSetLayouts = &descriptorSetLayout_;
    descriptorSetAllocateInfo.descriptorSetCount = 1;
 
 
    renderer::vk_check_error(vkAllocateDescriptorSets(renderer::Data::vk_device,
-                                                     &descriptorSetAllocateInfo, &m_descriptorSet),
-                            "");
+                                                     &descriptorSetAllocateInfo, &descriptorSet_),
+                            "vkAllocateDescriptorSets failed for UI setup!");
 
    VkDescriptorImageInfo descriptorImageInfo{};
-   descriptorImageInfo.sampler = m_sampler;
+   descriptorImageInfo.sampler = sampler_;
    descriptorImageInfo.imageView = m_fontView;
    descriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
    VkWriteDescriptorSet writeDescriptorSet{};
    writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-   writeDescriptorSet.dstSet = m_descriptorSet;
+   writeDescriptorSet.dstSet = descriptorSet_;
    writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
    writeDescriptorSet.dstBinding = 0;
    writeDescriptorSet.pImageInfo = &descriptorImageInfo;
@@ -685,8 +722,8 @@ EditorGUI::PrepareResources()
                           writeDescriptorSets.data(), 0, nullptr);
 
 
-   m_vertexBuffer.resize(renderer::MAX_FRAMES_IN_FLIGHT);
-   m_indexBuffer.resize(renderer::MAX_FRAMES_IN_FLIGHT);
+   vertexBuffer_.resize(renderer::MAX_FRAMES_IN_FLIGHT);
+   indexBuffer_.resize(renderer::MAX_FRAMES_IN_FLIGHT);
    vertexCount_.resize(renderer::MAX_FRAMES_IN_FLIGHT);
    indexCount_.resize(renderer::MAX_FRAMES_IN_FLIGHT);
 }
@@ -706,13 +743,13 @@ EditorGUI::PreparePipeline()
    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
    pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
    pipelineLayoutCreateInfo.setLayoutCount = 1;
-   pipelineLayoutCreateInfo.pSetLayouts = &m_descriptorSetLayout;
+   pipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout_;
 
    pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
    pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRange;
    renderer::vk_check_error(vkCreatePipelineLayout(renderer::Data::vk_device,
                                                    &pipelineLayoutCreateInfo, nullptr,
-                                                   &m_pipelineLayout),
+                                                   &pipelineLayout_),
                             "");
 
    // Setup graphics pipeline for UI rendering
@@ -790,7 +827,7 @@ EditorGUI::PreparePipeline()
 
    VkGraphicsPipelineCreateInfo pipelineCreateInfo{};
    pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-   pipelineCreateInfo.layout = m_pipelineLayout;
+   pipelineCreateInfo.layout = pipelineLayout_;
    pipelineCreateInfo.renderPass = renderData.renderPass;
    pipelineCreateInfo.flags = 0;
    pipelineCreateInfo.basePipelineIndex = -1;
@@ -804,7 +841,7 @@ EditorGUI::PreparePipeline()
    pipelineCreateInfo.pDynamicState = &pipelineDynamicStateCreateInfo;
    pipelineCreateInfo.stageCount = 2;
    pipelineCreateInfo.pStages = shaderStages.data();
-   pipelineCreateInfo.subpass = m_subpass;
+   pipelineCreateInfo.subpass = subpass_;
 
    // Vertex bindings an attributes based on ImGui vertex definition
    VkVertexInputBindingDescription vInputBindDescription{};
@@ -854,7 +891,7 @@ EditorGUI::PreparePipeline()
 
    renderer::vk_check_error(vkCreateGraphicsPipelines(renderer::Data::vk_device,
                                                       renderData.pipelineCache, 1,
-                                                      &pipelineCreateInfo, nullptr, &m_pipeline),
+                                                      &pipelineCreateInfo, nullptr, &pipeline_),
                             "");
 }
 
@@ -874,7 +911,7 @@ EditorGUI::IsBlockingEvents()
 void
 EditorGUI::RenderCreateNewLevelWindow()
 {
-   const auto halfSize = m_windowSize / 2.0f;
+   const auto halfSize = windowSize_ / 2.0f;
    std::unordered_map< std::string, glm::ivec2 > sizes = {{"Small", glm::ivec2{4096, 4096}},
                                                           {"Medium", glm::ivec2{16384, 16384}},
                                                           {"Large", glm::ivec2{65536, 65536}}};
@@ -920,15 +957,15 @@ EditorGUI::RenderCreateNewLevelWindow()
    // ImGui::SetCursorPosX((ImGui::GetWindowWidth() - 300) / 2);
    if (ImGui::Button("Create", {ImGui::GetWindowWidth() / 3.0f, 35}))
    {
-      m_parent.CreateLevel(name, size);
-      m_createPushed = false;
+      parent_.CreateLevel(name, size);
+      createPushed_ = false;
    }
    ImGui::SameLine();
    ImGui::Dummy(ImVec2(2.0f, 0.0f));
    ImGui::SameLine();
    if (ImGui::Button("Cancel", {ImGui::GetWindowWidth() / 3.0f, 35}))
    {
-      m_createPushed = false;
+      createPushed_ = false;
    }
 
    ImGui::End();
@@ -938,14 +975,14 @@ void
 EditorGUI::RenderMainPanel()
 {
    ImGui::SetNextWindowPos({0, 0});
-   ImGui::SetNextWindowSize(ImVec2(m_windowWidth, m_toolsWindowHeight));
+   ImGui::SetNextWindowSize(ImVec2(windowWidth_, toolsWindowHeight_));
    ImGui::Begin("Tools");
    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.0f, 0.5f, 0.0f, 0.8f});
-   ImGui::BeginDisabled(m_currentLevel == nullptr);
+   ImGui::BeginDisabled(currentLevel_ == nullptr);
 
    if (ImGui::Button(ICON_FA_PLAY "Play"))
    {
-      m_parent.PlayLevel();
+      parent_.PlayLevel();
    }
 
    ImGui::PopStyleColor(1);
@@ -955,7 +992,7 @@ EditorGUI::RenderMainPanel()
       auto levelName = FileManager::FileDialog(LEVELS_DIR, {{"DGame Level file", "dgl"}}, true);
       if (!levelName.empty())
       {
-         m_parent.SaveLevel(levelName);
+         parent_.SaveLevel(levelName);
       }
    }
    ImGui::EndDisabled();
@@ -966,13 +1003,13 @@ EditorGUI::RenderMainPanel()
       auto levelName = FileManager::FileDialog(LEVELS_DIR, {{"DGame Level file", "dgl"}}, false);
       if (!levelName.empty())
       {
-         m_parent.LoadLevel(levelName);
+         parent_.LoadLevel(levelName);
       }
    }
    ImGui::SameLine();
-   if (ImGui::Button("Create") or m_createPushed)
+   if (ImGui::Button("Create") or createPushed_)
    {
-      m_createPushed = true;
+      createPushed_ = true;
       RenderCreateNewLevelWindow();
    }
    ImGui::End();
@@ -981,30 +1018,30 @@ EditorGUI::RenderMainPanel()
 void
 EditorGUI::RenderLevelMenu() // NOLINT
 {
-   ImGui::SetNextWindowPos({0, m_toolsWindowHeight});
-   ImGui::SetNextWindowSize(ImVec2(m_windowWidth, m_levelWindowHeight));
+   ImGui::SetNextWindowPos({0, toolsWindowHeight_});
+   ImGui::SetNextWindowSize(ImVec2(windowWidth_, levelWindowHeight_));
    ImGui::Begin("Level");
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("General"))
    {
       if (ImGui::BeginTable("LevelTable", 2))
       {
-         CreateRow("Size", fmt::format("{:.0f}, {:.0f}", m_currentLevel->GetSprite().GetSize().x,
-                                       m_currentLevel->GetSprite().GetSize().y));
+         CreateRow("Size", fmt::format("{:.0f}, {:.0f}", currentLevel_->GetSprite().GetSize().x,
+                                       currentLevel_->GetSprite().GetSize().y));
 
          CreateActionRow("Render grid", [this] {
-            auto [drawGrid, gridSize] = m_parent.GetGridData();
+            auto [drawGrid, gridSize] = parent_.GetGridData();
             if (ImGui::Checkbox("##Render grid", &drawGrid))
             {
-               m_parent.SetGridData(drawGrid, gridSize);
+               parent_.SetGridData(drawGrid, gridSize);
             }
          });
 
          CreateActionRow("Render collision", [this] {
-            static bool renderPathfinderNodes = m_parent.GetRenderNodes();
+            static bool renderPathfinderNodes = parent_.GetRenderNodes();
             if (ImGui::Checkbox("##Render collision", &renderPathfinderNodes))
             {
-               m_parent.RenderNodes(renderPathfinderNodes);
+               parent_.RenderNodes(renderPathfinderNodes);
             }
          });
 
@@ -1017,10 +1054,10 @@ EditorGUI::RenderLevelMenu() // NOLINT
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Objects"))
    {
-      const auto& gameObjects = m_currentLevel->GetObjects();
+      const auto& gameObjects = currentLevel_->GetObjects();
 
       const auto items = std::to_array< std::string >({"Enemy", "Player", "Object"});
-      ImGui::SetNextItemWidth(m_windowWidth * 0.95f);
+      ImGui::SetNextItemWidth(windowWidth_ * 0.95f);
 
       // The second parameter is the label previewed before opening the combo.
       if (ImGui::BeginCombo("##combo", "Add"))
@@ -1029,7 +1066,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
          {
             if (ImGui::Selectable(item.c_str()))
             {
-               m_parent.AddGameObject(Object::GetTypeFromString(item));
+               parent_.AddGameObject(Object::GetTypeFromString(item));
             }
          }
          ImGui::EndCombo();
@@ -1045,8 +1082,8 @@ EditorGUI::RenderLevelMenu() // NOLINT
 
          if (ImGui::Selectable(label.c_str()))
          {
-            m_parent.GetCamera().SetCameraAtPosition(object->GetPosition());
-            m_parent.HandleGameObjectSelected(object, true);
+            parent_.GetCamera().SetCameraAtPosition(object->GetPosition());
+            parent_.HandleGameObjectSelected(object, true);
          }
       }
 
@@ -1060,18 +1097,19 @@ EditorGUI::RenderLevelMenu() // NOLINT
    {
       if (ImGui::BeginTable("DebugTable", 2))
       {
-         CreateRow("FPS", fmt::format("{}", m_parent.GetFramesLastSecond()));
-         CreateRow("Render time", fmt::format("{:.2f}ms", m_parent.GetRenderTime().GetMilliseconds().count()));
-         const auto cameraPos = m_parent.GetCamera().GetPosition();
+         CreateRow("FPS", fmt::format("{}", parent_.GetFramesLastSecond()));
+         CreateRow("Render time",
+                   fmt::format("{:.2f}ms", parent_.GetRenderTime().GetMilliseconds().count()));
+         const auto cameraPos = parent_.GetCamera().GetPosition();
          CreateRow("Camera Position", fmt::format("{}", static_cast< glm::vec2 >(cameraPos)));
-         CreateRow("Camera Zoom", fmt::format("{:.1f}", m_parent.GetCamera().GetZoomLevel()));
+         CreateRow("Camera Zoom", fmt::format("{:.1f}", parent_.GetCamera().GetZoomLevel()));
 
-         CreateRow("Camera Rotation", fmt::format("{:.1f}", m_parent.GetCamera().GetRotation()));
+         CreateRow("Camera Rotation", fmt::format("{:.1f}", parent_.GetCamera().GetRotation()));
 
-         const auto cursorPos = m_parent.ScreenToGlobal(InputManager::GetMousePos());
+         const auto cursorPos = parent_.ScreenToGlobal(InputManager::GetMousePos());
          CreateRow("Cursor Position", fmt::format("{}", cursorPos));
 
-         auto& pathfinder = m_parent.GetLevel().GetPathfinder();
+         auto& pathfinder = parent_.GetLevel().GetPathfinder();
 
          const auto nodeID = pathfinder.GetNodeIDFromPosition(cursorPos);
          const auto curNode = nodeID != -1 ? pathfinder.GetNodeFromID(nodeID) : Node{};
@@ -1090,32 +1128,32 @@ EditorGUI::RenderLevelMenu() // NOLINT
 void
 EditorGUI::RenderGameObjectMenu() // NOLINT
 {
-   ImGui::SetNextWindowPos({m_windowSize.x - m_windowWidth, 0});
-   ImGui::SetNextWindowSize(ImVec2(m_windowWidth, m_gameObjectWindowHeight));
+   ImGui::SetNextWindowPos({windowSize_.x - windowWidth_, 0});
+   ImGui::SetNextWindowSize(ImVec2(windowWidth_, gameObjectWindowHeight_));
    ImGui::Begin("Game Object");
    ImGui::SetNextItemOpen(true);
 
    if (ImGui::CollapsingHeader("General"))
    {
       DrawWidget("Name", [this]() {
-         auto name = m_currentlySelectedGameObject->GetName();
+         auto name = currentlySelectedGameObject_->GetName();
          const auto nameLength = 20;
          name.resize(nameLength);
          if (ImGui::InputText("##Name", name.data(), nameLength))
          {
-            m_currentlySelectedGameObject->SetName(name);
+            currentlySelectedGameObject_->SetName(name);
          }
       });
 
       if (ImGui::BeginTable("ObjectTable", 2))
       {
-         CreateRow("Type", fmt::format("{}", m_currentlySelectedGameObject->GetTypeString()));
-         CreateRow("ID", fmt::format("{}", m_currentlySelectedGameObject->GetID()));
+         CreateRow("Type", fmt::format("{}", currentlySelectedGameObject_->GetTypeString()));
+         CreateRow("ID", fmt::format("{}", currentlySelectedGameObject_->GetID()));
          CreateActionRow("Has Collision", [this] {
-            auto collision = m_currentlySelectedGameObject->GetHasCollision();
+            auto collision = currentlySelectedGameObject_->GetHasCollision();
             if (ImGui::Checkbox("##Has Collision", &collision))
             {
-               m_currentlySelectedGameObject->SetHasCollision(collision);
+               currentlySelectedGameObject_->SetHasCollision(collision);
             }
          });
 
@@ -1129,26 +1167,26 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
    if (ImGui::CollapsingHeader("Transform"))
    {
       DrawWidget("Position", [this]() {
-         auto objectPosition = m_currentlySelectedGameObject->GetSprite().GetPosition();
+         auto objectPosition = currentlySelectedGameObject_->GetSprite().GetPosition();
          ImGui::InputFloat3("##Position", &objectPosition.x);
       });
 
       DrawWidget("Size", [this]() {
-         auto sprite_size = m_currentlySelectedGameObject->GetSprite().GetSize();
+         auto sprite_size = currentlySelectedGameObject_->GetSprite().GetSize();
          if (ImGui::SliderFloat2("##Size", &sprite_size.x, 10, 1000))
          {
-            m_currentlySelectedGameObject->SetSize(sprite_size);
+            currentlySelectedGameObject_->SetSize(sprite_size);
          }
       });
 
       DrawWidget("Rotate", [this]() {
-         auto rotation = m_currentlySelectedGameObject->GetSprite().GetRotation(
+         auto rotation = currentlySelectedGameObject_->GetSprite().GetRotation(
             renderer::Sprite::RotationType::DEGREES);
          if (ImGui::SliderFloat("##Rotate", &rotation,
                                 glm::degrees(renderer::Sprite::ROTATION_RANGE.first),
                                 glm::degrees(renderer::Sprite::ROTATION_RANGE.second)))
          {
-            m_currentlySelectedGameObject->Rotate(glm::radians(rotation));
+            currentlySelectedGameObject_->Rotate(glm::radians(rotation));
          }
       });
    }
@@ -1158,46 +1196,43 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Shader"))
    {
-      if (m_currentLevel)
-      {
-         // TODO: fix it!
-         // ImGui::Image(reinterpret_cast< void* >( // NOLINT
-         //                 static_cast< size_t >(sprite.GetTexture().GetImage())),
-         //              {150, 150});
+      const auto sectionSize = ImGui::GetContentRegionAvail();
+      ImGui::Image(reinterpret_cast< void* >(
+                      GetDescriptor(currentlySelectedGameObject_->GetSprite().GetTexture()->GetID(),
+                                    descriptorPool_, descriptorSetLayout_)),
+                   {sectionSize.x, sectionSize.x});
 
-         DrawWidget("Texture", [this]() {
-            auto& sprite = m_currentlySelectedGameObject->GetSprite();
+      DrawWidget("Texture", [this, sectionSize]() {
+         auto& sprite = currentlySelectedGameObject_->GetSprite();
+         const float fullWidth = sectionSize.x;
+         const float inputTextWidth = fullWidth * 0.90f;
+         const float buttonWidth = fullWidth * 0.10f;
 
-            const float fullWidth = ImGui::GetContentRegionAvail().x;
-            const float inputTextWidth = fullWidth * 0.90f;
-            const float buttonWidth = fullWidth * 0.10f;
+         ImGui::PushItemWidth(inputTextWidth);
+         ImGui::InputText("##Texture", sprite.GetTextureName().data(),
+                          sprite.GetTextureName().size(), ImGuiInputTextFlags_ReadOnly);
+         ImGui::PopItemWidth(); // Always pair a Push call with a Pop
 
-            ImGui::PushItemWidth(inputTextWidth);
-            ImGui::InputText("##Texture", sprite.GetTextureName().data(),
-                             sprite.GetTextureName().size(), ImGuiInputTextFlags_ReadOnly);
-            ImGui::PopItemWidth(); // Always pair a Push call with a Pop
+         ImGui::SameLine();
 
-            ImGui::SameLine();
-
-            ImGui::PushItemWidth(buttonWidth);
-            if (ImGui::Button(ICON_FA_PENCIL ""))
+         ImGui::PushItemWidth(buttonWidth);
+         if (ImGui::Button(ICON_FA_PENCIL ""))
+         {
+            auto textureName = FileManager::FileDialog(
+               IMAGES_DIR, {{"PNG texture", "png"}, {"JPEG texture", "jpg"}}, false);
+            if (!textureName.empty())
             {
-               auto textureName = FileManager::FileDialog(
-                  IMAGES_DIR, {{"PNG texture", "png"}, {"JPEG texture", "jpg"}}, false);
-               if (!textureName.empty())
-               {
-                  sprite.SetTextureFromFile(textureName);
-               }
+               sprite.SetTextureFromFile(textureName);
             }
-            ImGui::PopItemWidth(); // Always pair a Push call with a Pop
-         });
-      }
+         }
+         ImGui::PopItemWidth(); // Always pair a Push call with a Pop
+      });
    }
 
-   if (m_currentlySelectedGameObject->GetType() == ObjectType::ENEMY)
+   if (currentlySelectedGameObject_->GetType() == ObjectType::ENEMY)
    {
       const auto animatablePtr =
-         std::dynamic_pointer_cast< Animatable >(m_currentlySelectedGameObject);
+         std::dynamic_pointer_cast< Animatable >(currentlySelectedGameObject_);
 
       BlankLine();
 
@@ -1222,32 +1257,33 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          bool animationVisible = animatablePtr->GetRenderAnimationSteps();
          if (ImGui::Checkbox("Animation points visible", &animationVisible))
          {
-            m_parent.SetRenderAnimationPoints(animationVisible);
+            parent_.SetRenderAnimationPoints(animationVisible);
          }
 
          if (ImGui::Button("Animate"))
          {
-            m_parent.ToggleAnimateObject();
+            parent_.ToggleAnimateObject();
          }
 
          static float timer = 0.0f;
-         const auto animationDuration = time::Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count();
-         if (m_parent.IsObjectAnimated())
+         const auto animationDuration =
+            time::Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count();
+         if (parent_.IsObjectAnimated())
          {
-            timer += static_cast< float >(m_parent.GetDeltaTime().count());
+            timer += static_cast< float >(parent_.GetDeltaTime().count());
             timer = glm::min(animationDuration, timer);
          }
 
          ImGui::SameLine();
          if (ImGui::SliderFloat("##", &timer, 0.0f, animationDuration, "%.3f ms"))
          {
-            m_currentlySelectedGameObject->GetSprite().SetTranslateValue(glm::vec3(
+            currentlySelectedGameObject_->GetSprite().SetTranslateValue(glm::vec3(
                animatablePtr->SetAnimation(time::milliseconds(static_cast< uint64_t >(timer))),
                0.0f));
          }
 
          auto& animationPoints = animatablePtr->GetAnimationKeypoints();
-         auto newNodePosition = m_currentlySelectedGameObject->GetPosition();
+         auto newNodePosition = currentlySelectedGameObject_->GetPosition();
          ImGui::BeginChild("Animation Points", {0, 100}, true);
          if (ImGui::BeginTable("AnimationPointTable", 2))
          {
@@ -1266,17 +1302,17 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
                ImGui::TableNextColumn();
                if (ImGui::Selectable(label.c_str()))
                {
-                  m_parent.GetCamera().SetCameraAtPosition(node.m_end);
-                  m_parent.HandleObjectSelected(node.GetID(), true);
-                  m_parent.SetRenderAnimationPoints(true);
+                  parent_.GetCamera().SetCameraAtPosition(node.m_end);
+                  parent_.HandleObjectSelected(node.GetID(), true);
+                  parent_.SetRenderAnimationPoints(true);
                }
                ImGui::TableNextColumn();
 
                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.0f, 0.0f, 0.0f, 1.0f});
                if (ImGui::Selectable(fmt::format("{}##{}", ICON_FA_XMARK, i).c_str()))
                {
-                  m_parent.HandleObjectSelected(node.GetID(), true);
-                  m_parent.ActionOnObject(Editor::ACTION::REMOVE);
+                  parent_.HandleObjectSelected(node.GetID(), true);
+                  parent_.ActionOnObject(Editor::ACTION::REMOVE);
                }
                ImGui::PopStyleColor(1);
 
@@ -1287,13 +1323,13 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
 
          if (ImGui::Button("New"))
          {
-            m_parent.GetCamera().SetCameraAtPosition(newNodePosition);
-            m_parent.AddObject(ObjectType::ANIMATION_POINT);
-            m_parent.SetRenderAnimationPoints(true);
+            parent_.GetCamera().SetCameraAtPosition(newNodePosition);
+            parent_.AddObject(ObjectType::ANIMATION_POINT);
+            parent_.SetRenderAnimationPoints(true);
          }
          ImGui::EndChild();
 
-         const auto selectedID = m_parent.GetSelectedEditorObject();
+         const auto selectedID = parent_.GetSelectedEditorObject();
          if (Object::GetTypeFromID(selectedID) == ObjectType::ANIMATION_POINT)
          {
             BlankLine();
@@ -1301,7 +1337,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
             if (ImGui::CollapsingHeader("Selected point"))
             {
                auto& node =
-                  dynamic_cast< AnimationPoint& >(m_parent.GetLevel().GetObjectRef(selectedID));
+                  dynamic_cast< AnimationPoint& >(parent_.GetLevel().GetObjectRef(selectedID));
 
                if (ImGui::BeginTable("AnimationPointTable", 2))
                {
@@ -1336,27 +1372,27 @@ void
 EditorGUI::UpdateUI()
 {
    ImGuiIO& io = ImGui::GetIO();
-   io.DisplaySize = ImVec2(m_parent.GetWindowSize().x, m_parent.GetWindowSize().y);
+   io.DisplaySize = ImVec2(parent_.GetWindowSize().x, parent_.GetWindowSize().y);
 
    ImGui::NewFrame();
 
-   m_windowSize = m_parent.GetWindowSize();
+   windowSize_ = parent_.GetWindowSize();
 
-   m_windowWidth = m_windowSize.x / 7;
-   m_toolsWindowHeight = 60;
-   m_levelWindowHeight = m_windowSize.y - m_toolsWindowHeight;
-   m_gameObjectWindowHeight = m_windowSize.y;
-   m_debugWindowWidth = m_windowSize.x - 2 * m_windowWidth;
-   m_debugWindowHeight = 150;
+   windowWidth_ = windowSize_.x / 7;
+   toolsWindowHeight_ = 60;
+   levelWindowHeight_ = windowSize_.y - toolsWindowHeight_;
+   gameObjectWindowHeight_ = windowSize_.y;
+   debugWindowWidth_ = windowSize_.x - 2 * windowWidth_;
+   debugWindowHeight_ = 150;
 
    RenderMainPanel();
 
-   if (m_currentLevel)
+   if (currentLevel_)
    {
       RenderLevelMenu();
    }
 
-   if (m_currentlySelectedGameObject)
+   if (currentlySelectedGameObject_)
    {
       RenderGameObjectMenu();
    }
@@ -1367,13 +1403,13 @@ EditorGUI::UpdateUI()
 void
 EditorGUI::GameObjectSelected(const std::shared_ptr< GameObject >& selectedGameObject)
 {
-   m_currentlySelectedGameObject = selectedGameObject;
+   currentlySelectedGameObject_ = selectedGameObject;
 }
 
 void
 EditorGUI::GameObjectUnselected()
 {
-   m_currentlySelectedGameObject = nullptr;
+   currentlySelectedGameObject_ = nullptr;
 }
 
 void
@@ -1391,7 +1427,7 @@ EditorGUI::EditorObjectUnselected()
 void
 EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
 {
-   m_currentLevel = loadedLevel;
+   currentLevel_ = loadedLevel;
 }
 
 void

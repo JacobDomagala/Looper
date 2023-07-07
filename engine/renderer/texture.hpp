@@ -3,8 +3,8 @@
 #include "texture.hpp"
 #include "types.hpp"
 
-#include <vector>
 #include <unordered_map>
+#include <vector>
 #include <vulkan/vulkan.h>
 
 namespace looper::renderer {
@@ -12,7 +12,6 @@ namespace looper::renderer {
 class Texture
 {
  public:
-
    Texture(TextureType type, std::string_view textureName, TextureID id);
 
    Texture() = default;
@@ -48,6 +47,10 @@ class Texture
 
    static void
    CopyBufferToCubemapImage(VkImage image, uint32_t texWidth, uint32_t texHeight, uint8_t* data);
+
+   static VkDescriptorSet
+   CreateDescriptorSet(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout,
+                       VkDescriptorPool pool, VkDescriptorSetLayout layout);
 
    [[nodiscard]] std::pair< VkImageView, VkSampler >
    GetImageViewAndSampler() const;
@@ -125,4 +128,4 @@ class TextureLibrary
    static inline TextureID currentID_ = 0;
 };
 
-} // namespace shady::renderer
+} // namespace looper::renderer
