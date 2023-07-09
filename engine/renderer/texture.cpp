@@ -250,7 +250,7 @@ Texture::CreateDescriptorSet(VkSampler sampler, VkImageView image_view, VkImageL
                              VkDescriptorPool pool, VkDescriptorSetLayout layout)
 {
    // Create Descriptor Set:
-   VkDescriptorSet descriptor_set;
+   VkDescriptorSet descriptor_set = {};
    {
       VkDescriptorSetAllocateInfo alloc_info = {};
       alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -262,17 +262,17 @@ Texture::CreateDescriptorSet(VkSampler sampler, VkImageView image_view, VkImageL
 
    // Update the Descriptor Set:
    {
-      VkDescriptorImageInfo desc_image[1] = {};
+      std::array<VkDescriptorImageInfo, 1> desc_image = {};
       desc_image[0].sampler = sampler;
       desc_image[0].imageView = image_view;
       desc_image[0].imageLayout = image_layout;
-      VkWriteDescriptorSet write_desc[1] = {};
+      std::array< VkWriteDescriptorSet, 1 > write_desc = {};
       write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
       write_desc[0].dstSet = descriptor_set;
       write_desc[0].descriptorCount = 1;
       write_desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-      write_desc[0].pImageInfo = desc_image;
-      vkUpdateDescriptorSets(Data::vk_device, 1, write_desc, 0, nullptr);
+      write_desc[0].pImageInfo = desc_image.data();
+      vkUpdateDescriptorSets(Data::vk_device, 1, write_desc.data(), 0, nullptr);
    }
    return descriptor_set;
 }
