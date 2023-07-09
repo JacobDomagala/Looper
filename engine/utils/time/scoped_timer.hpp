@@ -16,12 +16,14 @@ class ScopedTimer
    ScopedTimer(ScopedTimer&&) = delete;
    ScopedTimer(const ScopedTimer&) = delete;
 
+   explicit ScopedTimer(TimeStep* timeStep);
    explicit ScopedTimer(std::string&& logMsg);
    ~ScopedTimer();
 
  private:
-   std::string m_logMsg;
-   Stopwatch m_timer;
+   std::string logMsg_;
+   Stopwatch timer_;
+   TimeStep* timeStep_ = nullptr;
 };
 
 // NOLINTNEXTLINE

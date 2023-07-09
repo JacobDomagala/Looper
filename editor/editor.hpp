@@ -121,6 +121,12 @@ class Editor : public Application
    GetGridData() const;
 
    [[nodiscard]] time::TimeStep
+   GetFrameTime() const;
+
+   [[nodiscard]] time::TimeStep
+   GetUpdateUITime() const;
+
+   [[nodiscard]] time::TimeStep
    GetRenderTime() const;
 
    [[nodiscard]] std::pair< uint32_t, uint32_t >
@@ -234,6 +240,8 @@ class Editor : public Application
 
    bool m_playGame = false;
    time::TimeStep timeLastFrame_ = time::TimeStep{time::microseconds{}};
+   time::TimeStep uiTime_ = time::TimeStep{time::microseconds{}};
+   time::TimeStep renderTime_ = time::TimeStep{time::microseconds{}};
 };
 
 } // namespace looper

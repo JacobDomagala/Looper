@@ -612,41 +612,56 @@ EditorGUI::RenderMainPanel()
    ImGui::SetNextWindowPos({0, 0});
    ImGui::SetNextWindowSize(ImVec2(windowWidth_, toolsWindowHeight_));
    ImGui::Begin("Tools");
-   ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.0f, 0.5f, 0.0f, 0.8f});
-   ImGui::BeginDisabled(currentLevel_ == nullptr);
 
-   if (ImGui::Button(ICON_FA_PLAY "Play"))
+   if (ImGui::BeginTable("MainTable", 4))
    {
-      parent_.PlayLevel();
-   }
+      CreateActionRow(
+         [this] {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.0f, 0.5f, 0.0f, 0.8f});
+            ImGui::BeginDisabled(currentLevel_ == nullptr);
+            if (ImGui::Button(ICON_FA_PLAY "Play"))
+            {
+               parent_.PlayLevel();
+            }
 
-   ImGui::PopStyleColor(1);
-   ImGui::SameLine();
-   if (ImGui::Button("Save"))
-   {
-      auto levelName = FileManager::FileDialog(LEVELS_DIR, {{"DGame Level file", "dgl"}}, true);
-      if (!levelName.empty())
-      {
-         parent_.SaveLevel(levelName);
-      }
-   }
-   ImGui::EndDisabled();
+            ImGui::PopStyleColor(1);
+         },
 
-   ImGui::SameLine();
-   if (ImGui::Button("Load"))
-   {
-      auto levelName = FileManager::FileDialog(LEVELS_DIR, {{"DGame Level file", "dgl"}}, false);
-      if (!levelName.empty())
-      {
-         parent_.LoadLevel(levelName);
-      }
+         [this] {
+            if (ImGui::Button("Save"))
+            {
+               auto levelName =
+                  FileManager::FileDialog(LEVELS_DIR, {{"DGame Level file", "dgl"}}, true);
+               if (!levelName.empty())
+               {
+                  parent_.SaveLevel(levelName);
+               }
+            }
+            ImGui::EndDisabled();
+         },
+
+         [this] {
+            if (ImGui::Button("Load"))
+            {
+               auto levelName =
+                  FileManager::FileDialog(LEVELS_DIR, {{"DGame Level file", "dgl"}}, false);
+               if (!levelName.empty())
+               {
+                  parent_.LoadLevel(levelName);
+               }
+            }
+         },
+
+         [this] {
+            if (ImGui::Button("Create") or createPushed_)
+            {
+               createPushed_ = true;
+               RenderCreateNewLevelWindow();
+            }
+         });
    }
-   ImGui::SameLine();
-   if (ImGui::Button("Create") or createPushed_)
-   {
-      createPushed_ = true;
-      RenderCreateNewLevelWindow();
-   }
+   ImGui::EndTable();
+
    ImGui::End();
 }
 
@@ -664,7 +679,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
          CreateRow("Size", fmt::format("{:.0f}, {:.0f}", currentLevel_->GetSprite().GetSize().x,
                                        currentLevel_->GetSprite().GetSize().y));
 
-         CreateActionRow("Render grid", [this] {
+         CreateActionRowLabel("Render grid", [this] {
             auto [drawGrid, gridSize] = parent_.GetGridData();
             if (ImGui::Checkbox("##Render grid", &drawGrid))
             {
@@ -672,7 +687,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
             }
          });
 
-         CreateActionRow("Render collision", [this] {
+         CreateActionRowLabel("Render collision", [this] {
             static bool renderPathfinderNodes = parent_.GetRenderNodes();
             if (ImGui::Checkbox("##Render collision", &renderPathfinderNodes))
             {
@@ -733,6 +748,10 @@ EditorGUI::RenderLevelMenu() // NOLINT
       if (ImGui::BeginTable("DebugTable", 2))
       {
          CreateRow("FPS", fmt::format("{}", parent_.GetFramesLastSecond()));
+         CreateRow("Frame time",
+                   fmt::format("{:.2f}ms", parent_.GetFrameTime().GetMilliseconds().count()));
+         CreateRow("UI time",
+                   fmt::format("{:.2f}ms", parent_.GetUpdateUITime().GetMilliseconds().count()));
          CreateRow("Render time",
                    fmt::format("{:.2f}ms", parent_.GetRenderTime().GetMilliseconds().count()));
          const auto cameraPos = parent_.GetCamera().GetPosition();
@@ -784,7 +803,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
       {
          CreateRow("Type", fmt::format("{}", currentlySelectedGameObject_->GetTypeString()));
          CreateRow("ID", fmt::format("{}", currentlySelectedGameObject_->GetID()));
-         CreateActionRow("Has Collision", [this] {
+         CreateActionRowLabel("Has Collision", [this] {
             auto collision = currentlySelectedGameObject_->GetHasCollision();
             if (ImGui::Checkbox("##Has Collision", &collision))
             {

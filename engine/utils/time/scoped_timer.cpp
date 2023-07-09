@@ -3,15 +3,29 @@
 
 namespace looper::time {
 
-ScopedTimer::ScopedTimer(std::string&& logMsg) : m_logMsg(std::move(logMsg))
+ScopedTimer::ScopedTimer(TimeStep* timeStep) : timeStep_(timeStep)
 {
-   m_timer.Start();
+   timer_.Start();
 }
 
-//NOLINTNEXTLINE
+ScopedTimer::ScopedTimer(std::string&& logMsg) : logMsg_(std::move(logMsg))
+{
+   timer_.Start();
+}
+
+// NOLINTNEXTLINE
 ScopedTimer::~ScopedTimer()
 {
-   Logger::Debug("{} took {}ms", m_logMsg, m_timer.Stop().GetMilliseconds().count());
+   const auto delta = timer_.Stop();
+   if (!timeStep_)
+   {
+      Logger::Debug("{} took {}ms", logMsg_, delta.GetMilliseconds().count());
+   }
+   else
+   {
+      (*timeStep_) = delta;
+   }
+   
 }
 
-} // namespace shady::time
+} // namespace looper::time

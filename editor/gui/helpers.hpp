@@ -340,24 +340,35 @@ CreateRow(std::string_view name, std::string_view value)
 }
 
 template < typename Action >
-void
-ExecuteActionInColumn(const Action& action)
+static inline void
+CreateActionColumn(const Action& firstAction)
 {
    ImGui::TableNextColumn();
-   action();
+   firstAction();
 }
 
 template < typename FirstAction, typename... Actions >
 static inline void
-CreateActionRow(std::string_view name, const FirstAction& firstAction, const Actions&... actions)
+CreateActionRowLabel(std::string_view name, const FirstAction& firstAction, const Actions&... actions)
 {
    ImGui::TableNextRow();
    ImGui::TableNextColumn();
    ImGui::Text("%s", name.data());
-   ExecuteActionInColumn(firstAction);
+   CreateActionColumn(firstAction);
 
-   (ExecuteActionInColumn(actions), ...);
+   (CreateActionColumn(actions), ...);
 }
+
+template < typename FirstAction, typename... Actions >
+static inline void
+CreateActionRow(const FirstAction& firstAction, const Actions&... actions)
+{
+   ImGui::TableNextRow();
+   CreateActionColumn(firstAction);
+
+   (CreateActionColumn(actions), ...);
+}
+
 
 static inline void
 BlankLine(const ImVec2& line = ImVec2(0.0f, 5.0f))
@@ -365,4 +376,4 @@ BlankLine(const ImVec2& line = ImVec2(0.0f, 5.0f))
    ImGui::Dummy(line);
 }
 
-}
+} // namespace looper

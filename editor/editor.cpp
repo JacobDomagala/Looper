@@ -9,6 +9,7 @@
 #include "renderer/window/window.hpp"
 #include "utils/file_manager.hpp"
 #include "utils/time/stopwatch.hpp"
+#include "utils/time/scoped_timer.hpp"
 
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -700,9 +701,21 @@ Editor::GetGridData() const
 }
 
 time::TimeStep
-Editor::GetRenderTime() const
+Editor::GetFrameTime() const
 {
    return timeLastFrame_;
+}
+
+time::TimeStep
+Editor::GetUpdateUITime() const
+{
+   return uiTime_;
+}
+
+time::TimeStep
+Editor::GetRenderTime() const
+{
+   return renderTime_;
 }
 
 std::pair< uint32_t, uint32_t >
@@ -996,6 +1009,11 @@ Editor::Update()
    renderData.projMat = m_camera.GetProjectionMatrix();
 
    DrawBoundingBoxes();
+
+   {
+      const time::ScopedTimer uiTImer(&uiTime_);
+      gui_.UpdateUI();
+   }
 }
 
 void
@@ -1052,15 +1070,18 @@ Editor::MainLoop()
 
       while (IsRunning() and (singleFrameTimer.count() >= TARGET_TIME_MICRO))
       {
-         InputManager::PollEvents();
+         {
+            const time::ScopedTimer frameTimer(&timeLastFrame_);
+            InputManager::PollEvents();
 
-         HandleCamera();
-         Update();
+            HandleCamera();
+            Update();
 
          workQueue_.RunWorkUnits();
 
          if (windowInFocus_)
          {
+            const time::ScopedTimer renderTimer(&renderTime_);
             renderer::VulkanRenderer::Render(this);
          }
 
