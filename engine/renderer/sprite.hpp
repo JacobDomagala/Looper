@@ -2,8 +2,8 @@
 
 #include "common.hpp"
 #include "texture.hpp"
-#include "vertex.hpp"
 #include "types.hpp"
+#include "vertex.hpp"
 #include "vulkan_common.hpp"
 
 #include <deque>

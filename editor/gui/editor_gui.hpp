@@ -1,8 +1,8 @@
 #pragma once
 
+#include "input/input_listener.hpp"
 #include "object.hpp"
 #include "renderer/buffer.hpp"
-#include "input/input_listener.hpp"
 
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.h>
@@ -106,37 +106,37 @@ class EditorGUI : public InputListener
    static void
    PreparePipeline();
 
-   Editor& m_parent;
+   Editor& parent_;
 
    // EditorObjectWindow m_editorObjectWindow;
-   std::shared_ptr< GameObject > m_currentlySelectedGameObject;
-   std::shared_ptr< Level > m_currentLevel;
+   std::shared_ptr< GameObject > currentlySelectedGameObject_;
+   std::shared_ptr< Level > currentLevel_;
 
-   glm::vec2 m_windowSize = {};
-   float m_windowWidth = 0.0f;
-   float m_toolsWindowHeight = 0.0f;
-   float m_gameObjectWindowHeight = 0.0f;
-   float m_levelWindowHeight = 0.0f;
-   float m_debugWindowHeight = 0.0f;
-   float m_debugWindowWidth = 0.0f;
+   glm::vec2 windowSize_ = {};
+   float windowWidth_ = 0.0f;
+   float toolsWindowHeight_ = 0.0f;
+   float gameObjectWindowHeight_ = 0.0f;
+   float levelWindowHeight_ = 0.0f;
+   float debugWindowHeight_ = 0.0f;
+   float debugWindowWidth_ = 0.0f;
 
-   bool m_createPushed = false;
+   bool createPushed_ = false;
 
-   inline static VkImage m_fontImage = {};
-   inline static VkDeviceMemory m_fontMemory = {};
+   inline static VkImage fontImage_ = {};
+   inline static VkDeviceMemory fontMemory_ = {};
    inline static VkImageView m_fontView = {};
-   inline static VkSampler m_sampler = {};
-   inline static VkDescriptorPool m_descriptorPool = {};
-   inline static VkDescriptorSetLayout m_descriptorSetLayout = {};
-   inline static VkDescriptorSet m_descriptorSet = {};
+   inline static VkSampler sampler_ = {};
+   inline static VkDescriptorPool descriptorPool_ = {};
+   inline static VkDescriptorSetLayout descriptorSetLayout_ = {};
+   inline static VkDescriptorSet descriptorSet_ = {};
 
-   inline static VkPipeline m_pipeline = {};
-   inline static VkPipelineLayout m_pipelineLayout = {};
-   inline static uint32_t m_subpass = 0;
+   inline static VkPipeline pipeline_ = {};
+   inline static VkPipelineLayout pipelineLayout_ = {};
+   inline static uint32_t subpass_ = 0;
 
-   inline static PushConstBlock m_pushConstant = {};
-   inline static std::vector< renderer::Buffer > m_vertexBuffer = {};
-   inline static std::vector< renderer::Buffer > m_indexBuffer = {};
+   inline static PushConstBlock pushConstant_ = {};
+   inline static std::vector< renderer::Buffer > vertexBuffer_ = {};
+   inline static std::vector< renderer::Buffer > indexBuffer_ = {};
    inline static std::vector< int32_t > vertexCount_ = {};
    inline static std::vector< int32_t > indexCount_ = {};
 };

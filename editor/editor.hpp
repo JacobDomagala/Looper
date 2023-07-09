@@ -146,8 +146,6 @@ class Editor : public Application
    ActionOnObject(ACTION action);
 
  private:
-   
-
    // [[nodiscard]] std::shared_ptr< EditorObject >
    // GetEditorObjectByID(Object::ID ID);
 

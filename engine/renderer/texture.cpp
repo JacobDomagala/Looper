@@ -2,13 +2,13 @@
 #include "buffer.hpp"
 #include "command.hpp"
 #include "logger/logger.hpp"
+#include "renderer.hpp"
 #include "utils/assert.hpp"
 #include "utils/file_manager.hpp"
 #include "vulkan_common.hpp"
-#include "renderer.hpp"
 
-#include <string_view>
 #include <ranges>
+#include <string_view>
 
 namespace looper::renderer {
 
@@ -243,6 +243,38 @@ Texture::GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, 
                         &barrier);
 
    Command::EndSingleTimeCommands(commandBuffer);
+}
+
+VkDescriptorSet
+Texture::CreateDescriptorSet(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout,
+                             VkDescriptorPool pool, VkDescriptorSetLayout layout)
+{
+   // Create Descriptor Set:
+   VkDescriptorSet descriptor_set = {};
+   {
+      VkDescriptorSetAllocateInfo alloc_info = {};
+      alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+      alloc_info.descriptorPool = pool;
+      alloc_info.descriptorSetCount = 1;
+      alloc_info.pSetLayouts = &layout;
+      vk_check_error(vkAllocateDescriptorSets(Data::vk_device, &alloc_info, &descriptor_set), "");
+   }
+
+   // Update the Descriptor Set:
+   {
+      std::array<VkDescriptorImageInfo, 1> desc_image = {};
+      desc_image[0].sampler = sampler;
+      desc_image[0].imageView = image_view;
+      desc_image[0].imageLayout = image_layout;
+      std::array< VkWriteDescriptorSet, 1 > write_desc = {};
+      write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+      write_desc[0].dstSet = descriptor_set;
+      write_desc[0].descriptorCount = 1;
+      write_desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+      write_desc[0].pImageInfo = desc_image.data();
+      vkUpdateDescriptorSets(Data::vk_device, 1, write_desc.data(), 0, nullptr);
+   }
+   return descriptor_set;
 }
 
 std::pair< VkImageView, VkSampler >
@@ -482,7 +514,7 @@ TextureLibrary::GetTextureViews()
 uint32_t
 TextureLibrary::GetNumTextures()
 {
-   return static_cast<uint32_t>(currentID_);
+   return static_cast< uint32_t >(currentID_);
 }
 
 } // namespace looper::renderer

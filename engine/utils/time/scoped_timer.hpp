@@ -9,8 +9,10 @@ namespace looper::time {
 class ScopedTimer
 {
  public:
-   ScopedTimer& operator=(const ScopedTimer&) = delete;
-   ScopedTimer& operator=(ScopedTimer&&) = delete;
+   ScopedTimer&
+   operator=(const ScopedTimer&) = delete;
+   ScopedTimer&
+   operator=(ScopedTimer&&) = delete;
    ScopedTimer(ScopedTimer&&) = delete;
    ScopedTimer(const ScopedTimer&) = delete;
 
@@ -22,7 +24,7 @@ class ScopedTimer
    Stopwatch m_timer;
 };
 
-//NOLINTNEXTLINE
+// NOLINTNEXTLINE
 #define SCOPED_TIMER(str) looper::time::ScopedTimer t(std::move(str));
 
 } // namespace looper::time

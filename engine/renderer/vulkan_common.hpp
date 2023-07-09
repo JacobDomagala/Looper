@@ -93,9 +93,12 @@ struct RenderData
    std::vector< VkImage > swapChainImages = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
    std::vector< VkImageView > swapChainImageViews = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
    std::vector< VkFramebuffer > swapChainFramebuffers = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
+
+   // Quads and non UI stuff
    VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
    VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
    std::vector< VkDescriptorSet > descriptorSets = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
+
    VkFormat swapChainImageFormat = VK_FORMAT_UNDEFINED;
 
    VkRenderPass renderPass = VK_NULL_HANDLE;

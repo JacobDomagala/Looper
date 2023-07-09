@@ -1,10 +1,10 @@
 #include "shader.hpp"
-#include "vulkan_common.hpp"
+#include "logger/logger.hpp"
 #include "renderer.hpp"
 #include "texture.hpp"
-#include "logger/logger.hpp"
 #include "utils/assert.hpp"
 #include "utils/file_manager.hpp"
+#include "vulkan_common.hpp"
 
 #include <algorithm>
 
@@ -16,12 +16,12 @@ CreateShaderModule(VkDevice device, std::vector< char >&& shaderByteCode)
    VkShaderModuleCreateInfo createInfo = {};
    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
    createInfo.codeSize = shaderByteCode.size();
-   //NOLINTNEXTLINE
+   // NOLINTNEXTLINE
    createInfo.pCode = reinterpret_cast< const uint32_t* >(shaderByteCode.data());
 
    VkShaderModule shaderModule = {};
    vk_check_error(vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule),
-            "Failed to create shader module!");
+                  "Failed to create shader module!");
 
    return shaderModule;
 }
@@ -29,10 +29,10 @@ CreateShaderModule(VkDevice device, std::vector< char >&& shaderByteCode)
 std::pair< VertexShaderInfo, FragmentShaderInfo >
 VulkanShader::CreateShader(VkDevice device, std::string_view vertex, std::string_view fragment)
 {
-   auto* vertShaderModule = CreateShaderModule(
-      device, FileManager::ReadBinaryFile(SHADERS_DIR / vertex));
-   auto* fragShaderModule = CreateShaderModule(
-      device, FileManager::ReadBinaryFile(SHADERS_DIR / fragment));
+   auto* vertShaderModule =
+      CreateShaderModule(device, FileManager::ReadBinaryFile(SHADERS_DIR / vertex));
+   auto* fragShaderModule =
+      CreateShaderModule(device, FileManager::ReadBinaryFile(SHADERS_DIR / fragment));
 
    VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
    vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -228,6 +228,10 @@ QuadShader::UpdateDescriptorSets()
    }
 }
 
+///////////////////////////////////////////////////////////////////
+///////////////////////    LINE SHADER      ///////////////////////
+///////////////////////////////////////////////////////////////////
+
 void
 LineShader::CreateDescriptorPool()
 {
@@ -310,4 +314,4 @@ LineShader::CreateDescriptorSets()
    }
 }
 
-} // namespace shady::renderer
+} // namespace looper::renderer

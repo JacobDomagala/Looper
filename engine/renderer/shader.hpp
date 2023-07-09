@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
+#include <vulkan/vulkan.h>
 
 #include <string_view>
 #include <utility>
@@ -91,5 +91,4 @@ struct LineShader
    CreateDescriptorSets();
 };
 
-
-} // namespace shady::renderer
+} // namespace looper::renderer
