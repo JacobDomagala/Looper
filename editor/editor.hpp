@@ -9,6 +9,7 @@
 #include "object.hpp"
 #include "player.hpp"
 #include "utils/time/time_step.hpp"
+#include "thread_pool.hpp"
 
 #include <glm/matrix.hpp>
 #include <utility>
@@ -242,6 +243,10 @@ class Editor : public Application
    time::TimeStep timeLastFrame_ = time::TimeStep{time::microseconds{}};
    time::TimeStep uiTime_ = time::TimeStep{time::microseconds{}};
    time::TimeStep renderTime_ = time::TimeStep{time::microseconds{}};
+
+   ThreadPool pool_ = std::thread::hardware_concurrency();
+   std::future< void > updateReady_;
+   std::future< void > renderReady_;
 };
 
 } // namespace looper

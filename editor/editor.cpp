@@ -8,8 +8,8 @@
 #include "renderer/vulkan_common.hpp"
 #include "renderer/window/window.hpp"
 #include "utils/file_manager.hpp"
-#include "utils/time/stopwatch.hpp"
 #include "utils/time/scoped_timer.hpp"
+#include "utils/time/stopwatch.hpp"
 
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -1070,19 +1070,18 @@ Editor::MainLoop()
 
       while (IsRunning() and (singleFrameTimer.count() >= TARGET_TIME_MICRO))
       {
-         {
-            const time::ScopedTimer frameTimer(&timeLastFrame_);
-            InputManager::PollEvents();
+         const time::ScopedTimer frameTimer(&timeLastFrame_);
+         InputManager::PollEvents();
 
-            HandleCamera();
-            Update();
+         HandleCamera();
+         updateReady_ = pool_.enqueue([this] { Update(); });
 
          workQueue_.RunWorkUnits();
 
          if (windowInFocus_)
          {
             const time::ScopedTimer renderTimer(&renderTime_);
-            renderer::VulkanRenderer::Render(this);
+            renderReady_ = pool_.enqueue([this] { renderer::VulkanRenderer::Render(this); });
          }
 
          timeLastFrame_ = watch.Stop();
