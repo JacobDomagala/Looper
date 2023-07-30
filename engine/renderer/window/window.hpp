@@ -2,6 +2,7 @@
 
 #include "logger.hpp"
 
+#include <fmt/core.h>
 #include <glm/glm.hpp>
 #include <memory>
 #include <sstream>
@@ -15,7 +16,7 @@ namespace looper::renderer {
 class Window
 {
  public:
-   Window(int32_t width, int32_t height, const std::string& title);
+   Window(const glm::ivec2& size, const std::string& title);
    ~Window();
 
    void
@@ -24,24 +25,24 @@ class Window
    [[nodiscard]] glm::ivec2
    GetSize() const
    {
-      return {m_width, m_height};
+      return size_;
    }
 
    void
    Start()
    {
-      m_isRunning = true;
+      isRunning_ = true;
    }
 
    // return true if the window is active
    [[nodiscard]] bool
    IsRunning() const
    {
-      return m_isRunning;
+      return isRunning_;
    }
 
    void
-   Resize(int32_t newWidth, int32_t newHeight);
+   Resize(const glm::ivec2& newSize);
 
    void
    SetIcon(const std::string& file);
@@ -71,41 +72,33 @@ class Window
    GLFWwindow*
    GetWindowHandle()
    {
-      return m_pWindow;
+      return window_;
    }
 
    explicit operator std::string() const
    {
-      std::stringstream returnStr;
-      returnStr << "Window title - " << m_title << "\nWindow dimensions - " << m_width << "x"
-                << m_height;
-
-      return returnStr.str();
+      return fmt::format("Window title - {} \nWindow dimensions - {}/{}", title_, size_.x, size_.y);
    }
 
    friend std::ostream&
    operator<<(std::ostream& os, const Window& window)
    {
-      os << "Window title - " << window.m_title << "\n Window dimensions - " << window.m_width
-         << "x" << window.m_height;
+      os << "Window title - " << window.title_ << "\n Window dimensions - " << window.size_.x << "x"
+         << window.size_.y;
 
       return os;
    }
 
  private:
-   int32_t m_width = {};
-   int32_t m_height = {};
-   GLFWwindow* m_pWindow = nullptr;
-   std::string m_title = {};
-
-   // cursor position
-   // glm::vec2 m_cursorPos;
+   glm::ivec2 size_ = {};
+   GLFWwindow* window_ = nullptr;
+   std::string title_ = {};
 
    // is windows active
-   bool m_isRunning = {};
+   bool isRunning_ = {};
 
    // NOLINTNEXTLINE
-   static inline bool s_glfwInitalized = false;
+   static inline bool GLFW_INIT = false;
 };
 
 } // namespace looper::renderer

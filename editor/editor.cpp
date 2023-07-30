@@ -22,7 +22,7 @@ namespace looper {
 
 Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
 {
-   m_window = std::make_unique< renderer::Window >(screenSize.x, screenSize.y, "Editor");
+   m_window = std::make_unique< renderer::Window >(screenSize, "Editor");
 
    InputManager::Init(m_window->GetWindowHandle());
    InputManager::RegisterForKeyInput(this);

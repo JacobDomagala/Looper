@@ -11,8 +11,8 @@
 
 namespace looper::renderer {
 
-Window::Window(int32_t width, int32_t height, const std::string& title)
-   : m_width(width), m_height(height), m_title(title), m_isRunning(true)
+Window::Window(const glm::ivec2& size, const std::string& title)
+   : size_(size), title_(title), isRunning_(true)
 {
    glfwSetErrorCallback([](int error, const char* description) {
       Logger::Fatal("GLFW Error={}: {}", error, description);
@@ -24,23 +24,28 @@ Window::Window(int32_t width, int32_t height, const std::string& title)
    glfwWindowHint(GLFW_VISIBLE, GL_TRUE);
    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-   // NOLINTNEXTLINE
-   m_pWindow = glfwCreateWindow(m_width, m_height, title.c_str(), nullptr, nullptr);
+   if (size_ == USE_DEFAULT_SIZE)
+   {
+      const auto* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+      size_ = glm::ivec2(mode->width, mode->height);
+   }
 
-   utils::Assert(m_pWindow, "Failed to create GLFW window!");
+   window_ = glfwCreateWindow(size_.x, size_.y, title.c_str(), nullptr, nullptr);
 
-   Logger::Info("GLFW Window created! Name:{} Width:{} Height:{}", m_title, m_width, m_height);
+   utils::Assert(window_, "Failed to create GLFW window!");
+
+   Logger::Info("GLFW Window created! Name:{} Width:{} Height:{}", title_, size_.x, size_.y);
 }
 
 Window::~Window()
 {
-   glfwDestroyWindow(m_pWindow);
+   glfwDestroyWindow(window_);
 }
 
 void
 Window::ShutDown()
 {
-   m_isRunning = false;
+   isRunning_ = false;
 }
 
 void
@@ -52,22 +57,21 @@ Window::SetIcon(const std::string& /*file*/)
    // image.pixels = renderer::TextureLibrary::GetTexture(file)->GetData();
 
    auto* cursor = glfwCreateCursor(&image, 0, 0);
-   glfwSetCursor(m_pWindow, cursor);
+   glfwSetCursor(window_, cursor);
 }
 
 void
-Window::Resize(int32_t newWidth, int32_t newHeight)
+Window::Resize(const glm::ivec2& newSize)
 {
-   glfwSetWindowSize(m_pWindow, newWidth, newHeight);
+   glfwSetWindowSize(window_, newSize.x, newSize.y);
 
-   m_height = newHeight;
-   m_width = newWidth;
+   size_ = newSize;
 }
 
 void
 Window::Clear()
 {
-   // glfwMakeContextCurrent(m_pWindow);
+   // glfwMakeContextCurrent(window_);
 
    // RenderCommand::Clear();
 }
@@ -76,7 +80,7 @@ void
 Window::ShowCursor(bool choice)
 {
    const int mode = choice ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED;
-   glfwSetInputMode(m_pWindow, GLFW_CURSOR, mode);
+   glfwSetInputMode(window_, GLFW_CURSOR, mode);
 }
 
 glm::vec2
@@ -85,7 +89,7 @@ Window::GetCursorScreenPosition(const glm::mat4& /*projectionMatrix*/)
    auto cursorPos = GetCursor();
 
    cursorPos -=
-      glm::vec2((static_cast< float >(m_width) / 2.0f), (static_cast< float >(m_height) / 2.0f));
+      glm::vec2((static_cast< float >(size_.x) / 2.0f), (static_cast< float >(size_.y) / 2.0f));
    // glm::vec2 tmpCursor = projectionMatrix * glm::vec4(cursorPos, 0.0f, 1.0f);
 
    return cursorPos;
@@ -96,8 +100,8 @@ Window::GetCursorNormalized()
 {
    auto cursorPos = GetCursor();
 
-   const glm::dvec2 centerOfScreen(static_cast< float >(m_width) / 2.0f,
-                                   static_cast< float >(m_height) / 2.0f);
+   const glm::dvec2 centerOfScreen(static_cast< float >(size_.x) / 2.0f,
+                                   static_cast< float >(size_.y) / 2.0f);
 
    cursorPos -= centerOfScreen;
    cursorPos /= centerOfScreen;
@@ -109,7 +113,7 @@ glm::vec2
 Window::GetCursor()
 {
    glm::dvec2 cursorPos;
-   glfwGetCursorPos(m_pWindow, &cursorPos.x, &cursorPos.y);
+   glfwGetCursorPos(window_, &cursorPos.x, &cursorPos.y);
 
    return cursorPos;
 }

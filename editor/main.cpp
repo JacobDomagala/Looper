@@ -4,7 +4,7 @@
 int
 main(int /* argc */, char** /* argv */)
 {
-   looper::Editor editor({1920, 1080});
+   looper::Editor editor(looper::USE_DEFAULT_SIZE);
    editor.MainLoop();
 
    return EXIT_SUCCESS;

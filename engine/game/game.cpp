@@ -66,7 +66,7 @@ Game::Init(const std::string& configFile, bool loadLevel)
       Logger::Fatal("Game: Can't open {}", (ASSETS_DIR / configFile).string());
    }
 
-   m_window = std::make_unique< renderer::Window >(WIDTH, HEIGHT, "WindowTitle");
+   m_window = std::make_unique< renderer::Window >(USE_DEFAULT_SIZE, "WindowTitle");
 
    renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle(),
                                         renderer::ApplicationType::GAME);
