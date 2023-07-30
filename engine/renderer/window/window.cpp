@@ -24,13 +24,14 @@ Window::Window(const glm::ivec2& size, const std::string& title)
    glfwWindowHint(GLFW_VISIBLE, GL_TRUE);
    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
+   auto* monitor = glfwGetPrimaryMonitor();
    if (size_ == USE_DEFAULT_SIZE)
    {
-      const auto* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+      const auto* mode = glfwGetVideoMode(monitor);
       size_ = glm::ivec2(mode->width, mode->height);
    }
 
-   window_ = glfwCreateWindow(size_.x, size_.y, title.c_str(), nullptr, nullptr);
+   window_ = glfwCreateWindow(size_.x, size_.y, title.c_str(), monitor, nullptr);
 
    utils::Assert(window_, "Failed to create GLFW window!");
 
