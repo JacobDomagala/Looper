@@ -66,15 +66,15 @@ EditorGUI::KeyCallback(const KeyEvent& event)
    io.AddKeyEvent(ImGuiMod_Super, (glfwGetKey(window, GLFW_KEY_LEFT_SUPER) == GLFW_PRESS)
                                      || (glfwGetKey(window, GLFW_KEY_RIGHT_SUPER) == GLFW_PRESS));
 
-   const auto imguiKey = KeyToImGuiKey(event.m_key);
-   io.AddKeyEvent(imguiKey, (event.m_action == GLFW_PRESS));
+   const auto imguiKey = KeyToImGuiKey(event.key_);
+   io.AddKeyEvent(imguiKey, (event.action_ == GLFW_PRESS));
 }
 
 void
 EditorGUI::CharCallback(const CharEvent& event)
 {
    ImGuiIO& io = ImGui::GetIO();
-   io.AddInputCharacter(event.m_key);
+   io.AddInputCharacter(event.key_);
 }
 
 void
@@ -82,15 +82,15 @@ EditorGUI::MouseButtonCallback(const MouseButtonEvent& event)
 {
    ImGuiIO& io = ImGui::GetIO();
 
-   io.MouseDown[0] = (event.m_button == GLFW_MOUSE_BUTTON_1) && event.m_action;
-   io.MouseDown[1] = (event.m_button == GLFW_MOUSE_BUTTON_2) && event.m_action;
+   io.MouseDown[0] = (event.button_ == GLFW_MOUSE_BUTTON_1) && event.action_;
+   io.MouseDown[1] = (event.button_ == GLFW_MOUSE_BUTTON_2) && event.action_;
 }
 
 void
 EditorGUI::CursorPositionCallback(const CursorPositionEvent& event)
 {
    ImGuiIO& io = ImGui::GetIO();
-   io.MousePos = ImVec2(static_cast< float >(event.m_xPos), static_cast< float >(event.m_yPos));
+   io.MousePos = ImVec2(static_cast< float >(event.xPos_), static_cast< float >(event.yPos_));
 }
 
 void
@@ -101,11 +101,7 @@ EditorGUI::MouseScrollCallback(const MouseScrollEvent& /*event*/)
 void
 EditorGUI::Init()
 {
-   InputManager::RegisterForKeyInput(this);
-   InputManager::RegisterForCharInput(this);
-   InputManager::RegisterForMouseScrollInput(this);
-   InputManager::RegisterForMouseButtonInput(this);
-   InputManager::RegisterForMouseMovementInput(this);
+   InputManager::RegisterForInput(this);
 
    // Setup Dear ImGui context
    IMGUI_CHECKVERSION();

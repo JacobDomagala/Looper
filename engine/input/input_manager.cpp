@@ -1,29 +1,12 @@
 #include "input_manager.hpp"
 #include "event.hpp"
+#include "types.hpp"
 
 #include <GLFW/glfw3.h>
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 
 namespace looper {
-
-template < typename ListenerType >
-void
-TRemoveListener(std::vector< ListenerType* >& listeners, ListenerType* listener)
-{
-   auto foundListener =
-      std::find_if(listeners.begin(), listeners.end(), [listener](const auto& registeredListener) {
-         return listener == registeredListener;
-      });
-   if (foundListener != listeners.end())
-   {
-      listeners.erase(foundListener);
-   }
-   else
-   {
-      Logger::Debug("Listener not found!");
-   }
-}
 
 void
 InputManager::InternalKeyCallback(GLFWwindow* /*window*/, int32_t key, int32_t scancode,
@@ -31,16 +14,23 @@ InputManager::InternalKeyCallback(GLFWwindow* /*window*/, int32_t key, int32_t s
 {
    Logger::Trace("GLFW key {} {} scan code - {}", action, key, scancode);
 
-   s_keyMap[key] = action;
+   keyMap_[key] = action;
 
-   BroadcastEvent(KeyEvent{key, scancode, action, mods});
+   for (auto* listener : listeners_)
+   {
+      listener->KeyCallback({key, scancode, action, mods});
+   }
 }
 
 void
 InputManager::InternalCharCallback(GLFWwindow* /*window*/, uint32_t key)
 {
    Logger::Trace("GLFW char {}", key);
-   BroadcastEvent(CharEvent{key});
+
+   for (auto* listener : listeners_)
+   {
+      listener->CharCallback(CharEvent{key});
+   }
 }
 
 void
@@ -48,9 +38,12 @@ InputManager::InternalMouseButtonCallback(GLFWwindow* /*window*/, int32_t button
                                           int32_t mods)
 {
    Logger::Trace("GLFW mouse button {} {} {}", button, action, mods);
-   s_mouseButtonMap[button] = action;
+   mouseButtonMap_[button] = action;
 
-   BroadcastEvent(MouseButtonEvent{button, action, mods});
+   for (auto* listener : listeners_)
+   {
+      listener->MouseButtonCallback({button, action, mods});
+   }
 }
 
 void
@@ -58,9 +51,12 @@ InputManager::InternalCursorPositionCallback(GLFWwindow* /*window*/, double xPos
 {
    Logger::Trace("GLFW cursor pos {} {}", xPos, yPos);
 
-   s_mousePosition = glm::vec2(xPos, yPos);
+   mousePosition_ = glm::vec2(xPos, yPos);
 
-   BroadcastEvent(CursorPositionEvent{xPos, yPos});
+   for (auto* listener : listeners_)
+   {
+      listener->CursorPositionCallback({xPos, yPos});
+   }
 }
 
 void
@@ -68,119 +64,57 @@ InputManager::InternalMouseScrollCallback(GLFWwindow* /*window*/, double xOffset
 {
    Logger::Trace("GLFW scroll {} {}", xOffset, yOffset);
 
-   BroadcastEvent(MouseScrollEvent{xOffset, yOffset});
+   for (auto* listener : listeners_)
+   {
+      listener->MouseScrollCallback({xOffset, yOffset});
+   }
 }
 
 void
-InputManager::BroadcastEvent(const Event& event)
+InputManager::InternalWindowFocusCallback(GLFWwindow* /*window*/, int32_t focused)
 {
-   switch (event.m_type)
+   Logger::Trace("GLFW window focus {}", focused);
+
+   for (auto* listener : listeners_)
    {
-      case Event::EventType::KEY: {
-         for (auto* listener : s_keyListeners)
-         {
-            listener->KeyCallback(static_cast< const KeyEvent& >(event));
-         }
-      }
-      break;
-
-            case Event::EventType::CHAR: {
-         for (auto* listener : s_charListeners)
-         {
-            listener->CharCallback(static_cast< const CharEvent& >(event));
-         }
-      }
-      break;
-
-      case Event::EventType::MOUSE_BUTTON: {
-         for (auto* listener : s_mouseButtonListeners)
-         {
-            listener->MouseButtonCallback(static_cast< const MouseButtonEvent& >(event));
-         }
-      }
-      break;
-
-      case Event::EventType::MOUSE_CURSOR: {
-         for (auto* listener : s_mouseMovementListeners)
-         {
-            listener->CursorPositionCallback(static_cast< const CursorPositionEvent& >(event));
-         }
-      }
-      break;
-
-      case Event::EventType::MOUSE_SCROLL: {
-         for (auto* listener : s_mouseScrollListeners)
-         {
-            listener->MouseScrollCallback(static_cast< const MouseScrollEvent& >(event));
-         }
-      }
-      break;
-
-      default:
-         break;
+      listener->WindowFocusCallback({focused});
    }
 }
 
 void
 InputManager::Init(GLFWwindow* mainWindow)
 {
-   s_windowHandle = mainWindow;
+   windowHandle_ = mainWindow;
 
-   glfwSetKeyCallback(s_windowHandle, InternalKeyCallback);
-   glfwSetCharCallback(s_windowHandle, InternalCharCallback);
-   glfwSetMouseButtonCallback(s_windowHandle, InternalMouseButtonCallback);
-   glfwSetCursorPosCallback(s_windowHandle, InternalCursorPositionCallback);
-   glfwSetScrollCallback(s_windowHandle, InternalMouseScrollCallback);
-
-   s_keyMap.clear();
-}
-
-void
-InputManager::RegisterForKeyInput(InputListener* listener)
-{
-   s_keyListeners.push_back(listener);
-}
-
-void
-InputManager::RegisterForCharInput(InputListener* listener)
-{
-   s_charListeners.push_back(listener);
-}
-
-void
-InputManager::RegisterForMouseButtonInput(InputListener* listener)
-{
-   s_mouseButtonListeners.push_back(listener);
-}
-
-void
-InputManager::RegisterForMouseMovementInput(InputListener* listener)
-{
-   s_mouseMovementListeners.push_back(listener);
-}
-
-void
-InputManager::RegisterForMouseScrollInput(InputListener* listener)
-{
-   s_mouseScrollListeners.push_back(listener);
+   glfwSetKeyCallback(windowHandle_, InternalKeyCallback);
+   glfwSetCharCallback(windowHandle_, InternalCharCallback);
+   glfwSetMouseButtonCallback(windowHandle_, InternalMouseButtonCallback);
+   glfwSetCursorPosCallback(windowHandle_, InternalCursorPositionCallback);
+   glfwSetScrollCallback(windowHandle_, InternalMouseScrollCallback);
+   glfwSetWindowFocusCallback(windowHandle_, InternalWindowFocusCallback);
+   keyMap_.clear();
 }
 
 void
 InputManager::RegisterForInput(InputListener* listener)
 {
-   RegisterForKeyInput(listener);
-   RegisterForMouseButtonInput(listener);
-   RegisterForMouseMovementInput(listener);
-   RegisterForMouseScrollInput(listener);
+   listeners_.push_back(listener);
 }
 
 void
 InputManager::UnregisterFromInput(InputListener* listener)
 {
-   TRemoveListener(s_keyListeners, listener);
-   TRemoveListener(s_mouseButtonListeners, listener);
-   TRemoveListener(s_mouseMovementListeners, listener);
-   TRemoveListener(s_mouseScrollListeners, listener);
+   auto foundListener = stl::find_if(listeners_, [listener](const auto& registeredListener) {
+      return listener == registeredListener;
+   });
+   if (foundListener != listeners_.end())
+   {
+      listeners_.erase(foundListener);
+   }
+   else
+   {
+      Logger::Debug("Listener not found!");
+   }
 }
 
 void
@@ -192,25 +126,25 @@ InputManager::PollEvents()
 bool
 InputManager::CheckKeyPressed(int32_t keyKode)
 {
-   return s_keyMap[keyKode];
+   return keyMap_[keyKode];
 }
 
 bool
 InputManager::CheckButtonPressed(int32_t button)
 {
-   return s_mouseButtonMap[button];
+   return mouseButtonMap_[button];
 }
 
 glm::vec2
 InputManager::GetMousePos()
 {
-   return s_mousePosition;
+   return mousePosition_;
 }
 
 void
 InputManager::SetMousePos(const glm::vec2& position)
 {
-   glfwSetCursorPos(s_windowHandle, static_cast< double >(position.x),
+   glfwSetCursorPos(windowHandle_, static_cast< double >(position.x),
                     static_cast< double >(position.y));
 }
 

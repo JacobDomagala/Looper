@@ -343,12 +343,6 @@ Game::IsRunning() const
 }
 
 void
-Game::RegisterForKeyInput(InputListener* listener)
-{
-   InputManager::RegisterForKeyInput(listener);
-}
-
-void
 Game::ProcessInput(time::milliseconds deltaTime)
 {
    m_deltaTime = deltaTime;

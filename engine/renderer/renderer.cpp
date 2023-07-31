@@ -700,6 +700,12 @@ VulkanRenderer::Initialize(GLFWwindow* windowHandle, ApplicationType type)
    auto& renderData = Data::renderData_[boundApplication_];
    renderData.windowHandle = windowHandle;
 
+   int32_t width = {};
+   int32_t height = {};
+   glfwGetFramebufferSize(windowHandle, &width, &height);
+
+   renderData.windowSize_ = glm::ivec2(width, height);
+
    if (not initialized_)
    {
       CreateInstance();
@@ -1012,6 +1018,8 @@ VulkanRenderer::CreateSwapchain()
    const auto surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
    const auto presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
    const auto extent = ChooseSwapExtent(swapChainSupport.capabilities, renderData.windowHandle);
+
+   utils::Assert(extent.height > 0 and extent.width > 0, "Incorrect extent!");
 
    uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
    if (swapChainSupport.capabilities.maxImageCount > 0

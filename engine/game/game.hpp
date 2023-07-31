@@ -39,9 +39,6 @@ class Game : public Application
    [[nodiscard]] glm::vec2
    GetCursorScreenPosition();
 
-   static void
-   RegisterForKeyInput(InputListener* listener);
-
    void
    LoadLevel(const std::string& pathToLevel);
 

@@ -53,6 +53,12 @@ class VulkanRenderer
       boundApplication_ = type;
    }
 
+   inline static RenderData&
+   GetRenderData()
+   {
+      return Data::renderData_.at(GetCurrentlyBoundType());
+   }
+
    [[nodiscard]] inline static ApplicationType
    GetCurrentlyBoundType()
    {
