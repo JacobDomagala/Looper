@@ -34,6 +34,11 @@ class InputListener
    MouseScrollCallback(const MouseScrollEvent& /*event*/)
    {
    }
+
+   virtual void
+   WindowFocusCallback(const WindowFocusEvent& /*event*/)
+   {
+   }
 };
 
 } // namespace looper

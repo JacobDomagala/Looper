@@ -12,6 +12,7 @@ constexpr float TARGET_TIME_MS = (1.0f / TARGET_FPS) * 1000.0f;       // millise
 constexpr float TARGET_TIME_MICRO = (1.0f / TARGET_FPS) * 1000000.0f; // microseconds
 constexpr int32_t WIDTH = 1920;
 constexpr int32_t HEIGHT = 1080;
+constexpr glm::ivec2 USE_DEFAULT_SIZE = glm::ivec2{-1, -1};
 constexpr int32_t NUM_FRAMES_TO_SAVE = 500;
 
 } // namespace looper

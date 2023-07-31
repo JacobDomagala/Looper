@@ -107,7 +107,7 @@ PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
 
          case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
          default: {
-            Logger::Fatal("validation layer: {}", pCallbackData->pMessage);
+            utils::Assert(false, fmt::format("validation layer: {}", pCallbackData->pMessage));
          }
       }
 
@@ -303,7 +303,9 @@ ChooseSwapPresentMode(const std::vector< VkPresentModeKHR >& availablePresentMod
 inline VkExtent2D
 ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* windowHandle)
 {
-   if (capabilities.currentExtent.width != UINT32_MAX)
+   if (capabilities.currentExtent.width != UINT32_MAX and capabilities.currentExtent.width > 0
+       and capabilities.currentExtent.height != UINT32_MAX
+       and capabilities.currentExtent.height > 0)
    {
       return capabilities.currentExtent;
    }

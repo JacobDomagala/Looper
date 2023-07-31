@@ -50,10 +50,14 @@ struct RenderInfo
 
 struct RenderData
 {
+   // Store this in case we have window minimized (to prevent extent being 0x0)
+   glm::ivec2 windowSize_ = {};
+   bool windowFocus_ = true;
+   
    std::array< std::vector< uint32_t >, NUM_LAYERS > deletedObjs_ = {};
-   ////////////////////////////////////
+   ////////////////////////////////////////////////////////////////////////
    // RENDER LAYERS (from near to far (values ranging from 0.0 to -0.9))
-   ////////////////////////////////////
+   ////////////////////////////////////////////////////////////////////////
 
    // Vertex
    std::array< std::vector< Vertex >, NUM_LAYERS > vertices = {};

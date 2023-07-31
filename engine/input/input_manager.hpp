@@ -16,22 +16,6 @@ struct Event;
 class InputManager
 {
  public:
-   // Functions used by InputListener to register for input callbacks
-   static void
-   RegisterForKeyInput(InputListener* listener);
-
-   static void
-   RegisterForCharInput(InputListener* listener);
-
-   static void
-   RegisterForMouseButtonInput(InputListener* listener);
-
-   static void
-   RegisterForMouseMovementInput(InputListener* listener);
-
-   static void
-   RegisterForMouseScrollInput(InputListener* listener);
-
    static void
    RegisterForInput(InputListener* listener);
 
@@ -79,24 +63,19 @@ class InputManager
    InternalCursorPositionCallback(GLFWwindow* window, double xPos, double yPos);
    static void
    InternalMouseScrollCallback(GLFWwindow* window, double xOffset, double yOffset);
+   static void
+   InternalWindowFocusCallback(GLFWwindow* window, int32_t focused);
 
  private:
-   static void
-   BroadcastEvent(const Event& event);
-
    // NOLINTBEGIN
-   static inline std::vector< InputListener* > s_keyListeners = {};
-   static inline std::vector< InputListener* > s_charListeners = {};
-   static inline std::vector< InputListener* > s_mouseButtonListeners = {};
-   static inline std::vector< InputListener* > s_mouseMovementListeners = {};
-   static inline std::vector< InputListener* > s_mouseScrollListeners = {};
+   static inline std::vector< InputListener* > listeners_ = {};
 
    // in future handle input from multiple windows?
-   static inline GLFWwindow* s_windowHandle = nullptr;
+   static inline GLFWwindow* windowHandle_ = nullptr;
 
-   static inline glm::vec2 s_mousePosition = {};
-   static inline std::unordered_map< int32_t, bool > s_mouseButtonMap = {};
-   static inline std::unordered_map< int32_t, bool > s_keyMap = {};
+   static inline glm::vec2 mousePosition_ = {};
+   static inline std::unordered_map< int32_t, bool > mouseButtonMap_ = {};
+   static inline std::unordered_map< int32_t, bool > keyMap_ = {};
    // NOLINTEND
 };
 

@@ -22,13 +22,10 @@ namespace looper {
 
 Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
 {
-   m_window = std::make_unique< renderer::Window >(screenSize.x, screenSize.y, "Editor");
+   m_window = std::make_unique< renderer::Window >(screenSize, "Editor");
 
    InputManager::Init(m_window->GetWindowHandle());
-   InputManager::RegisterForKeyInput(this);
-   InputManager::RegisterForMouseScrollInput(this);
-   InputManager::RegisterForMouseButtonInput(this);
-   InputManager::RegisterForMouseMovementInput(this);
+   InputManager::RegisterForInput(this);
 
    renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle(),
                                         renderer::ApplicationType::EDITOR);
@@ -76,28 +73,26 @@ Editor::HandleCamera()
 void
 Editor::KeyCallback(const KeyEvent& event)
 {
-   if (event.m_action == GLFW_PRESS)
+   if (event.action_ == GLFW_PRESS)
    {
-      if (event.m_key == GLFW_KEY_ESCAPE)
+      if (event.key_ == GLFW_KEY_ESCAPE)
       {
          ActionOnObject(ACTION::UNSELECT);
       }
 
-      if (event.m_key == GLFW_KEY_DELETE)
+      if (event.key_ == GLFW_KEY_DELETE)
       {
          ActionOnObject(ACTION::REMOVE);
       }
    }
-   else if (event.m_action == GLFW_RELEASE)
+   else if (event.action_ == GLFW_RELEASE)
    {
-      if (m_gameObjectSelected && event.m_key == GLFW_KEY_C)
+      if (m_gameObjectSelected && event.key_ == GLFW_KEY_C)
       {
-         Logger::Info("Copy object!");
          m_copiedGameObject = m_currentSelectedGameObject;
       }
-      if (m_copiedGameObject && event.m_key == GLFW_KEY_V)
+      if (m_copiedGameObject && event.key_ == GLFW_KEY_V)
       {
-         Logger::Info("Paste object!");
          CopyGameObject(m_copiedGameObject);
       }
    }
@@ -108,7 +103,7 @@ Editor::MouseScrollCallback(const MouseScrollEvent& event)
 {
    if (!m_playGame && !EditorGUI::IsBlockingEvents() && m_levelLoaded)
    {
-      m_camera.Zoom(static_cast< float >(event.m_xOffset + event.m_yOffset));
+      m_camera.Zoom(static_cast< float >(event.xOffset_ + event.yOffset_));
    }
 }
 
@@ -117,7 +112,7 @@ Editor::MouseButtonCallback(const MouseButtonEvent& event)
 {
    if (!m_playGame && !EditorGUI::IsBlockingEvents() && m_levelLoaded)
    {
-      const auto mousePressed = event.m_action == GLFW_PRESS;
+      const auto mousePressed = event.action_ == GLFW_PRESS;
       m_mousePressedLastUpdate = mousePressed;
 
       if (mousePressed)
@@ -142,7 +137,7 @@ Editor::CursorPositionCallback(const CursorPositionEvent& event)
 {
    if (!m_playGame && !EditorGUI::IsBlockingEvents() && m_levelLoaded)
    {
-      const auto currentCursorPosition = glm::vec2(event.m_xPos, event.m_yPos);
+      const auto currentCursorPosition = glm::vec2(event.xPos_, event.yPos_);
 
       if (m_mousePressedLastUpdate)
       {
@@ -809,6 +804,7 @@ Editor::LoadLevel(const std::string& levelPath)
 
    m_levelLoaded = true;
    gui_.LevelLoaded(m_currentLevel);
+   m_window->MakeFocus();
    SetupRendererData();
 }
 
@@ -993,8 +989,7 @@ Editor::Update()
 
    gui_.UpdateUI();
 
-   auto& renderData =
-      renderer::Data::renderData_.at(renderer::VulkanRenderer::GetCurrentlyBoundType());
+   auto& renderData = renderer::VulkanRenderer::GetRenderData();
    renderData.viewMat = m_camera.GetViewMatrix();
    renderData.projMat = m_camera.GetProjectionMatrix();
 
@@ -1060,7 +1055,12 @@ Editor::MainLoop()
          HandleCamera();
          Update();
 
-         renderer::VulkanRenderer::Render(this);
+         workQueue_.RunWorkUnits();
+
+         if (windowInFocus_)
+         {
+            renderer::VulkanRenderer::Render(this);
+         }
 
          timeLastFrame_ = watch.Stop();
 

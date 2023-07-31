@@ -9,8 +9,6 @@
 #include "object.hpp"
 #include "player.hpp"
 #include "utils/time/time_step.hpp"
-#include "utils/time/timer.hpp"
-
 
 #include <glm/matrix.hpp>
 #include <utility>
