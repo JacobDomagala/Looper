@@ -70,6 +70,14 @@ Window::Resize(const glm::ivec2& newSize)
 }
 
 void
+Window::MakeFocus()
+{
+   glfwRestoreWindow(window_);
+   glfwShowWindow(window_);
+   glfwFocusWindow(window_);
+}
+
+void
 Window::Clear()
 {
    // glfwMakeContextCurrent(window_);

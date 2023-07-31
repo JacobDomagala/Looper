@@ -26,12 +26,16 @@ Game::MainLoop()
 
          while (IsRunning() and (singleFrameTimer.count() >= TARGET_TIME_MICRO))
          {
-            m_window->Clear();
             const auto dt = time::milliseconds(
                TARGET_TIME_MS * static_cast< float >(time::Timer::AreTimersRunning()));
             ProcessInput(dt);
 
-            renderer::VulkanRenderer::Render(this);
+            workQueue_.RunWorkUnits();
+            if (windowInFocus_)
+            {
+               renderer::VulkanRenderer::Render(this);
+            }
+
             if (m_frameTimer > 1.0f)
             {
                m_framesLastSecond = m_frames;
@@ -67,6 +71,7 @@ Game::Init(const std::string& configFile, bool loadLevel)
    }
 
    m_window = std::make_unique< renderer::Window >(USE_DEFAULT_SIZE, "WindowTitle");
+   m_window->MakeFocus();
 
    renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle(),
                                         renderer::ApplicationType::GAME);
@@ -297,7 +302,8 @@ Game::LoadLevel(const std::string& pathToLevel)
    m_camera.Create(glm::vec3(m_player->GetCenteredPosition(), 0.0f), m_window->GetSize());
    m_camera.SetLevelSize(m_currentLevel->GetSize());
 
-   renderer::VulkanRenderer::SetupData();
+   workQueue_.PushWorkUnit([this] { return windowInFocus_; },
+                           [] { renderer::VulkanRenderer::SetupData(); });
 }
 
 glm::vec2
@@ -389,7 +395,6 @@ Game::HandleReverseLogic()
       {
          ++m_frameCount;
       }
-
    }
 }
 
@@ -428,10 +433,9 @@ Game::Render(VkCommandBuffer cmdBuffer)
       // const auto numObjects =
       // renderer::VulkanRenderer::GetNumMeshes(renderer::ApplicationType::GAME); numObjects_ =
       // numObjects.second - numObjects.first;
-      vkCmdDrawIndexed(cmdBuffer, renderData.numMeshes.at(idx) * renderer::INDICES_PER_SPRITE, 1,
-                       0, 0, 0);
+      vkCmdDrawIndexed(cmdBuffer, renderData.numMeshes.at(idx) * renderer::INDICES_PER_SPRITE, 1, 0,
+                       0, 0);
    }
-
 }
 
 } // namespace looper

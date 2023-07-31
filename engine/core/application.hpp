@@ -1,10 +1,11 @@
 #pragma once
 
-#include "renderer/camera/camera.hpp"
 #include "input_listener.hpp"
 #include "level.hpp"
-#include "logger.hpp"
 #include "utils/time/timer.hpp"
+#include "logger.hpp"
+#include "renderer/camera/camera.hpp"
+#include "work_queue.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
@@ -47,7 +48,8 @@ class Application : public InputListener
    [[nodiscard]] time::milliseconds
    GetDeltaTime() const;
 
-   [[nodiscard]] int32_t GetFramesLastSecond() const
+   [[nodiscard]] int32_t
+   GetFramesLastSecond() const
    {
       return m_framesLastSecond;
    }
@@ -84,11 +86,16 @@ class Application : public InputListener
    [[nodiscard]] virtual float
    GetZoomLevel() const = 0;
 
+   void
+   WindowFocusCallback(const WindowFocusEvent& event) override;
+
  protected:
    [[nodiscard]] virtual bool
    IsRunning() const = 0;
 
    bool m_isGame = false;
+   bool windowInFocus_ = true;
+
    std::shared_ptr< Player > m_player = nullptr;
    std::shared_ptr< Level > m_currentLevel = nullptr;
 
@@ -100,6 +107,8 @@ class Application : public InputListener
    float m_frameTimer = 0.0f;
    int32_t m_framesLastSecond = 0;
    uint32_t numObjects_ = {};
+
+   WorkQueue workQueue_ = {};
 };
 
 

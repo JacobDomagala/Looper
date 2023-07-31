@@ -77,7 +77,7 @@ InputManager::InternalWindowFocusCallback(GLFWwindow* /*window*/, int32_t focuse
 
    for (auto* listener : listeners_)
    {
-      listener->WindowFocusCallback({focused});
+      listener->WindowFocusCallback(WindowFocusEvent{focused});
    }
 }
 

@@ -22,6 +22,8 @@ class Window
    void
    ShutDown();
 
+   void MakeFocus();
+
    [[nodiscard]] glm::ivec2
    GetSize() const
    {

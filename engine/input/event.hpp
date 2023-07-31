@@ -81,7 +81,7 @@ struct MouseScrollEvent : public Event
 
 struct WindowFocusEvent : public Event
 {
-   WindowFocusEvent(int focus) : Event(EventType::WINDOW_FOCUS), focus_(focus)
+   explicit WindowFocusEvent(int focus) : Event(EventType::WINDOW_FOCUS), focus_(focus)
    {
    }
 

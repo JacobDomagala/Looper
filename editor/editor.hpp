@@ -9,8 +9,6 @@
 #include "object.hpp"
 #include "player.hpp"
 #include "utils/time/time_step.hpp"
-#include "utils/time/timer.hpp"
-#include "work_queue.hpp"
 
 #include <glm/matrix.hpp>
 #include <utility>
@@ -58,9 +56,6 @@ class Editor : public Application
    void
    MouseScrollCallback(const MouseScrollEvent& event) override;
 
-   void
-   WindowFocusCallback(const WindowFocusEvent& event) override;
-   
    void
    Render(VkCommandBuffer cmdBuffer) override;
 
@@ -209,8 +204,6 @@ class Editor : public Application
    bool m_mousePressedLastUpdate = false;
    bool m_mouseDrag = false;
 
-   bool windowInFocus_ = true;
-
    glm::vec2 m_lastCursorPosition = {};
 
    // Handling game objects (which are visible in game)
@@ -241,8 +234,6 @@ class Editor : public Application
 
    bool m_playGame = false;
    time::TimeStep timeLastFrame_ = time::TimeStep{time::microseconds{}};
-
-   WorkQueue workQueue_ = {};
 };
 
 } // namespace looper

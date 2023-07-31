@@ -89,12 +89,10 @@ Editor::KeyCallback(const KeyEvent& event)
    {
       if (m_gameObjectSelected && event.key_ == GLFW_KEY_C)
       {
-         Logger::Info("Copy object!");
          m_copiedGameObject = m_currentSelectedGameObject;
       }
       if (m_copiedGameObject && event.key_ == GLFW_KEY_V)
       {
-         Logger::Info("Paste object!");
          CopyGameObject(m_copiedGameObject);
       }
    }
@@ -107,13 +105,6 @@ Editor::MouseScrollCallback(const MouseScrollEvent& event)
    {
       m_camera.Zoom(static_cast< float >(event.xOffset_ + event.yOffset_));
    }
-}
-
-void
-Editor::WindowFocusCallback(const WindowFocusEvent& event)
-{
-   renderer::VulkanRenderer::GetRenderData().windowFocus_ = event.focus_;
-   windowInFocus_ = event.focus_;
 }
 
 void
@@ -813,8 +804,8 @@ Editor::LoadLevel(const std::string& levelPath)
 
    m_levelLoaded = true;
    gui_.LevelLoaded(m_currentLevel);
-
-   workQueue_.PushWorkUnit([this] { return windowInFocus_; }, [this] { SetupRendererData(); });
+   m_window->MakeFocus();
+   SetupRendererData();
 }
 
 void
