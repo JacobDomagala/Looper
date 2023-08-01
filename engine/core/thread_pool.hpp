@@ -1,5 +1,7 @@
 #pragma once
 
+#include "utils/assert.hpp"
+
 #include <condition_variable>
 #include <functional>
 #include <future>
@@ -13,32 +15,8 @@ namespace looper {
 class ThreadPool
 {
  public:
-   ThreadPool(size_t threads)
-   {
-      for (size_t i = 0; i < threads; ++i)
-      {
-         workers_.emplace_back([this] {
-            for (;;)
-            {
-               std::function< void() > task;
-
-               {
-                  std::unique_lock< std::mutex > lock(queueMutex_);
-                  condition_.wait(lock, [this] { return stop_ || !tasks_.empty(); });
-                  if (stop_ && tasks_.empty())
-                  {
-                     return;
-                  }
-
-                  task = std::move(tasks_.front());
-                  tasks_.pop();
-               }
-
-               task();
-            }
-         });
-      }
-   }
+   explicit ThreadPool(size_t threads);
+   ~ThreadPool();
 
    template < class F, class... Args >
    auto
@@ -53,28 +31,12 @@ class ThreadPool
       {
          std::unique_lock< std::mutex > lock(queueMutex_);
 
-         // don't allow enqueueing after stopping the pool
-         if (stop_)
-            throw std::runtime_error("enqueue on stopped ThreadPool");
+         utils::Assert(!stop_, "enqueue on stopped ThreadPool");
 
          tasks_.emplace([task]() { (*task)(); });
       }
       condition_.notify_one();
       return res;
-   }
-
-   ~ThreadPool()
-   {
-      {
-         std::unique_lock< std::mutex > lock(queueMutex_);
-         stop_ = true;
-      }
-
-      condition_.notify_all();
-      for (auto& worker : workers_)
-      {
-         worker.join();
-      }
    }
 
  private:

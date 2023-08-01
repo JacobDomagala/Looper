@@ -244,7 +244,7 @@ class Editor : public Application
    time::TimeStep uiTime_ = time::TimeStep{time::microseconds{}};
    time::TimeStep renderTime_ = time::TimeStep{time::microseconds{}};
 
-   ThreadPool pool_ = std::thread::hardware_concurrency();
+   ThreadPool pool_ = ThreadPool{std::thread::hardware_concurrency()};
    std::future< void > updateReady_;
    std::future< void > renderReady_;
 };

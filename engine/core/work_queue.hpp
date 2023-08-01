@@ -13,30 +13,10 @@ class WorkQueue
    using Workers = std::vector< std::pair< Precondition, WorkUnit > >;
 
    void
-   PushWorkUnit(const Precondition& prec, const WorkUnit& work)
-   {
-      queue_.push_back({prec, work});
-   }
+   PushWorkUnit(const Precondition& prec, const WorkUnit& work);
 
    void
-   RunWorkUnits()
-   {
-      Workers tmpQueue;
-
-      for (auto& unit : queue_)
-      {
-         if (unit.first())
-         {
-            unit.second();
-         }
-         else
-         {
-            tmpQueue.push_back(unit);
-         }
-      }
-
-      queue_.swap(tmpQueue);
-   }
+   RunWorkUnits();
 
  private:
    Workers queue_;
