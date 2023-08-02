@@ -455,9 +455,31 @@ Editor::SetupRendererData()
    renderer::VulkanRenderer::UpdateLineData();
 }
 
+
 void
-Editor::ActionOnObject(Editor::ACTION action)
+Editor::AddAnimationPoint(const glm::vec2& position)
 {
+   GetCamera().SetCameraAtPosition(position);
+   AddObject(ObjectType::ANIMATION_POINT);
+   SetRenderAnimationPoints(true);
+}
+
+void
+Editor::SelectAnimationPoint(const AnimationPoint& node)
+{
+   GetCamera().SetCameraAtPosition(node.m_end);
+   HandleObjectSelected(node.GetID(), true);
+   SetRenderAnimationPoints(true);
+}
+
+void
+Editor::ActionOnObject(Editor::ACTION action, const std::optional< Object::ID >& object)
+{
+   if (object)
+   {
+      HandleObjectSelected(object.value(), true);
+   }
+
    switch (action)
    {
       case ACTION::UNSELECT:
@@ -1002,8 +1024,6 @@ Editor::Update()
       }
    }
 
-   gui_.UpdateUI();
-
    auto& renderData = renderer::VulkanRenderer::GetRenderData();
    renderData.viewMat = m_camera.GetViewMatrix();
    renderData.projMat = m_camera.GetProjectionMatrix();
@@ -1074,14 +1094,16 @@ Editor::MainLoop()
          InputManager::PollEvents();
 
          HandleCamera();
-         updateReady_ = pool_.enqueue([this] { Update(); });
+         // updateReady_ = pool_.enqueue([this] { Update(); });
+         Update();
 
          workQueue_.RunWorkUnits();
 
          if (windowInFocus_)
          {
             const time::ScopedTimer renderTimer(&renderTime_);
-            renderReady_ = pool_.enqueue([this] { renderer::VulkanRenderer::Render(this); });
+            renderer::VulkanRenderer::Render(this);
+            // renderReady_ = pool_.enqueue([this] { renderer::VulkanRenderer::Render(this); });
          }
 
          timeLastFrame_ = watch.Stop();

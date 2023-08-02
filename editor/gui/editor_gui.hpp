@@ -117,8 +117,6 @@ class EditorGUI : public InputListener
    float toolsWindowHeight_ = 0.0f;
    float gameObjectWindowHeight_ = 0.0f;
    float levelWindowHeight_ = 0.0f;
-   float debugWindowHeight_ = 0.0f;
-   float debugWindowWidth_ = 0.0f;
 
    bool createPushed_ = false;
 

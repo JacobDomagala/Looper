@@ -8,16 +8,18 @@
 #include "logger.hpp"
 #include "object.hpp"
 #include "player.hpp"
-#include "utils/time/time_step.hpp"
 #include "thread_pool.hpp"
+#include "utils/time/time_step.hpp"
 
 #include <glm/matrix.hpp>
+#include <optional>
 #include <utility>
 
 namespace looper {
 
 class Player;
 class Animatable;
+struct AnimationPoint;
 
 class Editor : public Application
 {
@@ -32,6 +34,12 @@ class Editor : public Application
    // APPLICATION OVERRIDES
    void
    MainLoop() override;
+
+   void
+   SelectAnimationPoint(const AnimationPoint& node);
+
+   void
+   AddAnimationPoint(const glm::vec2& position);
 
    [[nodiscard]] glm::vec2
    GetWindowSize() const override;
@@ -148,7 +156,7 @@ class Editor : public Application
                               bool fromGUI = false);
 
    void
-   ActionOnObject(ACTION action);
+   ActionOnObject(ACTION action, const std::optional< Object::ID >& = {});
 
  private:
    // [[nodiscard]] std::shared_ptr< EditorObject >

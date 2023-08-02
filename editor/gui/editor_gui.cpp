@@ -613,13 +613,14 @@ EditorGUI::RenderMainPanel()
    ImGui::SetNextWindowSize(ImVec2(windowWidth_, toolsWindowHeight_));
    ImGui::Begin("Tools");
 
-   if (ImGui::BeginTable("MainTable", 4))
+   ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 0.0f));
+   if (ImGui::BeginTable("MainTable", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
    {
       CreateActionRow(
          [this] {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.0f, 0.5f, 0.0f, 0.8f});
             ImGui::BeginDisabled(currentLevel_ == nullptr);
-            if (ImGui::Button(ICON_FA_PLAY "Play"))
+            if (ImGui::Button(ICON_FA_PLAY "Play", ImVec2(-FLT_MIN, -FLT_MIN)))
             {
                parent_.PlayLevel();
             }
@@ -628,7 +629,7 @@ EditorGUI::RenderMainPanel()
          },
 
          [this] {
-            if (ImGui::Button("Save"))
+            if (ImGui::Button("Save", ImVec2(-FLT_MIN, -FLT_MIN)))
             {
                auto levelName =
                   FileManager::FileDialog(LEVELS_DIR, {{"DGame Level file", "dgl"}}, true);
@@ -641,7 +642,7 @@ EditorGUI::RenderMainPanel()
          },
 
          [this] {
-            if (ImGui::Button("Load"))
+            if (ImGui::Button("Load", ImVec2(-FLT_MIN, -FLT_MIN)))
             {
                auto levelName =
                   FileManager::FileDialog(LEVELS_DIR, {{"DGame Level file", "dgl"}}, false);
@@ -653,13 +654,14 @@ EditorGUI::RenderMainPanel()
          },
 
          [this] {
-            if (ImGui::Button("Create") or createPushed_)
+            if (ImGui::Button("Create", ImVec2(-FLT_MIN, -FLT_MIN)) or createPushed_)
             {
                createPushed_ = true;
                RenderCreateNewLevelWindow();
             }
          });
    }
+   ImGui::PopStyleVar();
    ImGui::EndTable();
 
    ImGui::End();
@@ -956,17 +958,14 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
                ImGui::TableNextColumn();
                if (ImGui::Selectable(label.c_str()))
                {
-                  parent_.GetCamera().SetCameraAtPosition(node.m_end);
-                  parent_.HandleObjectSelected(node.GetID(), true);
-                  parent_.SetRenderAnimationPoints(true);
+                  parent_.SelectAnimationPoint(node);
                }
                ImGui::TableNextColumn();
 
                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.0f, 0.0f, 0.0f, 1.0f});
                if (ImGui::Selectable(fmt::format("{}##{}", ICON_FA_XMARK, i).c_str()))
                {
-                  parent_.HandleObjectSelected(node.GetID(), true);
-                  parent_.ActionOnObject(Editor::ACTION::REMOVE);
+                  parent_.ActionOnObject(Editor::ACTION::REMOVE, node.GetID());
                }
                ImGui::PopStyleColor(1);
 
@@ -977,9 +976,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
 
          if (ImGui::Button("New"))
          {
-            parent_.GetCamera().SetCameraAtPosition(newNodePosition);
-            parent_.AddObject(ObjectType::ANIMATION_POINT);
-            parent_.SetRenderAnimationPoints(true);
+            parent_.AddAnimationPoint(newNodePosition);
          }
          ImGui::EndChild();
 
@@ -1033,11 +1030,9 @@ EditorGUI::UpdateUI()
    windowSize_ = parent_.GetWindowSize();
 
    windowWidth_ = windowSize_.x / 7;
-   toolsWindowHeight_ = 60;
+   toolsWindowHeight_ = windowSize_.y / 20;
    levelWindowHeight_ = windowSize_.y - toolsWindowHeight_;
    gameObjectWindowHeight_ = windowSize_.y;
-   debugWindowWidth_ = windowSize_.x - 2 * windowWidth_;
-   debugWindowHeight_ = 150;
 
    RenderMainPanel();
 
