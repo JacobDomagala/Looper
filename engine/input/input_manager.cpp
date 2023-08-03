@@ -8,6 +8,21 @@
 
 namespace looper {
 
+template < auto func >
+void
+BroadcastEvent(auto& listeners, auto& event)
+{
+   for (auto* listener : listeners)
+   {
+      std::invoke(func, listener, event);
+
+      if (event.handled_)
+      {
+         break;
+      }
+   }
+}
+
 void
 InputManager::InternalKeyCallback(GLFWwindow* /*window*/, int32_t key, int32_t scancode,
                                   int32_t action, int32_t mods)
@@ -15,10 +30,11 @@ InputManager::InternalKeyCallback(GLFWwindow* /*window*/, int32_t key, int32_t s
    Logger::Trace("GLFW key {} {} scan code - {}", action, key, scancode);
 
    keyMap_[key] = action;
+   auto event = KeyEvent{key, scancode, action, mods};
 
    for (auto* listener : listeners_)
    {
-      listener->KeyCallback({key, scancode, action, mods});
+      listener->KeyCallback(event);
    }
 }
 
@@ -27,10 +43,9 @@ InputManager::InternalCharCallback(GLFWwindow* /*window*/, uint32_t key)
 {
    Logger::Trace("GLFW char {}", key);
 
-   for (auto* listener : listeners_)
-   {
-      listener->CharCallback(CharEvent{key});
-   }
+   auto event = CharEvent{key};
+
+   BroadcastEvent< &InputListener::CharCallback >(listeners_, event);
 }
 
 void
@@ -40,10 +55,8 @@ InputManager::InternalMouseButtonCallback(GLFWwindow* /*window*/, int32_t button
    Logger::Trace("GLFW mouse button {} {} {}", button, action, mods);
    mouseButtonMap_[button] = action;
 
-   for (auto* listener : listeners_)
-   {
-      listener->MouseButtonCallback({button, action, mods});
-   }
+   auto event = MouseButtonEvent{button, action, mods};
+   BroadcastEvent< &InputListener::MouseButtonCallback >(listeners_, event);
 }
 
 void
@@ -52,11 +65,9 @@ InputManager::InternalCursorPositionCallback(GLFWwindow* /*window*/, double xPos
    Logger::Trace("GLFW cursor pos {} {}", xPos, yPos);
 
    mousePosition_ = glm::vec2(xPos, yPos);
+   auto event = CursorPositionEvent{xPos, yPos};
 
-   for (auto* listener : listeners_)
-   {
-      listener->CursorPositionCallback({xPos, yPos});
-   }
+   BroadcastEvent< &InputListener::CursorPositionCallback >(listeners_, event);
 }
 
 void
@@ -64,10 +75,9 @@ InputManager::InternalMouseScrollCallback(GLFWwindow* /*window*/, double xOffset
 {
    Logger::Trace("GLFW scroll {} {}", xOffset, yOffset);
 
-   for (auto* listener : listeners_)
-   {
-      listener->MouseScrollCallback({xOffset, yOffset});
-   }
+   auto event = MouseScrollEvent{xOffset, yOffset};
+
+   BroadcastEvent< &InputListener::MouseScrollCallback >(listeners_, event);
 }
 
 void
@@ -75,10 +85,9 @@ InputManager::InternalWindowFocusCallback(GLFWwindow* /*window*/, int32_t focuse
 {
    Logger::Trace("GLFW window focus {}", focused);
 
-   for (auto* listener : listeners_)
-   {
-      listener->WindowFocusCallback(WindowFocusEvent{focused});
-   }
+   auto event = WindowFocusEvent{focused};
+
+   BroadcastEvent< &InputListener::WindowFocusCallback >(listeners_, event);
 }
 
 void

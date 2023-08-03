@@ -53,7 +53,7 @@ EditorGUI::EditorGUI(Editor& parent) : parent_(parent)
 }
 
 void
-EditorGUI::KeyCallback(const KeyEvent& event)
+EditorGUI::KeyCallback(KeyEvent& event)
 {
    auto* window = parent_.GetWindow().GetWindowHandle();
    ImGuiIO& io = ImGui::GetIO();
@@ -68,17 +68,23 @@ EditorGUI::KeyCallback(const KeyEvent& event)
 
    const auto imguiKey = KeyToImGuiKey(event.key_);
    io.AddKeyEvent(imguiKey, (event.action_ == GLFW_PRESS));
+
+   if (event.key_ == GLFW_KEY_ESCAPE)
+   {
+      event.handled_ = true;
+      // parent_.Shutdown();
+   }
 }
 
 void
-EditorGUI::CharCallback(const CharEvent& event)
+EditorGUI::CharCallback(CharEvent& event)
 {
    ImGuiIO& io = ImGui::GetIO();
    io.AddInputCharacter(event.key_);
 }
 
 void
-EditorGUI::MouseButtonCallback(const MouseButtonEvent& event)
+EditorGUI::MouseButtonCallback(MouseButtonEvent& event)
 {
    ImGuiIO& io = ImGui::GetIO();
 
@@ -87,14 +93,14 @@ EditorGUI::MouseButtonCallback(const MouseButtonEvent& event)
 }
 
 void
-EditorGUI::CursorPositionCallback(const CursorPositionEvent& event)
+EditorGUI::CursorPositionCallback(CursorPositionEvent& event)
 {
    ImGuiIO& io = ImGui::GetIO();
    io.MousePos = ImVec2(static_cast< float >(event.xPos_), static_cast< float >(event.yPos_));
 }
 
 void
-EditorGUI::MouseScrollCallback(const MouseScrollEvent& /*event*/)
+EditorGUI::MouseScrollCallback(MouseScrollEvent& /*event*/)
 {
 }
 
@@ -607,13 +613,17 @@ EditorGUI::RenderCreateNewLevelWindow()
 }
 
 void
+EditorGUI::RenderExitWindow()
+{
+}
+
+void
 EditorGUI::RenderMainPanel()
 {
    ImGui::SetNextWindowPos({0, 0});
    ImGui::SetNextWindowSize(ImVec2(windowWidth_, toolsWindowHeight_));
    ImGui::Begin("Tools");
 
-   ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 0.0f));
    if (ImGui::BeginTable("MainTable", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
    {
       CreateActionRow(
@@ -660,9 +670,10 @@ EditorGUI::RenderMainPanel()
                RenderCreateNewLevelWindow();
             }
          });
+
+      ImGui::EndTable();
    }
-   ImGui::PopStyleVar();
-   ImGui::EndTable();
+
 
    ImGui::End();
 }
@@ -690,7 +701,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
          });
 
          CreateActionRowLabel("Render collision", [this] {
-            static bool renderPathfinderNodes = parent_.GetRenderNodes();
+            auto renderPathfinderNodes = parent_.GetRenderNodes();
             if (ImGui::Checkbox("##Render collision", &renderPathfinderNodes))
             {
                parent_.RenderNodes(renderPathfinderNodes);

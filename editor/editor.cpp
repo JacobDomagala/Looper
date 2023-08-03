@@ -72,18 +72,20 @@ Editor::HandleCamera()
 }
 
 void
-Editor::KeyCallback(const KeyEvent& event)
+Editor::KeyCallback(KeyEvent& event)
 {
    if (event.action_ == GLFW_PRESS)
    {
       if (event.key_ == GLFW_KEY_ESCAPE)
       {
          ActionOnObject(ACTION::UNSELECT);
+         event.handled_ = true;
       }
 
       if (event.key_ == GLFW_KEY_DELETE)
       {
          ActionOnObject(ACTION::REMOVE);
+         event.handled_ = true;
       }
    }
    else if (event.action_ == GLFW_RELEASE)
@@ -91,25 +93,28 @@ Editor::KeyCallback(const KeyEvent& event)
       if (m_gameObjectSelected && event.key_ == GLFW_KEY_C)
       {
          m_copiedGameObject = m_currentSelectedGameObject;
+         event.handled_ = true;
       }
       if (m_copiedGameObject && event.key_ == GLFW_KEY_V)
       {
          CopyGameObject(m_copiedGameObject);
+         event.handled_ = true;
       }
    }
 }
 
 void
-Editor::MouseScrollCallback(const MouseScrollEvent& event)
+Editor::MouseScrollCallback(MouseScrollEvent& event)
 {
    if (!m_playGame && !EditorGUI::IsBlockingEvents() && m_levelLoaded)
    {
       m_camera.Zoom(static_cast< float >(event.xOffset_ + event.yOffset_));
+      event.handled_ = true;
    }
 }
 
 void
-Editor::MouseButtonCallback(const MouseButtonEvent& event)
+Editor::MouseButtonCallback(MouseButtonEvent& event)
 {
    if (!m_playGame && !EditorGUI::IsBlockingEvents() && m_levelLoaded)
    {
@@ -130,11 +135,13 @@ Editor::MouseButtonCallback(const MouseButtonEvent& event)
          m_movementOnGameObject = false;
          m_mouseDrag = false;
       }
+
+      event.handled_ = true;
    }
 }
 
 void
-Editor::CursorPositionCallback(const CursorPositionEvent& event)
+Editor::CursorPositionCallback(CursorPositionEvent& event)
 {
    if (!m_playGame && !EditorGUI::IsBlockingEvents() && m_levelLoaded)
    {
@@ -151,6 +158,7 @@ Editor::CursorPositionCallback(const CursorPositionEvent& event)
       }
 
       m_lastCursorPosition = currentCursorPosition;
+      event.handled_ = true;
    }
 }
 
@@ -1084,6 +1092,12 @@ Editor::IsRunning() const
 }
 
 void
+Editor::Shutdown()
+{
+   m_isRunning = false;
+}
+
+void
 Editor::MainLoop()
 {
    auto singleFrameTimer = time::microseconds(0);
@@ -1099,19 +1113,16 @@ Editor::MainLoop()
          const time::ScopedTimer frameTimer(&timeLastFrame_);
          InputManager::PollEvents();
 
+         // Run all deffered work units
          workQueue_.RunWorkUnits();
 
          HandleCamera();
-         // updateReady_ = pool_.enqueue([this] { Update(); });
          Update();
-
-
 
          if (windowInFocus_)
          {
             const time::ScopedTimer renderTimer(&renderTime_);
             renderer::VulkanRenderer::Render(this);
-            // renderReady_ = pool_.enqueue([this] { renderer::VulkanRenderer::Render(this); });
          }
 
          timeLastFrame_ = watch.Stop();

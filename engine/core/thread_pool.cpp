@@ -32,7 +32,7 @@ ThreadPool::ThreadPool(size_t threads)
 ThreadPool::~ThreadPool()
 {
    {
-      std::unique_lock< std::mutex > lock(queueMutex_);
+      const std::unique_lock< std::mutex > lock(queueMutex_);
       stop_ = true;
    }
 

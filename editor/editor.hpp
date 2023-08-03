@@ -54,16 +54,16 @@ class Editor : public Application
    GetZoomLevel() const override;
 
    void
-   KeyCallback(const KeyEvent& event) override;
+   KeyCallback(KeyEvent& event) override;
 
    void
-   MouseButtonCallback(const MouseButtonEvent& event) override;
+   MouseButtonCallback(MouseButtonEvent& event) override;
 
    void
-   CursorPositionCallback(const CursorPositionEvent& event) override;
+   CursorPositionCallback(CursorPositionEvent& event) override;
 
    void
-   MouseScrollCallback(const MouseScrollEvent& event) override;
+   MouseScrollCallback(MouseScrollEvent& event) override;
 
    void
    Render(VkCommandBuffer cmdBuffer) override;
@@ -162,6 +162,9 @@ class Editor : public Application
    AddToWorkQueue(
       const WorkQueue::WorkUnit& work, const WorkQueue::Precondition& prec = [] { return true; });
 
+   void
+   Shutdown();
+
  private:
    // [[nodiscard]] std::shared_ptr< EditorObject >
    // GetEditorObjectByID(Object::ID ID);
@@ -259,8 +262,6 @@ class Editor : public Application
    ThreadPool pool_ = ThreadPool{std::thread::hardware_concurrency()};
    std::future< void > updateReady_;
    std::future< void > renderReady_;
-
-   WorkQueue workQueue_ = {};
 };
 
 } // namespace looper
