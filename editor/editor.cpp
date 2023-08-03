@@ -473,6 +473,12 @@ Editor::SelectAnimationPoint(const AnimationPoint& node)
 }
 
 void
+Editor::AddToWorkQueue(const WorkQueue::WorkUnit& work, const WorkQueue::Precondition& prec)
+{
+   workQueue_.PushWorkUnit(prec, work);
+}
+
+void
 Editor::ActionOnObject(Editor::ACTION action, const std::optional< Object::ID >& object)
 {
    if (object)
@@ -1093,11 +1099,13 @@ Editor::MainLoop()
          const time::ScopedTimer frameTimer(&timeLastFrame_);
          InputManager::PollEvents();
 
+         workQueue_.RunWorkUnits();
+
          HandleCamera();
          // updateReady_ = pool_.enqueue([this] { Update(); });
          Update();
 
-         workQueue_.RunWorkUnits();
+
 
          if (windowInFocus_)
          {

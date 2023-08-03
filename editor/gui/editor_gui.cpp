@@ -622,7 +622,7 @@ EditorGUI::RenderMainPanel()
             ImGui::BeginDisabled(currentLevel_ == nullptr);
             if (ImGui::Button(ICON_FA_PLAY "Play", ImVec2(-FLT_MIN, -FLT_MIN)))
             {
-               parent_.PlayLevel();
+               parent_.AddToWorkQueue([this] { parent_.PlayLevel(); });
             }
 
             ImGui::PopStyleColor(1);
@@ -635,7 +635,7 @@ EditorGUI::RenderMainPanel()
                   FileManager::FileDialog(LEVELS_DIR, {{"DGame Level file", "dgl"}}, true);
                if (!levelName.empty())
                {
-                  parent_.SaveLevel(levelName);
+                  parent_.AddToWorkQueue([this, levelName] { parent_.SaveLevel(levelName); });
                }
             }
             ImGui::EndDisabled();
@@ -648,7 +648,7 @@ EditorGUI::RenderMainPanel()
                   FileManager::FileDialog(LEVELS_DIR, {{"DGame Level file", "dgl"}}, false);
                if (!levelName.empty())
                {
-                  parent_.LoadLevel(levelName);
+                  parent_.AddToWorkQueue([this, levelName] { parent_.LoadLevel(levelName); });
                }
             }
          },
@@ -718,7 +718,8 @@ EditorGUI::RenderLevelMenu() // NOLINT
          {
             if (ImGui::Selectable(item.c_str()))
             {
-               parent_.AddGameObject(Object::GetTypeFromString(item));
+               parent_.AddToWorkQueue(
+                  [this, item] { parent_.AddGameObject(Object::GetTypeFromString(item)); });
             }
          }
          ImGui::EndCombo();
@@ -965,7 +966,9 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.0f, 0.0f, 0.0f, 1.0f});
                if (ImGui::Selectable(fmt::format("{}##{}", ICON_FA_XMARK, i).c_str()))
                {
-                  parent_.ActionOnObject(Editor::ACTION::REMOVE, node.GetID());
+                  parent_.AddToWorkQueue([this, nodeID = node.GetID()] {
+                     parent_.ActionOnObject(Editor::ACTION::REMOVE, nodeID);
+                  });
                }
                ImGui::PopStyleColor(1);
 
@@ -976,7 +979,8 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
 
          if (ImGui::Button("New"))
          {
-            parent_.AddAnimationPoint(newNodePosition);
+            parent_.AddToWorkQueue(
+               [this, newNodePosition] { parent_.AddAnimationPoint(newNodePosition); });
          }
          ImGui::EndChild();
 

@@ -158,6 +158,10 @@ class Editor : public Application
    void
    ActionOnObject(ACTION action, const std::optional< Object::ID >& = {});
 
+   void
+   AddToWorkQueue(
+      const WorkQueue::WorkUnit& work, const WorkQueue::Precondition& prec = [] { return true; });
+
  private:
    // [[nodiscard]] std::shared_ptr< EditorObject >
    // GetEditorObjectByID(Object::ID ID);
@@ -255,6 +259,8 @@ class Editor : public Application
    ThreadPool pool_ = ThreadPool{std::thread::hardware_concurrency()};
    std::future< void > updateReady_;
    std::future< void > renderReady_;
+
+   WorkQueue workQueue_ = {};
 };
 
 } // namespace looper
