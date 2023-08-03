@@ -4,13 +4,14 @@
 
 #include <GLFW/glfw3.h>
 #include <algorithm>
+#include <functional>
 #include <iostream>
 
 namespace looper {
 
 template < auto func >
 void
-BroadcastEvent(auto& listeners, auto& event)
+BroadcastEvent(const auto& listeners, auto& event)
 {
    for (auto* listener : listeners)
    {
@@ -32,10 +33,7 @@ InputManager::InternalKeyCallback(GLFWwindow* /*window*/, int32_t key, int32_t s
    keyMap_[key] = action;
    auto event = KeyEvent{key, scancode, action, mods};
 
-   for (auto* listener : listeners_)
-   {
-      listener->KeyCallback(event);
-   }
+   BroadcastEvent< &InputListener::KeyCallback >(listeners_, event);
 }
 
 void

@@ -76,16 +76,19 @@ Editor::KeyCallback(KeyEvent& event)
 {
    if (event.action_ == GLFW_PRESS)
    {
-      if (event.key_ == GLFW_KEY_ESCAPE)
+      if (IsAnyObjectSelected())
       {
-         ActionOnObject(ACTION::UNSELECT);
-         event.handled_ = true;
-      }
+         if (event.key_ == GLFW_KEY_ESCAPE)
+         {
+            ActionOnObject(ACTION::UNSELECT);
+            event.handled_ = true;
+         }
 
-      if (event.key_ == GLFW_KEY_DELETE)
-      {
-         ActionOnObject(ACTION::REMOVE);
-         event.handled_ = true;
+         if (event.key_ == GLFW_KEY_DELETE)
+         {
+            ActionOnObject(ACTION::REMOVE);
+            event.handled_ = true;
+         }
       }
    }
    else if (event.action_ == GLFW_RELEASE)
@@ -484,6 +487,13 @@ void
 Editor::AddToWorkQueue(const WorkQueue::WorkUnit& work, const WorkQueue::Precondition& prec)
 {
    workQueue_.PushWorkUnit(prec, work);
+}
+
+bool
+Editor::IsAnyObjectSelected() const
+{
+   return m_editorObjectSelected or m_currentEditorObjectSelected or m_gameObjectSelected
+          or m_currentSelectedGameObject;
 }
 
 void

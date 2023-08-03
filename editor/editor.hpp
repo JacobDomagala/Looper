@@ -165,6 +165,9 @@ class Editor : public Application
    void
    Shutdown();
 
+   bool
+   IsAnyObjectSelected() const;
+
  private:
    // [[nodiscard]] std::shared_ptr< EditorObject >
    // GetEditorObjectByID(Object::ID ID);

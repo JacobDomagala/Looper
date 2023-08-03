@@ -69,10 +69,10 @@ EditorGUI::KeyCallback(KeyEvent& event)
    const auto imguiKey = KeyToImGuiKey(event.key_);
    io.AddKeyEvent(imguiKey, (event.action_ == GLFW_PRESS));
 
-   if (event.key_ == GLFW_KEY_ESCAPE)
+   if ((event.key_ == GLFW_KEY_ESCAPE) and (event.action_ == GLFW_PRESS))
    {
+      exitPushed_ = not exitPushed_;
       event.handled_ = true;
-      // parent_.Shutdown();
    }
 }
 
@@ -615,6 +615,34 @@ EditorGUI::RenderCreateNewLevelWindow()
 void
 EditorGUI::RenderExitWindow()
 {
+   const auto halfSize = windowSize_ / 2.0f;
+
+   ImGui::SetNextWindowPos({halfSize.x - 160, halfSize.y - 60});
+   ImGui::SetNextWindowSize({240, 120});
+   ImGui::Begin("Exit", nullptr, ImGuiWindowFlags_NoResize);
+
+   ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.6f);
+
+   ImGui::Text("Do you want to exit?");
+   ImGui::Dummy(ImVec2(2.0f, 0.0f));
+
+   ImGui::Dummy(ImVec2(0.0f, 5.0f));
+   ImGui::Dummy(ImVec2(ImGui::GetWindowWidth() / 10.0f, 0.0f));
+   ImGui::SameLine();
+   // ImGui::SetCursorPosX((ImGui::GetWindowWidth() - 300) / 2);
+   if (ImGui::Button("Exit", {ImGui::GetWindowWidth() / 3.0f, 35}))
+   {
+      parent_.Shutdown();
+   }
+   ImGui::SameLine();
+   ImGui::Dummy(ImVec2(2.0f, 0.0f));
+   ImGui::SameLine();
+   if (ImGui::Button("Cancel", {ImGui::GetWindowWidth() / 3.0f, 35}))
+   {
+      exitPushed_ = false;
+   }
+
+   ImGui::End();
 }
 
 void
@@ -1059,6 +1087,10 @@ EditorGUI::UpdateUI()
    if (currentlySelectedGameObject_)
    {
       RenderGameObjectMenu();
+   }
+
+   if(exitPushed_){
+      RenderExitWindow();
    }
 
    ImGui::Render();

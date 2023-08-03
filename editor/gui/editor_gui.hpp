@@ -122,6 +122,7 @@ class EditorGUI : public InputListener
    float levelWindowHeight_ = 0.0f;
 
    bool createPushed_ = false;
+   bool exitPushed_ = false;
 
    inline static VkImage fontImage_ = {};
    inline static VkDeviceMemory fontMemory_ = {};
