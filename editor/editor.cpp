@@ -26,11 +26,11 @@ Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
    m_window = std::make_unique< renderer::Window >(screenSize, "Editor");
 
    InputManager::Init(m_window->GetWindowHandle());
-   InputManager::RegisterForInput(this);
-
+   
    renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle(),
                                         renderer::ApplicationType::EDITOR);
    gui_.Init();
+   InputManager::RegisterForInput(this);
 }
 
 void
