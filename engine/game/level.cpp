@@ -6,6 +6,7 @@
 #include "renderer/window/window.hpp"
 #include "utils/file_manager.hpp"
 #include "utils/time/timer.hpp"
+#include "utils/time/scoped_timer.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -48,6 +49,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
       }
       else if (key == "PATHFINDER")
       {
+         SCOPED_TIMER(fmt::format("Loading Pathfinder ({} nodes)", json[key]["nodes"].size()));
          m_pathFinder.InitializeEmpty(this);
 
          for (const auto& nodeJson : json[key]["nodes"])
@@ -71,6 +73,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
       }
       else if (key == "PLAYER")
       {
+         SCOPED_TIMER("Loading Player");
+
          const auto& player = json[key];
          const auto& position = player["position"];
          const auto& size = player["size"];
@@ -87,6 +91,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
       }
       else if (key == "ENEMIES")
       {
+         SCOPED_TIMER(fmt::format("Loading Enemies ({})", json[key].size()));
+
          for (const auto& enemy : json[key])
          {
             const auto& position = enemy["position"];
@@ -123,6 +129,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
       }
       else if (key == "OBJECTS")
       {
+         SCOPED_TIMER(fmt::format("Loading Objects ({})", json[key].size()));
+         
          for (const auto& object : json[key])
          {
             const auto& position = object["position"];

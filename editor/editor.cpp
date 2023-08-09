@@ -23,7 +23,7 @@ namespace looper {
 
 Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
 {
-   m_window = std::make_unique< renderer::Window >(screenSize, "Editor");
+   m_window = std::make_unique< renderer::Window >(screenSize, "Editor", true);
 
    InputManager::Init(m_window->GetWindowHandle());
    
@@ -773,6 +773,8 @@ Editor::GetRenderOffsets() const
 void
 Editor::SetupPathfinderNodes()
 {
+   SCOPED_TIMER("SetupPathfinderNodes");
+
    const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
    std::ranges::transform(
       pathfinderNodes, std::back_inserter(pathfinderNodes_), [this](const auto& node) {
@@ -830,40 +832,52 @@ Editor::LoadLevel(const std::string& levelPath)
 
    renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::EDITOR);
 
-   m_levelFileName = levelPath;
-   m_currentLevel = std::make_shared< Level >();
-   m_currentLevel->Load(this, levelPath);
-
-   SetupPathfinderNodes();
-
-   const auto& gameObjects = m_currentLevel->GetObjects();
-   for (const auto& object : gameObjects)
    {
-      const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(object);
+      SCOPED_TIMER("Total level load");
+      
+         m_levelFileName = levelPath;
+         m_currentLevel = std::make_shared< Level >();
+         m_currentLevel->Load(this, levelPath);
+      
+      SetupPathfinderNodes();
 
-      if (animatablePtr)
       {
-         const auto& animationPoints = animatablePtr->GetAnimationKeypoints();
+         SCOPED_TIMER("Animation points setup");
 
-         for (const auto& point : animationPoints)
+         const auto& gameObjects = m_currentLevel->GetObjects();
+         for (const auto& object : gameObjects)
          {
-            auto editorObject = std::make_shared< EditorObject >(
-               *this, point.m_end, glm::vec2(20, 20), "NodeSprite.png", point.GetID());
-            editorObject->SetName(fmt::format("AnimationPoint{}", object->GetName()));
-            editorObject->SetVisible(false);
-            editorObject->Render();
-            animationPoints_.push_back(editorObject);
+            const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(object);
+
+            if (animatablePtr)
+            {
+               const auto& animationPoints = animatablePtr->GetAnimationKeypoints();
+
+               for (const auto& point : animationPoints)
+               {
+                  auto editorObject = std::make_shared< EditorObject >(
+                     *this, point.m_end, glm::vec2(20, 20), "NodeSprite.png", point.GetID());
+                  editorObject->SetName(fmt::format("AnimationPoint{}", object->GetName()));
+                  editorObject->SetVisible(false);
+                  editorObject->Render();
+                  animationPoints_.push_back(editorObject);
+               }
+            }
          }
       }
+
+      m_camera.Create(glm::vec3(m_currentLevel->GetPlayer()->GetPosition(), 0.0f),
+                      m_window->GetSize());
+      m_camera.SetLevelSize(m_currentLevel->GetSize());
+
+      m_levelLoaded = true;
+
+      gui_.LevelLoaded(m_currentLevel);
+
+      m_window->MakeFocus();
+    
    }
-
-   m_camera.Create(glm::vec3(m_currentLevel->GetPlayer()->GetPosition(), 0.0f),
-                   m_window->GetSize());
-   m_camera.SetLevelSize(m_currentLevel->GetSize());
-
-   m_levelLoaded = true;
-   gui_.LevelLoaded(m_currentLevel);
-   m_window->MakeFocus();
+   
    SetupRendererData();
 }
 

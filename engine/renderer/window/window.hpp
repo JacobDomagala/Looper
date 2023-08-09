@@ -16,7 +16,7 @@ namespace looper::renderer {
 class Window
 {
  public:
-   Window(const glm::ivec2& size, const std::string& title);
+   Window(const glm::ivec2& size, const std::string& title, bool windowed);
    ~Window();
 
    void

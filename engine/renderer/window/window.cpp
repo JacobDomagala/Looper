@@ -11,7 +11,7 @@
 
 namespace looper::renderer {
 
-Window::Window(const glm::ivec2& size, const std::string& title)
+Window::Window(const glm::ivec2& size, const std::string& title, bool windowed)
    : size_(size), title_(title), isRunning_(true)
 {
    glfwSetErrorCallback([](int error, const char* description) {
@@ -31,7 +31,7 @@ Window::Window(const glm::ivec2& size, const std::string& title)
       size_ = glm::ivec2(mode->width, mode->height);
    }
 
-   window_ = glfwCreateWindow(size_.x, size_.y, title.c_str(), monitor, nullptr);
+   window_ = glfwCreateWindow(size_.x, size_.y, title.c_str(), windowed ? nullptr : monitor, nullptr);
 
    utils::Assert(window_, "Failed to create GLFW window!");
 

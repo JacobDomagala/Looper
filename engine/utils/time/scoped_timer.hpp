@@ -27,6 +27,6 @@ class ScopedTimer
 };
 
 // NOLINTNEXTLINE
-#define SCOPED_TIMER(str) looper::time::ScopedTimer t(std::move(str));
+#define SCOPED_TIMER(str) looper::time::ScopedTimer t(str);
 
 } // namespace looper::time
