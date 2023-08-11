@@ -26,7 +26,10 @@ class ScopedTimer
    TimeStep* timeStep_ = nullptr;
 };
 
-// NOLINTNEXTLINE
-#define SCOPED_TIMER(str) looper::time::ScopedTimer t(str);
+// NOLINTBEGIN
+#define TOKEN_PASTE(x, y) x##y
+#define TOKEN_PASTE2(x, y) TOKEN_PASTE(x, y)
+#define SCOPED_TIMER(str) looper::time::ScopedTimer TOKEN_PASTE2(timer_, __LINE__)(str);
+// NOLINTEND
 
 } // namespace looper::time
