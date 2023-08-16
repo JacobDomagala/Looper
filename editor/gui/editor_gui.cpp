@@ -107,7 +107,7 @@ EditorGUI::MouseScrollCallback(MouseScrollEvent& /*event*/)
 void
 EditorGUI::Init()
 {
-   InputManager::RegisterForInput(this);
+   InputManager::RegisterForInput(parent_.GetWindow().GetWindowHandle(), this);
 
    // Setup Dear ImGui context
    IMGUI_CHECKVERSION();

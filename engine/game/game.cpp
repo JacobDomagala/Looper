@@ -28,6 +28,7 @@ Game::MainLoop()
          {
             const auto dt = time::milliseconds(
                TARGET_TIME_MS * static_cast< float >(time::Timer::AreTimersRunning()));
+            InputManager::PollEvents();
             ProcessInput(dt);
 
             workQueue_.RunWorkUnits();
@@ -54,7 +55,7 @@ Game::MainLoop()
          }
       }
    }
-   InputManager::UnregisterFromInput(this);
+   InputManager::UnregisterFromInput(m_window->GetWindowHandle(), this);
 }
 
 
@@ -70,7 +71,7 @@ Game::Init(const std::string& configFile, bool loadLevel)
       Logger::Fatal("Game: Can't open {}", (ASSETS_DIR / configFile).string());
    }
 
-   m_window = std::make_unique< renderer::Window >(USE_DEFAULT_SIZE, "WindowTitle", false);
+   m_window = std::make_unique< renderer::Window >(USE_DEFAULT_SIZE, "WindowTitle", true);
    m_window->MakeFocus();
 
    renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle(),
@@ -98,7 +99,7 @@ Game::Init(const std::string& configFile, bool loadLevel)
    initFile.close();
 
    InputManager::Init(m_window->GetWindowHandle());
-   InputManager::RegisterForInput(this);
+   InputManager::RegisterForInput(m_window->GetWindowHandle(), this);
 
    if (loadLevel)
    {
@@ -151,11 +152,6 @@ Game::KeyEvents() // NOLINT
       if (InputManager::CheckKeyPressed(GLFW_KEY_RIGHT))
       {
          m_currentLevel->MoveObjs(glm::vec2(-2.0f, 0.0f));
-      }
-      if (InputManager::CheckKeyPressed(GLFW_KEY_ESCAPE))
-      {
-         m_currentLevel->Quit();
-         m_window->ShutDown();
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_O))
       {
@@ -363,6 +359,18 @@ Game::ProcessInput(time::milliseconds deltaTime)
       renderer::Data::renderData_.at(renderer::VulkanRenderer::GetCurrentlyBoundType());
    renderData.viewMat = m_camera.GetViewMatrix();
    renderData.projMat = m_camera.GetProjectionMatrix();
+}
+
+void
+Game::KeyCallback(KeyEvent& event) 
+{
+   if ((event.key_ == GLFW_KEY_ESCAPE) and (event.action_ == GLFW_PRESS))
+   {
+      m_currentLevel->Quit();
+      m_window->ShutDown();
+
+      event.handled_ = true;
+   }
 }
 
 bool

@@ -176,9 +176,6 @@ Level::Save(const std::string& pathToLevel)
       json["PATHFINDER"]["nodes"].emplace_back(nodeJson);
    }
 
-   // Serialize shader
-   // json["SHADER"]["name"] = m_shaders.GetName();
-
    // Serialize background
    json["BACKGROUND"]["texture"] = m_background.GetTextureName();
    json["BACKGROUND"]["size"] = {m_background.GetSize().x, m_background.GetSize().y};

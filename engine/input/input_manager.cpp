@@ -25,7 +25,7 @@ BroadcastEvent(const auto& listeners, auto& event)
 }
 
 void
-InputManager::InternalKeyCallback(GLFWwindow* /*window*/, int32_t key, int32_t scancode,
+InputManager::InternalKeyCallback(GLFWwindow* window, int32_t key, int32_t scancode,
                                   int32_t action, int32_t mods)
 {
    Logger::Trace("GLFW key {} {} scan code - {}", action, key, scancode);
@@ -33,59 +33,59 @@ InputManager::InternalKeyCallback(GLFWwindow* /*window*/, int32_t key, int32_t s
    keyMap_[key] = action;
    auto event = KeyEvent{key, scancode, action, mods};
 
-   BroadcastEvent< &InputListener::KeyCallback >(listeners_, event);
+   BroadcastEvent< &InputListener::KeyCallback >(listeners_.at(window), event);
 }
 
 void
-InputManager::InternalCharCallback(GLFWwindow* /*window*/, uint32_t key)
+InputManager::InternalCharCallback(GLFWwindow* window, uint32_t key)
 {
    Logger::Trace("GLFW char {}", key);
 
    auto event = CharEvent{key};
 
-   BroadcastEvent< &InputListener::CharCallback >(listeners_, event);
+   BroadcastEvent< &InputListener::CharCallback >(listeners_.at(window), event);
 }
 
 void
-InputManager::InternalMouseButtonCallback(GLFWwindow* /*window*/, int32_t button, int32_t action,
+InputManager::InternalMouseButtonCallback(GLFWwindow* window, int32_t button, int32_t action,
                                           int32_t mods)
 {
    Logger::Trace("GLFW mouse button {} {} {}", button, action, mods);
    mouseButtonMap_[button] = action;
 
    auto event = MouseButtonEvent{button, action, mods};
-   BroadcastEvent< &InputListener::MouseButtonCallback >(listeners_, event);
+   BroadcastEvent< &InputListener::MouseButtonCallback >(listeners_.at(window), event);
 }
 
 void
-InputManager::InternalCursorPositionCallback(GLFWwindow* /*window*/, double xPos, double yPos)
+InputManager::InternalCursorPositionCallback(GLFWwindow* window, double xPos, double yPos)
 {
    Logger::Trace("GLFW cursor pos {} {}", xPos, yPos);
 
    mousePosition_ = glm::vec2(xPos, yPos);
    auto event = CursorPositionEvent{xPos, yPos};
 
-   BroadcastEvent< &InputListener::CursorPositionCallback >(listeners_, event);
+   BroadcastEvent< &InputListener::CursorPositionCallback >(listeners_.at(window), event);
 }
 
 void
-InputManager::InternalMouseScrollCallback(GLFWwindow* /*window*/, double xOffset, double yOffset)
+InputManager::InternalMouseScrollCallback(GLFWwindow* window, double xOffset, double yOffset)
 {
    Logger::Trace("GLFW scroll {} {}", xOffset, yOffset);
 
    auto event = MouseScrollEvent{xOffset, yOffset};
 
-   BroadcastEvent< &InputListener::MouseScrollCallback >(listeners_, event);
+   BroadcastEvent< &InputListener::MouseScrollCallback >(listeners_.at(window), event);
 }
 
 void
-InputManager::InternalWindowFocusCallback(GLFWwindow* /*window*/, int32_t focused)
+InputManager::InternalWindowFocusCallback(GLFWwindow* window, int32_t focused)
 {
    Logger::Trace("GLFW window focus {}", focused);
 
    auto event = WindowFocusEvent{focused};
 
-   BroadcastEvent< &InputListener::WindowFocusCallback >(listeners_, event);
+   BroadcastEvent< &InputListener::WindowFocusCallback >(listeners_.at(window), event);
 }
 
 void
@@ -103,20 +103,21 @@ InputManager::Init(GLFWwindow* mainWindow)
 }
 
 void
-InputManager::RegisterForInput(InputListener* listener)
+InputManager::RegisterForInput(GLFWwindow* window, InputListener* listener)
 {
-   listeners_.push_back(listener);
+   listeners_[window].push_back(listener);
 }
 
 void
-InputManager::UnregisterFromInput(InputListener* listener)
+InputManager::UnregisterFromInput(GLFWwindow* window, InputListener* listener)
 {
-   auto foundListener = stl::find_if(listeners_, [listener](const auto& registeredListener) {
+   auto& windowListeners = listeners_.at(window);
+   auto foundListener = stl::find_if(windowListeners, [listener](const auto& registeredListener) {
       return listener == registeredListener;
    });
-   if (foundListener != listeners_.end())
+   if (foundListener != windowListeners.end())
    {
-      listeners_.erase(foundListener);
+      windowListeners.erase(foundListener);
    }
    else
    {

@@ -30,7 +30,7 @@ Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
    renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle(),
                                         renderer::ApplicationType::EDITOR);
    gui_.Init();
-   InputManager::RegisterForInput(this);
+   InputManager::RegisterForInput(m_window->GetWindowHandle(), this);
 }
 
 void
