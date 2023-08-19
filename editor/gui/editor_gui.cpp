@@ -53,7 +53,7 @@ EditorGUI::EditorGUI(Editor& parent) : parent_(parent)
 }
 
 void
-EditorGUI::KeyCallback(const KeyEvent& event)
+EditorGUI::KeyCallback(KeyEvent& event)
 {
    auto* window = parent_.GetWindow().GetWindowHandle();
    ImGuiIO& io = ImGui::GetIO();
@@ -68,17 +68,23 @@ EditorGUI::KeyCallback(const KeyEvent& event)
 
    const auto imguiKey = KeyToImGuiKey(event.key_);
    io.AddKeyEvent(imguiKey, (event.action_ == GLFW_PRESS));
+
+   if ((event.key_ == GLFW_KEY_ESCAPE) and (event.action_ == GLFW_PRESS))
+   {
+      exitPushed_ = not exitPushed_;
+      event.handled_ = true;
+   }
 }
 
 void
-EditorGUI::CharCallback(const CharEvent& event)
+EditorGUI::CharCallback(CharEvent& event)
 {
    ImGuiIO& io = ImGui::GetIO();
    io.AddInputCharacter(event.key_);
 }
 
 void
-EditorGUI::MouseButtonCallback(const MouseButtonEvent& event)
+EditorGUI::MouseButtonCallback(MouseButtonEvent& event)
 {
    ImGuiIO& io = ImGui::GetIO();
 
@@ -87,21 +93,21 @@ EditorGUI::MouseButtonCallback(const MouseButtonEvent& event)
 }
 
 void
-EditorGUI::CursorPositionCallback(const CursorPositionEvent& event)
+EditorGUI::CursorPositionCallback(CursorPositionEvent& event)
 {
    ImGuiIO& io = ImGui::GetIO();
    io.MousePos = ImVec2(static_cast< float >(event.xPos_), static_cast< float >(event.yPos_));
 }
 
 void
-EditorGUI::MouseScrollCallback(const MouseScrollEvent& /*event*/)
+EditorGUI::MouseScrollCallback(MouseScrollEvent& /*event*/)
 {
 }
 
 void
 EditorGUI::Init()
 {
-   InputManager::RegisterForInput(this);
+   InputManager::RegisterForInput(parent_.GetWindow().GetWindowHandle(), this);
 
    // Setup Dear ImGui context
    IMGUI_CHECKVERSION();
@@ -607,46 +613,96 @@ EditorGUI::RenderCreateNewLevelWindow()
 }
 
 void
+EditorGUI::RenderExitWindow()
+{
+   const auto halfSize = windowSize_ / 2.0f;
+
+   ImGui::SetNextWindowPos({halfSize.x - 160, halfSize.y - 60});
+   ImGui::SetNextWindowSize({240, 120});
+   ImGui::Begin("Exit", nullptr, ImGuiWindowFlags_NoResize);
+
+   ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.6f);
+
+   ImGui::Text("Do you want to exit?");
+   ImGui::Dummy(ImVec2(2.0f, 0.0f));
+
+   ImGui::Dummy(ImVec2(0.0f, 5.0f));
+   ImGui::Dummy(ImVec2(ImGui::GetWindowWidth() / 10.0f, 0.0f));
+   ImGui::SameLine();
+   // ImGui::SetCursorPosX((ImGui::GetWindowWidth() - 300) / 2);
+   if (ImGui::Button("Exit", {ImGui::GetWindowWidth() / 3.0f, 35}))
+   {
+      parent_.Shutdown();
+   }
+   ImGui::SameLine();
+   ImGui::Dummy(ImVec2(2.0f, 0.0f));
+   ImGui::SameLine();
+   if (ImGui::Button("Cancel", {ImGui::GetWindowWidth() / 3.0f, 35}))
+   {
+      exitPushed_ = false;
+   }
+
+   ImGui::End();
+}
+
+void
 EditorGUI::RenderMainPanel()
 {
    ImGui::SetNextWindowPos({0, 0});
    ImGui::SetNextWindowSize(ImVec2(windowWidth_, toolsWindowHeight_));
    ImGui::Begin("Tools");
-   ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.0f, 0.5f, 0.0f, 0.8f});
-   ImGui::BeginDisabled(currentLevel_ == nullptr);
 
-   if (ImGui::Button(ICON_FA_PLAY "Play"))
+   if (ImGui::BeginTable("MainTable", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
    {
-      parent_.PlayLevel();
+      CreateActionRow(
+         [this] {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.0f, 0.5f, 0.0f, 0.8f});
+            ImGui::BeginDisabled(currentLevel_ == nullptr);
+            if (ImGui::Button(ICON_FA_PLAY "Play", ImVec2(-FLT_MIN, -FLT_MIN)))
+            {
+               parent_.AddToWorkQueue([this] { parent_.PlayLevel(); });
+            }
+
+            ImGui::PopStyleColor(1);
+         },
+
+         [this] {
+            if (ImGui::Button("Save", ImVec2(-FLT_MIN, -FLT_MIN)))
+            {
+               auto levelName =
+                  FileManager::FileDialog(LEVELS_DIR, {{"DGame Level file", "dgl"}}, true);
+               if (!levelName.empty())
+               {
+                  parent_.AddToWorkQueue([this, levelName] { parent_.SaveLevel(levelName); });
+               }
+            }
+            ImGui::EndDisabled();
+         },
+
+         [this] {
+            if (ImGui::Button("Load", ImVec2(-FLT_MIN, -FLT_MIN)))
+            {
+               auto levelName =
+                  FileManager::FileDialog(LEVELS_DIR, {{"DGame Level file", "dgl"}}, false);
+               if (!levelName.empty())
+               {
+                  parent_.AddToWorkQueue([this, levelName] { parent_.LoadLevel(levelName); });
+               }
+            }
+         },
+
+         [this] {
+            if (ImGui::Button("Create", ImVec2(-FLT_MIN, -FLT_MIN)) or createPushed_)
+            {
+               createPushed_ = true;
+               RenderCreateNewLevelWindow();
+            }
+         });
+
+      ImGui::EndTable();
    }
 
-   ImGui::PopStyleColor(1);
-   ImGui::SameLine();
-   if (ImGui::Button("Save"))
-   {
-      auto levelName = FileManager::FileDialog(LEVELS_DIR, {{"DGame Level file", "dgl"}}, true);
-      if (!levelName.empty())
-      {
-         parent_.SaveLevel(levelName);
-      }
-   }
-   ImGui::EndDisabled();
 
-   ImGui::SameLine();
-   if (ImGui::Button("Load"))
-   {
-      auto levelName = FileManager::FileDialog(LEVELS_DIR, {{"DGame Level file", "dgl"}}, false);
-      if (!levelName.empty())
-      {
-         parent_.LoadLevel(levelName);
-      }
-   }
-   ImGui::SameLine();
-   if (ImGui::Button("Create") or createPushed_)
-   {
-      createPushed_ = true;
-      RenderCreateNewLevelWindow();
-   }
    ImGui::End();
 }
 
@@ -664,7 +720,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
          CreateRow("Size", fmt::format("{:.0f}, {:.0f}", currentLevel_->GetSprite().GetSize().x,
                                        currentLevel_->GetSprite().GetSize().y));
 
-         CreateActionRow("Render grid", [this] {
+         CreateActionRowLabel("Render grid", [this] {
             auto [drawGrid, gridSize] = parent_.GetGridData();
             if (ImGui::Checkbox("##Render grid", &drawGrid))
             {
@@ -672,8 +728,8 @@ EditorGUI::RenderLevelMenu() // NOLINT
             }
          });
 
-         CreateActionRow("Render collision", [this] {
-            static bool renderPathfinderNodes = parent_.GetRenderNodes();
+         CreateActionRowLabel("Render collision", [this] {
+            auto renderPathfinderNodes = parent_.GetRenderNodes();
             if (ImGui::Checkbox("##Render collision", &renderPathfinderNodes))
             {
                parent_.RenderNodes(renderPathfinderNodes);
@@ -701,7 +757,8 @@ EditorGUI::RenderLevelMenu() // NOLINT
          {
             if (ImGui::Selectable(item.c_str()))
             {
-               parent_.AddGameObject(Object::GetTypeFromString(item));
+               parent_.AddToWorkQueue(
+                  [this, item] { parent_.AddGameObject(Object::GetTypeFromString(item)); });
             }
          }
          ImGui::EndCombo();
@@ -733,6 +790,10 @@ EditorGUI::RenderLevelMenu() // NOLINT
       if (ImGui::BeginTable("DebugTable", 2))
       {
          CreateRow("FPS", fmt::format("{}", parent_.GetFramesLastSecond()));
+         CreateRow("Frame time",
+                   fmt::format("{:.2f}ms", parent_.GetFrameTime().GetMilliseconds().count()));
+         CreateRow("UI time",
+                   fmt::format("{:.2f}ms", parent_.GetUpdateUITime().GetMilliseconds().count()));
          CreateRow("Render time",
                    fmt::format("{:.2f}ms", parent_.GetRenderTime().GetMilliseconds().count()));
          const auto cameraPos = parent_.GetCamera().GetPosition();
@@ -784,7 +845,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
       {
          CreateRow("Type", fmt::format("{}", currentlySelectedGameObject_->GetTypeString()));
          CreateRow("ID", fmt::format("{}", currentlySelectedGameObject_->GetID()));
-         CreateActionRow("Has Collision", [this] {
+         CreateActionRowLabel("Has Collision", [this] {
             auto collision = currentlySelectedGameObject_->GetHasCollision();
             if (ImGui::Checkbox("##Has Collision", &collision))
             {
@@ -889,7 +950,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
             }
          });
 
-         bool animationVisible = animatablePtr->GetRenderAnimationSteps();
+         bool animationVisible = animatablePtr->GetRenderAnimationSteps(); // NOLINT
          if (ImGui::Checkbox("Animation points visible", &animationVisible))
          {
             parent_.SetRenderAnimationPoints(animationVisible);
@@ -900,7 +961,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
             parent_.ToggleAnimateObject();
          }
 
-         static float timer = 0.0f;
+         static float timer = 0.0f; // NOLINT
          const auto animationDuration =
             time::Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count();
          if (parent_.IsObjectAnimated())
@@ -928,7 +989,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
             ImGui::TableSetupColumn("Column 2", ImGuiTableColumnFlags_WidthStretch,
                                     contentWidth * 0.05f);
 
-            for (uint32_t i = 0; i < animationPoints.size(); ++i)
+            for (uint32_t i = 0; i < animationPoints.size(); ++i) // NOLINT
             {
                const auto& node = animationPoints[i];
                const auto label = fmt::format("[{}] Time={}s", i, node.m_timeDuration.count());
@@ -937,17 +998,16 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
                ImGui::TableNextColumn();
                if (ImGui::Selectable(label.c_str()))
                {
-                  parent_.GetCamera().SetCameraAtPosition(node.m_end);
-                  parent_.HandleObjectSelected(node.GetID(), true);
-                  parent_.SetRenderAnimationPoints(true);
+                  parent_.SelectAnimationPoint(node);
                }
                ImGui::TableNextColumn();
 
                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.0f, 0.0f, 0.0f, 1.0f});
                if (ImGui::Selectable(fmt::format("{}##{}", ICON_FA_XMARK, i).c_str()))
                {
-                  parent_.HandleObjectSelected(node.GetID(), true);
-                  parent_.ActionOnObject(Editor::ACTION::REMOVE);
+                  parent_.AddToWorkQueue([this, nodeID = node.GetID()] {
+                     parent_.ActionOnObject(Editor::ACTION::REMOVE, nodeID);
+                  });
                }
                ImGui::PopStyleColor(1);
 
@@ -958,9 +1018,8 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
 
          if (ImGui::Button("New"))
          {
-            parent_.GetCamera().SetCameraAtPosition(newNodePosition);
-            parent_.AddObject(ObjectType::ANIMATION_POINT);
-            parent_.SetRenderAnimationPoints(true);
+            parent_.AddToWorkQueue(
+               [this, newNodePosition] { parent_.AddAnimationPoint(newNodePosition); });
          }
          ImGui::EndChild();
 
@@ -1014,11 +1073,9 @@ EditorGUI::UpdateUI()
    windowSize_ = parent_.GetWindowSize();
 
    windowWidth_ = windowSize_.x / 7;
-   toolsWindowHeight_ = 60;
+   toolsWindowHeight_ = windowSize_.y / 20;
    levelWindowHeight_ = windowSize_.y - toolsWindowHeight_;
    gameObjectWindowHeight_ = windowSize_.y;
-   debugWindowWidth_ = windowSize_.x - 2 * windowWidth_;
-   debugWindowHeight_ = 150;
 
    RenderMainPanel();
 
@@ -1030,6 +1087,10 @@ EditorGUI::UpdateUI()
    if (currentlySelectedGameObject_)
    {
       RenderGameObjectMenu();
+   }
+
+   if(exitPushed_){
+      RenderExitWindow();
    }
 
    ImGui::Render();

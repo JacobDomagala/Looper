@@ -8,15 +8,18 @@
 #include "logger.hpp"
 #include "object.hpp"
 #include "player.hpp"
+#include "thread_pool.hpp"
 #include "utils/time/time_step.hpp"
 
 #include <glm/matrix.hpp>
+#include <optional>
 #include <utility>
 
 namespace looper {
 
 class Player;
 class Animatable;
+struct AnimationPoint;
 
 class Editor : public Application
 {
@@ -32,6 +35,12 @@ class Editor : public Application
    void
    MainLoop() override;
 
+   void
+   SelectAnimationPoint(const AnimationPoint& node);
+
+   void
+   AddAnimationPoint(const glm::vec2& position);
+
    [[nodiscard]] glm::vec2
    GetWindowSize() const override;
 
@@ -45,16 +54,16 @@ class Editor : public Application
    GetZoomLevel() const override;
 
    void
-   KeyCallback(const KeyEvent& event) override;
+   KeyCallback(KeyEvent& event) override;
 
    void
-   MouseButtonCallback(const MouseButtonEvent& event) override;
+   MouseButtonCallback(MouseButtonEvent& event) override;
 
    void
-   CursorPositionCallback(const CursorPositionEvent& event) override;
+   CursorPositionCallback(CursorPositionEvent& event) override;
 
    void
-   MouseScrollCallback(const MouseScrollEvent& event) override;
+   MouseScrollCallback(MouseScrollEvent& event) override;
 
    void
    Render(VkCommandBuffer cmdBuffer) override;
@@ -121,6 +130,12 @@ class Editor : public Application
    GetGridData() const;
 
    [[nodiscard]] time::TimeStep
+   GetFrameTime() const;
+
+   [[nodiscard]] time::TimeStep
+   GetUpdateUITime() const;
+
+   [[nodiscard]] time::TimeStep
    GetRenderTime() const;
 
    [[nodiscard]] std::pair< uint32_t, uint32_t >
@@ -141,7 +156,17 @@ class Editor : public Application
                               bool fromGUI = false);
 
    void
-   ActionOnObject(ACTION action);
+   ActionOnObject(ACTION action, const std::optional< Object::ID >& = {});
+
+   void
+   AddToWorkQueue(
+      const WorkQueue::WorkUnit& work, const WorkQueue::Precondition& prec = [] { return true; });
+
+   void
+   Shutdown();
+
+   bool
+   IsAnyObjectSelected() const;
 
  private:
    // [[nodiscard]] std::shared_ptr< EditorObject >
@@ -234,6 +259,12 @@ class Editor : public Application
 
    bool m_playGame = false;
    time::TimeStep timeLastFrame_ = time::TimeStep{time::microseconds{}};
+   time::TimeStep uiTime_ = time::TimeStep{time::microseconds{}};
+   time::TimeStep renderTime_ = time::TimeStep{time::microseconds{}};
+
+   ThreadPool threadPool_ = ThreadPool{std::thread::hardware_concurrency()};
+   std::future< void > updateReady_;
+   std::future< void > renderReady_;
 };
 
 } // namespace looper

@@ -8,6 +8,7 @@
 #include "renderer/vulkan_common.hpp"
 #include "renderer/window/window.hpp"
 #include "utils/file_manager.hpp"
+#include "utils/time/scoped_timer.hpp"
 #include "utils/time/stopwatch.hpp"
 
 #include <GLFW/glfw3.h>
@@ -22,14 +23,14 @@ namespace looper {
 
 Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
 {
-   m_window = std::make_unique< renderer::Window >(screenSize, "Editor");
+   m_window = std::make_unique< renderer::Window >(screenSize, "Editor", true);
 
    InputManager::Init(m_window->GetWindowHandle());
-   InputManager::RegisterForInput(this);
-
+   
    renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle(),
                                         renderer::ApplicationType::EDITOR);
    gui_.Init();
+   InputManager::RegisterForInput(m_window->GetWindowHandle(), this);
 }
 
 void
@@ -71,18 +72,23 @@ Editor::HandleCamera()
 }
 
 void
-Editor::KeyCallback(const KeyEvent& event)
+Editor::KeyCallback(KeyEvent& event)
 {
    if (event.action_ == GLFW_PRESS)
    {
-      if (event.key_ == GLFW_KEY_ESCAPE)
+      if (IsAnyObjectSelected())
       {
-         ActionOnObject(ACTION::UNSELECT);
-      }
+         if (event.key_ == GLFW_KEY_ESCAPE)
+         {
+            ActionOnObject(ACTION::UNSELECT);
+            event.handled_ = true;
+         }
 
-      if (event.key_ == GLFW_KEY_DELETE)
-      {
-         ActionOnObject(ACTION::REMOVE);
+         if (event.key_ == GLFW_KEY_DELETE)
+         {
+            ActionOnObject(ACTION::REMOVE);
+            event.handled_ = true;
+         }
       }
    }
    else if (event.action_ == GLFW_RELEASE)
@@ -90,25 +96,28 @@ Editor::KeyCallback(const KeyEvent& event)
       if (m_gameObjectSelected && event.key_ == GLFW_KEY_C)
       {
          m_copiedGameObject = m_currentSelectedGameObject;
+         event.handled_ = true;
       }
       if (m_copiedGameObject && event.key_ == GLFW_KEY_V)
       {
          CopyGameObject(m_copiedGameObject);
+         event.handled_ = true;
       }
    }
 }
 
 void
-Editor::MouseScrollCallback(const MouseScrollEvent& event)
+Editor::MouseScrollCallback(MouseScrollEvent& event)
 {
    if (!m_playGame && !EditorGUI::IsBlockingEvents() && m_levelLoaded)
    {
       m_camera.Zoom(static_cast< float >(event.xOffset_ + event.yOffset_));
+      event.handled_ = true;
    }
 }
 
 void
-Editor::MouseButtonCallback(const MouseButtonEvent& event)
+Editor::MouseButtonCallback(MouseButtonEvent& event)
 {
    if (!m_playGame && !EditorGUI::IsBlockingEvents() && m_levelLoaded)
    {
@@ -129,11 +138,13 @@ Editor::MouseButtonCallback(const MouseButtonEvent& event)
          m_movementOnGameObject = false;
          m_mouseDrag = false;
       }
+
+      event.handled_ = true;
    }
 }
 
 void
-Editor::CursorPositionCallback(const CursorPositionEvent& event)
+Editor::CursorPositionCallback(CursorPositionEvent& event)
 {
    if (!m_playGame && !EditorGUI::IsBlockingEvents() && m_levelLoaded)
    {
@@ -150,6 +161,7 @@ Editor::CursorPositionCallback(const CursorPositionEvent& event)
       }
 
       m_lastCursorPosition = currentCursorPosition;
+      event.handled_ = true;
    }
 }
 
@@ -454,9 +466,44 @@ Editor::SetupRendererData()
    renderer::VulkanRenderer::UpdateLineData();
 }
 
+
 void
-Editor::ActionOnObject(Editor::ACTION action)
+Editor::AddAnimationPoint(const glm::vec2& position)
 {
+   GetCamera().SetCameraAtPosition(position);
+   AddObject(ObjectType::ANIMATION_POINT);
+   SetRenderAnimationPoints(true);
+}
+
+void
+Editor::SelectAnimationPoint(const AnimationPoint& node)
+{
+   GetCamera().SetCameraAtPosition(node.m_end);
+   HandleObjectSelected(node.GetID(), true);
+   SetRenderAnimationPoints(true);
+}
+
+void
+Editor::AddToWorkQueue(const WorkQueue::WorkUnit& work, const WorkQueue::Precondition& prec)
+{
+   workQueue_.PushWorkUnit(prec, work);
+}
+
+bool
+Editor::IsAnyObjectSelected() const
+{
+   return m_editorObjectSelected or m_currentEditorObjectSelected or m_gameObjectSelected
+          or m_currentSelectedGameObject;
+}
+
+void
+Editor::ActionOnObject(Editor::ACTION action, const std::optional< Object::ID >& object)
+{
+   if (object)
+   {
+      HandleObjectSelected(object.value(), true);
+   }
+
    switch (action)
    {
       case ACTION::UNSELECT:
@@ -700,9 +747,21 @@ Editor::GetGridData() const
 }
 
 time::TimeStep
-Editor::GetRenderTime() const
+Editor::GetFrameTime() const
 {
    return timeLastFrame_;
+}
+
+time::TimeStep
+Editor::GetUpdateUITime() const
+{
+   return uiTime_;
+}
+
+time::TimeStep
+Editor::GetRenderTime() const
+{
+   return renderTime_;
 }
 
 std::pair< uint32_t, uint32_t >
@@ -714,6 +773,8 @@ Editor::GetRenderOffsets() const
 void
 Editor::SetupPathfinderNodes()
 {
+   SCOPED_TIMER("SetupPathfinderNodes");
+
    const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
    std::ranges::transform(
       pathfinderNodes, std::back_inserter(pathfinderNodes_), [this](const auto& node) {
@@ -771,40 +832,52 @@ Editor::LoadLevel(const std::string& levelPath)
 
    renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::EDITOR);
 
-   m_levelFileName = levelPath;
-   m_currentLevel = std::make_shared< Level >();
-   m_currentLevel->Load(this, levelPath);
-
-   SetupPathfinderNodes();
-
-   const auto& gameObjects = m_currentLevel->GetObjects();
-   for (const auto& object : gameObjects)
    {
-      const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(object);
+      SCOPED_TIMER("Total level load");
+      
+         m_levelFileName = levelPath;
+         m_currentLevel = std::make_shared< Level >();
+         m_currentLevel->Load(this, levelPath);
+      
+      SetupPathfinderNodes();
 
-      if (animatablePtr)
       {
-         const auto& animationPoints = animatablePtr->GetAnimationKeypoints();
+         SCOPED_TIMER("Animation points setup");
 
-         for (const auto& point : animationPoints)
+         const auto& gameObjects = m_currentLevel->GetObjects();
+         for (const auto& object : gameObjects)
          {
-            auto editorObject = std::make_shared< EditorObject >(
-               *this, point.m_end, glm::vec2(20, 20), "NodeSprite.png", point.GetID());
-            editorObject->SetName(fmt::format("AnimationPoint{}", object->GetName()));
-            editorObject->SetVisible(false);
-            editorObject->Render();
-            animationPoints_.push_back(editorObject);
+            const auto animatablePtr = std::dynamic_pointer_cast< Animatable >(object);
+
+            if (animatablePtr)
+            {
+               const auto& animationPoints = animatablePtr->GetAnimationKeypoints();
+
+               for (const auto& point : animationPoints)
+               {
+                  auto editorObject = std::make_shared< EditorObject >(
+                     *this, point.m_end, glm::vec2(20, 20), "NodeSprite.png", point.GetID());
+                  editorObject->SetName(fmt::format("AnimationPoint{}", object->GetName()));
+                  editorObject->SetVisible(false);
+                  editorObject->Render();
+                  animationPoints_.push_back(editorObject);
+               }
+            }
          }
       }
+
+      m_camera.Create(glm::vec3(m_currentLevel->GetPlayer()->GetPosition(), 0.0f),
+                      m_window->GetSize());
+      m_camera.SetLevelSize(m_currentLevel->GetSize());
+
+      m_levelLoaded = true;
+
+      gui_.LevelLoaded(m_currentLevel);
+
+      m_window->MakeFocus();
+    
    }
-
-   m_camera.Create(glm::vec3(m_currentLevel->GetPlayer()->GetPosition(), 0.0f),
-                   m_window->GetSize());
-   m_camera.SetLevelSize(m_currentLevel->GetSize());
-
-   m_levelLoaded = true;
-   gui_.LevelLoaded(m_currentLevel);
-   m_window->MakeFocus();
+   
    SetupRendererData();
 }
 
@@ -972,6 +1045,8 @@ Editor::SetLockAnimationPoints(bool lock)
 void
 Editor::Update()
 {
+   HandleCamera();
+
    if (m_animateGameObject && m_currentSelectedGameObject)
    {
       auto moveBy = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject)
@@ -987,13 +1062,16 @@ Editor::Update()
       }
    }
 
-   gui_.UpdateUI();
-
    auto& renderData = renderer::VulkanRenderer::GetRenderData();
    renderData.viewMat = m_camera.GetViewMatrix();
    renderData.projMat = m_camera.GetProjectionMatrix();
 
    DrawBoundingBoxes();
+
+   {
+      const time::ScopedTimer uiTImer(&uiTime_);
+      gui_.UpdateUI();
+   }
 }
 
 void
@@ -1038,6 +1116,12 @@ Editor::IsRunning() const
 }
 
 void
+Editor::Shutdown()
+{
+   m_isRunning = false;
+}
+
+void
 Editor::MainLoop()
 {
    auto singleFrameTimer = time::microseconds(0);
@@ -1050,15 +1134,18 @@ Editor::MainLoop()
 
       while (IsRunning() and (singleFrameTimer.count() >= TARGET_TIME_MICRO))
       {
+         const time::ScopedTimer frameTimer(&timeLastFrame_);
          InputManager::PollEvents();
+
+         // Run all deffered work units
+         workQueue_.RunWorkUnits();
 
          HandleCamera();
          Update();
 
-         workQueue_.RunWorkUnits();
-
          if (windowInFocus_)
          {
+            const time::ScopedTimer renderTimer(&renderTime_);
             renderer::VulkanRenderer::Render(this);
          }
 

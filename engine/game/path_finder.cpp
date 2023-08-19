@@ -293,7 +293,7 @@ PathFinder::SetNodeFreed(const Tile& nodeCoords, Object::ID objectID)
       auto objectFound = stl::find(nodeFound->objectsOccupyingThisNode_, objectID);
 
       utils::Assert(objectFound != nodeFound->objectsOccupyingThisNode_.end(),
-                    "PathFinder::SetNodeFreed object not found!");
+                    fmt::format("PathFinder::SetNodeFreed object (ID:{}) not found!", objectID));
 
       nodeFound->objectsOccupyingThisNode_.erase(objectFound);
 

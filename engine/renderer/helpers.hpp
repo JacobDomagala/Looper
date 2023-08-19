@@ -107,7 +107,8 @@ PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
 
          case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
          default: {
-            utils::Assert(false, fmt::format("validation layer: {}", pCallbackData->pMessage));
+            // utils::Assert(false, fmt::format("validation layer: {}", pCallbackData->pMessage));
+            Logger::Fatal("validation layer: {}", pCallbackData->pMessage);
          }
       }
 

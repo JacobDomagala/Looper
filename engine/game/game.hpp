@@ -31,6 +31,9 @@ class Game : public Application
    ProcessInput(time::milliseconds deltaTime);
 
    void
+   KeyCallback(KeyEvent& event) override;
+
+   void
    Render(VkCommandBuffer cmdBuffer) override;
 
    [[nodiscard]] glm::vec2

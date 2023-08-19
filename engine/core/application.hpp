@@ -87,7 +87,7 @@ class Application : public InputListener
    GetZoomLevel() const = 0;
 
    void
-   WindowFocusCallback(const WindowFocusEvent& event) override;
+   WindowFocusCallback(WindowFocusEvent& event) override;
 
  protected:
    [[nodiscard]] virtual bool

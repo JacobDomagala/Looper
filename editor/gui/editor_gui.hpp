@@ -33,19 +33,19 @@ class EditorGUI : public InputListener
    explicit EditorGUI(Editor& parent);
 
    void
-   KeyCallback(const KeyEvent& event) override;
+   KeyCallback(KeyEvent& event) override;
 
    void
-   CharCallback(const CharEvent& event) override;
+   CharCallback(CharEvent& event) override;
 
    void
-   MouseButtonCallback(const MouseButtonEvent& event) override;
+   MouseButtonCallback(MouseButtonEvent& event) override;
 
    void
-   CursorPositionCallback(const CursorPositionEvent& event) override;
+   CursorPositionCallback(CursorPositionEvent& event) override;
 
    void
-   MouseScrollCallback(const MouseScrollEvent& event) override;
+   MouseScrollCallback(MouseScrollEvent& event) override;
 
    void
    Init();
@@ -99,6 +99,9 @@ class EditorGUI : public InputListener
    void
    RenderCreateNewLevelWindow();
 
+   void
+   RenderExitWindow();
+
  private:
    static void
    PrepareResources();
@@ -117,10 +120,9 @@ class EditorGUI : public InputListener
    float toolsWindowHeight_ = 0.0f;
    float gameObjectWindowHeight_ = 0.0f;
    float levelWindowHeight_ = 0.0f;
-   float debugWindowHeight_ = 0.0f;
-   float debugWindowWidth_ = 0.0f;
 
    bool createPushed_ = false;
+   bool exitPushed_ = false;
 
    inline static VkImage fontImage_ = {};
    inline static VkDeviceMemory fontMemory_ = {};

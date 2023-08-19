@@ -84,10 +84,11 @@ Application::ScreenToGlobal(const glm::vec2& screenPos) const
 }
 
 void
-Application::WindowFocusCallback(const WindowFocusEvent& event)
+Application::WindowFocusCallback(WindowFocusEvent& event)
 {
    renderer::VulkanRenderer::GetRenderData().windowFocus_ = event.focus_;
    windowInFocus_ = event.focus_;
+   event.handled_ = true;
 }
 
 } // namespace looper
