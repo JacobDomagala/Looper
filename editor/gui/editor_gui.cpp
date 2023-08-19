@@ -950,7 +950,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
             }
          });
 
-         bool animationVisible = animatablePtr->GetRenderAnimationSteps();
+         bool animationVisible = animatablePtr->GetRenderAnimationSteps(); // NOLINT
          if (ImGui::Checkbox("Animation points visible", &animationVisible))
          {
             parent_.SetRenderAnimationPoints(animationVisible);
@@ -961,7 +961,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
             parent_.ToggleAnimateObject();
          }
 
-         static float timer = 0.0f;
+         static float timer = 0.0f; // NOLINT
          const auto animationDuration =
             time::Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count();
          if (parent_.IsObjectAnimated())
@@ -989,7 +989,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
             ImGui::TableSetupColumn("Column 2", ImGuiTableColumnFlags_WidthStretch,
                                     contentWidth * 0.05f);
 
-            for (uint32_t i = 0; i < animationPoints.size(); ++i)
+            for (uint32_t i = 0; i < animationPoints.size(); ++i) // NOLINT
             {
                const auto& node = animationPoints[i];
                const auto label = fmt::format("[{}] Time={}s", i, node.m_timeDuration.count());
