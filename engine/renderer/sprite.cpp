@@ -94,6 +94,8 @@ Sprite::Update(bool isReverse)
    {
       m_currentState = m_statesQueue.back();
       m_statesQueue.pop_back();
+
+      changed_ = true;
    }
    else
    {
