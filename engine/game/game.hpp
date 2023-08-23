@@ -119,6 +119,8 @@ class Game : public Application
 
    // state of the game
    GameState m_state = GameState::GAME;
+
+   std::deque< glm::vec2 > cameraPositions_ = {};
 };
 
 } // namespace looper

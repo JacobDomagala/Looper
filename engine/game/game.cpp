@@ -351,7 +351,6 @@ Game::ProcessInput(time::milliseconds deltaTime)
 
    MouseEvents();
    KeyEvents();
-
    HandleReverseLogic();
    UpdateGameState();
 
@@ -362,7 +361,7 @@ Game::ProcessInput(time::milliseconds deltaTime)
 }
 
 void
-Game::KeyCallback(KeyEvent& event) 
+Game::KeyCallback(KeyEvent& event)
 {
    if ((event.key_ == GLFW_KEY_ESCAPE) and (event.action_ == GLFW_PRESS))
    {
@@ -391,17 +390,23 @@ Game::HandleReverseLogic()
       else
       {
          --m_frameCount;
+         auto pos = cameraPositions_.back();
+         cameraPositions_.pop_back();
+
+         m_camera.SetCameraAtPosition(pos);
       }
    }
    else
    {
-      if (m_frameCount == NUM_FRAMES_TO_SAVE - 1)
-      {
-         // do nothing
-      }
-      else
+      if (m_frameCount != (NUM_FRAMES_TO_SAVE - 1))
       {
          ++m_frameCount;
+      }
+
+      cameraPositions_.emplace_back(m_camera.GetPosition());
+      if (cameraPositions_.size() >= NUM_FRAMES_TO_SAVE)
+      {
+         cameraPositions_.pop_front();
       }
    }
 }
