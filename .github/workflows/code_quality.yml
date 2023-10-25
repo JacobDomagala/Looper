@@ -32,4 +32,4 @@ jobs:
         apt_pckgs: xorg-dev python3-pip
         verbose: true
         cppcheck_args: |
-            --enable=all --suppress=functionStatic --suppress=unusedFunction --inline-suppr --inconclusive
+            --enable=all --suppress=missingIncludeSystem --suppress=functionStatic --suppress=unusedFunction --inline-suppr --inconclusive

@@ -6,7 +6,7 @@ namespace looper {
 
 template < typename StateT > struct StateList
 {
-   uint32_t
+   int32_t
    GetNumFrames() const
    {
       return numFrames_;
@@ -15,15 +15,17 @@ template < typename StateT > struct StateList
    const StateT&
    PeekLastState() const
    {
-      return frames_.at(lastIdx_);
+      auto lastIdx = (lastIdx_ == 0) ? lastFrame_ : lastIdx_;
+      return frames_.at(static_cast< uint32_t >(lastIdx - 1));
    }
 
    const StateT&
    GetLastState()
    {
-      lastIdx_ = (lastIdx_ == -1) ? lastFrame_ : lastIdx_;
-      const auto& frame = frames_.at(lastIdx_ - 1);
+      lastIdx_ = (lastIdx_ == 0) ? lastFrame_ : lastIdx_;
+      const auto& frame = frames_.at(static_cast< uint32_t >(lastIdx_ - 1));
 
+      lastIdx_--;
       numFrames_--;
       return frame;
    }
@@ -31,7 +33,7 @@ template < typename StateT > struct StateList
    void
    PushState(const StateT& newState)
    {
-      frames_.at(lastIdx_++) = newState;
+      frames_.at(static_cast< uint32_t >(lastIdx_++)) = newState;
       lastIdx_ = (lastIdx_ == lastFrame_) ? 0 : lastIdx_;
       numFrames_++;
    }
