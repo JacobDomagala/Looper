@@ -167,9 +167,9 @@ Enemy::EnemyMove(const glm::vec2& moveBy)
    {
       auto prevPosition = m_initialPosition;
 
-      if (GameObject::m_gameObjectStatesQueue.size() > 1)
+      if (GameObject::m_gameObjectStatesQueue.GetNumFrames() > 1)
       {
-         prevPosition = glm::vec2(GameObject::m_gameObjectStatesQueue.back().previousPosition_);
+         prevPosition = glm::vec2(GameObject::m_gameObjectStatesQueue.PeekLastState().previousPosition_);
       }
 
       const auto direction = m_currentGameObjectState.m_position - prevPosition;
@@ -251,8 +251,7 @@ Enemy::UpdateInternal(bool isReverse)
 {
    if (isReverse)
    {
-      m_currentState = m_statesQueue.back();
-      m_statesQueue.pop_back();
+      m_currentState = m_statesQueue.GetLastState();
    }
    else
    {
@@ -263,11 +262,7 @@ Enemy::UpdateInternal(bool isReverse)
          EnemyMove(Animate(m_appHandle.GetDeltaTime()));
       }
 
-      m_statesQueue.push_back(m_currentState);
-      if (m_statesQueue.size() >= NUM_FRAMES_TO_SAVE)
-      {
-         m_statesQueue.pop_front();
-      }
+      m_statesQueue.PushState(m_currentState);
    }
 
    Animatable::Update(isReverse);

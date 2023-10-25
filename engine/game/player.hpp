@@ -7,7 +7,6 @@
 #include "weapon.hpp"
 
 #include <array>
-#include <deque>
 
 namespace looper {
 
@@ -83,7 +82,7 @@ class Player : public GameObject
       float m_viewAngle;
    };
 
-   std::deque< State > m_statesQueue;
+   StateList< State > m_statesQueue;
    State m_currentState = {};
 
    // array of player's weapons

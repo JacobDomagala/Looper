@@ -7,6 +7,7 @@
 #include "player.hpp"
 #include "utils/time/timer.hpp"
 #include "renderer/window/window.hpp"
+#include "state_list.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
@@ -120,7 +121,7 @@ class Game : public Application
    // state of the game
    GameState m_state = GameState::GAME;
 
-   std::deque< glm::vec2 > cameraPositions_ = {};
+   StateList< glm::vec2 > cameraPositions_ = {};
 };
 
 } // namespace looper
