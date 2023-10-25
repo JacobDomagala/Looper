@@ -3,26 +3,27 @@
 #include "common.hpp"
 
 namespace looper {
+
 template < typename StateT > struct StateList
 {
-   const uint32_t
-   GetNumFrames() const 
+   uint32_t
+   GetNumFrames() const
    {
       return numFrames_;
    }
 
    const StateT&
-   PeekLastState() const 
+   PeekLastState() const
    {
       return frames_.at(lastIdx_);
    }
 
    const StateT&
-   GetLastState() 
+   GetLastState()
    {
       lastIdx_ = (lastIdx_ == -1) ? lastFrame_ : lastIdx_;
-      const auto& frame = frames_.at(lastIdx_-1);
-      
+      const auto& frame = frames_.at(lastIdx_ - 1);
+
       numFrames_--;
       return frame;
    }
@@ -37,10 +38,10 @@ template < typename StateT > struct StateList
 
  private:
    std::array< StateT, NUM_FRAMES_TO_SAVE > frames_ = {};
-   uint32_t numFrames_ = {};
-   uint32_t firstIdx_ = {};
-   uint32_t lastIdx_ = {};
-   const uint32_t lastFrame_ = NUM_FRAMES_TO_SAVE - 1;
+   int32_t numFrames_ = {};
+   int32_t firstIdx_ = {};
+   int32_t lastIdx_ = {};
+   const int32_t lastFrame_ = NUM_FRAMES_TO_SAVE - 1;
 };
 
 } // namespace looper
