@@ -5,8 +5,8 @@
 #include "types.hpp"
 #include "vertex.hpp"
 #include "vulkan_common.hpp"
+#include "state_list.hpp"
 
-#include <deque>
 #include <glm/glm.hpp>
 #include <memory>
 
@@ -162,7 +162,7 @@ class Sprite
       Modifiers modifiers = {};
    };
 
-   std::deque< State > m_statesQueue = {};
+   StateList< State > m_statesQueue = {};
    State m_currentState = {};
 
    // sprite's texture

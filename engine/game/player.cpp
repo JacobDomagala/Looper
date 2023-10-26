@@ -52,8 +52,7 @@ Player::UpdateInternal(bool isReverse)
 {
    if (isReverse)
    {
-      m_currentState = m_statesQueue.back();
-      m_statesQueue.pop_back();
+      m_currentState = m_statesQueue.GetLastState();
    }
    else
    {
@@ -70,12 +69,7 @@ Player::UpdateInternal(bool isReverse)
       m_sprite.Rotate(m_currentState.m_viewAngle);
       m_sprite.SetColor({1.0f, 1.0f, 1.0f, 1.0f});
 
-      m_statesQueue.push_back(m_currentState);
-
-      if (m_statesQueue.size() >= NUM_FRAMES_TO_SAVE)
-      {
-         m_statesQueue.pop_front();
-      }
+      m_statesQueue.PushState(m_currentState);
    }
 }
 

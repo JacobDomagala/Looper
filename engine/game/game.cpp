@@ -390,8 +390,7 @@ Game::HandleReverseLogic()
       else
       {
          --m_frameCount;
-         auto pos = cameraPositions_.back();
-         cameraPositions_.pop_back();
+         auto pos = cameraPositions_.GetLastState();
 
          m_camera.SetCameraAtPosition(pos);
       }
@@ -403,11 +402,7 @@ Game::HandleReverseLogic()
          ++m_frameCount;
       }
 
-      cameraPositions_.emplace_back(m_camera.GetPosition());
-      if (cameraPositions_.size() >= NUM_FRAMES_TO_SAVE)
-      {
-         cameraPositions_.pop_front();
-      }
+      cameraPositions_.PushState(m_camera.GetPosition());
    }
 }
 

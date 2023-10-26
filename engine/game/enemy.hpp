@@ -6,7 +6,6 @@
 #include "utils/time/timer.hpp"
 #include "weapon.hpp"
 
-#include <deque>
 #include <vector>
 
 namespace looper {
@@ -79,7 +78,7 @@ class Enemy : public GameObject, public Animatable
    void
    SetTargetShootPosition(const glm::vec2& targetPosition);
 
-   struct EnemyState
+   struct State
    {
       ACTION m_action = ACTION::IDLE;
       int32_t m_currentHP = {};
@@ -102,8 +101,8 @@ class Enemy : public GameObject, public Animatable
       float m_viewAngle = {};
    };
 
-   std::deque< EnemyState > m_statesQueue;
-   EnemyState m_currentState;
+   StateList< State > m_statesQueue;
+   State m_currentState;
 
    // helper timer
    time::Timer m_timer;

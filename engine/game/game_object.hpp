@@ -2,10 +2,10 @@
 
 #include "common.hpp"
 #include "object.hpp"
+#include "state_list.hpp"
 // #include "Shader.hpp"
 #include "renderer/sprite.hpp"
 
-#include <deque>
 #include <glm/glm.hpp>
 
 namespace looper {
@@ -146,7 +146,7 @@ class GameObject : public Object
       std::vector< Tile > m_occupiedNodes;
    };
 
-   std::deque< State > m_gameObjectStatesQueue;
+   StateList<State> m_gameObjectStatesQueue;
    State m_currentGameObjectState;
 
    Application& m_appHandle;

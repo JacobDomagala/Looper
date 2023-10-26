@@ -206,16 +206,11 @@ GameObject::Update(bool isReverse)
 {
    if (isReverse)
    {
-      m_currentGameObjectState = m_gameObjectStatesQueue.back();
-      m_gameObjectStatesQueue.pop_back();
+      m_currentGameObjectState = m_gameObjectStatesQueue.GetLastState();
    }
    else
    {
-      m_gameObjectStatesQueue.push_back(m_currentGameObjectState);
-      if (m_gameObjectStatesQueue.size() >= NUM_FRAMES_TO_SAVE)
-      {
-         m_gameObjectStatesQueue.pop_front();
-      }
+      m_gameObjectStatesQueue.PushState(m_currentGameObjectState);
    }
 
    m_sprite.Update(isReverse);

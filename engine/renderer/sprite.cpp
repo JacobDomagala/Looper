@@ -92,18 +92,13 @@ Sprite::Update(bool isReverse)
 {
    if (isReverse)
    {
-      m_currentState = m_statesQueue.back();
-      m_statesQueue.pop_back();
+      m_currentState = m_statesQueue.GetLastState();
 
       changed_ = true;
    }
    else
    {
-      m_statesQueue.push_back(m_currentState);
-      if (m_statesQueue.size() >= NUM_FRAMES_TO_SAVE)
-      {
-         m_statesQueue.pop_front();
-      }
+      m_statesQueue.PushState(m_currentState);
    }
 }
 

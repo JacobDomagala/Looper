@@ -1,9 +1,9 @@
 #pragma once
 
 #include "object.hpp"
+#include "state_list.hpp"
 #include "utils/time/timer.hpp"
 
-#include <deque>
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
@@ -121,7 +121,7 @@ class Animatable
    void
    UpdateNodes();
 
-   struct AnimationState
+   struct State
    {
       std::vector< AnimationPoint >::iterator m_currentAnimationPoint;
       glm::vec2 m_currentAnimationBegin;
@@ -139,8 +139,8 @@ class Animatable
       time::milliseconds m_totalTimeElapsed = time::milliseconds(0);
    };
 
-   std::deque< AnimationState > m_animationStatesQueue;
-   AnimationState m_currentAnimationState;
+   StateList< State > statesQueue_;
+   State currentState_;
 
    std::vector< AnimationPoint > m_animationPoints;
    ANIMATION_TYPE m_type = ANIMATION_TYPE::LOOP;
