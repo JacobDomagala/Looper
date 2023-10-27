@@ -636,7 +636,7 @@ VulkanRenderer::CreateQuadIndexBuffer()
    for (size_t layer = 0; layer < static_cast < size_t>(NUM_LAYERS); ++layer)
    {
       CreateIndexBuffer< INDICES_PER_SPRITE >(
-         renderData.indices.at(layer), renderData.numMeshes.at(layer),
+         renderData.indices.at(layer), MAX_MESHES_PER_LAYER,
          renderData.indexBuffer.at(layer), renderData.indexBufferMemory.at(layer));
    }
 }

@@ -137,6 +137,9 @@ class Sprite
       renderInfo_.idx = idx;
    }
 
+   void
+   ChangeRenderLayer(uint32_t newLayer);
+
    static constexpr std::pair< float, float > ROTATION_RANGE = {glm::radians(-360.0f),
                                                                 glm::radians(360.0f)};
    static constexpr std::pair< float, float > SCALE_RANGE = {1.0f, 5.0f};

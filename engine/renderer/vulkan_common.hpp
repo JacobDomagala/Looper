@@ -28,6 +28,7 @@ vk_check_error(VkResult vkResult, std::string_view errorMessage)
    }
 }
 
+static constexpr uint32_t MAX_MESHES_PER_LAYER = 100;
 static constexpr uint32_t MAX_NUM_TEXTURES = 256;
 static constexpr uint32_t INDICES_PER_SPRITE = 6;
 static constexpr uint32_t VERTICES_PER_SPRITE = 4;
@@ -53,7 +54,7 @@ struct RenderData
    // Store this in case we have window minimized (to prevent extent being 0x0)
    glm::ivec2 windowSize_ = {};
    bool windowFocus_ = true;
-   
+
    std::array< std::vector< uint32_t >, NUM_LAYERS > deletedObjs_ = {};
    ////////////////////////////////////////////////////////////////////////
    // RENDER LAYERS (from near to far (values ranging from 0.0 to -0.9))

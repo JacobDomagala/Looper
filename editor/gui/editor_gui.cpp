@@ -843,6 +843,28 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
 
       if (ImGui::BeginTable("ObjectTable", 2))
       {
+         CreateActionRowLabel("RenderLayer", [this] {
+            const auto items = std::to_array< std::string >(
+               {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
+            if (ImGui::BeginCombo(
+                   "##combo",
+                   fmt::format("{}",
+                               currentlySelectedGameObject_->GetSprite().GetRenderInfo().layer)
+                      .c_str()))
+            {
+               for (const auto& item : items)
+               {
+                  if (ImGui::Selectable(item.c_str()))
+                  {
+                     parent_.AddToWorkQueue([this, item] {
+                        currentlySelectedGameObject_->GetSprite().ChangeRenderLayer(
+                           static_cast<uint32_t>(std::stoi(item)));
+                     });
+                  }
+               }
+               ImGui::EndCombo();
+            }
+         });
          CreateRow("Type", fmt::format("{}", currentlySelectedGameObject_->GetTypeString()));
          CreateRow("ID", fmt::format("{}", currentlySelectedGameObject_->GetID()));
          CreateActionRowLabel("Has Collision", [this] {
@@ -1089,7 +1111,8 @@ EditorGUI::UpdateUI()
       RenderGameObjectMenu();
    }
 
-   if(exitPushed_){
+   if (exitPushed_)
+   {
       RenderExitWindow();
    }
 
