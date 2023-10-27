@@ -31,5 +31,7 @@ jobs:
         init_script: init_script.sh
         apt_pckgs: xorg-dev python3-pip
         verbose: true
+        clang_tidy_args: |
+            -extra-arg=-std=c++20
         cppcheck_args: |
             --enable=all --suppress=missingIncludeSystem --suppress=functionStatic --suppress=unusedFunction --inline-suppr --inconclusive
