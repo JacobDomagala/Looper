@@ -6,6 +6,7 @@
 #include "vertex.hpp"
 
 #include <array>
+#include <bitset>
 #include <fmt/format.h>
 #include <string_view>
 #include <unordered_map>
@@ -28,15 +29,18 @@ vk_check_error(VkResult vkResult, std::string_view errorMessage)
    }
 }
 
-static constexpr uint32_t MAX_MESHES_PER_LAYER = 100;
+static constexpr uint32_t VERTICES_PER_SPRITE = 4;
+static constexpr uint32_t MAX_SPRITES_PER_LAYER = 1000;
+static constexpr uint32_t MAX_NUM_VERTICES_PER_LAYER = MAX_SPRITES_PER_LAYER * VERTICES_PER_SPRITE;
+inline constexpr uint32_t NUM_LAYERS = 11;
+static constexpr size_t MAX_NUM_SPRITES = MAX_SPRITES_PER_LAYER * NUM_LAYERS;
 static constexpr uint32_t MAX_NUM_TEXTURES = 256;
 static constexpr uint32_t INDICES_PER_SPRITE = 6;
-static constexpr uint32_t VERTICES_PER_SPRITE = 4;
 static constexpr uint32_t INDICES_PER_LINE = 2;
 static constexpr uint32_t VERTICES_PER_LINE = 2;
 inline constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 3;
 inline constexpr uint32_t MAX_NUM_LINES = 100000;
-inline constexpr uint32_t NUM_LAYERS = 11;
+
 static constexpr bool ENABLE_VALIDATION = true;
 static constexpr std::array< const char*, 1 > VALIDATION_LAYERS = {"VK_LAYER_KHRONOS_validation"};
 static constexpr std::array< const char*, 1 > DEVICE_EXTENSIONS = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
@@ -45,8 +49,14 @@ struct Vertex;
 
 struct RenderInfo
 {
+   // perInstance index
    uint32_t idx;
+
+   // Layer number
    uint32_t layer;
+
+   // index in given layer
+   uint32_t layerIdx;
 };
 
 struct RenderData
@@ -62,6 +72,8 @@ struct RenderData
 
    // Vertex
    std::array< std::vector< Vertex >, NUM_LAYERS > vertices = {};
+   std::array< std::bitset< MAX_SPRITES_PER_LAYER >, NUM_LAYERS > verticesAvail = {};
+
    std::array< VkBuffer, NUM_LAYERS > vertexBuffer = {VK_NULL_HANDLE};
    std::array< VkDeviceMemory, NUM_LAYERS > vertexBufferMemory = {VK_NULL_HANDLE};
 

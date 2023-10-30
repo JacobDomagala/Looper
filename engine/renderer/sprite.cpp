@@ -3,7 +3,6 @@
 #include "renderer.hpp"
 #include "texture.hpp"
 
-#include <bits/ranges_algo.h>
 #include <glm/gtx/transform.hpp>
 
 namespace looper::renderer {
@@ -35,12 +34,14 @@ Sprite::ChangeRenderLayer(uint32_t newLayer)
                                               TextureLibrary::GetTexture(texture_)->GetName(),
                                               TextureLibrary::GetTexture(texture_)->GetName()};
 
-   const auto transformMat =
+   const glm::mat4 transformMat =
       glm::translate(glm::mat4(1.0f), m_currentState.m_translateVal)
       * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
-      * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
+      * glm::scale(glm::mat4(1.0f), {m_size * m_currentState.modifiers.scale, 1.0f});
+
 
    renderInfo_ = VulkanRenderer::MeshLoaded(vertices_, txts, transformMat, m_currentState.m_color);
+   changed_ = true;
 }
 
 void
