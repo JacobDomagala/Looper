@@ -326,7 +326,7 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
    auto& verticesAvail = renderData->verticesAvail.at(layer);
    uint32_t layerIdx = {};
 
-   for (int i = 0; i < MAX_SPRITES_PER_LAYER; ++i)
+   for (uint32_t i = 0; i < MAX_SPRITES_PER_LAYER; ++i)
    {
       if (!verticesAvail.test(i))
       {

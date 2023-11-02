@@ -55,24 +55,32 @@ EditorGUI::EditorGUI(Editor& parent) : parent_(parent)
 void
 EditorGUI::KeyCallback(KeyEvent& event)
 {
-   auto* window = parent_.GetWindow().GetWindowHandle();
-   ImGuiIO& io = ImGui::GetIO();
-   io.AddKeyEvent(ImGuiMod_Ctrl, (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-                                    || (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS));
-   io.AddKeyEvent(ImGuiMod_Shift, (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-                                     || (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS));
-   io.AddKeyEvent(ImGuiMod_Alt, (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
-                                   || (glfwGetKey(window, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS));
-   io.AddKeyEvent(ImGuiMod_Super, (glfwGetKey(window, GLFW_KEY_LEFT_SUPER) == GLFW_PRESS)
-                                     || (glfwGetKey(window, GLFW_KEY_RIGHT_SUPER) == GLFW_PRESS));
-
-   const auto imguiKey = KeyToImGuiKey(event.key_);
-   io.AddKeyEvent(imguiKey, (event.action_ == GLFW_PRESS));
-
-   if ((event.key_ == GLFW_KEY_ESCAPE) and (event.action_ == GLFW_PRESS))
+   // Editor shoould have priority with KeyCallback
+   parent_.KeyCallback(event);
+   if (!event.handled_)
    {
-      exitPushed_ = not exitPushed_;
-      event.handled_ = true;
+      auto* window = parent_.GetWindow().GetWindowHandle();
+      ImGuiIO& io = ImGui::GetIO();
+      io.AddKeyEvent(ImGuiMod_Ctrl,
+                     (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+                        || (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS));
+      io.AddKeyEvent(ImGuiMod_Shift,
+                     (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+                        || (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS));
+      io.AddKeyEvent(ImGuiMod_Alt, (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
+                                      || (glfwGetKey(window, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS));
+      io.AddKeyEvent(ImGuiMod_Super,
+                     (glfwGetKey(window, GLFW_KEY_LEFT_SUPER) == GLFW_PRESS)
+                        || (glfwGetKey(window, GLFW_KEY_RIGHT_SUPER) == GLFW_PRESS));
+
+      const auto imguiKey = KeyToImGuiKey(event.key_);
+      io.AddKeyEvent(imguiKey, (event.action_ == GLFW_PRESS));
+
+      if ((event.key_ == GLFW_KEY_ESCAPE) and (event.action_ == GLFW_PRESS))
+      {
+         exitPushed_ = not exitPushed_;
+         event.handled_ = true;
+      }
    }
 }
 
@@ -858,7 +866,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
                   {
                      parent_.AddToWorkQueue([this, item] {
                         currentlySelectedGameObject_->GetSprite().ChangeRenderLayer(
-                           static_cast<uint32_t>(std::stoi(item)));
+                           static_cast< uint32_t >(std::stoi(item)));
                      });
                   }
                }
