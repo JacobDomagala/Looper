@@ -294,6 +294,11 @@ VulkanRenderer::MeshDeleted(const RenderInfo& renderInfo)
       vertex = Vertex{};
    }
 
+   const auto bufferSize = sizeof(Vertex) * MAX_NUM_VERTICES_PER_LAYER;
+   CreateVertexBuffer(bufferSize, renderData->vertices.at(renderInfo.layer),
+                      renderData->vertexBuffer.at(renderInfo.layer),
+                      renderData->vertexBufferMemory.at(renderInfo.layer));
+
    // renderData->numMeshes.at(renderInfo.layer)--;
 }
 
@@ -406,7 +411,9 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
    
    // idx = (renderData->totalNumMeshes)++;
 
-   
+   const auto bufferSize = sizeof(Vertex) * MAX_NUM_VERTICES_PER_LAYER;
+   CreateVertexBuffer(bufferSize, vertices, renderData->vertexBuffer.at(layer),
+                      renderData->vertexBufferMemory.at(layer));
    SubmitMeshData(idx, TextureLibrary::GetTexture(textures_in.front())->GetID(), modelMat,
                   color); // }
 
