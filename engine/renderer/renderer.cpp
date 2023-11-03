@@ -282,9 +282,8 @@ VulkanRenderer::MeshDeleted(const RenderInfo& renderInfo)
 {
    auto* renderData = &Data::renderData_[boundApplication_];
 
-   // renderData->deletedObjs_.at(renderInfo.layer).push_back(renderInfo.idx);
    renderData->verticesAvail.at(renderInfo.layer).reset(renderInfo.layerIdx);
-   // renderData->vertices.at(renderInfo.layer).at(renderInfo.layerIdx)
+
 
    for (uint32_t vertexIdx = 0; vertexIdx < VERTICES_PER_SPRITE; ++vertexIdx)
    {
@@ -298,8 +297,6 @@ VulkanRenderer::MeshDeleted(const RenderInfo& renderInfo)
    CreateVertexBuffer(bufferSize, renderData->vertices.at(renderInfo.layer),
                       renderData->vertexBuffer.at(renderInfo.layer),
                       renderData->vertexBufferMemory.at(renderInfo.layer));
-
-   // renderData->numMeshes.at(renderInfo.layer)--;
 }
 
 RenderInfo
@@ -311,17 +308,6 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
    const auto layer = static_cast< uint32_t >(vertices_in.front().m_position.z * 20.0f);
    uint32_t idx = 0;
 
-   // if (not renderData->deletedObjs_.at(layer).empty())
-   //{
-   //    idx = renderData->deletedObjs_.at(layer).back();
-
-   //   SubmitMeshData(idx, TextureLibrary::GetTexture(textures_in.front())->GetID(), modelMat,
-   //   color); UpdateDescriptors();
-
-   //   renderData->deletedObjs_.at(layer).pop_back();
-   //}
-   // else
-   //{
    auto& vertices = renderData->vertices.at(layer);
    auto& verticesAvail = renderData->verticesAvail.at(layer);
    uint32_t layerIdx = {};
@@ -347,28 +333,6 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
       // vertex.m_texCoordsDraw.z = static_cast< float >(renderData->totalNumMeshes);
       vertex.m_texCoordsDraw.z = static_cast< float >(layerIdx + MAX_SPRITES_PER_LAYER * layer);
    }
-   // stl::copy(vertices_in, std::back_inserter(*vertices));
-   //std::for_each(vertices->begin() + (layerIdx * VERTICES_PER_SPRITE),
-   //              vertices->begin() + (layerIdx * VERTICES_PER_SPRITE) + VERTICES_PER_SPRITE,
-   //              [drawID = renderData->totalNumMeshes, vertices_in](auto& vtx) {
-
-   //                 vtx.m_texCoordsDraw.z = static_cast< float >(drawID);
-   //              });
-
-   // Indices are handled in init
-   // std::copy(indicies_in.begin(), indicies_in.end(), std::back_inserter(indices));
-
-   // TODO: If we go back to indirect draw, this also should be updated to editor/game
-   // VkDrawIndexedIndirectCommand newModel = {};
-   // newModel.firstIndex = m_currentIndex;
-   // newModel.indexCount = INDICES_PER_SPRITE;
-   // newModel.firstInstance = 0;
-   // newModel.instanceCount = 1;
-   // newModel.vertexOffset = static_cast< int32_t >(m_currentVertex);
-   //  m_renderCommands.push_back(newModel);
-
-   // m_currentVertex += static_cast< uint32_t >(vertices_in.size());
-   // m_currentIndex += INDICES_PER_SPRITE;
 
    auto& newInstance = renderData->perInstance.at(layerIdx + MAX_SPRITES_PER_LAYER * layer);
    newInstance.model = modelMat;
@@ -395,8 +359,6 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
             break;
       }
    }
-
-  //  renderData->perInstance.push_back(newInstance);
   
    UpdateDescriptors();
 
@@ -409,13 +371,11 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
    idx = layerIdx + MAX_SPRITES_PER_LAYER * layer; 
    ++renderData->totalNumMeshes; 
    
-   // idx = (renderData->totalNumMeshes)++;
-
    const auto bufferSize = sizeof(Vertex) * MAX_NUM_VERTICES_PER_LAYER;
    CreateVertexBuffer(bufferSize, vertices, renderData->vertexBuffer.at(layer),
                       renderData->vertexBufferMemory.at(layer));
    SubmitMeshData(idx, TextureLibrary::GetTexture(textures_in.front())->GetID(), modelMat,
-                  color); // }
+                  color);
 
    return {idx, layer, layerIdx};
 }

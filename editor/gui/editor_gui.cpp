@@ -894,7 +894,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
    {
       DrawWidget("Position", [this]() {
          auto objectPosition = currentlySelectedGameObject_->GetSprite().GetPosition();
-         ImGui::InputFloat3("##Position", &objectPosition.x);
+         ImGui::InputFloat2("##Position", &objectPosition.x);
       });
 
       DrawWidget("Size", [this]() {
