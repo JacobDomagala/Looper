@@ -51,7 +51,7 @@ class Sprite
    SetTextureFromFile(const std::string& filePath);
 
    void
-   SetTranslateValue(const glm::vec3& translateBy);
+   SetTranslateValue(const glm::vec2& translateBy);
 
    void
    SetInitialPosition(const glm::vec3& globalPosition);
@@ -70,11 +70,14 @@ class Sprite
    [[nodiscard]] std::string
    GetTextureName() const;
 
-   [[nodiscard]] glm::vec3
+   [[nodiscard]] glm::vec2
    GetTranslation() const;
 
    [[nodiscard]] float
    GetRotation(RotationType type = RotationType::RADIANS) const;
+
+   [[nodiscard]] glm::mat4
+   ComputeModelMat() const;
 
    [[nodiscard]] glm::vec2&
    GetScale();
@@ -108,7 +111,7 @@ class Sprite
    GetTransformedRectangle() const;
 
    void
-   Translate(const glm::vec3& translateValue);
+   Translate(const glm::vec2& translateValue);
 
    void
    Update(bool isReverse);
@@ -153,8 +156,8 @@ class Sprite
       // sprite's position
       glm::vec3 m_currentPosition = {0.0f, 0.0f, 0.0f};
 
-      // transofmation values
-      glm::vec3 m_translateVal = {0.0f, 0.0f, 0.0f};
+      // transform values
+      glm::vec2 translateVal_ = {0.0f, 0.0f};
       glm::vec2 m_scaleVal = {1.0f, 1.0f};
 
       // angle in radians

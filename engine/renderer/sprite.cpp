@@ -9,15 +9,20 @@ namespace looper::renderer {
 
 Sprite::~Sprite()
 {
-   const glm::mat4 transformMat =
-      glm::translate(glm::mat4(1.0f), m_currentState.m_translateVal)
-      * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
-      * glm::scale(glm::mat4(1.0f), {m_size * m_currentState.modifiers.scale, 1.0f});
+   const auto transformMat = ComputeModelMat();
 
    renderer::VulkanRenderer::SubmitMeshData(renderInfo_.idx, texture_, transformMat,
                                             {0.0f, 0.0f, 0.0f, 0.0f});
 
    renderer::VulkanRenderer::MeshDeleted(renderInfo_);
+}
+
+glm::mat4
+Sprite::ComputeModelMat() const
+{
+   return glm::translate(glm::mat4(1.0f), glm::vec3{m_currentState.translateVal_, 0.0f})
+          * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
+          * glm::scale(glm::mat4(1.0f), {m_size * m_currentState.modifiers.scale, 1.0f});
 }
 
 void
@@ -34,11 +39,7 @@ Sprite::ChangeRenderLayer(uint32_t newLayer)
                                               TextureLibrary::GetTexture(texture_)->GetName(),
                                               TextureLibrary::GetTexture(texture_)->GetName()};
 
-   const glm::mat4 transformMat =
-      glm::translate(glm::mat4(1.0f), m_currentState.m_translateVal)
-      * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
-      * glm::scale(glm::mat4(1.0f), {m_size * m_currentState.modifiers.scale, 1.0f});
-
+   const auto transformMat = ComputeModelMat();
 
    renderInfo_ = VulkanRenderer::MeshLoaded(vertices_, txts, transformMat, m_currentState.m_color);
    changed_ = true;
@@ -52,7 +53,7 @@ Sprite::SetSprite(const glm::vec3& position, const glm::vec2& size)
 
    m_currentState.m_currentPosition = position;
    m_initialPosition = position;
-   m_currentState.m_translateVal = position;
+   m_currentState.translateVal_ = position;
    m_size = size;
    m_currentState.m_angle = 0.0f;
    m_currentState.m_scaleVal = glm::vec2(1.0f, 1.0f);
@@ -70,7 +71,7 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
    m_currentState.m_currentPosition = position;
    m_size = size;
 
-   m_currentState.m_translateVal = position;
+   m_currentState.translateVal_ = position;
    m_currentState.m_angle = 0.0f;
    m_currentState.m_scaleVal = glm::vec2(1.0f, 1.0f);
    m_currentState.m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -93,10 +94,7 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
       {glm::vec3(0.5f, -0.5f, position.z), glm::vec3{1.0f, 1.0f, 1.0f}},
       {glm::vec3{-0.5f, -0.5f, position.z}, glm::vec3{0.0f, 1.0f, 1.0f}}};
 
-   const auto transformMat =
-      glm::translate(glm::mat4(1.0f), m_currentState.m_translateVal)
-      * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
-      * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
+   const auto transformMat = ComputeModelMat();
 
    const std::array< std::string, 3 > txts = {TextureLibrary::GetTexture(texture_)->GetName(),
                                               TextureLibrary::GetTexture(texture_)->GetName(),
@@ -132,10 +130,7 @@ Sprite::Render()
 {
    if (changed_)
    {
-      const glm::mat4 transformMat =
-         glm::translate(glm::mat4(1.0f), m_currentState.m_translateVal)
-         * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
-         * glm::scale(glm::mat4(1.0f), {m_size * m_currentState.modifiers.scale, 1.0f});
+      const auto transformMat = ComputeModelMat();
 
       renderer::VulkanRenderer::SubmitMeshData(renderInfo_.idx, texture_, transformMat,
                                                m_currentState.m_color);
@@ -175,10 +170,10 @@ Sprite::GetTextureName() const
    return renderer::TextureLibrary::GetTexture(texture_)->GetName();
 }
 
-glm::vec3
+glm::vec2
 Sprite::GetTranslation() const
 {
-   return m_currentState.m_translateVal;
+   return m_currentState.translateVal_;
 }
 
 float
@@ -218,10 +213,10 @@ Sprite::SetTextureFromFile(const std::string& filePath)
 }
 
 void
-Sprite::SetTranslateValue(const glm::vec3& translateBy)
+Sprite::SetTranslateValue(const glm::vec2& translateBy)
 {
-   m_currentState.m_currentPosition = m_initialPosition + translateBy;
-   m_currentState.m_translateVal += translateBy;
+   m_currentState.m_currentPosition = m_initialPosition + glm::vec3{translateBy, 0.0f};
+   m_currentState.translateVal_ += translateBy;
 
    changed_ = true;
 }
@@ -289,10 +284,10 @@ Sprite::ScaleCumulative(const glm::vec2& scaleValue)
 }
 
 void
-Sprite::Translate(const glm::vec3& translateValue)
+Sprite::Translate(const glm::vec2& translateValue)
 {
-   m_currentState.m_currentPosition += translateValue;
-   m_currentState.m_translateVal += translateValue;
+   m_currentState.m_currentPosition += glm::vec3{translateValue, 0.0f};
+   m_currentState.translateVal_ += translateValue;
 
    changed_ = true;
 }
@@ -319,7 +314,7 @@ std::array< glm::vec2, 4 >
 Sprite::GetTransformedRectangle() const
 {
    const auto transformMat =
-      glm::translate(glm::mat4(1.0f), m_currentState.m_translateVal)
+      glm::translate(glm::mat4(1.0f), glm::vec3{m_currentState.translateVal_, 0.0f})
       * glm::rotate(glm::mat4(1.0f), m_currentState.m_angle, {0.0f, 0.0f, 1.0f})
       * glm::scale(glm::mat4(1.0f), {m_size, 1.0f});
 
