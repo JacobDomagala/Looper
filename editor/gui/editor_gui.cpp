@@ -865,8 +865,13 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
                   if (ImGui::Selectable(item.c_str()))
                   {
                      parent_.AddToWorkQueue([this, item] {
-                        currentlySelectedGameObject_->GetSprite().ChangeRenderLayer(
-                           static_cast< uint32_t >(std::stoi(item)));
+                        const auto layer = static_cast< uint32_t >(std::stoi(item));
+                        const auto oldLayer =
+                           currentlySelectedGameObject_->GetSprite().GetRenderInfo().layer;
+                        currentlySelectedGameObject_->GetSprite().ChangeRenderLayer(layer);
+
+                        renderer::VulkanRenderer::SetupVertexBuffer(oldLayer);
+                        renderer::VulkanRenderer::SetupVertexBuffer(layer);
                      });
                   }
                }

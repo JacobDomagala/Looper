@@ -151,33 +151,33 @@ class Sprite
    struct State
    {
       // color of sprite (default is white)
-      glm::vec4 m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+      glm::vec4 color_ = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
       // sprite's position
-      glm::vec3 m_currentPosition = {0.0f, 0.0f, 0.0f};
+      glm::vec3 currentPosition_ = {0.0f, 0.0f, 0.0f};
 
       // transform values
       glm::vec2 translateVal_ = {0.0f, 0.0f};
-      glm::vec2 m_scaleVal = {1.0f, 1.0f};
+      glm::vec2 scaleVal_ = {1.0f, 1.0f};
 
       // angle in radians
-      float m_angle = 0.0f;
+      float angle_ = 0.0f;
 
-      float m_uniformScaleValue = 0.0f;
+      float uniformScaleValue_ = 0.0f;
 
       Modifiers modifiers = {};
    };
 
-   StateList< State > m_statesQueue = {};
-   State m_currentState = {};
+   StateList< State > statesQueue_ = {};
+   State currentState_ = {};
 
    // sprite's texture
    renderer::TextureID texture_ = {};
 
-   glm::vec3 m_initialPosition = {};
+   glm::vec3 initialPosition_ = {};
 
    // width and height
-   glm::vec2 m_size = {};
+   glm::vec2 size_ = {};
    bool changed_ = false;
    RenderInfo renderInfo_ = {};
 

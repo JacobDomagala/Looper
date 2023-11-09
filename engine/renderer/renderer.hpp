@@ -47,6 +47,9 @@ class VulkanRenderer
    SubmitMeshData(const uint32_t idx, const TextureID id, const glm::mat4& modelMat,
                   const glm::vec4& color);
 
+   static void
+   SetupVertexBuffer(const uint32_t layer);
+
    inline static void
    SetAppMarker(ApplicationType type)
    {

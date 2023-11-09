@@ -813,7 +813,7 @@ Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
    m_currentLevel = std::make_shared< Level >();
    m_currentLevel->Create(this, name, size);
 
-   // SetupPathfinderNodes();
+   SetupPathfinderNodes();
 
    m_camera.Create(glm::vec3(0.0f, 0.0f, 0.0f), m_window->GetSize());
    m_camera.SetLevelSize(m_currentLevel->GetSize());
@@ -839,7 +839,7 @@ Editor::LoadLevel(const std::string& levelPath)
          m_currentLevel = std::make_shared< Level >();
          m_currentLevel->Load(this, levelPath);
       
-      // SetupPathfinderNodes();
+      SetupPathfinderNodes();
 
       {
          SCOPED_TIMER("Animation points setup");
