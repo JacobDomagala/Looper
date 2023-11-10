@@ -92,6 +92,8 @@ class VulkanRenderer
    static void
    UpdateDescriptors();
 
+   inline static bool isLoaded_ = false;
+
  private:
    static void
    DestroyPipeline();
@@ -150,10 +152,9 @@ class VulkanRenderer
 
    static VkFormat
    FindDepthFormat();
-
- private:
+ 
+private:
    inline static bool initialized_ = false;
-   inline static bool isLoaded_ = false;
    inline static bool updateDescriptors_ = false;
    inline static VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo_ = {};
    inline static VkDebugUtilsMessengerEXT debugMessenger_ = {};
