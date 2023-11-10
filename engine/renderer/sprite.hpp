@@ -51,7 +51,7 @@ class Sprite
    SetTextureFromFile(const std::string& filePath);
 
    void
-   SetTranslateValue(const glm::vec3& translateBy);
+   SetTranslateValue(const glm::vec2& translateBy);
 
    void
    SetInitialPosition(const glm::vec3& globalPosition);
@@ -70,11 +70,14 @@ class Sprite
    [[nodiscard]] std::string
    GetTextureName() const;
 
-   [[nodiscard]] glm::vec3
+   [[nodiscard]] glm::vec2
    GetTranslation() const;
 
    [[nodiscard]] float
    GetRotation(RotationType type = RotationType::RADIANS) const;
+
+   [[nodiscard]] glm::mat4
+   ComputeModelMat() const;
 
    [[nodiscard]] glm::vec2&
    GetScale();
@@ -108,7 +111,7 @@ class Sprite
    GetTransformedRectangle() const;
 
    void
-   Translate(const glm::vec3& translateValue);
+   Translate(const glm::vec2& translateValue);
 
    void
    Update(bool isReverse);
@@ -137,6 +140,9 @@ class Sprite
       renderInfo_.idx = idx;
    }
 
+   void
+   ChangeRenderLayer(uint32_t newLayer);
+
    static constexpr std::pair< float, float > ROTATION_RANGE = {glm::radians(-360.0f),
                                                                 glm::radians(360.0f)};
    static constexpr std::pair< float, float > SCALE_RANGE = {1.0f, 5.0f};
@@ -145,33 +151,33 @@ class Sprite
    struct State
    {
       // color of sprite (default is white)
-      glm::vec4 m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+      glm::vec4 color_ = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
       // sprite's position
-      glm::vec3 m_currentPosition = {0.0f, 0.0f, 0.0f};
+      glm::vec3 currentPosition_ = {0.0f, 0.0f, 0.0f};
 
-      // transofmation values
-      glm::vec3 m_translateVal = {0.0f, 0.0f, 0.0f};
-      glm::vec2 m_scaleVal = {1.0f, 1.0f};
+      // transform values
+      glm::vec2 translateVal_ = {0.0f, 0.0f};
+      glm::vec2 scaleVal_ = {1.0f, 1.0f};
 
       // angle in radians
-      float m_angle = 0.0f;
+      float angle_ = 0.0f;
 
-      float m_uniformScaleValue = 0.0f;
+      float uniformScaleValue_ = 0.0f;
 
       Modifiers modifiers = {};
    };
 
-   StateList< State > m_statesQueue = {};
-   State m_currentState = {};
+   StateList< State > statesQueue_ = {};
+   State currentState_ = {};
 
    // sprite's texture
    renderer::TextureID texture_ = {};
 
-   glm::vec3 m_initialPosition = {};
+   glm::vec3 initialPosition_ = {};
 
    // width and height
-   glm::vec2 m_size = {};
+   glm::vec2 size_ = {};
    bool changed_ = false;
    RenderInfo renderInfo_ = {};
 

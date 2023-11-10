@@ -47,6 +47,9 @@ class VulkanRenderer
    SubmitMeshData(const uint32_t idx, const TextureID id, const glm::mat4& modelMat,
                   const glm::vec4& color);
 
+   static void
+   SetupVertexBuffer(const uint32_t layer);
+
    inline static void
    SetAppMarker(ApplicationType type)
    {
@@ -88,6 +91,8 @@ class VulkanRenderer
 
    static void
    UpdateDescriptors();
+
+   inline static bool isLoaded_ = false;
 
  private:
    static void
@@ -147,10 +152,9 @@ class VulkanRenderer
 
    static VkFormat
    FindDepthFormat();
-
- private:
+ 
+private:
    inline static bool initialized_ = false;
-   inline static bool isLoaded_ = false;
    inline static bool updateDescriptors_ = false;
    inline static VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo_ = {};
    inline static VkDebugUtilsMessengerEXT debugMessenger_ = {};

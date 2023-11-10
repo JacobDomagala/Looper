@@ -968,6 +968,7 @@ Editor::PlayLevel()
 void
 Editor::LaunchGameLoop()
 {
+   renderer::VulkanRenderer::isLoaded_ = false;
    m_game = std::make_unique< Game >();
    m_game->Init("GameInit.txt", false);
    m_game->LoadLevel(m_levelFileName);

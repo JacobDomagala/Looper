@@ -55,24 +55,32 @@ EditorGUI::EditorGUI(Editor& parent) : parent_(parent)
 void
 EditorGUI::KeyCallback(KeyEvent& event)
 {
-   auto* window = parent_.GetWindow().GetWindowHandle();
-   ImGuiIO& io = ImGui::GetIO();
-   io.AddKeyEvent(ImGuiMod_Ctrl, (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-                                    || (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS));
-   io.AddKeyEvent(ImGuiMod_Shift, (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-                                     || (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS));
-   io.AddKeyEvent(ImGuiMod_Alt, (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
-                                   || (glfwGetKey(window, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS));
-   io.AddKeyEvent(ImGuiMod_Super, (glfwGetKey(window, GLFW_KEY_LEFT_SUPER) == GLFW_PRESS)
-                                     || (glfwGetKey(window, GLFW_KEY_RIGHT_SUPER) == GLFW_PRESS));
-
-   const auto imguiKey = KeyToImGuiKey(event.key_);
-   io.AddKeyEvent(imguiKey, (event.action_ == GLFW_PRESS));
-
-   if ((event.key_ == GLFW_KEY_ESCAPE) and (event.action_ == GLFW_PRESS))
+   // Editor shoould have priority with KeyCallback
+   parent_.KeyCallback(event);
+   if (!event.handled_)
    {
-      exitPushed_ = not exitPushed_;
-      event.handled_ = true;
+      auto* window = parent_.GetWindow().GetWindowHandle();
+      ImGuiIO& io = ImGui::GetIO();
+      io.AddKeyEvent(ImGuiMod_Ctrl,
+                     (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+                        || (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS));
+      io.AddKeyEvent(ImGuiMod_Shift,
+                     (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+                        || (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS));
+      io.AddKeyEvent(ImGuiMod_Alt, (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
+                                      || (glfwGetKey(window, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS));
+      io.AddKeyEvent(ImGuiMod_Super,
+                     (glfwGetKey(window, GLFW_KEY_LEFT_SUPER) == GLFW_PRESS)
+                        || (glfwGetKey(window, GLFW_KEY_RIGHT_SUPER) == GLFW_PRESS));
+
+      const auto imguiKey = KeyToImGuiKey(event.key_);
+      io.AddKeyEvent(imguiKey, (event.action_ == GLFW_PRESS));
+
+      if ((event.key_ == GLFW_KEY_ESCAPE) and (event.action_ == GLFW_PRESS))
+      {
+         exitPushed_ = not exitPushed_;
+         event.handled_ = true;
+      }
    }
 }
 
@@ -843,6 +851,33 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
 
       if (ImGui::BeginTable("ObjectTable", 2))
       {
+         CreateActionRowLabel("RenderLayer", [this] {
+            const auto items = std::to_array< std::string >(
+               {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
+            if (ImGui::BeginCombo(
+                   "##combo",
+                   fmt::format("{}",
+                               currentlySelectedGameObject_->GetSprite().GetRenderInfo().layer)
+                      .c_str()))
+            {
+               for (const auto& item : items)
+               {
+                  if (ImGui::Selectable(item.c_str()))
+                  {
+                     parent_.AddToWorkQueue([this, item] {
+                        const auto layer = static_cast< uint32_t >(std::stoi(item));
+                        const auto oldLayer =
+                           currentlySelectedGameObject_->GetSprite().GetRenderInfo().layer;
+                        currentlySelectedGameObject_->GetSprite().ChangeRenderLayer(layer);
+
+                        renderer::VulkanRenderer::SetupVertexBuffer(oldLayer);
+                        renderer::VulkanRenderer::SetupVertexBuffer(layer);
+                     });
+                  }
+               }
+               ImGui::EndCombo();
+            }
+         });
          CreateRow("Type", fmt::format("{}", currentlySelectedGameObject_->GetTypeString()));
          CreateRow("ID", fmt::format("{}", currentlySelectedGameObject_->GetID()));
          CreateActionRowLabel("Has Collision", [this] {
@@ -864,7 +899,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
    {
       DrawWidget("Position", [this]() {
          auto objectPosition = currentlySelectedGameObject_->GetSprite().GetPosition();
-         ImGui::InputFloat3("##Position", &objectPosition.x);
+         ImGui::InputFloat2("##Position", &objectPosition.x);
       });
 
       DrawWidget("Size", [this]() {
@@ -1089,7 +1124,8 @@ EditorGUI::UpdateUI()
       RenderGameObjectMenu();
    }
 
-   if(exitPushed_){
+   if (exitPushed_)
+   {
       RenderExitWindow();
    }
 
