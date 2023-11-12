@@ -26,7 +26,7 @@ Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
    m_window = std::make_unique< renderer::Window >(screenSize, "Editor", true);
 
    InputManager::Init(m_window->GetWindowHandle());
-   
+
    renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle(),
                                         renderer::ApplicationType::EDITOR);
    gui_.Init();
@@ -455,6 +455,19 @@ Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
    }
 }
 
+int32_t
+Editor::GetRenderLayerToDraw() const
+{
+   return renderLayerToDraw_;
+}
+
+void
+Editor::SetRenderLayerToDraw(int32_t layer)
+{
+   renderLayerToDraw_ = layer;
+}
+
+
 void
 Editor::SetupRendererData()
 {
@@ -834,11 +847,11 @@ Editor::LoadLevel(const std::string& levelPath)
 
    {
       SCOPED_TIMER("Total level load");
-      
-         m_levelFileName = levelPath;
-         m_currentLevel = std::make_shared< Level >();
-         m_currentLevel->Load(this, levelPath);
-      
+
+      m_levelFileName = levelPath;
+      m_currentLevel = std::make_shared< Level >();
+      m_currentLevel->Load(this, levelPath);
+
       SetupPathfinderNodes();
 
       {
@@ -875,9 +888,8 @@ Editor::LoadLevel(const std::string& levelPath)
       gui_.LevelLoaded(m_currentLevel);
 
       m_window->MakeFocus();
-    
    }
-   
+
    SetupRendererData();
 }
 

@@ -744,6 +744,24 @@ EditorGUI::RenderLevelMenu() // NOLINT
             }
          });
 
+         CreateActionRowLabel("RenderLayer", [this] {
+            const auto items = std::to_array< std::string >(
+               {"All", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
+            const auto layer = parent_.GetRenderLayerToDraw();
+            if (ImGui::BeginCombo(
+                   "##combo", fmt::format("{}", layer == -1 ? "All" : std::to_string(layer)).c_str()))
+            {
+               for (const auto& item : items)
+               {
+                  if (ImGui::Selectable(item.c_str()))
+                  {
+                     parent_.SetRenderLayerToDraw(item == "All" ? -1 : std::stoi(item));
+                  }
+               }
+               ImGui::EndCombo();
+            }
+         });
+
          ImGui::EndTable();
       }
    }
