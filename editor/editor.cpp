@@ -593,8 +593,10 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       {
          const auto idx = static_cast< size_t >(layer);
          const auto& numObjects = renderData.numMeshes.at(idx);
-         if (numObjects == 0
-             or (idx == 9 and not m_renderPathfinderNodes) /* layer 9 means pathfinder nodes*/)
+         const auto renderThisLayer = renderLayerToDraw_ == -1 ? true : renderLayerToDraw_ == layer;
+         if (numObjects == 0 or !renderThisLayer
+             or (idx == 9 and not m_renderPathfinderNodes) /* layer 9 means pathfinder nodes*/
+         )
          {
             continue;
          }
