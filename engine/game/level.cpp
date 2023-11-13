@@ -5,8 +5,8 @@
 #include "renderer/renderer.hpp"
 #include "renderer/window/window.hpp"
 #include "utils/file_manager.hpp"
-#include "utils/time/timer.hpp"
 #include "utils/time/scoped_timer.hpp"
+#include "utils/time/timer.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -130,7 +130,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
       else if (key == "OBJECTS")
       {
          SCOPED_TIMER(fmt::format("Loading Objects ({})", json[key].size()));
-         
+
          for (const auto& object : json[key])
          {
             const auto& position = object["position"];
@@ -462,6 +462,27 @@ Level::GetTilesAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos) co
 }
 
 void
+Level::GenerateTextureForCollision()
+{
+   const auto width = m_levelSize.x / m_tileWidth;
+   const auto height = m_levelSize.y / m_tileWidth;
+   const auto numChannels = 4;
+   const auto size = width * height * numChannels;
+
+   unsigned char* data = new unsigned char[size];
+   memset(data, 144, size);
+
+   FileManager::ImageData imageData = {
+      FileManager::ImageHandleType{data, [](uint8_t* ptr) { delete[] ptr; }},
+      {width, height},
+      numChannels};
+   auto* texture = renderer::TextureLibrary::CreateTexture(renderer::TextureType::DIFFUSE_MAP,
+                                                           "Collision", imageData);
+
+   collisionTexture_ = texture->GetID();
+}
+
+void
 Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
 {
    m_locked = false;
@@ -470,6 +491,8 @@ Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
    m_background.SetSpriteTextured(glm::vec3(static_cast< float >(m_levelSize.x) / 2.0f,
                                             static_cast< float >(m_levelSize.y) / 2.0f, 0.5f),
                                   size, fileName);
+
+   baseTexture_ = m_background.GetTexture()->GetID();
 }
 
 void
@@ -481,10 +504,8 @@ Level::LoadShaders(const std::string& /*shaderName*/)
 void
 Level::DeleteObject(Object::ID deletedObject)
 {
-   auto objectIter =
-      stl::find_if(m_objects, [deletedObject](const auto& object) {
-         return object->GetID() == deletedObject;
-      });
+   auto objectIter = stl::find_if(
+      m_objects, [deletedObject](const auto& object) { return object->GetID() == deletedObject; });
 
    if (objectIter == m_objects.end())
    {
@@ -653,6 +674,12 @@ Level::GetGameObjectOnLocation(const glm::vec2& screenPosition)
       });
 
    return objectOnLocation != m_objects.end() ? *objectOnLocation : nullptr;
+}
+
+void
+Level::RenderPathfinder(bool render)
+{
+   render ? m_background.SetTextureID(collisionTexture_) : m_background.SetTextureID(baseTexture_);
 }
 
 renderer::Sprite&

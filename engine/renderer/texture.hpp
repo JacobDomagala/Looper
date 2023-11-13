@@ -1,5 +1,6 @@
 #pragma once
 
+#include "file_manager.hpp"
 #include "texture.hpp"
 #include "types.hpp"
 
@@ -13,14 +14,13 @@ class Texture
 {
  public:
    Texture(TextureType type, std::string_view textureName, TextureID id);
+   Texture(TextureType type, std::string_view textureName, TextureID id,
+           const FileManager::ImageData& data);
 
    Texture() = default;
 
    void
    Destroy();
-
-   void
-   CreateTextureImage(TextureType type, std::string_view textureName);
 
    static std::pair< VkImage, VkDeviceMemory >
    CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels,
@@ -75,6 +75,9 @@ class Texture
 
  private:
    void
+   CreateTextureImage(const FileManager::ImageData& data);
+
+   void
    TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
 
    void
@@ -106,8 +109,12 @@ class TextureLibrary
    static const Texture*
    GetTexture(const TextureID id);
 
-   static void
+   static const Texture*
    CreateTexture(TextureType type, const std::string& textureName);
+
+   static const Texture*
+   CreateTexture(TextureType type, const std::string& textureName,
+                 const FileManager::ImageData& data);
 
    static const std::vector< VkImageView >&
    GetTextureViews();
@@ -121,6 +128,9 @@ class TextureLibrary
  private:
    static void
    LoadTexture(TextureType type, std::string_view textureName);
+
+   static void
+   LoadTexture(TextureType type, std::string_view textureName, const FileManager::ImageData& data);
 
  private:
    static inline std::unordered_map< std::string, Texture > s_loadedTextures = {};

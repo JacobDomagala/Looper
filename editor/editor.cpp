@@ -855,6 +855,8 @@ Editor::LoadLevel(const std::string& levelPath)
 
       gui_.LevelLoaded(m_currentLevel);
 
+      m_currentLevel->GenerateTextureForCollision();
+
       m_window->MakeFocus();
    }
 
@@ -981,6 +983,7 @@ void
 Editor::RenderNodes(bool render)
 {
    m_renderPathfinderNodes = render;
+   m_currentLevel->RenderPathfinder(render);
 }
 
 bool

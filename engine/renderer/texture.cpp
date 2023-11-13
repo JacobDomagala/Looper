@@ -26,19 +26,26 @@ Texture::Destroy()
 }
 
 Texture::Texture(TextureType type, std::string_view textureName, TextureID id)
-   : id_(id), m_name(std::string(textureName))
+   : m_type(type), id_(id), m_name(std::string(textureName))
 {
-   CreateTextureImage(type, textureName);
+   auto textureData = FileManager::LoadImageData(m_name);
+   CreateTextureImage(textureData);
+}
+
+Texture::Texture(TextureType type, std::string_view textureName, TextureID id,
+                 const FileManager::ImageData& data)
+   : m_type(type), id_(id), m_name(std::string(textureName))
+{
+   CreateTextureImage(data);
 }
 
 void
-Texture::CreateTextureImage(TextureType type, std::string_view textureName)
+Texture::CreateTextureImage(const FileManager::ImageData& data)
 {
-   m_type = type;
-   auto textureData = FileManager::LoadImageData(textureName);
-   m_width = static_cast< uint32_t >(textureData.m_size.x);
-   m_height = static_cast< uint32_t >(textureData.m_size.y);
-   m_format = type == TextureType::DIFFUSE_MAP ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
+   m_width = static_cast< uint32_t >(data.m_size.x);
+   m_height = static_cast< uint32_t >(data.m_size.y);
+   m_format =
+      m_type == TextureType::DIFFUSE_MAP ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
    m_mips = static_cast< uint32_t >(std::floor(std::log2(std::max(m_width, m_height)))) + 1;
 
    std::tie(m_textureImage, m_textureImageMemory) = CreateImage(
@@ -54,7 +61,7 @@ Texture::CreateTextureImage(TextureType type, std::string_view textureName)
 
    TransitionImageLayout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mips);
 
-   CopyBufferToImage(textureData.m_bytes.get());
+   CopyBufferToImage(data.m_bytes.get());
 
    // transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
    GenerateMipmaps(m_textureImage, VK_FORMAT_R8G8B8A8_SRGB, static_cast< int32_t >(m_width),
@@ -476,7 +483,7 @@ TextureLibrary::GetTexture(const TextureID id)
    return nullptr;
 }
 
-void
+const Texture*
 TextureLibrary::CreateTexture(TextureType type, const std::string& textureName)
 {
    if (s_loadedTextures.find(textureName) == s_loadedTextures.end())
@@ -488,6 +495,25 @@ TextureLibrary::CreateTexture(TextureType type, const std::string& textureName)
    {
       Logger::Debug("Texture {} already loaded!", textureName);
    }
+
+   return &s_loadedTextures.at(textureName);
+}
+
+const Texture*
+TextureLibrary::CreateTexture(TextureType type, const std::string& textureName,
+                              const FileManager::ImageData& data)
+{
+   if (s_loadedTextures.find(textureName) == s_loadedTextures.end())
+   {
+      Logger::Debug("Creating texture {}", textureName);
+      LoadTexture(type, textureName, data);
+   }
+   else
+   {
+      Logger::Debug("Texture {} already loaded!", textureName);
+   }
+
+   return &s_loadedTextures.at(textureName);
 }
 
 void
@@ -500,6 +526,16 @@ void
 TextureLibrary::LoadTexture(TextureType type, std::string_view textureName)
 {
    s_loadedTextures[std::string{textureName}] = {type, textureName, currentID_++};
+   imageViews_.push_back(s_loadedTextures[std::string{textureName}].GetImageView());
+
+   VulkanRenderer::UpdateDescriptors();
+}
+
+void
+TextureLibrary::LoadTexture(TextureType type, std::string_view textureName,
+                            const FileManager::ImageData& data)
+{
+   s_loadedTextures[std::string{textureName}] = {type, textureName, currentID_++, data};
    imageViews_.push_back(s_loadedTextures[std::string{textureName}].GetImageView());
 
    VulkanRenderer::UpdateDescriptors();

@@ -85,6 +85,9 @@ class Sprite
    [[nodiscard]] float&
    GetUniformScaleValue();
 
+   void 
+   SetTextureID(TextureID newID);
+
    [[nodiscard]] const renderer::Texture*
    GetTexture() const;
 

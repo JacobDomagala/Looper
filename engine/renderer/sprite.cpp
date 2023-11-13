@@ -227,6 +227,13 @@ Sprite::SetInitialPosition(const glm::vec3& globalPosition)
    initialPosition_ = globalPosition;
 }
 
+void
+Sprite::SetTextureID(TextureID newID)
+{
+   texture_ = newID;
+   changed_ = true;
+}
+
 const renderer::Texture*
 Sprite::GetTexture() const
 {
