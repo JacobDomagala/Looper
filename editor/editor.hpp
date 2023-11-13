@@ -168,6 +168,11 @@ class Editor : public Application
    bool
    IsAnyObjectSelected() const;
 
+   int32_t
+   GetRenderLayerToDraw() const;
+
+   void SetRenderLayerToDraw(int32_t);
+
  private:
    // [[nodiscard]] std::shared_ptr< EditorObject >
    // GetEditorObjectByID(Object::ID ID);
@@ -253,6 +258,7 @@ class Editor : public Application
 
    bool m_drawGrid = false;
    int32_t m_gridCellSize = 128;
+   int32_t renderLayerToDraw_ = -1;
 
    // constructed in initializer list
    EditorGUI gui_;
