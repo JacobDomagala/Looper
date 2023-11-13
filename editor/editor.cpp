@@ -594,9 +594,8 @@ Editor::Render(VkCommandBuffer cmdBuffer)
          const auto idx = static_cast< size_t >(layer);
          const auto& numObjects = renderData.numMeshes.at(idx);
          const auto renderThisLayer = renderLayerToDraw_ == -1 ? true : renderLayerToDraw_ == layer;
-         if (numObjects == 0 or !renderThisLayer
-             or (idx == 9 and not m_renderPathfinderNodes) /* layer 9 means pathfinder nodes*/
-         )
+         
+         if (numObjects == 0 or !renderThisLayer)
          {
             continue;
          }
@@ -649,16 +648,6 @@ Editor::DrawEditorObjects()
    for (auto& object : m_editorObjects)
    {
       object->Render();
-   }
-
-   if (m_renderPathfinderNodes)
-   {
-      const auto& changedNodes = m_currentLevel->GetPathfinder().GetNodesModifiedLastFrame();
-
-      for (auto nodeID : changedNodes)
-      {
-         pathfinderNodes_.at(static_cast< size_t >(nodeID))->Render();
-      }
    }
 }
 
@@ -786,25 +775,6 @@ Editor::GetRenderOffsets() const
 }
 
 void
-Editor::SetupPathfinderNodes()
-{
-   SCOPED_TIMER("SetupPathfinderNodes");
-
-   const auto& pathfinderNodes = m_currentLevel->GetPathfinder().GetAllNodes();
-   std::ranges::transform(
-      pathfinderNodes, std::back_inserter(pathfinderNodes_), [this](const auto& node) {
-         const auto tileSize = m_currentLevel->GetTileSize();
-
-         auto pathfinderNode = std::make_shared< EditorObject >(
-            *this, node.position_, glm::ivec2(tileSize, tileSize), "white.png", node.GetID());
-
-         pathfinderNode->Render();
-
-         return pathfinderNode;
-      });
-}
-
-void
 Editor::FreeLevelData()
 {
    if (m_levelLoaded)
@@ -827,8 +797,6 @@ Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
 
    m_currentLevel = std::make_shared< Level >();
    m_currentLevel->Create(this, name, size);
-
-   SetupPathfinderNodes();
 
    m_camera.Create(glm::vec3(0.0f, 0.0f, 0.0f), m_window->GetSize());
    m_camera.SetLevelSize(m_currentLevel->GetSize());
@@ -853,8 +821,6 @@ Editor::LoadLevel(const std::string& levelPath)
       m_levelFileName = levelPath;
       m_currentLevel = std::make_shared< Level >();
       m_currentLevel->Load(this, levelPath);
-
-      SetupPathfinderNodes();
 
       {
          SCOPED_TIMER("Animation points setup");
