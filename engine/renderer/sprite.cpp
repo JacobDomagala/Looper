@@ -11,7 +11,7 @@ Sprite::~Sprite()
 {
    const auto transformMat = ComputeModelMat();
 
-   renderer::VulkanRenderer::SubmitMeshData(renderInfo_.idx, texture_, transformMat,
+   renderer::VulkanRenderer::SubmitMeshData(renderInfo_.idx, textures_, transformMat,
                                             {0.0f, 0.0f, 0.0f, 0.0f});
 
    renderer::VulkanRenderer::MeshDeleted(renderInfo_);
@@ -35,13 +35,10 @@ Sprite::ChangeRenderLayer(uint32_t newLayer)
       vertex.m_position.z = static_cast< float >(newLayer) / 20.0f;
    }
 
-   const std::array< std::string, 3 > txts = {TextureLibrary::GetTexture(texture_)->GetName(),
-                                              TextureLibrary::GetTexture(texture_)->GetName(),
-                                              TextureLibrary::GetTexture(texture_)->GetName()};
-
    const auto transformMat = ComputeModelMat();
 
-   renderInfo_ = VulkanRenderer::MeshLoaded(vertices_, txts, transformMat, currentState_.color_);
+   renderInfo_ =
+      VulkanRenderer::MeshLoaded(vertices_, textures_, transformMat, currentState_.color_);
    changed_ = true;
 }
 
@@ -65,7 +62,6 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
                           const std::string& fileName)
 {
    changed_ = true;
-   texture_ = renderer::TextureLibrary::GetTexture(fileName)->GetID();
 
    initialPosition_ = position;
    currentState_.currentPosition_ = position;
@@ -96,11 +92,13 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
 
    const auto transformMat = ComputeModelMat();
 
-   const std::array< std::string, 3 > txts = {TextureLibrary::GetTexture(texture_)->GetName(),
-                                              TextureLibrary::GetTexture(texture_)->GetName(),
-                                              TextureLibrary::GetTexture(texture_)->GetName()};
+   textures_ = {TextureLibrary::GetTexture(fileName)->GetID(),
+                TextureLibrary::GetTexture("white.png")->GetID(),
+                TextureLibrary::GetTexture(fileName)->GetID(),
+                TextureLibrary::GetTexture(fileName)->GetID()};
 
-   renderInfo_ = VulkanRenderer::MeshLoaded(vertices_, txts, transformMat, currentState_.color_);
+   renderInfo_ =
+      VulkanRenderer::MeshLoaded(vertices_, textures_, transformMat, currentState_.color_);
 }
 
 void
@@ -132,7 +130,7 @@ Sprite::Render()
    {
       const auto transformMat = ComputeModelMat();
 
-      renderer::VulkanRenderer::SubmitMeshData(renderInfo_.idx, texture_, transformMat,
+      renderer::VulkanRenderer::SubmitMeshData(renderInfo_.idx, textures_, transformMat,
                                                currentState_.color_);
 
       changed_ = false;
@@ -167,7 +165,7 @@ Sprite::GetOriginalSize() const
 std::string
 Sprite::GetTextureName() const
 {
-   return renderer::TextureLibrary::GetTexture(texture_)->GetName();
+   return renderer::TextureLibrary::GetTexture(textures_.at(0))->GetName();
 }
 
 glm::vec2
@@ -179,8 +177,7 @@ Sprite::GetTranslation() const
 float
 Sprite::GetRotation(RotationType type) const
 {
-   return type == RotationType::DEGREES ? glm::degrees(currentState_.angle_)
-                                        : currentState_.angle_;
+   return type == RotationType::DEGREES ? glm::degrees(currentState_.angle_) : currentState_.angle_;
 }
 
 glm::vec2&
@@ -208,7 +205,7 @@ Sprite::SetColor(const glm::vec4& color)
 void
 Sprite::SetTextureFromFile(const std::string& filePath)
 {
-   texture_ = renderer::TextureLibrary::GetTexture(filePath)->GetID();
+   textures_[0] = renderer::TextureLibrary::GetTexture(filePath)->GetID();
    changed_ = true;
 }
 
@@ -228,16 +225,37 @@ Sprite::SetInitialPosition(const glm::vec3& globalPosition)
 }
 
 void
-Sprite::SetTextureID(TextureID newID)
+Sprite::SetTextureID(TextureType type, TextureID newID)
 {
-   texture_ = newID;
+   switch (type)
+   {
+      case TextureType::DIFFUSE_MAP: {
+         textures_[0] = newID;
+      }
+      break;
+      case TextureType::MASK_MAP: {
+         textures_[1] = newID;
+      }
+      break;
+      case TextureType::NORMAL_MAP: {
+         textures_[2] = newID;
+      }
+      break;
+      case TextureType::SPECULAR_MAP: {
+         textures_[3] = newID;
+      }
+      break;
+      default: {
+      }
+   }
+
    changed_ = true;
 }
 
 const renderer::Texture*
 Sprite::GetTexture() const
 {
-   return renderer::TextureLibrary::GetTexture(texture_);
+   return renderer::TextureLibrary::GetTexture(textures_.at(0));
 }
 
 void
@@ -270,7 +288,7 @@ Sprite::Scale(const glm::vec2& scaleValue)
       glm::clamp(currentState_.scaleVal_.y, SCALE_RANGE.first, SCALE_RANGE.second);
 
    size_ = static_cast< glm::vec2 >(size_)
-            * (currentState_.scaleVal_ + currentState_.uniformScaleValue_);
+           * (currentState_.scaleVal_ + currentState_.uniformScaleValue_);
 
    changed_ = true;
 }
@@ -285,7 +303,7 @@ Sprite::ScaleCumulative(const glm::vec2& scaleValue)
       glm::clamp(currentState_.scaleVal_.y, SCALE_RANGE.first, SCALE_RANGE.second);
 
    size_ = static_cast< glm::vec2 >(size_)
-            * (currentState_.scaleVal_ + currentState_.uniformScaleValue_);
+           * (currentState_.scaleVal_ + currentState_.uniformScaleValue_);
 
    changed_ = true;
 }

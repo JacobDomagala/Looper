@@ -22,6 +22,9 @@ class Texture
    void
    Destroy();
 
+   void
+   UpdateTexture(const FileManager::ImageData& data);
+
    static std::pair< VkImage, VkDeviceMemory >
    CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels,
                VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling,
@@ -106,7 +109,7 @@ class TextureLibrary
    static const Texture*
    GetTexture(const std::string& textureName);
 
-   static const Texture*
+   static Texture*
    GetTexture(const TextureID id);
 
    static const Texture*

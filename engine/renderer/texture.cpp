@@ -26,7 +26,7 @@ Texture::Destroy()
 }
 
 Texture::Texture(TextureType type, std::string_view textureName, TextureID id)
-   : m_type(type), id_(id), m_name(std::string(textureName))
+   : id_(id), m_type(type), m_name(std::string(textureName))
 {
    auto textureData = FileManager::LoadImageData(m_name);
    CreateTextureImage(textureData);
@@ -34,7 +34,7 @@ Texture::Texture(TextureType type, std::string_view textureName, TextureID id)
 
 Texture::Texture(TextureType type, std::string_view textureName, TextureID id,
                  const FileManager::ImageData& data)
-   : m_type(type), id_(id), m_name(std::string(textureName))
+   : id_(id), m_type(type), m_name(std::string(textureName))
 {
    CreateTextureImage(data);
 }
@@ -59,6 +59,18 @@ Texture::CreateTextureImage(const FileManager::ImageData& data)
 
    CreateTextureSampler();
 
+   TransitionImageLayout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mips);
+
+   CopyBufferToImage(data.m_bytes.get());
+
+   // transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
+   GenerateMipmaps(m_textureImage, VK_FORMAT_R8G8B8A8_SRGB, static_cast< int32_t >(m_width),
+                   static_cast< int32_t >(m_height), m_mips);
+}
+
+void
+Texture::UpdateTexture(const FileManager::ImageData& data)
+{
    TransitionImageLayout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mips);
 
    CopyBufferToImage(data.m_bytes.get());
@@ -269,7 +281,7 @@ Texture::CreateDescriptorSet(VkSampler sampler, VkImageView image_view, VkImageL
 
    // Update the Descriptor Set:
    {
-      std::array<VkDescriptorImageInfo, 1> desc_image = {};
+      std::array< VkDescriptorImageInfo, 1 > desc_image = {};
       desc_image[0].sampler = sampler;
       desc_image[0].imageView = image_view;
       desc_image[0].imageLayout = image_layout;
@@ -465,7 +477,7 @@ TextureLibrary::GetTexture(const std::string& textureName)
    return GetTexture(TextureType::DIFFUSE_MAP, textureName);
 }
 
-const Texture*
+Texture*
 TextureLibrary::GetTexture(const TextureID id)
 {
    for (auto& texture : s_loadedTextures)

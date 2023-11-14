@@ -15,7 +15,6 @@ class Game;
 class Level
 {
  public:
-
    std::shared_ptr< GameObject >
    AddGameObject(ObjectType objectType);
 
@@ -180,6 +179,9 @@ class Level
    void
    RenderPathfinder(bool render);
 
+   void
+   UpdateCollisionTexture();
+
    renderer::Sprite&
    GetSprite();
 
@@ -202,6 +204,7 @@ class Level
    // Base texture and collision texture
    renderer::TextureID baseTexture_ = {};
    renderer::TextureID collisionTexture_ = {};
+   FileManager::ImageData collisionTextureData_ = {};
 
    std::string m_shaderName = "DefaultShader";
    std::shared_ptr< Player > m_player = nullptr;

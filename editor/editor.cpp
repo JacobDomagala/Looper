@@ -1029,6 +1029,11 @@ Editor::SetLockAnimationPoints(bool lock)
 void
 Editor::Update()
 {
+   if (m_levelLoaded)
+   {
+      m_currentLevel->UpdateCollisionTexture();
+   }
+
    HandleCamera();
 
    if (m_animateGameObject && m_currentSelectedGameObject)

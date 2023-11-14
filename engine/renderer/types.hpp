@@ -47,12 +47,15 @@ enum class ApplicationType
 enum class TextureType
 {
    DIFFUSE_MAP = 0,
-   SPECULAR_MAP = 1,
-   NORMAL_MAP = 2
+   MASK_MAP = 1,
+   SPECULAR_MAP = 2,
+   NORMAL_MAP = 3
 };
 
-// DIFFUSE_MAP SPECULAR_MAP NORMAL_MAP
-using TextureMaps = std::array< std::string, 3 >;
+// DIFFUSE_MAP MASK_MAP SPECULAR_MAP NORMAL_MAP
+using TextureMaps = std::array< std::string, 4 >;
+using TextureID = int32_t;
+using TextureIDs = std::array< TextureID, 4 >;
 
 struct UniformBufferObject
 {
@@ -69,6 +72,5 @@ struct PerInstanceBuffer
 };
 
 using IndexType = uint32_t;
-using TextureID = int32_t;
 
 } // namespace looper::renderer

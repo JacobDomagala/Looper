@@ -305,7 +305,7 @@ VulkanRenderer::MeshDeleted(const RenderInfo& renderInfo)
 }
 
 RenderInfo
-VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureMaps& textures_in,
+VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureIDs& textures_in,
                            const glm::mat4& modelMat, const glm::vec4& color)
 {
    auto* renderData = &Data::renderData_[boundApplication_];
@@ -326,72 +326,46 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
          break;
       }
    }
- 
+
    auto& numObjects = renderData->numMeshes.at(layer);
 
+   idx = layerIdx + MAX_SPRITES_PER_LAYER * layer;
    for (uint32_t vertexIdx = 0; vertexIdx < VERTICES_PER_SPRITE; ++vertexIdx)
    {
       const auto offset = layerIdx * VERTICES_PER_SPRITE;
 
-      auto& vertex = vertices.at(offset + vertexIdx); 
+      auto& vertex = vertices.at(offset + vertexIdx);
       vertex = vertices_in.at(vertexIdx);
-      // vertex.m_texCoordsDraw.z = static_cast< float >(renderData->totalNumMeshes);
-      vertex.m_texCoordsDraw.z = static_cast< float >(layerIdx + MAX_SPRITES_PER_LAYER * layer);
+      vertex.m_texCoordsDraw.z = static_cast< float >(idx);
    }
 
-   auto& newInstance = renderData->perInstance.at(layerIdx + MAX_SPRITES_PER_LAYER * layer);
-   newInstance.model = modelMat;
-   newInstance.color = color;
-
-   // Leaving this in case we need Normal/Specular maps in future
-   for (const auto& texture : textures_in)
-   {
-      if (texture.empty())
-      {
-         continue;
-      }
-
-      const auto* loadedTexture = TextureLibrary::GetTexture(texture);
-      const auto texIdx = loadedTexture->GetID();
-
-      switch (loadedTexture->GetType())
-      {
-         case TextureType::DIFFUSE_MAP: {
-            newInstance.texSamples.x = static_cast<float>(texIdx);
-            newInstance.texSamples.y = static_cast< float >(texIdx);
-         }
-         break;
-         default:
-            break;
-      }
-   }
-  
    UpdateDescriptors();
 
    // Only increase the coutner if we're not reusing the slot
    if (numObjects == layerIdx)
    {
-      numObjects++;   
+      numObjects++;
    }
 
-   idx = layerIdx + MAX_SPRITES_PER_LAYER * layer; 
-   ++renderData->totalNumMeshes; 
-   
-   SubmitMeshData(idx, TextureLibrary::GetTexture(textures_in.front())->GetID(), modelMat,
-                  color);
+   ++renderData->totalNumMeshes;
+
+   SubmitMeshData(idx, textures_in, modelMat, color);
 
    return {idx, layer, layerIdx};
 }
 
 void
-VulkanRenderer::SubmitMeshData(const uint32_t idx, const TextureID id, const glm::mat4& modelMat,
+VulkanRenderer::SubmitMeshData(const uint32_t idx, const TextureIDs& ids, const glm::mat4& modelMat,
                                const glm::vec4& color)
 {
    auto& object = Data::renderData_[boundApplication_].perInstance.at(idx);
 
    object.model = modelMat;
    object.color = color;
-   object.texSamples.x = static_cast<float>(id);
+   object.texSamples.x = static_cast< float >(ids.at(0));
+   object.texSamples.y = static_cast< float >(ids.at(1));
+   object.texSamples.z = static_cast< float >(ids.at(2));
+   object.texSamples.w = static_cast< float >(ids.at(3));
 
    if (isLoaded_ and updateDescriptors_)
    {
@@ -740,7 +714,7 @@ VulkanRenderer::Initialize(GLFWwindow* windowHandle, ApplicationType type)
    {
       CreateDevice();
    }
-   
+
    for (uint32_t layer = 0; layer < NUM_LAYERS; ++layer)
    {
       renderData.vertices.at(layer).resize(MAX_NUM_VERTICES_PER_LAYER);
@@ -748,7 +722,7 @@ VulkanRenderer::Initialize(GLFWwindow* windowHandle, ApplicationType type)
    }
 
    renderData.perInstance.resize(MAX_NUM_SPRITES);
-   
+
    CreateRenderPipeline();
 
    initialized_ = true;
