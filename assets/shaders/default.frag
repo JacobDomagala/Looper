@@ -13,6 +13,7 @@ layout(location = 0) in VS_OUT
    vec2 fTexCoord;
 
    flat int fDiffSampl;
+   flat int fExtraSampl;
 }
 fs_in;
 
@@ -21,6 +22,5 @@ layout(location = 0) out vec4 outColor;
 void
 main(void)
 {
-    // outColor = texture(sampler2D(textures[0], samp), fs_in.fTexCoord);
-    outColor = fs_in.fColor * texture(sampler2D(textures[fs_in.fDiffSampl], samp), fs_in.fTexCoord);
+    outColor = fs_in.fColor * (texture(sampler2D(textures[fs_in.fDiffSampl], samp), fs_in.fTexCoord) * texture(sampler2D(textures[fs_in.fExtraSampl], samp), fs_in.fTexCoord));
 }

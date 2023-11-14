@@ -357,7 +357,8 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
       switch (loadedTexture->GetType())
       {
          case TextureType::DIFFUSE_MAP: {
-            newInstance.diffuse = texIdx;
+            newInstance.texSamples.x = static_cast<float>(texIdx);
+            newInstance.texSamples.y = static_cast< float >(texIdx);
          }
          break;
          default:
@@ -390,7 +391,7 @@ VulkanRenderer::SubmitMeshData(const uint32_t idx, const TextureID id, const glm
 
    object.model = modelMat;
    object.color = color;
-   object.diffuse = id;
+   object.texSamples.x = static_cast<float>(id);
 
    if (isLoaded_ and updateDescriptors_)
    {

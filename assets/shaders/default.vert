@@ -15,7 +15,7 @@ struct BufferData
 {
    mat4 modelMat;
    vec4 color;
-   int diff;
+   vec4 texSamples;
 };
 
 layout(std430, set = 0, binding = 1) readonly buffer Block
@@ -32,6 +32,7 @@ layout(location = 0) out VS_OUT
    vec2 fTexCoord;
 
    flat int fDiffSampl;
+   flat int fExtraSampl;
 }
 vs_out;
 
@@ -48,7 +49,8 @@ main(void)
    vs_out.fTexCoord = a_texCoordDrawID.xy;
    vs_out.fColor = pushConstants.selectedIdx != drawID ? curInstanceData.color : vec4(0.4f, 0.1f, 0.2f, 1.0f);
 
-   vs_out.fDiffSampl = curInstanceData.diff;
+   vs_out.fDiffSampl = int(curInstanceData.texSamples.x);
+   vs_out.fExtraSampl = int(curInstanceData.texSamples.y);
 
    mat4 scaleMat = mat4(
        vec4(1.1f, 0.0f, 0.0f, 0.0f),

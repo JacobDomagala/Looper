@@ -387,8 +387,8 @@ Level::GetTileFromPosition(const glm::vec2& local) const
 bool
 Level::IsInLevelBoundaries(const glm::vec2& position) const
 {
-   return position.x >= 0 && position.x <= static_cast< float >(m_levelSize.x) && position.y >= 0
-          && position.y <= static_cast< float >(m_levelSize.y);
+   return position.x >= 0 && position.x < static_cast< float >(m_levelSize.x) && position.y >= 0
+          && position.y < static_cast< float >(m_levelSize.y);
 }
 
 glm::vec2
@@ -469,11 +469,26 @@ Level::GenerateTextureForCollision()
    const auto numChannels = 4;
    const auto size = width * height * numChannels;
 
-   unsigned char* data = new unsigned char[size];
-   memset(data, 144, size);
+   auto* data = new unsigned char[size];
+   const auto& nodes = m_pathFinder.GetAllNodes();
+
+    for (int32_t h = 0; h < height; ++h)
+   {
+      const auto offset = height - 1 - (h % height);
+      for (int32_t w = 0; w < width; ++w)
+      {
+         const auto occupied = nodes.at(w + width * h).occupied_;
+         int index = (w + width * offset) * 4; // Calculate the index for the start of this pixel
+         
+         data[index + 0] = occupied * 255; // R
+         data[index + 1] = 0;              // G
+         data[index + 2] = 0;              // B
+         data[index + 3] = 255;            // A
+      }
+   }
 
    FileManager::ImageData imageData = {
-      FileManager::ImageHandleType{data, [](uint8_t* ptr) { delete[] ptr; }},
+      FileManager::ImageHandleType{reinterpret_cast<unsigned char*>(data), [](uint8_t* ptr) { delete[] ptr; }},
       {width, height},
       numChannels};
    auto* texture = renderer::TextureLibrary::CreateTexture(renderer::TextureType::DIFFUSE_MAP,
