@@ -467,7 +467,7 @@ Level::GenerateTextureForCollision()
    const auto width = m_levelSize.x / static_cast< int32_t >(m_tileWidth);
    const auto height = m_levelSize.y / static_cast< int32_t >(m_tileWidth);
    const auto numChannels = 4;
-   const auto size = width * height * numChannels;
+   const auto size = static_cast< size_t >(width * height * numChannels);
 
    auto* data = new unsigned char[size];
    const auto& nodes = m_pathFinder.GetAllNodes();
@@ -477,7 +477,7 @@ Level::GenerateTextureForCollision()
       const auto offset = height - 1 - (h % height);
       for (int32_t w = 0; w < width; ++w)
       {
-         const auto occupied = nodes.at(w + width * h).occupied_;
+         const auto occupied = nodes.at(static_cast< size_t >(w + width * h)).occupied_;
          int index = (w + width * offset) * 4; // Calculate the index for the start of this pixel
 
          data[index + 0] = 255;             // R
@@ -705,23 +705,27 @@ Level::UpdateCollisionTexture()
    auto* data = collisionTextureData_.m_bytes.get();
    const auto tileWidth = static_cast< int32_t >(m_tileWidth);
    const auto width = m_levelSize.x / tileWidth;
-   for (auto& nodeID : nodes)
+
+   if (!nodes.empty())
    {
-      const auto& node = m_pathFinder.GetNodeFromID(nodeID);
-      const auto x = node.xPos_;
-      const auto y = node.yPos_;
-      const auto offset = tileWidth - 1 - (y % tileWidth);
+      for (auto& nodeID : nodes)
+      {
+         const auto& node = m_pathFinder.GetNodeFromID(nodeID);
+         const auto x = node.xPos_;
+         const auto y = node.yPos_;
+         const auto offset = tileWidth - 1 - (y % tileWidth);
 
-      int index = (x + width * offset) * 4;
+         int index = (x + width * offset) * 4;
 
-      data[index + 0] = 255;                   // R
-      data[index + 1] = !node.occupied_ * 255; // G
-      data[index + 2] = !node.occupied_ * 255; // B
-      data[index + 3] = 255;                   // A
+         data[index + 0] = 255;                   // R
+         data[index + 1] = !node.occupied_ * 255; // G
+         data[index + 2] = !node.occupied_ * 255; // B
+         data[index + 3] = 255;                   // A
+      }
+
+
+      renderer::TextureLibrary::GetTexture(collisionTexture_)->UpdateTexture(collisionTextureData_);
    }
-
-
-   renderer::TextureLibrary::GetTexture(collisionTexture_)->UpdateTexture(collisionTextureData_);
 }
 
 renderer::Sprite&
