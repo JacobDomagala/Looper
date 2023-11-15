@@ -68,6 +68,7 @@ Buffer::CopyDataWithStaging(void* data, size_t dataSize) const
    vkUnmapMemory(Data::vk_device, stagingBufferMemory);
 
    Buffer::CopyBuffer(stagingBuffer, m_buffer, dataSize);
+   Buffer::FreeMemory(stagingBuffer, stagingBufferMemory);
 }
 
 void
@@ -92,8 +93,7 @@ Buffer::CopyDataToImageWithStaging(VkImage image, void* data, size_t dataSize,
 
    Command::EndSingleTimeCommands(commandBuffer);
 
-   vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
-   vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
+   Buffer::FreeMemory(stagingBuffer, stagingBufferMemory);
 }
 
 void
@@ -202,15 +202,17 @@ Buffer::Flush(VkDeviceSize size, VkDeviceSize offset) const
 }
 
 void
-Buffer::Destroy() const
+Buffer::Destroy()
 {
    if (m_buffer)
    {
       vkDestroyBuffer(Data::vk_device, m_buffer, nullptr);
+      m_buffer = VK_NULL_HANDLE;
    }
    if (m_bufferMemory)
    {
       vkFreeMemory(Data::vk_device, m_bufferMemory, nullptr);
+      m_bufferMemory = VK_NULL_HANDLE;
    }
 }
 
