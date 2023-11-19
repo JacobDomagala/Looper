@@ -10,8 +10,8 @@
 #include <array>
 
 namespace looper::renderer {
-
-static VkShaderModule
+namespace {
+VkShaderModule
 CreateShaderModule(VkDevice device, std::vector< char >&& shaderByteCode)
 {
    VkShaderModuleCreateInfo createInfo = {};
@@ -26,6 +26,8 @@ CreateShaderModule(VkDevice device, std::vector< char >&& shaderByteCode)
 
    return shaderModule;
 }
+
+} // namespace
 
 std::pair< VertexShaderInfo, FragmentShaderInfo >
 VulkanShader::CreateShader(VkDevice device, std::string_view vertex, std::string_view fragment)

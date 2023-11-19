@@ -715,14 +715,14 @@ Level::UpdateCollisionTexture()
 
    if (!nodes.empty())
    {
-      for (auto& nodeID : nodes)
+      for (const auto& nodeID : nodes)
       {
          const auto& node = m_pathFinder.GetNodeFromID(nodeID);
          const auto x = node.xPos_;
          const auto y = node.yPos_;
          const auto offset = tileWidth - 1 - (y % tileWidth);
 
-         int index = (x + width * offset) * 4;
+         const auto index = (x + width * offset) * 4;
 
          data[index + 0] = 255;                   // R
          data[index + 1] = !node.occupied_ * 255; // G
