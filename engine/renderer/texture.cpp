@@ -25,16 +25,17 @@ Texture::Destroy()
    vkFreeMemory(Data::vk_device, m_textureImageMemory, nullptr);
 }
 
-Texture::Texture(TextureType type, std::string_view textureName, TextureID id)
-   : id_(id), m_type(type), m_name(std::string(textureName))
+Texture::Texture(TextureType type, std::string_view textureName, TextureID id,
+                 const TextureProperties& props)
+   : id_(id), m_type(type), textureProps_(props), m_name(std::string(textureName))
 {
    auto textureData = FileManager::LoadImageData(m_name);
    CreateTextureImage(textureData);
 }
 
 Texture::Texture(TextureType type, std::string_view textureName, TextureID id,
-                 const FileManager::ImageData& data)
-   : id_(id), m_type(type), m_name(std::string(textureName))
+                 const FileManager::ImageData& data, const TextureProperties& props)
+   : id_(id), m_type(type), textureProps_(props), m_name(std::string(textureName))
 {
    CreateTextureImage(data);
 }
@@ -143,7 +144,7 @@ Texture::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspe
 }
 
 VkSampler
-Texture::CreateSampler(uint32_t mipLevels)
+Texture::CreateSampler(uint32_t mipLevels, const TextureProperties& props)
 {
    VkSampler sampler = {};
 
@@ -152,11 +153,11 @@ Texture::CreateSampler(uint32_t mipLevels)
 
    VkSamplerCreateInfo samplerInfo = {};
    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-   samplerInfo.magFilter = VK_FILTER_LINEAR;
-   samplerInfo.minFilter = VK_FILTER_LINEAR;
-   samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-   samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-   samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+   samplerInfo.magFilter = props.magFilter;
+   samplerInfo.minFilter = props.minFilter;
+   samplerInfo.addressModeU = props.modeU;
+   samplerInfo.addressModeV = props.modeV;
+   samplerInfo.addressModeW = props.modeW;
    samplerInfo.anisotropyEnable = VK_TRUE;
    samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
@@ -335,7 +336,7 @@ Texture::GetID() const
 void
 Texture::CreateTextureSampler()
 {
-   m_textureSampler = CreateSampler(m_mips);
+   m_textureSampler = CreateSampler(m_mips, textureProps_);
 }
 
 void
@@ -496,12 +497,13 @@ TextureLibrary::GetTexture(const TextureID id)
 }
 
 const Texture*
-TextureLibrary::CreateTexture(TextureType type, const std::string& textureName)
+TextureLibrary::CreateTexture(TextureType type, const std::string& textureName,
+                              const TextureProperties& props)
 {
    if (s_loadedTextures.find(textureName) == s_loadedTextures.end())
    {
       Logger::Debug("Creating texture {}", textureName);
-      LoadTexture(type, textureName);
+      LoadTexture(type, textureName, props);
    }
    else
    {
@@ -513,12 +515,12 @@ TextureLibrary::CreateTexture(TextureType type, const std::string& textureName)
 
 const Texture*
 TextureLibrary::CreateTexture(TextureType type, const std::string& textureName,
-                              const FileManager::ImageData& data)
+                              const FileManager::ImageData& data, const TextureProperties& props)
 {
    if (s_loadedTextures.find(textureName) == s_loadedTextures.end())
    {
       Logger::Debug("Creating texture {}", textureName);
-      LoadTexture(type, textureName, data);
+      LoadTexture(type, textureName, data, props);
    }
    else
    {
@@ -535,28 +537,31 @@ TextureLibrary::Clear()
 }
 
 void
-TextureLibrary::LoadTexture(TextureType type, std::string_view textureName)
+TextureLibrary::LoadTexture(TextureType type, std::string_view textureName,
+                            const TextureProperties& props)
 {
-   s_loadedTextures[std::string{textureName}] = {type, textureName, currentID_++};
-   imageViews_.push_back(s_loadedTextures[std::string{textureName}].GetImageView());
+   s_loadedTextures[std::string{textureName}] = {type, textureName, currentID_++, props};
+   const auto& tex = s_loadedTextures[std::string{textureName}];
+   viewSamplerPairs_.push_back(tex.GetImageViewAndSampler());
 
    VulkanRenderer::UpdateDescriptors();
 }
 
 void
 TextureLibrary::LoadTexture(TextureType type, std::string_view textureName,
-                            const FileManager::ImageData& data)
+                            const FileManager::ImageData& data, const TextureProperties& props)
 {
-   s_loadedTextures[std::string{textureName}] = {type, textureName, currentID_++, data};
-   imageViews_.push_back(s_loadedTextures[std::string{textureName}].GetImageView());
+   s_loadedTextures[std::string{textureName}] = {type, textureName, currentID_++, data, props};
+   const auto& tex = s_loadedTextures[std::string{textureName}];
+   viewSamplerPairs_.push_back(tex.GetImageViewAndSampler());
 
    VulkanRenderer::UpdateDescriptors();
 }
 
-const std::vector< VkImageView >&
-TextureLibrary::GetTextureViews()
+const std::vector< std::pair< VkImageView, VkSampler > >&
+TextureLibrary::GetViewSamplerPairs()
 {
-   return imageViews_;
+   return viewSamplerPairs_;
 }
 
 uint32_t

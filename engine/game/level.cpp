@@ -464,21 +464,22 @@ Level::GetTilesAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos) co
 void
 Level::GenerateTextureForCollision()
 {
-   const auto width = m_levelSize.x / static_cast< int32_t >(m_tileWidth);
-   const auto height = m_levelSize.y / static_cast< int32_t >(m_tileWidth);
-   const auto numChannels = 4;
+   const auto width = static_cast< size_t >(m_levelSize.x) / static_cast< size_t >(m_tileWidth);
+   const auto height = static_cast< size_t >(m_levelSize.y) / static_cast< size_t >(m_tileWidth);
+   const size_t numChannels = 4;
    const auto size = static_cast< size_t >(width * height * numChannels);
 
    auto* data = new unsigned char[size];
    const auto& nodes = m_pathFinder.GetAllNodes();
 
-   for (int32_t h = 0; h < height; ++h)
+   for (size_t h = 0; h < height; ++h)
    {
       const auto offset = height - 1 - (h % height);
-      for (int32_t w = 0; w < width; ++w)
+      for (size_t w = 0; w < width; ++w)
       {
          const auto occupied = nodes.at(static_cast< size_t >(w + width * h)).occupied_;
-         int index = (w + width * offset) * 4; // Calculate the index for the start of this pixel
+         const auto index =
+            (w + width * offset) * numChannels; // Calculate the index for the start of this pixel
 
          data[index + 0] = 255;             // R
          data[index + 1] = !occupied * 255; // G
@@ -488,11 +489,17 @@ Level::GenerateTextureForCollision()
    }
 
    collisionTextureData_ = {FileManager::ImageHandleType{reinterpret_cast< unsigned char* >(data),
-                                                         [](uint8_t* ptr) { delete[] ptr; }},
+                                                         [](const uint8_t* ptr) { delete[] ptr; }},
                             {width, height},
                             numChannels};
-   auto* texture = renderer::TextureLibrary::CreateTexture(renderer::TextureType::DIFFUSE_MAP,
-                                                           "Collision", collisionTextureData_);
+
+   // To avoid blurry edges
+   renderer::TextureProperties props;
+   props.magFilter = VK_FILTER_NEAREST;
+   props.minFilter = VK_FILTER_NEAREST;
+
+   const auto* texture = renderer::TextureLibrary::CreateTexture(
+      renderer::TextureType::DIFFUSE_MAP, "Collision", collisionTextureData_, props);
 
    collisionTexture_ = texture->GetID();
 }

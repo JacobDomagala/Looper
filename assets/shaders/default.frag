@@ -4,8 +4,7 @@
 #extension GL_ARB_shader_image_load_store : require
 #extension GL_ARB_gpu_shader_int64 : enable
 
-layout(set = 0, binding = 2) uniform sampler samp;
-layout(set = 0, binding = 3) uniform texture2D textures[256];
+layout(set = 0, binding = 2) uniform sampler2D textures[256];
 
 layout(location = 0) in VS_OUT
 {
@@ -22,7 +21,7 @@ layout(location = 0) out vec4 outColor;
 void
 main(void)
 {
-    vec4 base = texture(sampler2D(textures[fs_in.fDiffSampl], samp), fs_in.fTexCoord);
-    vec4 mask = texture(sampler2D(textures[fs_in.fExtraSampl], samp), fs_in.fTexCoord);
+    vec4 base = texture(textures[fs_in.fDiffSampl], fs_in.fTexCoord);
+    vec4 mask = texture(textures[fs_in.fExtraSampl], fs_in.fTexCoord);
     outColor = fs_in.fColor * base * mask;
 }
