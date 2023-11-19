@@ -15,7 +15,6 @@ class Game;
 class Level
 {
  public:
-
    std::shared_ptr< GameObject >
    AddGameObject(ObjectType objectType);
 
@@ -121,6 +120,9 @@ class Level
    GetTilesAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos) const;
 
    void
+   GenerateTextureForCollision();
+
+   void
    LockCamera()
    {
       m_locked = true;
@@ -174,6 +176,12 @@ class Level
       return m_shaderName;
    }
 
+   void
+   RenderPathfinder(bool render);
+
+   void
+   UpdateCollisionTexture();
+
    renderer::Sprite&
    GetSprite();
 
@@ -192,6 +200,11 @@ class Level
  private:
    Application* m_contextPointer = nullptr;
    renderer::Sprite m_background = {};
+
+   // Base texture and collision texture
+   renderer::TextureID baseTexture_ = {};
+   renderer::TextureID collisionTexture_ = {};
+   FileManager::ImageData collisionTextureData_ = {};
 
    std::string m_shaderName = "DefaultShader";
    std::shared_ptr< Player > m_player = nullptr;

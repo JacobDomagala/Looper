@@ -52,7 +52,7 @@ class Buffer
    SetupDescriptor(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
 
    void
-   Destroy() const;
+   Destroy();
 
  public:
    void* m_mappedMemory = nullptr;

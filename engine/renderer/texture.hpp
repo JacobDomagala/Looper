@@ -1,5 +1,6 @@
 #pragma once
 
+#include "file_manager.hpp"
 #include "texture.hpp"
 #include "types.hpp"
 
@@ -9,10 +10,23 @@
 
 namespace looper::renderer {
 
+struct TextureProperties
+{
+   VkFilter magFilter = VK_FILTER_LINEAR;
+   VkFilter minFilter = VK_FILTER_LINEAR;
+
+   VkSamplerAddressMode modeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+   VkSamplerAddressMode modeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+   VkSamplerAddressMode modeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+};
+
 class Texture
 {
  public:
-   Texture(TextureType type, std::string_view textureName, TextureID id);
+   Texture(TextureType type, std::string_view textureName, TextureID id,
+           const TextureProperties& props = {});
+   Texture(TextureType type, std::string_view textureName, TextureID id,
+           const FileManager::ImageData& data, const TextureProperties& props = {});
 
    Texture() = default;
 
@@ -20,7 +34,7 @@ class Texture
    Destroy();
 
    void
-   CreateTextureImage(TextureType type, std::string_view textureName);
+   UpdateTexture(const FileManager::ImageData& data);
 
    static std::pair< VkImage, VkDeviceMemory >
    CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels,
@@ -36,7 +50,7 @@ class Texture
                    uint32_t mipLevels, bool cubemap = false);
 
    static VkSampler
-   CreateSampler(uint32_t mipLevels = 1);
+   CreateSampler(uint32_t mipLevels = 1, const TextureProperties& props = {});
 
    static void
    TransitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout,
@@ -75,6 +89,9 @@ class Texture
 
  private:
    void
+   CreateTextureImage(const FileManager::ImageData& data);
+
+   void
    TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
 
    void
@@ -87,6 +104,7 @@ class Texture
    VkDeviceMemory m_textureImageMemory = {};
    VkImageView m_textureImageView = {};
    VkSampler m_textureSampler = {};
+   TextureProperties textureProps_ = {};
    VkFormat m_format = {};
    uint32_t m_mips = {};
    uint32_t m_width = {};
@@ -103,14 +121,19 @@ class TextureLibrary
    static const Texture*
    GetTexture(const std::string& textureName);
 
-   static const Texture*
+   static Texture*
    GetTexture(const TextureID id);
 
-   static void
-   CreateTexture(TextureType type, const std::string& textureName);
+   static const Texture*
+   CreateTexture(TextureType type, const std::string& textureName,
+                 const TextureProperties& props = {});
 
-   static const std::vector< VkImageView >&
-   GetTextureViews();
+   static const Texture*
+   CreateTexture(TextureType type, const std::string& textureName,
+                 const FileManager::ImageData& data, const TextureProperties& props = {});
+
+   static const std::vector< std::pair< VkImageView, VkSampler > >&
+   GetViewSamplerPairs();
 
    [[nodiscard]] static uint32_t
    GetNumTextures();
@@ -120,11 +143,15 @@ class TextureLibrary
 
  private:
    static void
-   LoadTexture(TextureType type, std::string_view textureName);
+   LoadTexture(TextureType type, std::string_view textureName, const TextureProperties& props = {});
+
+   static void
+   LoadTexture(TextureType type, std::string_view textureName, const FileManager::ImageData& data,
+               const TextureProperties& props = {});
 
  private:
    static inline std::unordered_map< std::string, Texture > s_loadedTextures = {};
-   static inline std::vector< VkImageView > imageViews_ = {};
+   static inline std::vector< std::pair< VkImageView, VkSampler > > viewSamplerPairs_ = {};
    static inline TextureID currentID_ = 0;
 };
 

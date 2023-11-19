@@ -220,9 +220,6 @@ class Editor : public Application
    SetMouseOnObject();
 
    void
-   SetupPathfinderNodes();
-
-   void
    FreeLevelData();
 
    std::unique_ptr< Game > m_game = {};

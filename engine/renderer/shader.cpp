@@ -7,10 +7,11 @@
 #include "vulkan_common.hpp"
 
 #include <algorithm>
+#include <array>
 
 namespace looper::renderer {
-
-static VkShaderModule
+namespace {
+VkShaderModule
 CreateShaderModule(VkDevice device, std::vector< char >&& shaderByteCode)
 {
    VkShaderModuleCreateInfo createInfo = {};
@@ -25,6 +26,8 @@ CreateShaderModule(VkDevice device, std::vector< char >&& shaderByteCode)
 
    return shaderModule;
 }
+
+} // namespace
 
 std::pair< VertexShaderInfo, FragmentShaderInfo >
 VulkanShader::CreateShader(VkDevice device, std::string_view vertex, std::string_view fragment)
@@ -88,22 +91,15 @@ QuadShader::CreateDescriptorSetLayout()
    perInstanceBinding.pImmutableSamplers = nullptr;
    perInstanceBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-   VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
-   samplerLayoutBinding.binding = 2;
-   samplerLayoutBinding.descriptorCount = 1;
-   samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-   samplerLayoutBinding.pImmutableSamplers = nullptr;
-   samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
    VkDescriptorSetLayoutBinding texturesLayoutBinding = {};
-   texturesLayoutBinding.binding = 3;
+   texturesLayoutBinding.binding = 2;
    texturesLayoutBinding.descriptorCount = MAX_NUM_TEXTURES;
    texturesLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
    texturesLayoutBinding.pImmutableSamplers = nullptr;
    texturesLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-   std::array< VkDescriptorSetLayoutBinding, 4 > bindings = {
-      uboLayoutBinding, perInstanceBinding, samplerLayoutBinding, texturesLayoutBinding};
+   auto bindings = std::to_array< VkDescriptorSetLayoutBinding >(
+      {uboLayoutBinding, perInstanceBinding, texturesLayoutBinding});
 
    VkDescriptorSetLayoutCreateInfo layoutInfo = {};
    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -145,26 +141,25 @@ QuadShader::UpdateDescriptorSets()
 
    const auto size = MAX_FRAMES_IN_FLIGHT;
 
-   const auto [imageView, sampler] =
-      TextureLibrary::GetTexture(TextureType::DIFFUSE_MAP, "white.png")->GetImageViewAndSampler();
-
-   auto textureViews = TextureLibrary::GetTextureViews();
+   // Explicit copy
+   auto viewAndSamplers = TextureLibrary::GetViewSamplerPairs();
 
    // Fill all MAX_NUM_TEXTURES ImageViews
-   for (size_t i = textureViews.size(); i < MAX_NUM_TEXTURES; ++i)
+   for (size_t i = viewAndSamplers.size(); i < MAX_NUM_TEXTURES; ++i)
    {
-      textureViews.push_back(textureViews.front());
+      viewAndSamplers.push_back(viewAndSamplers.front());
    }
 
-   std::vector< VkDescriptorImageInfo > descriptorImageInfos(textureViews.size(),
+   std::vector< VkDescriptorImageInfo > descriptorImageInfos(viewAndSamplers.size(),
                                                              VkDescriptorImageInfo{});
 
-   std::transform(descriptorImageInfos.begin(), descriptorImageInfos.end(), textureViews.begin(),
+   std::transform(descriptorImageInfos.begin(), descriptorImageInfos.end(), viewAndSamplers.begin(),
                   descriptorImageInfos.begin(),
-                  [sampler = sampler](auto& descriptoInfo, const auto& texture) {
+                  [](auto& descriptoInfo, const auto& viewAndSampler) {
                      descriptoInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                     descriptoInfo.sampler = sampler;
-                     descriptoInfo.imageView = texture;
+                     descriptoInfo.imageView = viewAndSampler.first;
+                     descriptoInfo.sampler = viewAndSampler.second;
+
                      return descriptoInfo;
                   });
 
@@ -181,12 +176,7 @@ QuadShader::UpdateDescriptorSets()
       instanceBufferInfo.offset = 0;
       instanceBufferInfo.range = renderData.perInstance.size() * sizeof(PerInstanceBuffer);
 
-      VkDescriptorImageInfo imageInfo = {};
-      imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-      imageInfo.imageView = imageView;
-      imageInfo.sampler = sampler;
-
-      std::array< VkWriteDescriptorSet, 4 > descriptorWrites = {};
+      std::array< VkWriteDescriptorSet, 3 > descriptorWrites = {};
 
       descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
       descriptorWrites[0].dstSet = renderData.descriptorSets[i];
@@ -204,24 +194,13 @@ QuadShader::UpdateDescriptorSets()
       descriptorWrites[1].descriptorCount = 1;
       descriptorWrites[1].pBufferInfo = &instanceBufferInfo;
 
-      VkDescriptorImageInfo samplerInfo = {};
-      samplerInfo.sampler = sampler;
-
       descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
       descriptorWrites[2].dstSet = renderData.descriptorSets[i];
       descriptorWrites[2].dstBinding = 2;
       descriptorWrites[2].dstArrayElement = 0;
-      descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-      descriptorWrites[2].descriptorCount = 1;
-      descriptorWrites[2].pImageInfo = &samplerInfo;
-
-      descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      descriptorWrites[3].dstSet = renderData.descriptorSets[i];
-      descriptorWrites[3].dstBinding = 3;
-      descriptorWrites[3].dstArrayElement = 0;
-      descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-      descriptorWrites[3].descriptorCount = static_cast< uint32_t >(textureViews.size());
-      descriptorWrites[3].pImageInfo = descriptorImageInfos.data();
+      descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+      descriptorWrites[2].descriptorCount = static_cast< uint32_t >(viewAndSamplers.size());
+      descriptorWrites[2].pImageInfo = descriptorImageInfos.data();
 
       vkUpdateDescriptorSets(Data::vk_device, static_cast< uint32_t >(descriptorWrites.size()),
                              descriptorWrites.data(), 0, nullptr);

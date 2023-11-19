@@ -14,26 +14,13 @@ EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const
      m_hasLinkedObject(true)
 {
    auto depth = 0.0f;
-   switch (Object::GetTypeFromID(m_objectID))
-   {
-      case ObjectType::PATHFINDER_NODE: {
-         depth = 0.45f;
-      }
-      default:
-         break;
-   }
-
+   
    m_sprite.SetSpriteTextured(glm::vec3{m_position, depth}, size, sprite);
 }
 
 bool
 EditorObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 {
-   if (Object ::GetTypeFromID(m_objectID) == ObjectType::PATHFINDER_NODE)
-   {
-      return false;
-   }
-
    bool collided = false;
 
    renderer::Camera camera = m_editor.GetCamera();
@@ -194,12 +181,6 @@ EditorObject::DeleteLinkedObject()
          }
          break;
 
-         case ObjectType::PATHFINDER_NODE: {
-            auto& node = dynamic_cast< Node& >(m_editor.GetLevel().GetObjectRef(m_objectID));
-            m_editor.GetLevel().GetPathfinder().DeleteNode(node.id_);
-         }
-         break;
-
          default: {
          }
       }
@@ -222,12 +203,6 @@ EditorObject::Move(const glm::vec2& moveBy)
                dynamic_cast< AnimationPoint& >(m_editor.GetLevel().GetObjectRef(m_objectID));
             animationPoint.m_end += moveBy;
             m_editor.UpdateAnimationData();
-         }
-         break;
-
-         case ObjectType::PATHFINDER_NODE: {
-            auto& node = dynamic_cast< Node& >(m_editor.GetLevel().GetObjectRef(m_objectID));
-            node.position_ += moveBy;
          }
          break;
 
@@ -277,23 +252,6 @@ EditorObject::Render()
    {
       switch (Object::GetTypeFromID(m_objectID))
       {
-         case ObjectType::PATHFINDER_NODE: {
-            auto& pathfinderNode =
-               dynamic_cast< Node& >(m_editor.GetLevel().GetObjectRef(m_objectID));
-
-            if (pathfinderNode.occupied_)
-            {
-               SetColor({1.0f, 0.0f, 0.0f, 1.0f});
-            }
-            else
-            {
-               SetColor({1.0f, 1.0f, 1.0f, 1.0f});
-            }
-
-            m_sprite.Render();
-         }
-         break;
-
          case ObjectType::ANIMATION_POINT: {
             m_sprite.SetColor({1.0f, 1.0f, 1.0f, static_cast< float >(m_visible)});
             m_sprite.Render();

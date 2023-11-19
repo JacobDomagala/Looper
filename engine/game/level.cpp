@@ -5,8 +5,8 @@
 #include "renderer/renderer.hpp"
 #include "renderer/window/window.hpp"
 #include "utils/file_manager.hpp"
-#include "utils/time/timer.hpp"
 #include "utils/time/scoped_timer.hpp"
+#include "utils/time/timer.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -130,7 +130,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
       else if (key == "OBJECTS")
       {
          SCOPED_TIMER(fmt::format("Loading Objects ({})", json[key].size()));
-         
+
          for (const auto& object : json[key])
          {
             const auto& position = object["position"];
@@ -387,8 +387,8 @@ Level::GetTileFromPosition(const glm::vec2& local) const
 bool
 Level::IsInLevelBoundaries(const glm::vec2& position) const
 {
-   return position.x >= 0 && position.x <= static_cast< float >(m_levelSize.x) && position.y >= 0
-          && position.y <= static_cast< float >(m_levelSize.y);
+   return position.x >= 0 && position.x < static_cast< float >(m_levelSize.x) && position.y >= 0
+          && position.y < static_cast< float >(m_levelSize.y);
 }
 
 glm::vec2
@@ -462,6 +462,49 @@ Level::GetTilesAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos) co
 }
 
 void
+Level::GenerateTextureForCollision()
+{
+   const auto width = static_cast< size_t >(m_levelSize.x) / static_cast< size_t >(m_tileWidth);
+   const auto height = static_cast< size_t >(m_levelSize.y) / static_cast< size_t >(m_tileWidth);
+   const size_t numChannels = 4;
+   const auto size = static_cast< size_t >(width * height * numChannels);
+
+   auto* data = new unsigned char[size];
+   const auto& nodes = m_pathFinder.GetAllNodes();
+
+   for (size_t h = 0; h < height; ++h)
+   {
+      const auto offset = height - 1 - (h % height);
+      for (size_t w = 0; w < width; ++w)
+      {
+         const auto occupied = nodes.at(static_cast< size_t >(w + width * h)).occupied_;
+         const auto index =
+            (w + width * offset) * numChannels; // Calculate the index for the start of this pixel
+
+         data[index + 0] = 255;             // R
+         data[index + 1] = !occupied * 255; // G
+         data[index + 2] = !occupied * 255; // B
+         data[index + 3] = 255;             // A
+      }
+   }
+
+   collisionTextureData_ = {FileManager::ImageHandleType{reinterpret_cast< unsigned char* >(data),
+                                                         [](const uint8_t* ptr) { delete[] ptr; }},
+                            {width, height},
+                            numChannels};
+
+   // To avoid blurry edges
+   renderer::TextureProperties props;
+   props.magFilter = VK_FILTER_NEAREST;
+   props.minFilter = VK_FILTER_NEAREST;
+
+   const auto* texture = renderer::TextureLibrary::CreateTexture(
+      renderer::TextureType::DIFFUSE_MAP, "Collision", collisionTextureData_, props);
+
+   collisionTexture_ = texture->GetID();
+}
+
+void
 Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
 {
    m_locked = false;
@@ -470,6 +513,8 @@ Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
    m_background.SetSpriteTextured(glm::vec3(static_cast< float >(m_levelSize.x) / 2.0f,
                                             static_cast< float >(m_levelSize.y) / 2.0f, 0.5f),
                                   size, fileName);
+
+   baseTexture_ = m_background.GetTexture()->GetID();
 }
 
 void
@@ -481,10 +526,8 @@ Level::LoadShaders(const std::string& /*shaderName*/)
 void
 Level::DeleteObject(Object::ID deletedObject)
 {
-   auto objectIter =
-      stl::find_if(m_objects, [deletedObject](const auto& object) {
-         return object->GetID() == deletedObject;
-      });
+   auto objectIter = stl::find_if(
+      m_objects, [deletedObject](const auto& object) { return object->GetID() == deletedObject; });
 
    if (objectIter == m_objects.end())
    {
@@ -653,6 +696,43 @@ Level::GetGameObjectOnLocation(const glm::vec2& screenPosition)
       });
 
    return objectOnLocation != m_objects.end() ? *objectOnLocation : nullptr;
+}
+
+void
+Level::RenderPathfinder(bool render)
+{
+   render ? m_background.SetTextureID(renderer::TextureType::MASK_MAP, collisionTexture_)
+          : m_background.SetTextureID(renderer::TextureType::MASK_MAP, baseTexture_);
+}
+
+void
+Level::UpdateCollisionTexture()
+{
+   const auto& nodes = m_pathFinder.GetNodesModifiedLastFrame();
+   auto* data = collisionTextureData_.m_bytes.get();
+   const auto tileWidth = static_cast< int32_t >(m_tileWidth);
+   const auto width = m_levelSize.x / tileWidth;
+
+   if (!nodes.empty())
+   {
+      for (const auto& nodeID : nodes)
+      {
+         const auto& node = m_pathFinder.GetNodeFromID(nodeID);
+         const auto x = node.xPos_;
+         const auto y = node.yPos_;
+         const auto offset = tileWidth - 1 - (y % tileWidth);
+
+         const auto index = (x + width * offset) * 4;
+
+         data[index + 0] = 255;                   // R
+         data[index + 1] = !node.occupied_ * 255; // G
+         data[index + 2] = !node.occupied_ * 255; // B
+         data[index + 3] = 255;                   // A
+      }
+
+
+      renderer::TextureLibrary::GetTexture(collisionTexture_)->UpdateTexture(collisionTextureData_);
+   }
 }
 
 renderer::Sprite&

@@ -1,11 +1,11 @@
 #pragma once
 
 #include "common.hpp"
+#include "state_list.hpp"
 #include "texture.hpp"
 #include "types.hpp"
 #include "vertex.hpp"
 #include "vulkan_common.hpp"
-#include "state_list.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -84,6 +84,9 @@ class Sprite
 
    [[nodiscard]] float&
    GetUniformScaleValue();
+
+   void
+   SetTextureID(TextureType type, TextureID newID);
 
    [[nodiscard]] const renderer::Texture*
    GetTexture() const;
@@ -172,7 +175,7 @@ class Sprite
    State currentState_ = {};
 
    // sprite's texture
-   renderer::TextureID texture_ = {};
+   TextureIDs textures_ = {};
 
    glm::vec3 initialPosition_ = {};
 

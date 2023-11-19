@@ -82,6 +82,22 @@ FileManager::LoadImageData(std::string_view fileName)
    return {std::move(textureData), {w, h}, n};
 }
 
+void
+FileManager::SaveImageFile(std::string_view fileName, const ImageData& image)
+{
+   const auto pathToImage = std::filesystem::path(IMAGES_DIR / fileName).string();
+
+   std::ofstream file(pathToImage, std::ios::out | std::ios::binary | std::ios::trunc);
+   if (!file)
+   {
+      Logger::Fatal("FileManager::SaveImageFile -> {} can't be opened!", pathToImage);
+   }
+
+   file.write(reinterpret_cast< const char* >(image.m_bytes.get()),
+              image.m_size.x * image.m_size.y * image.m_format);
+   file.close();
+}
+
 nlohmann::json
 FileManager::LoadJsonFile(std::string_view pathToFile)
 {

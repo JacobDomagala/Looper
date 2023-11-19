@@ -40,11 +40,11 @@ class VulkanRenderer
    MeshDeleted(const RenderInfo& renderInfo);
 
    [[nodiscard]] static RenderInfo
-   MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureMaps& textures_in,
+   MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureIDs& textures_in,
               const glm::mat4& modelMat, const glm::vec4& color);
 
    static void
-   SubmitMeshData(const uint32_t idx, const TextureID id, const glm::mat4& modelMat,
+   SubmitMeshData(const uint32_t idx, const TextureIDs& ids, const glm::mat4& modelMat,
                   const glm::vec4& color);
 
    static void
@@ -152,8 +152,8 @@ class VulkanRenderer
 
    static VkFormat
    FindDepthFormat();
- 
-private:
+
+ private:
    inline static bool initialized_ = false;
    inline static bool updateDescriptors_ = false;
    inline static VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo_ = {};
