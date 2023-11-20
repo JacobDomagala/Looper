@@ -469,7 +469,8 @@ Level::GenerateTextureForCollision()
    const size_t numChannels = 4;
    const auto size = static_cast< size_t >(width * height * numChannels);
 
-   auto* data = new unsigned char[size];
+   auto data = FileManager::ImageHandleType{new unsigned char[size],
+                                            [](const uint8_t* ptr) { delete[] ptr; }};
    const auto& nodes = m_pathFinder.GetAllNodes();
 
    for (size_t h = 0; h < height; ++h)
@@ -488,10 +489,7 @@ Level::GenerateTextureForCollision()
       }
    }
 
-   collisionTextureData_ = {FileManager::ImageHandleType{reinterpret_cast< unsigned char* >(data),
-                                                         [](const uint8_t* ptr) { delete[] ptr; }},
-                            {width, height},
-                            numChannels};
+   collisionTextureData_ = {std::move(data), {width, height}, numChannels};
 
    // To avoid blurry edges
    renderer::TextureProperties props;

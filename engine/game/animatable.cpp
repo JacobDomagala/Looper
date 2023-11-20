@@ -85,19 +85,15 @@ Animatable::SetCorrectAnimationPoint(time::milliseconds& updateTime)
    auto animationDurationMs =
       time::Timer::ConvertToMs(currentState_.m_currentAnimationPoint->m_timeDuration);
 
-   if (updateTime >= animationDurationMs)
+   while (updateTime >= animationDurationMs
+          && currentState_.m_currentAnimationPoint != m_animationPoints.begin())
    {
-      do
-      {
-         updateTime -= animationDurationMs;
-         animationValue +=
-            currentState_.m_currentAnimationEnd - currentState_.m_currentAnimationBegin;
+      updateTime -= animationDurationMs;
+      animationValue += currentState_.m_currentAnimationEnd - currentState_.m_currentAnimationBegin;
 
-         UpdateAnimationPoint();
-         animationDurationMs =
-            time::Timer::ConvertToMs(currentState_.m_currentAnimationPoint->m_timeDuration);
-      } while (updateTime >= animationDurationMs
-               && currentState_.m_currentAnimationPoint != m_animationPoints.begin());
+      UpdateAnimationPoint();
+      animationDurationMs =
+         time::Timer::ConvertToMs(currentState_.m_currentAnimationPoint->m_timeDuration);
    }
 
    return animationValue;

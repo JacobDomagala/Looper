@@ -8,7 +8,7 @@ namespace looper {
 void
 WorkQueue::PushWorkUnit(const WorkQueue::Precondition& prec, const WorkQueue::WorkUnit& work)
 {
-   queue_.push_back({prec, work});
+   queue_.emplace_back(prec, work);
 }
 
 void
