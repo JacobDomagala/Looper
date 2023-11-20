@@ -59,22 +59,16 @@ Texture::CreateTextureImage(const FileManager::ImageData& data)
       CreateImageView(m_textureImage, m_format, VK_IMAGE_ASPECT_COLOR_BIT, m_mips, false);
 
    CreateTextureSampler();
-
-   TransitionImageLayout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mips);
-
-   CopyBufferToImage(data.m_bytes.get());
-
-   // transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
-   GenerateMipmaps(m_textureImage, VK_FORMAT_R8G8B8A8_SRGB, static_cast< int32_t >(m_width),
-                   static_cast< int32_t >(m_height), m_mips);
+   UpdateTexture(data);
 }
 
 void
-Texture::UpdateTexture(const FileManager::ImageData& data)
+Texture::UpdateTexture(const FileManager::ImageData& data) const
 {
-   TransitionImageLayout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mips);
+   TransitionImageLayout(m_textureImage, VK_IMAGE_LAYOUT_UNDEFINED,
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mips);
 
-   CopyBufferToImage(data.m_bytes.get());
+   CopyBufferToImage(m_textureImage, m_width, m_height, data.m_bytes.get());
 
    // transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
    GenerateMipmaps(m_textureImage, VK_FORMAT_R8G8B8A8_SRGB, static_cast< int32_t >(m_width),
@@ -340,7 +334,8 @@ Texture::CreateTextureSampler()
 }
 
 void
-Texture::CopyBufferToImage(VkImage image, uint32_t texWidth, uint32_t texHeight, uint8_t* data)
+Texture::CopyBufferToImage(VkImage image, uint32_t texWidth, uint32_t texHeight,
+                           const uint8_t* data)
 {
    VkBufferImageCopy region = {};
    region.bufferOffset = 0;
@@ -360,7 +355,7 @@ Texture::CopyBufferToImage(VkImage image, uint32_t texWidth, uint32_t texHeight,
 
 void
 Texture::CopyBufferToCubemapImage(VkImage image, uint32_t texWidth, uint32_t texHeight,
-                                  uint8_t* data)
+                                  const uint8_t* data)
 {
    constexpr auto num_faces = 6;
    const auto single_face_size =
@@ -392,12 +387,6 @@ Texture::CopyBufferToCubemapImage(VkImage image, uint32_t texWidth, uint32_t tex
 
    Texture::TransitionImageLayout(image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, true);
-}
-
-void
-Texture::CopyBufferToImage(uint8_t* data)
-{
-   CopyBufferToImage(m_textureImage, m_width, m_height, data);
 }
 
 void
@@ -449,13 +438,6 @@ Texture::TransitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLa
 
    Command::EndSingleTimeCommands(commandBuffer);
 }
-
-void
-Texture::TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels)
-{
-   TransitionImageLayout(m_textureImage, oldLayout, newLayout, mipLevels);
-}
-
 
 /**************************************************************************************************
  *************************************** TEXTURE LIBRARY ******************************************

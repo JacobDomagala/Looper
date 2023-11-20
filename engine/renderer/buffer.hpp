@@ -39,10 +39,10 @@ class Buffer
    CopyData(const void* data) const;
 
    void
-   CopyDataWithStaging(void* data, size_t dataSize) const;
+   CopyDataWithStaging(const void* data, const size_t dataSize) const;
 
    static void
-   CopyDataToImageWithStaging(VkImage image, void* data, size_t dataSize,
+   CopyDataToImageWithStaging(VkImage image, const void* data, const size_t dataSize,
                               const std::vector< VkBufferImageCopy >& copyRegions);
 
    void
