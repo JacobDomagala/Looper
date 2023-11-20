@@ -246,7 +246,7 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
 }
 
 void
-Editor::SetMouseOnObject()
+Editor::SetMouseOnObject() const
 {
    if (m_mouseDrag && (m_movementOnEditorObject || m_movementOnGameObject))
    {
@@ -467,9 +467,8 @@ Editor::SetRenderLayerToDraw(int32_t layer)
    renderLayerToDraw_ = layer;
 }
 
-
 void
-Editor::SetupRendererData()
+Editor::SetupRendererData() const
 {
    renderer::VulkanRenderer::SetupData();
 
@@ -715,7 +714,7 @@ Editor::DrawBoundingBoxes()
 }
 
 void
-Editor::DrawGrid()
+Editor::DrawGrid() const
 {
    const auto levelSize = m_currentLevel->GetSize();
    const auto grad = m_gridCellSize;

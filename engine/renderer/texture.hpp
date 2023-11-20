@@ -34,7 +34,7 @@ class Texture
    Destroy();
 
    void
-   UpdateTexture(const FileManager::ImageData& data);
+   UpdateTexture(const FileManager::ImageData& data) const;
 
    static std::pair< VkImage, VkDeviceMemory >
    CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels,
@@ -57,10 +57,11 @@ class Texture
                          uint32_t mipLevels, bool cubemap = false);
 
    static void
-   CopyBufferToImage(VkImage image, uint32_t texWidth, uint32_t texHeight, uint8_t* data);
+   CopyBufferToImage(VkImage image, uint32_t texWidth, uint32_t texHeight, const uint8_t* data);
 
    static void
-   CopyBufferToCubemapImage(VkImage image, uint32_t texWidth, uint32_t texHeight, uint8_t* data);
+   CopyBufferToCubemapImage(VkImage image, uint32_t texWidth, uint32_t texHeight,
+                            const uint8_t* data);
 
    static VkDescriptorSet
    CreateDescriptorSet(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout,
@@ -90,12 +91,6 @@ class Texture
  private:
    void
    CreateTextureImage(const FileManager::ImageData& data);
-
-   void
-   TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
-
-   void
-   CopyBufferToImage(uint8_t* data);
 
  private:
    TextureID id_ = {};

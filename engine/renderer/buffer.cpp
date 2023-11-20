@@ -54,7 +54,7 @@ Buffer::CopyData(const void* data) const
 }
 
 void
-Buffer::CopyDataWithStaging(void* data, size_t dataSize) const
+Buffer::CopyDataWithStaging(const void* data, const size_t dataSize) const
 {
    VkBuffer stagingBuffer = {};
    VkDeviceMemory stagingBufferMemory = {};
@@ -72,7 +72,7 @@ Buffer::CopyDataWithStaging(void* data, size_t dataSize) const
 }
 
 void
-Buffer::CopyDataToImageWithStaging(VkImage image, void* data, size_t dataSize,
+Buffer::CopyDataToImageWithStaging(VkImage image, const void* data, const size_t dataSize,
                                    const std::vector< VkBufferImageCopy >& copyRegions)
 {
    VkBuffer stagingBuffer = {};

@@ -1,8 +1,8 @@
 #include "object.hpp"
 
 namespace looper {
-
-static std::string
+namespace {
+std::string
 TypeToString(ObjectType type)
 {
    std::string typeStr;
@@ -41,6 +41,7 @@ TypeToString(ObjectType type)
 
    return typeStr;
 }
+} // namespace
 
 ObjectType
 Object::GetTypeFromString(const std::string& stringType)

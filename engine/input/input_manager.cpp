@@ -25,6 +25,7 @@ BroadcastEvent(const auto& listeners, auto& event)
 }
 
 void
+// cppcheck-suppress constParameterCallback
 InputManager::InternalKeyCallback(GLFWwindow* window, int32_t key, int32_t scancode,
                                   int32_t action, int32_t mods)
 {
@@ -37,6 +38,7 @@ InputManager::InternalKeyCallback(GLFWwindow* window, int32_t key, int32_t scanc
 }
 
 void
+// cppcheck-suppress constParameterCallback
 InputManager::InternalCharCallback(GLFWwindow* window, uint32_t key)
 {
    Logger::Trace("GLFW char {}", key);
@@ -47,6 +49,7 @@ InputManager::InternalCharCallback(GLFWwindow* window, uint32_t key)
 }
 
 void
+// cppcheck-suppress constParameterCallback
 InputManager::InternalMouseButtonCallback(GLFWwindow* window, int32_t button, int32_t action,
                                           int32_t mods)
 {
@@ -58,6 +61,7 @@ InputManager::InternalMouseButtonCallback(GLFWwindow* window, int32_t button, in
 }
 
 void
+// cppcheck-suppress constParameterCallback
 InputManager::InternalCursorPositionCallback(GLFWwindow* window, double xPos, double yPos)
 {
    Logger::Trace("GLFW cursor pos {} {}", xPos, yPos);
@@ -69,6 +73,7 @@ InputManager::InternalCursorPositionCallback(GLFWwindow* window, double xPos, do
 }
 
 void
+// cppcheck-suppress constParameterCallback
 InputManager::InternalMouseScrollCallback(GLFWwindow* window, double xOffset, double yOffset)
 {
    Logger::Trace("GLFW scroll {} {}", xOffset, yOffset);
@@ -79,6 +84,7 @@ InputManager::InternalMouseScrollCallback(GLFWwindow* window, double xOffset, do
 }
 
 void
+// cppcheck-suppress constParameterCallback
 InputManager::InternalWindowFocusCallback(GLFWwindow* window, int32_t focused)
 {
    Logger::Trace("GLFW window focus {}", focused);

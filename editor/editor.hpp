@@ -118,7 +118,7 @@ class Editor : public Application
    GetRenderNodes() const;
 
    void
-   DrawGrid();
+   DrawGrid() const;
 
    void
    DrawBoundingBoxes();
@@ -178,7 +178,7 @@ class Editor : public Application
    // GetEditorObjectByID(Object::ID ID);
 
    void
-   SetupRendererData();
+   SetupRendererData() const;
 
    void
    DrawEditorObjects();
@@ -217,7 +217,7 @@ class Editor : public Application
    ShowCursor(bool choice);
 
    void
-   SetMouseOnObject();
+   SetMouseOnObject() const;
 
    void
    FreeLevelData();

@@ -57,11 +57,6 @@ class Player : public GameObject
    /*void
    CreateSprite(const glm::vec2& position, const glm::ivec2& size, const std::string& fileName);*/
 
-   void
-   Hit(int32_t /*dmg*/) override
-   {
-   }
-
  private:
    void
    UpdateInternal(bool isReverse) override;

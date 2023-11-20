@@ -50,9 +50,6 @@ class FileManager
    static ImageData
    LoadImageData(std::string_view fileName);
 
-   static void
-   SaveImageFile(std::string_view fileName, const ImageData& image);
-
    static nlohmann::json
    LoadJsonFile(std::string_view pathToFile);
 

@@ -718,7 +718,8 @@ VulkanRenderer::Initialize(GLFWwindow* windowHandle, ApplicationType type)
    for (uint32_t layer = 0; layer < NUM_LAYERS; ++layer)
    {
       renderData.vertices.at(layer).resize(MAX_NUM_VERTICES_PER_LAYER);
-      renderData.indices.at(layer).resize(MAX_SPRITES_PER_LAYER * INDICES_PER_SPRITE);
+      renderData.indices.at(layer).resize(static_cast< size_t >(MAX_SPRITES_PER_LAYER)
+                                          * static_cast< size_t >(INDICES_PER_SPRITE));
    }
 
    renderData.perInstance.resize(MAX_NUM_SPRITES);
