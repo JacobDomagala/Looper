@@ -47,7 +47,7 @@ jobs:
       run: |
         # Use newer ABI
         conan profile detect
-        conan install $GITHUB_WORKSPACE --output-folder=build --build=missing --settings=build_type=$BUILD_TYPE
+        conan install $GITHUB_WORKSPACE --install-folder=build --build=missing --settings=build_type=$BUILD_TYPE
 
     - name: Run CMake
       shell: bash
