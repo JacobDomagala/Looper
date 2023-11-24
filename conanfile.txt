@@ -4,7 +4,7 @@
 fmt/10.1.0
 glfw/3.3.8
 imgui/1.89.9
-stb/20200203
+stb/cci.20230920
 glm/0.9.9.8
 nlohmann_json/3.11.2
 
