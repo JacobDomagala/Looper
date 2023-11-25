@@ -319,3 +319,4 @@ dependencies/glfw/glfw*
 /CMakeSettings.json
 *.cache/*
 compile_commands.json
+CMakeUserPresets.json

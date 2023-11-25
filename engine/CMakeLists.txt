@@ -15,11 +15,14 @@ target_include_directories(${MODULE_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "
 
 
 # Load all TPLs
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup(TARGETS)
 find_package(Vulkan REQUIRED)
+find_package(fmt REQUIRED)
+find_package(glfw3 REQUIRED)
+find_package(imgui REQUIRED)
+find_package(glm REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
-target_link_libraries_system(${MODULE_NAME} PUBLIC stb_image CONAN_PKG::fmt CONAN_PKG::glfw CONAN_PKG::imgui CONAN_PKG::glm CONAN_PKG::nlohmann_json)
+target_link_libraries_system(${MODULE_NAME} PUBLIC stb_image fmt::fmt glfw imgui::imgui glm::glm nlohmann_json::nlohmann_json)
 target_link_libraries(${MODULE_NAME} PUBLIC project_warnings project_options Vulkan::Vulkan)
 target_compile_features(${MODULE_NAME} PRIVATE cxx_std_20)
 
