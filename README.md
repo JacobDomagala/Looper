@@ -23,9 +23,6 @@ The typical build process would look like this:
 # Create build directory
 mkdir build && cd build
 
-# Use newer ABI
-conan profile new default --detect
-conan profile update settings.compiler.libcxx=libstdc++11 default
 conan install .. --output-folder=build --build=missing --settings=build_type=Release
 
 # Generate build system for Windows/Linux

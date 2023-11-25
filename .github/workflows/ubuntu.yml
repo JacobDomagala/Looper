@@ -47,7 +47,7 @@ jobs:
       run: |
         # Use newer ABI
         conan profile detect
-        conan install $GITHUB_WORKSPACE --install-folder=build --build=missing --settings=build_type=$BUILD_TYPE
+        conan install $GITHUB_WORKSPACE --output-folder=build --build=missing --settings=build_type=$BUILD_TYPE
 
     - name: Run CMake
       shell: bash
@@ -55,7 +55,8 @@ jobs:
       run: |
         source ${{runner.workspace}}/Looper/$SDK_VERSION/setup-env.sh
         cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DWARNINGS_AS_ERRORS=ON -DENABLE_INCLUDE_WHAT_YOU_USE=OFF\
-           -DENABLE_SANITIZER_ADDRESS=ON -DENABLE_SANITIZER_UNDEFINED_BEHAVIOR=OFF -DENABLE_SANITIZER_LEAK=ON -DUNITY_BUILD=ON
+           -DENABLE_SANITIZER_ADDRESS=ON -DENABLE_SANITIZER_UNDEFINED_BEHAVIOR=OFF -DENABLE_SANITIZER_LEAK=ON -DUNITY_BUILD=ON\
+           -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake
 
     - name: Build
       working-directory: ${{runner.workspace}}/build

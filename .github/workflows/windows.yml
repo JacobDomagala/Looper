@@ -51,14 +51,14 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       run: |
         conan profile detect
-        conan install $env:GITHUB_WORKSPACE --install-folder=build --build=missing --settings=build_type=$env:BUILD_TYPE
+        conan install $env:GITHUB_WORKSPACE --output-folder=build --build=missing --settings=build_type=$env:BUILD_TYPE
 
     - name: Configure CMake and build
       working-directory: ${{runner.workspace}}/build
       run: |
         $env:VULKAN_SDK="$env:VULKAN_DIR\$env:SDK_VERSION"
 
-        cmake $env:GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE
+        cmake $env:GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=${{runner.workspace}}\build\build\conan_toolchain.cmake
         cmake --build . --config $env:BUILD_TYPE > output.txt
         cat output.txt
 
