@@ -1127,7 +1127,7 @@ EditorGUI::UpdateUI()
    windowSize_ = parent_.GetWindowSize();
 
    windowWidth_ = windowSize_.x / 7;
-   toolsWindowHeight_ = windowSize_.y / 20;
+   toolsWindowHeight_ = std::max(windowSize_.y / 20.0f, 64.0f);
    levelWindowHeight_ = windowSize_.y - toolsWindowHeight_;
    gameObjectWindowHeight_ = windowSize_.y;
 
