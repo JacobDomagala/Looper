@@ -551,20 +551,18 @@ Level::GetObjectRef(Object::ID objectID)
    switch (Object::GetTypeFromID(objectID))
    {
       case ObjectType::ENEMY: {
-         auto it = std::find_if(m_objects.begin(), m_objects.end(), [objectID](const auto& object) {
-            return object->GetID() == objectID;
-         });
+         auto it = stl::find_if(
+            m_objects, [objectID](const auto& object) { return object->GetID() == objectID; });
 
          if (it != m_objects.end())
          {
-            requestedObject = (*it).get();
+            requestedObject = it->get();
          }
       }
       break;
 
       case ObjectType::PLAYER: {
-         // Assume it's the player
-         return *m_player;
+         requestedObject = m_player.get();
       }
       break;
 
@@ -575,9 +573,8 @@ Level::GetObjectRef(Object::ID objectID)
             if (animatePtr)
             {
                auto& points = animatePtr->GetAnimationKeypoints();
-               auto it = std::find_if(points.begin(), points.end(), [objectID](const auto& point) {
-                  return point.GetID() == objectID;
-               });
+               auto it = stl::find_if(
+                  points, [objectID](const auto& point) { return point.GetID() == objectID; });
 
                if (it != points.end())
                {
@@ -591,8 +588,8 @@ Level::GetObjectRef(Object::ID objectID)
 
       case ObjectType::PATHFINDER_NODE: {
          auto& nodes = m_pathFinder.GetAllNodes();
-         auto it = std::find_if(nodes.begin(), nodes.end(),
-                                [objectID](const auto& node) { return node.GetID() == objectID; });
+         auto it =
+            stl::find_if(nodes, [objectID](const auto& node) { return node.GetID() == objectID; });
 
          if (it != nodes.end())
          {
@@ -610,6 +607,8 @@ Level::GetObjectRef(Object::ID objectID)
    // NOLINTNEXTLINE
    assert(requestedObject);
 
+   // requestedObject will never be nullptr
+   // NOLINTNEXTLINE
    return *requestedObject;
 }
 
