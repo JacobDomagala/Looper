@@ -187,6 +187,12 @@ Animatable::SingleAnimate(time::milliseconds updateTime)
    return Animate(updateTime);
 }
 
+bool
+Animatable::AnimationFinished() const
+{
+   return currentState_.m_animationFinished;
+}
+
 AnimationPoint
 Animatable::CreateAnimationNode(Object::ID parentID, const glm::vec2& position)
 {

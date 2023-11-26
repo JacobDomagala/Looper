@@ -83,6 +83,12 @@ GameObject::GetPosition() const
 }
 
 glm::vec2
+GameObject::GetPreviousPosition() const
+{
+   return m_currentGameObjectState.previousPosition_;
+}
+
+glm::vec2
 GameObject::GetCenteredPosition() const
 {
    return m_currentGameObjectState.m_position;

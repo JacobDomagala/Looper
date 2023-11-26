@@ -66,6 +66,9 @@ class Animatable
    glm::vec2
    SingleAnimate(time::milliseconds updateTime);
 
+   bool
+   AnimationFinished() const;
+
    AnimationPoint
    CreateAnimationNode(Object::ID parentID, const glm::vec2& position = glm::vec2{});
 

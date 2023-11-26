@@ -48,13 +48,16 @@ class GameObject : public Object
    [[nodiscard]] virtual glm::ivec2
    GetSize() const;
 
-   // Get centered position in global(OpenGL) coords
+   // Get centered position in global(Vulkan) coords
    [[nodiscard]] virtual glm::vec2
    GetCenteredPosition() const;
 
-   // Get position in global (OpenGL) coords
+   // Get position in global (Vulkan) coords
    [[nodiscard]] virtual glm::vec2
    GetPosition() const;
+
+   [[nodiscard]] glm::vec2
+   GetPreviousPosition() const;
 
    [[nodiscard]] virtual bool
    CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const;

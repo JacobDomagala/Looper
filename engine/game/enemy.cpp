@@ -169,7 +169,7 @@ Enemy::EnemyMove(const glm::vec2& moveBy)
 
       if (GameObject::m_gameObjectStatesQueue.GetNumFrames() > 1)
       {
-         prevPosition = glm::vec2(GameObject::m_gameObjectStatesQueue.PeekLastState().previousPosition_);
+         prevPosition = GetPreviousPosition();
       }
 
       const auto direction = m_currentGameObjectState.m_position - prevPosition;

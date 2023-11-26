@@ -102,7 +102,7 @@ class Application : public InputListener
    std::unique_ptr< renderer::Window > m_window = {};
    renderer::Camera m_camera = {};
    time::Timer m_timer = {};
-   time::milliseconds m_deltaTime = {};
+   time::milliseconds deltaTime_ = {};
    int32_t m_frames = 0;
    float m_frameTimer = 0.0f;
    int32_t m_framesLastSecond = 0;
