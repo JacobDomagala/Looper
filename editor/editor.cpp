@@ -804,6 +804,8 @@ Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
    m_levelFileName = (LEVELS_DIR / (name + ".dgl")).string();
    gui_.LevelLoaded(m_currentLevel);
 
+   m_currentLevel->GenerateTextureForCollision();
+
    SetupRendererData();
 }
 

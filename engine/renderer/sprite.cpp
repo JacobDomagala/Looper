@@ -213,7 +213,7 @@ void
 Sprite::SetTranslateValue(const glm::vec2& translateBy)
 {
    currentState_.currentPosition_ = initialPosition_ + glm::vec3{translateBy, 0.0f};
-   currentState_.translateVal_ += translateBy;
+   currentState_.translateVal_ = currentState_.currentPosition_;
 
    changed_ = true;
 }

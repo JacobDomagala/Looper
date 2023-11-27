@@ -139,6 +139,8 @@ GameObject::SetHasCollision(bool hasCollision)
       {
          m_appHandle.GetLevel().GetPathfinder().SetNodeFreed(node, m_id);
       }
+
+      m_currentGameObjectState.m_occupiedNodes.clear();
    }
    else
    {

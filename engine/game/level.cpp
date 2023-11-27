@@ -339,6 +339,7 @@ Level::GameObjectMoved(const std::array< glm::vec2, 4 >& box,
 
    if (m_pathFinder.IsInitialized())
    {
+      // TODO: Discard common tiles and only free/occupy unique ones
       for (auto tileID : currentTiles)
       {
          m_pathFinder.SetNodeFreed(tileID, objectID);
@@ -356,10 +357,13 @@ Level::GameObjectMoved(const std::array< glm::vec2, 4 >& box,
 std::vector< Tile >
 Level::GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const
 {
-   std::vector< Tile > ret;
+   std::set< Tile > ret;
 
-   auto insertToVec = [&ret](std::vector< Tile > tiles) {
-      ret.insert(ret.end(), tiles.begin(), tiles.end());
+   auto insertToVec = [&ret](const std::vector< Tile >& tiles) {
+      for (const auto& tile : tiles)
+      {
+         ret.insert(tile);
+      }
    };
 
    insertToVec(GetTilesAlongTheLine(box[0], box[3]));
@@ -367,7 +371,7 @@ Level::GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const
    insertToVec(GetTilesAlongTheLine(box[2], box[1]));
    insertToVec(GetTilesAlongTheLine(box[1], box[0]));
 
-   return ret;
+   return std::vector< Tile >{ret.begin(), ret.end()};
 }
 
 Tile

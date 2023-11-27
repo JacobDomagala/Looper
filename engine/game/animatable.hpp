@@ -111,6 +111,9 @@ class Animatable
    [[nodiscard]] glm::vec2
    GetAnimationStartLocation() const;
 
+   [[nodiscard]] time::milliseconds
+   GetTotalTimeElapsed() const;
+
    void
    Update(bool isReverse);
 

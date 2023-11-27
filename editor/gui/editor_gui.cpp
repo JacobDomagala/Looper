@@ -561,12 +561,13 @@ void
 EditorGUI::RenderCreateNewLevelWindow()
 {
    const auto halfSize = windowSize_ / 2.0f;
-   std::unordered_map< std::string, glm::ivec2 > sizes = {{"Small", glm::ivec2{4096, 4096}},
+   std::unordered_map< std::string, glm::ivec2 > sizes = {{"Small", glm::ivec2{8192, 8192}},
                                                           {"Medium", glm::ivec2{16384, 16384}},
                                                           {"Large", glm::ivec2{65536, 65536}}};
-   static glm::ivec2 size = {1024, 1024};
+  
    static std::string name = "DummyLevelName";
    static std::string currentSize = "Small";
+   static glm::ivec2 size = sizes[currentSize];
 
    ImGui::SetNextWindowPos({halfSize.x - 160, halfSize.y - 60});
    ImGui::SetNextWindowSize({300, 180});
@@ -904,6 +905,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
             if (ImGui::Checkbox("##Has Collision", &collision))
             {
                currentlySelectedGameObject_->SetHasCollision(collision);
+               parent_.GetLevel().UpdateCollisionTexture();
             }
          });
 
@@ -926,6 +928,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          if (ImGui::SliderFloat2("##Size", &sprite_size.x, 10, 1000))
          {
             currentlySelectedGameObject_->SetSize(sprite_size);
+            parent_.GetLevel().UpdateCollisionTexture();
          }
       });
 
@@ -1021,8 +1024,9 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
             time::Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count();
          if (parent_.IsObjectAnimated())
          {
-            timer += static_cast< float >(parent_.GetDeltaTime().count());
-            timer = glm::min(animationDuration, timer);
+            // timer += static_cast< float >(parent_.GetDeltaTime().count());
+            // timer = glm::min(animationDuration, timer);
+            timer = animatablePtr->GetTotalTimeElapsed().count();
          }
 
          ImGui::SameLine();

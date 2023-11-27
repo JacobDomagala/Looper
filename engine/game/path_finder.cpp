@@ -275,11 +275,11 @@ PathFinder::SetNodeOccupied(const Tile& nodeCoords, Object::ID objectID)
 {
    if (nodeCoords != INVALID_TILE)
    {
-      auto node_found = GetNodeItFromTile(nodes_, nodeCoords);
-      node_found->occupied_ = true;
-      node_found->objectsOccupyingThisNode_.push_back(objectID);
+      auto nodeFound = GetNodeItFromTile(nodes_, nodeCoords);
+      nodeFound->occupied_ = true;
+      nodeFound->objectsOccupyingThisNode_.push_back(objectID);
 
-      nodesModifiedLastFrame_.insert(node_found->id_);
+      nodesModifiedLastFrame_.insert(nodeFound->id_);
    }
 }
 

@@ -26,6 +26,17 @@ Animatable::GetAnimationType() const
 void
 Animatable::UpdateAnimationPoint()
 {
+   if (currentState_.m_isReverse
+       and currentState_.m_currentAnimationPoint == m_animationPoints.begin())
+   {
+      return;
+   }
+   if (not currentState_.m_isReverse
+       and currentState_.m_currentAnimationPoint == m_animationPoints.end())
+   {
+      return;
+   }
+
    currentState_.m_isReverse ? --currentState_.m_currentAnimationPoint
                              : ++currentState_.m_currentAnimationPoint;
 
@@ -85,8 +96,7 @@ Animatable::SetCorrectAnimationPoint(time::milliseconds& updateTime)
    auto animationDurationMs =
       time::Timer::ConvertToMs(currentState_.m_currentAnimationPoint->m_timeDuration);
 
-   while (updateTime >= animationDurationMs
-          && currentState_.m_currentAnimationPoint != m_animationPoints.begin())
+   while (updateTime >= animationDurationMs)
    {
       updateTime -= animationDurationMs;
       animationValue += currentState_.m_currentAnimationEnd - currentState_.m_currentAnimationBegin;
@@ -149,6 +159,7 @@ Animatable::Animate(time::milliseconds updateTime)
    auto animateBy = glm::vec2();
 
    currentState_.m_animationFinished = false;
+   currentState_.m_totalTimeElapsed += updateTime;
 
    auto currentAnimationStepSize = AnimateInCurrentSection(updateTime);
    if (currentState_.m_currentTimeElapsed < currentState_.m_currentAnimationPoint->m_timeDuration)
@@ -313,6 +324,12 @@ Animatable::ResetAnimation()
    currentState_.m_animationFinished = false;
    currentState_.m_currentTimeElapsed = time::milliseconds(0);
    currentState_.m_totalTimeElapsed = time::milliseconds(0);
+}
+
+time::milliseconds
+Animatable::GetTotalTimeElapsed() const
+{
+   return currentState_.m_totalTimeElapsed;
 }
 
 void
