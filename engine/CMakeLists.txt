@@ -21,8 +21,9 @@ find_package(glfw3 REQUIRED)
 find_package(imgui REQUIRED)
 find_package(glm REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(stb REQUIRED)
 
-target_link_libraries_system(${MODULE_NAME} PUBLIC stb_image fmt::fmt glfw imgui::imgui glm::glm nlohmann_json::nlohmann_json)
+target_link_libraries_system(${MODULE_NAME} PUBLIC stb::stb fmt::fmt glfw imgui::imgui glm::glm nlohmann_json::nlohmann_json)
 target_link_libraries(${MODULE_NAME} PUBLIC project_warnings project_options Vulkan::Vulkan)
 target_compile_features(${MODULE_NAME} PRIVATE cxx_std_20)
 

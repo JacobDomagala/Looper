@@ -36,7 +36,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(cmake/util_functions.cmake)
 
-add_subdirectory(dependencies)
 add_subdirectory(engine)
 add_subdirectory(game)
 add_subdirectory(editor)
