@@ -947,36 +947,37 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
    if (ImGui::CollapsingHeader("Shader"))
    {
       const auto sectionSize = ImGui::GetContentRegionAvail();
+      const auto currentPos = ImGui::GetCursorScreenPos();
+      ImGui::SetCursorScreenPos(ImVec2(currentPos.x + sectionSize.x / 4.0f, currentPos.y));
       ImGui::Image(static_cast< ImTextureID >(
                       GetDescriptor(currentlySelectedGameObject_->GetSprite().GetTexture()->GetID(),
                                     descriptorPool_, descriptorSetLayout_)),
-                   {sectionSize.x, sectionSize.x});
+                   {glm::min(sectionSize.x, 128.0f), glm::min(sectionSize.x, 128.0f)});
 
-      DrawWidget("Texture", [this, sectionSize]() {
+      if (ImGui::BeginTable("TextureInfoTable", 2))
+      {
          auto& sprite = currentlySelectedGameObject_->GetSprite();
-         const float fullWidth = sectionSize.x;
-         const float inputTextWidth = fullWidth * 0.90f;
-         const float buttonWidth = fullWidth * 0.10f;
+         CreateRow("Name", fmt::format("{}", sprite.GetTextureName()));
+         CreateRow("ID", fmt::format("{}", sprite.GetTexture()->GetID()));
+         CreateActionRowLabel("File", [this]() {
+            auto& sprite = currentlySelectedGameObject_->GetSprite();
+            
+            ImGui::InputText("##Texture", sprite.GetTextureName().data(),
+                             sprite.GetTextureName().size(), ImGuiInputTextFlags_ReadOnly);
+            ImGui::SameLine();
 
-         ImGui::PushItemWidth(inputTextWidth);
-         ImGui::InputText("##Texture", sprite.GetTextureName().data(),
-                          sprite.GetTextureName().size(), ImGuiInputTextFlags_ReadOnly);
-         ImGui::PopItemWidth(); // Always pair a Push call with a Pop
-
-         ImGui::SameLine();
-
-         ImGui::PushItemWidth(buttonWidth);
-         if (ImGui::Button(ICON_FA_PENCIL ""))
-         {
-            auto textureName = FileManager::FileDialog(
-               IMAGES_DIR, {{"PNG texture", "png"}, {"JPEG texture", "jpg"}}, false);
-            if (!textureName.empty())
+            if (ImGui::Button(ICON_FA_PENCIL ""))
             {
-               sprite.SetTextureFromFile(textureName);
+               auto textureName = FileManager::FileDialog(
+                  IMAGES_DIR, {{"PNG texture", "png"}, {"JPEG texture", "jpg"}}, false);
+               if (!textureName.empty())
+               {
+                  sprite.SetTextureFromFile(textureName);
+               }
             }
-         }
-         ImGui::PopItemWidth(); // Always pair a Push call with a Pop
-      });
+         });
+      }
+      ImGui::EndTable();
    }
 
    if (currentlySelectedGameObject_->GetType() == ObjectType::ENEMY)
