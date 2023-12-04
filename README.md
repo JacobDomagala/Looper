@@ -41,7 +41,7 @@ If you would like to contribute to the project, please fork the repository and s
 
 ## Youtube
 For past and future video logs, please visit my [Youtube](https://www.youtube.com/watch?v=Qh-vOKMPQGQ&list=PLRLVUsGGaSH-s0A_2w_eo2LQEfTZuqi7Y) channel. <br>
-[![Playlist](https://img.youtube.com/vi/cyZFLKrvoPc/0.jpg)](https://www.youtube.com/watch?v=cyZFLKrvoPc&list=PLRLVUsGGaSH-s0A_2w_eo2LQEfTZuqi7Y "YouTube Playlist")
+[![Playlist](https://img.youtube.com/vi/FSUvkXoqPe4/0.jpg)](https://www.youtube.com/watch?v=FSUvkXoqPe4&list=PLRLVUsGGaSH-s0A_2w_eo2LQEfTZuqi7Y "YouTube Playlist")
 
 ## License
 Please refer to the LICENSE file in the repository for details on the licensing of this project.

@@ -86,6 +86,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
                                                glm::ivec2(size[0], size[1]), texture, name);
          m_player->GetSprite().Scale(glm::vec2(player["scale"][0], player["scale"][1]));
          m_player->GetSprite().Rotate(player["rotation"]);
+         m_player->GetSprite().ChangeRenderLayer(player["render_layer"]);
          m_player->SetID(player["id"]);
          m_objects.emplace_back(m_player);
       }
@@ -108,6 +109,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
             object->SetID(enemy["id"]);
             object->GetSprite().Scale(glm::vec2(enemy["scale"][0], enemy["scale"][1]));
             object->GetSprite().Rotate(enemy["rotation"]);
+            object->GetSprite().ChangeRenderLayer(enemy["render_layer"]);
 
             std::vector< AnimationPoint > keypointsPositions = {};
             glm::vec2 beginPoint = glm::vec2(position[0], position[1]);
@@ -145,6 +147,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
             gameObject->SetID(object["id"]);
             gameObject->GetSprite().Scale(glm::vec2(object["scale"][0], object["scale"][1]));
             gameObject->GetSprite().Rotate(object["rotation"]);
+            gameObject->GetSprite().ChangeRenderLayer(object["render_layer"]);
             gameObject->SetHasCollision(object["has collision"]);
 
             m_objects.emplace_back(gameObject);
@@ -198,6 +201,7 @@ Level::Save(const std::string& pathToLevel)
                                       m_player->GetSprite().GetOriginalSize().y};
             json["PLAYER"]["texture"] = m_player->GetSprite().GetTextureName();
             json["PLAYER"]["weapons"] = m_player->GetWeapons();
+            json["PLAYER"]["render_layer"] = m_player->GetSprite().GetRenderInfo().layer;
          }
          break;
 
@@ -213,6 +217,7 @@ Level::Save(const std::string& pathToLevel)
                                   object->GetSprite().GetScale().y};
             enemyJson["rotation"] = object->GetSprite().GetRotation();
             enemyJson["texture"] = object->GetSprite().GetTextureName();
+            enemyJson["render_layer"] = object->GetSprite().GetRenderInfo().layer;
 
             auto* enemyPtr = dynamic_cast< Enemy* >(object.get());
 
@@ -258,6 +263,7 @@ Level::Save(const std::string& pathToLevel)
                                    object->GetSprite().GetScale().y};
             objectJson["rotation"] = object->GetSprite().GetRotation();
             objectJson["texture"] = object->GetSprite().GetTextureName();
+            objectJson["render_layer"] = object->GetSprite().GetRenderInfo().layer;
 
             json["OBJECTS"].emplace_back(objectJson);
          }
