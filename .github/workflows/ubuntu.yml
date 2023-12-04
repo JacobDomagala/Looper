@@ -28,7 +28,7 @@ jobs:
         libxcb-shape0-dev libxcb-sync-dev libxcb-xfixes0-dev libxcb-xinerama0-dev libxcb-dri3-dev \
         libxcb-util-dev libxcb-cursor-dev
 
-        pip install conan==1.59.0
+        pip install conan
 
         wget https://sdk.lunarg.com/sdk/download/$SDK_VERSION/linux/vulkansdk-linux-x86_64-$SDK_VERSION.tar.gz
         tar xf vulkansdk-linux-x86_64-$SDK_VERSION.tar.gz
@@ -46,8 +46,7 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       run: |
         # Use newer ABI
-        conan profile new default --detect
-        conan profile update settings.compiler.libcxx=libstdc++11 default
+        conan profile detect
         conan install $GITHUB_WORKSPACE --output-folder=build --build=missing --settings=build_type=$BUILD_TYPE
 
     - name: Run CMake
@@ -56,7 +55,8 @@ jobs:
       run: |
         source ${{runner.workspace}}/Looper/$SDK_VERSION/setup-env.sh
         cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DWARNINGS_AS_ERRORS=ON -DENABLE_INCLUDE_WHAT_YOU_USE=OFF\
-           -DENABLE_SANITIZER_ADDRESS=ON -DENABLE_SANITIZER_UNDEFINED_BEHAVIOR=OFF -DENABLE_SANITIZER_LEAK=ON -DUNITY_BUILD=ON
+           -DENABLE_SANITIZER_ADDRESS=ON -DENABLE_SANITIZER_UNDEFINED_BEHAVIOR=OFF -DENABLE_SANITIZER_LEAK=ON -DUNITY_BUILD=ON\
+           -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake
 
     - name: Build
       working-directory: ${{runner.workspace}}/build

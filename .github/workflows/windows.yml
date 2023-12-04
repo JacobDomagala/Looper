@@ -39,8 +39,6 @@ jobs:
     - name: Install Conan
       id: conan
       uses: turtlebrowser/get-conan@main
-      with:
-        version: 1.59.0
 
     - name: Cache Conan packages
       id: cache-conan
@@ -60,7 +58,7 @@ jobs:
       run: |
         $env:VULKAN_SDK="$env:VULKAN_DIR\$env:SDK_VERSION"
 
-        cmake $env:GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE
+        cmake $env:GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=${{runner.workspace}}\build\build\conan_toolchain.cmake
         cmake --build . --config $env:BUILD_TYPE > output.txt
         cat output.txt
 

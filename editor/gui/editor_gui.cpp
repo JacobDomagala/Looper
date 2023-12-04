@@ -561,12 +561,13 @@ void
 EditorGUI::RenderCreateNewLevelWindow()
 {
    const auto halfSize = windowSize_ / 2.0f;
-   std::unordered_map< std::string, glm::ivec2 > sizes = {{"Small", glm::ivec2{4096, 4096}},
+   std::unordered_map< std::string, glm::ivec2 > sizes = {{"Small", glm::ivec2{8192, 8192}},
                                                           {"Medium", glm::ivec2{16384, 16384}},
                                                           {"Large", glm::ivec2{65536, 65536}}};
-   static glm::ivec2 size = {1024, 1024};
+  
    static std::string name = "DummyLevelName";
    static std::string currentSize = "Small";
+   static glm::ivec2 size = sizes[currentSize];
 
    ImGui::SetNextWindowPos({halfSize.x - 160, halfSize.y - 60});
    ImGui::SetNextWindowSize({300, 180});
@@ -904,6 +905,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
             if (ImGui::Checkbox("##Has Collision", &collision))
             {
                currentlySelectedGameObject_->SetHasCollision(collision);
+               parent_.GetLevel().UpdateCollisionTexture();
             }
          });
 
@@ -926,6 +928,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          if (ImGui::SliderFloat2("##Size", &sprite_size.x, 10, 1000))
          {
             currentlySelectedGameObject_->SetSize(sprite_size);
+            parent_.GetLevel().UpdateCollisionTexture();
          }
       });
 
@@ -947,36 +950,37 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
    if (ImGui::CollapsingHeader("Shader"))
    {
       const auto sectionSize = ImGui::GetContentRegionAvail();
+      const auto currentPos = ImGui::GetCursorScreenPos();
+      ImGui::SetCursorScreenPos(ImVec2(currentPos.x + sectionSize.x / 4.0f, currentPos.y));
       ImGui::Image(static_cast< ImTextureID >(
                       GetDescriptor(currentlySelectedGameObject_->GetSprite().GetTexture()->GetID(),
                                     descriptorPool_, descriptorSetLayout_)),
-                   {sectionSize.x, sectionSize.x});
+                   {glm::min(sectionSize.x, 128.0f), glm::min(sectionSize.x, 128.0f)});
 
-      DrawWidget("Texture", [this, sectionSize]() {
+      if (ImGui::BeginTable("TextureInfoTable", 2))
+      {
          auto& sprite = currentlySelectedGameObject_->GetSprite();
-         const float fullWidth = sectionSize.x;
-         const float inputTextWidth = fullWidth * 0.90f;
-         const float buttonWidth = fullWidth * 0.10f;
+         CreateRow("Name", fmt::format("{}", sprite.GetTextureName()));
+         CreateRow("ID", fmt::format("{}", sprite.GetTexture()->GetID()));
+         CreateActionRowLabel("File", [this]() {
+            auto& sprite = currentlySelectedGameObject_->GetSprite();
+            
+            ImGui::InputText("##Texture", sprite.GetTextureName().data(),
+                             sprite.GetTextureName().size(), ImGuiInputTextFlags_ReadOnly);
+            ImGui::SameLine();
 
-         ImGui::PushItemWidth(inputTextWidth);
-         ImGui::InputText("##Texture", sprite.GetTextureName().data(),
-                          sprite.GetTextureName().size(), ImGuiInputTextFlags_ReadOnly);
-         ImGui::PopItemWidth(); // Always pair a Push call with a Pop
-
-         ImGui::SameLine();
-
-         ImGui::PushItemWidth(buttonWidth);
-         if (ImGui::Button(ICON_FA_PENCIL ""))
-         {
-            auto textureName = FileManager::FileDialog(
-               IMAGES_DIR, {{"PNG texture", "png"}, {"JPEG texture", "jpg"}}, false);
-            if (!textureName.empty())
+            if (ImGui::Button(ICON_FA_PENCIL ""))
             {
-               sprite.SetTextureFromFile(textureName);
+               auto textureName = FileManager::FileDialog(
+                  IMAGES_DIR, {{"PNG texture", "png"}, {"JPEG texture", "jpg"}}, false);
+               if (!textureName.empty())
+               {
+                  sprite.SetTextureFromFile(textureName);
+               }
             }
-         }
-         ImGui::PopItemWidth(); // Always pair a Push call with a Pop
-      });
+         });
+      }
+      ImGui::EndTable();
    }
 
    if (currentlySelectedGameObject_->GetType() == ObjectType::ENEMY)
@@ -1020,8 +1024,9 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
             time::Timer::ConvertToMs(animatablePtr->GetAnimationDuration()).count();
          if (parent_.IsObjectAnimated())
          {
-            timer += static_cast< float >(parent_.GetDeltaTime().count());
-            timer = glm::min(animationDuration, timer);
+            // timer += static_cast< float >(parent_.GetDeltaTime().count());
+            // timer = glm::min(animationDuration, timer);
+            timer = animatablePtr->GetTotalTimeElapsed().count();
          }
 
          ImGui::SameLine();
@@ -1127,7 +1132,7 @@ EditorGUI::UpdateUI()
    windowSize_ = parent_.GetWindowSize();
 
    windowWidth_ = windowSize_.x / 7;
-   toolsWindowHeight_ = windowSize_.y / 20;
+   toolsWindowHeight_ = std::max(windowSize_.y / 20.0f, 64.0f);
    levelWindowHeight_ = windowSize_.y - toolsWindowHeight_;
    gameObjectWindowHeight_ = windowSize_.y;
 

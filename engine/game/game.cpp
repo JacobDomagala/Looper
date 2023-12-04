@@ -133,7 +133,7 @@ Game::MoveGameObject(GameObject* gameObject, const glm::vec2& moveBy) const
 void
 Game::KeyEvents() // NOLINT
 {
-   const auto floatDeltaTime = static_cast< float >(m_deltaTime.count());
+   const auto floatDeltaTime = static_cast< float >(deltaTime_.count());
    // Camera movement is disabled
    const auto cameraMovement = 0.05f * floatDeltaTime;
    const auto playerMovement = 0.5f * floatDeltaTime;
@@ -229,7 +229,7 @@ Game::MouseEvents()
       constexpr float borderValue = 0.5f;
       constexpr float modifier = 1.f;
 
-      const auto cameraMovement = modifier * floorf(static_cast< float >(m_deltaTime.count()));
+      const auto cameraMovement = modifier * floorf(static_cast< float >(deltaTime_.count()));
       auto cameraMoveBy = glm::vec2();
       const auto cursor = m_window->GetCursorNormalized();
 
@@ -347,7 +347,7 @@ Game::IsRunning() const
 void
 Game::ProcessInput(time::milliseconds deltaTime)
 {
-   m_deltaTime = deltaTime;
+   deltaTime_ = deltaTime;
 
    MouseEvents();
    KeyEvents();

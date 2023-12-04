@@ -33,7 +33,7 @@ Application::GetCamera()
 time::milliseconds
 Application::GetDeltaTime() const
 {
-   return m_deltaTime;
+   return deltaTime_;
 }
 
 bool

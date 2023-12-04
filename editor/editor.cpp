@@ -593,7 +593,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
          const auto idx = static_cast< size_t >(layer);
          const auto& numObjects = renderData.numMeshes.at(idx);
          const auto renderThisLayer = renderLayerToDraw_ == -1 ? true : renderLayerToDraw_ == layer;
-         
+
          if (numObjects == 0 or !renderThisLayer)
          {
             continue;
@@ -803,6 +803,8 @@ Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
    m_levelLoaded = true;
    m_levelFileName = (LEVELS_DIR / (name + ".dgl")).string();
    gui_.LevelLoaded(m_currentLevel);
+
+   m_currentLevel->GenerateTextureForCollision();
 
    SetupRendererData();
 }
@@ -1037,14 +1039,20 @@ Editor::Update()
 
    if (m_animateGameObject && m_currentSelectedGameObject)
    {
-      auto moveBy = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject)
-                       ->SingleAnimate(m_deltaTime);
+      const auto& animatable = std::dynamic_pointer_cast< Animatable >(m_currentSelectedGameObject);
+      auto moveBy = animatable->SingleAnimate(deltaTime_);
 
       if (glm::length(moveBy) > 0.0f)
       {
+         const auto prevPosition = m_currentSelectedGameObject->GetPreviousPosition();
+         const auto direction = m_currentSelectedGameObject->GetPosition() - prevPosition;
+
+         const auto viewAngle = glm::atan(direction.y, direction.x);
+
+         m_currentSelectedGameObject->Rotate(viewAngle);
          m_currentSelectedGameObject->Move(moveBy);
       }
-      else
+      else if (animatable->AnimationFinished())
       {
          m_animateGameObject = false;
       }
@@ -1123,6 +1131,8 @@ Editor::MainLoop()
       while (IsRunning() and (singleFrameTimer.count() >= TARGET_TIME_MICRO))
       {
          const time::ScopedTimer frameTimer(&timeLastFrame_);
+
+         deltaTime_ = m_timer.GetMsDeltaTime();
          InputManager::PollEvents();
 
          // Run all deffered work units
@@ -1159,6 +1169,8 @@ Editor::MainLoop()
          {
             LaunchGameLoop();
          }
+
+         m_timer.ToggleTimer();
       }
    }
 }

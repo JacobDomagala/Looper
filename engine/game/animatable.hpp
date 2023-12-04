@@ -66,6 +66,9 @@ class Animatable
    glm::vec2
    SingleAnimate(time::milliseconds updateTime);
 
+   bool
+   AnimationFinished() const;
+
    AnimationPoint
    CreateAnimationNode(Object::ID parentID, const glm::vec2& position = glm::vec2{});
 
@@ -107,6 +110,9 @@ class Animatable
 
    [[nodiscard]] glm::vec2
    GetAnimationStartLocation() const;
+
+   [[nodiscard]] time::milliseconds
+   GetTotalTimeElapsed() const;
 
    void
    Update(bool isReverse);
