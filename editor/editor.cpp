@@ -347,6 +347,19 @@ Editor::GetSelectedEditorObject() const
    return selected;
 }
 
+Object::ID
+Editor::GetSelectedGameObject() const
+{
+   Object::ID selected = Object::INVALID_ID;
+
+   if (m_currentSelectedGameObject)
+   {
+      selected = m_currentSelectedGameObject->GetID();
+   }
+
+   return selected;
+}
+
 void
 Editor::SelectGameObject()
 {

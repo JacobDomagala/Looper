@@ -123,6 +123,7 @@ class EditorGUI : public InputListener
 
    bool createPushed_ = false;
    bool exitPushed_ = false;
+   std::unordered_map< Object::ID, std::string > objectLabels_{};
 
    inline static VkImage fontImage_ = {};
    inline static VkDeviceMemory fontMemory_ = {};

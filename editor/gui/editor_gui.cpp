@@ -599,6 +599,7 @@ EditorGUI::RenderCreateNewLevelWindow()
    ImGui::Dummy(ImVec2(2.0f, 0.0f));
    ImGui::SameLine();
    ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.6f);
+
    ImGui::InputText("##Name", name.data(), name.capacity() + 1);
 
    ImGui::Dummy(ImVec2(0.0f, 5.0f));
@@ -776,6 +777,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
       const auto& gameObjects = currentLevel_->GetObjects();
 
       const auto filterObjects = std::to_array< std::string >({"All", "Enemy", "Player", "Object"});
+      // NOLINTNEXTLINE
       static std::string selectedFilter = filterObjects.at(0);
 
       ImGui::SetNextItemWidth(windowWidth_ * 0.95f);
@@ -799,9 +801,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
       {
          if (selectedFilter == filterObjects.at(0) or object->GetTypeString() == selectedFilter)
          {
-            auto label = fmt::format("[{}] {} ({:.2f}, {:.2f})", object->GetTypeString().c_str(),
-                                     object->GetName().c_str(), object->GetPosition().x,
-                                     object->GetPosition().y);
+            auto label = objectLabels_.at(object->GetID());
 
             if (ImGui::Selectable(label.c_str()))
             {
@@ -823,8 +823,15 @@ EditorGUI::RenderLevelMenu() // NOLINT
          {
             if (ImGui::Selectable(item.c_str()))
             {
-               parent_.AddToWorkQueue(
-                  [this, item] { parent_.AddGameObject(Object::GetTypeFromString(item)); });
+               parent_.AddToWorkQueue([this, item] {
+                  parent_.AddGameObject(Object::GetTypeFromString(item));
+                  const auto objectID = parent_.GetSelectedGameObject();
+                  const auto& object =
+                     static_cast< GameObject& >(parent_.GetLevel().GetObjectRef(objectID));
+                  objectLabels_[objectID] = fmt::format(
+                     "[{}] {} ({:.2f}, {:.2f})", object.GetTypeString().c_str(),
+                     object.GetName().c_str(), object.GetPosition().x, object.GetPosition().y);
+               });
             }
          }
          ImGui::EndCombo();
@@ -887,6 +894,11 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          if (ImGui::InputText("##Name", name.data(), nameLength))
          {
             currentlySelectedGameObject_->SetName(name);
+            objectLabels_[currentlySelectedGameObject_->GetID()] = fmt::format(
+               "[{}] {} ({:.2f}, {:.2f})", currentlySelectedGameObject_->GetTypeString().c_str(),
+               currentlySelectedGameObject_->GetName().c_str(),
+               currentlySelectedGameObject_->GetPosition().x,
+               currentlySelectedGameObject_->GetPosition().y);
          }
       });
 
@@ -1205,11 +1217,39 @@ void
 EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
 {
    currentLevel_ = loadedLevel;
+   const auto objects = currentLevel_->GetObjects();
+   for (const auto& object : objects)
+   {
+      objectLabels_[object->GetID()] =
+         fmt::format("[{}] {} ({:.2f}, {:.2f})", object->GetTypeString().c_str(),
+                     object->GetName().c_str(), object->GetPosition().x, object->GetPosition().y);
+   }
 }
 
 void
-EditorGUI::ObjectUpdated(Object::ID /*ID*/)
+EditorGUI::ObjectUpdated(Object::ID ID)
 {
+   const auto& object = parent_.GetLevel().GetObjectRef(ID);
+
+   switch (object.GetType())
+   {
+      case ObjectType::ENEMY:
+      case ObjectType::PLAYER: {
+         const auto& gameObject = static_cast< const GameObject& >(object);
+
+         objectLabels_[ID] = fmt::format(
+            "[{}] {} ({:.2f}, {:.2f})", gameObject.GetTypeString().c_str(),
+            gameObject.GetName().c_str(), gameObject.GetPosition().x, gameObject.GetPosition().y);
+      }
+      break;
+
+      case ObjectType::ANIMATION_POINT:
+      case ObjectType::NONE:
+      case ObjectType::PATHFINDER_NODE:
+      case ObjectType::OBJECT: {
+         // We don't care
+      }
+   }
 }
 
 void
