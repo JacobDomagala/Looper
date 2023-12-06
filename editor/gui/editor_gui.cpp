@@ -564,7 +564,7 @@ EditorGUI::RenderCreateNewLevelWindow()
    std::unordered_map< std::string, glm::ivec2 > sizes = {{"Small", glm::ivec2{8192, 8192}},
                                                           {"Medium", glm::ivec2{16384, 16384}},
                                                           {"Large", glm::ivec2{65536, 65536}}};
-  
+
    static std::string name = "DummyLevelName";
    static std::string currentSize = "Small";
    static glm::ivec2 size = sizes[currentSize];
@@ -775,23 +775,6 @@ EditorGUI::RenderLevelMenu() // NOLINT
    {
       const auto& gameObjects = currentLevel_->GetObjects();
 
-      const auto items = std::to_array< std::string >({"Enemy", "Player", "Object"});
-      ImGui::SetNextItemWidth(windowWidth_ * 0.95f);
-
-      // The second parameter is the label previewed before opening the combo.
-      if (ImGui::BeginCombo("##combo", "Add"))
-      {
-         for (const auto& item : items)
-         {
-            if (ImGui::Selectable(item.c_str()))
-            {
-               parent_.AddToWorkQueue(
-                  [this, item] { parent_.AddGameObject(Object::GetTypeFromString(item)); });
-            }
-         }
-         ImGui::EndCombo();
-      }
-
       ImGui::BeginChild("Loaded Objects", {0, 200}, true);
 
       for (const auto& object : gameObjects)
@@ -808,6 +791,23 @@ EditorGUI::RenderLevelMenu() // NOLINT
       }
 
       ImGui::EndChild();
+
+      const auto items = std::to_array< std::string >({"Enemy", "Player", "Object"});
+      ImGui::SetNextItemWidth(windowWidth_ * 0.95f);
+
+      // The second parameter is the label previewed before opening the combo.
+      if (ImGui::BeginCombo("##combo", "Add"))
+      {
+         for (const auto& item : items)
+         {
+            if (ImGui::Selectable(item.c_str()))
+            {
+               parent_.AddToWorkQueue(
+                  [this, item] { parent_.AddGameObject(Object::GetTypeFromString(item)); });
+            }
+         }
+         ImGui::EndCombo();
+      }
    }
 
    BlankLine();
@@ -964,7 +964,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          CreateRow("ID", fmt::format("{}", sprite.GetTexture()->GetID()));
          CreateActionRowLabel("File", [this]() {
             auto& sprite = currentlySelectedGameObject_->GetSprite();
-            
+
             ImGui::InputText("##Texture", sprite.GetTextureName().data(),
                              sprite.GetTextureName().size(), ImGuiInputTextFlags_ReadOnly);
             ImGui::SameLine();
