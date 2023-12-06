@@ -775,18 +775,39 @@ EditorGUI::RenderLevelMenu() // NOLINT
    {
       const auto& gameObjects = currentLevel_->GetObjects();
 
+      const auto filterObjects = std::to_array< std::string >({"All", "Enemy", "Player", "Object"});
+      static std::string selectedFilter = filterObjects.at(0);
+
+      ImGui::SetNextItemWidth(windowWidth_ * 0.95f);
+
+      // The second parameter is the label previewed before opening the combo.
+      if (ImGui::BeginCombo("##combo1", selectedFilter.c_str()))
+      {
+         for (const auto& item : filterObjects)
+         {
+            if (ImGui::Selectable(item.c_str()))
+            {
+               selectedFilter = item;
+            }
+         }
+         ImGui::EndCombo();
+      }
+
       ImGui::BeginChild("Loaded Objects", {0, 200}, true);
 
       for (const auto& object : gameObjects)
       {
-         auto label = fmt::format("[{}] {} ({:.2f}, {:.2f})", object->GetTypeString().c_str(),
-                                  object->GetName().c_str(), object->GetPosition().x,
-                                  object->GetPosition().y);
-
-         if (ImGui::Selectable(label.c_str()))
+         if (selectedFilter == filterObjects.at(0) or object->GetTypeString() == selectedFilter)
          {
-            parent_.GetCamera().SetCameraAtPosition(object->GetPosition());
-            parent_.HandleGameObjectSelected(object, true);
+            auto label = fmt::format("[{}] {} ({:.2f}, {:.2f})", object->GetTypeString().c_str(),
+                                     object->GetName().c_str(), object->GetPosition().x,
+                                     object->GetPosition().y);
+
+            if (ImGui::Selectable(label.c_str()))
+            {
+               parent_.GetCamera().SetCameraAtPosition(object->GetPosition());
+               parent_.HandleGameObjectSelected(object, true);
+            }
          }
       }
 
@@ -796,7 +817,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
       ImGui::SetNextItemWidth(windowWidth_ * 0.95f);
 
       // The second parameter is the label previewed before opening the combo.
-      if (ImGui::BeginCombo("##combo", "Add"))
+      if (ImGui::BeginCombo("##combo2", "Add"))
       {
          for (const auto& item : items)
          {
