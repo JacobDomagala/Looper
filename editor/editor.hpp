@@ -151,6 +151,9 @@ class Editor : public Application
    [[nodiscard]] Object::ID
    GetSelectedEditorObject() const;
 
+   [[nodiscard]] Object::ID
+   GetSelectedGameObject() const;
+
    void
    HandleEditorObjectSelected(const std::shared_ptr< EditorObject >& newSelectedEditorObject,
                               bool fromGUI = false);
