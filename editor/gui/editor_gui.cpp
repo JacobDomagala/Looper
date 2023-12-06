@@ -1234,7 +1234,8 @@ EditorGUI::ObjectUpdated(Object::ID ID)
    switch (object.GetType())
    {
       case ObjectType::ENEMY:
-      case ObjectType::PLAYER: {
+      case ObjectType::PLAYER:
+      case ObjectType::OBJECT: {
          const auto& gameObject = static_cast< const GameObject& >(object);
 
          objectLabels_[ID] = fmt::format(
@@ -1245,8 +1246,7 @@ EditorGUI::ObjectUpdated(Object::ID ID)
 
       case ObjectType::ANIMATION_POINT:
       case ObjectType::NONE:
-      case ObjectType::PATHFINDER_NODE:
-      case ObjectType::OBJECT: {
+      case ObjectType::PATHFINDER_NODE: {
          // We don't care
       }
    }

@@ -901,6 +901,7 @@ Editor::CopyGameObject(const std::shared_ptr< GameObject >& objectToCopy)
    newObject->GetSprite().SetTextureFromFile(objectToCopy->GetSprite().GetTextureName());
 
    HandleGameObjectSelected(newObject);
+   gui_.ObjectUpdated(newObject->GetID());
 }
 
 void
