@@ -131,20 +131,20 @@ class Sprite
       return renderInfo_;
    }
 
-   [[nodiscard]] uint32_t
+   [[nodiscard]] int32_t
    GetRenderIdx() const
    {
       return renderInfo_.idx;
    }
 
    void
-   SetRenderIdx(uint32_t idx)
+   SetRenderIdx(int32_t idx)
    {
       renderInfo_.idx = idx;
    }
 
    void
-   ChangeRenderLayer(uint32_t newLayer);
+   ChangeRenderLayer(int32_t newLayer);
 
    static constexpr std::pair< float, float > ROTATION_RANGE = {glm::radians(-360.0f),
                                                                 glm::radians(360.0f)};

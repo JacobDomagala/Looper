@@ -460,7 +460,7 @@ Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
       return;
    }
 
-   auto newSelectedObject = m_currentLevel->GetGameObjectOnLocation(cursorPosition);
+   auto newSelectedObject = m_currentLevel->GetGameObjectOnLocationAndLayer(cursorPosition, renderLayerToDraw_);
 
    if (newSelectedObject)
    {

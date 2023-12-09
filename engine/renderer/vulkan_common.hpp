@@ -50,13 +50,13 @@ struct Vertex;
 struct RenderInfo
 {
    // perInstance index
-   uint32_t idx;
+   int32_t idx;
 
    // Layer number
-   uint32_t layer;
+   int32_t layer;
 
    // index in given layer
-   uint32_t layerIdx;
+   int32_t layerIdx;
 };
 
 struct RenderData

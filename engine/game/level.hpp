@@ -191,6 +191,9 @@ class Level
    std::shared_ptr< GameObject >
    GetGameObjectOnLocation(const glm::vec2& screenPosition);
 
+   std::shared_ptr< GameObject >
+   GetGameObjectOnLocationAndLayer(const glm::vec2& screenPosition, int32_t renderLayer);
+
    [[nodiscard]] uint32_t
    GetTileSize() const
    {

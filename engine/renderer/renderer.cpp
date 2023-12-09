@@ -278,13 +278,15 @@ VulkanRenderer::UpdateDescriptors()
 }
 
 void
-VulkanRenderer::SetupVertexBuffer(const uint32_t layer)
+VulkanRenderer::SetupVertexBuffer(const int32_t layer)
 {
+   const auto layerCasted = static_cast< size_t >(layer);
    auto* renderData = &Data::renderData_[boundApplication_];
    const auto bufferSize = sizeof(Vertex) * MAX_NUM_VERTICES_PER_LAYER;
 
-   CreateVertexBuffer(bufferSize, renderData->vertices.at(layer),
-                      renderData->vertexBuffer.at(layer), renderData->vertexBufferMemory.at(layer));
+   CreateVertexBuffer(bufferSize, renderData->vertices.at(layerCasted),
+                      renderData->vertexBuffer.at(layerCasted),
+                      renderData->vertexBufferMemory.at(layerCasted));
 }
 
 void
@@ -292,14 +294,16 @@ VulkanRenderer::MeshDeleted(const RenderInfo& renderInfo)
 {
    auto* renderData = &Data::renderData_[boundApplication_];
 
-   renderData->verticesAvail.at(renderInfo.layer).reset(renderInfo.layerIdx);
+   renderData->verticesAvail.at(static_cast< size_t >(renderInfo.layer))
+      .reset(static_cast< size_t >(renderInfo.layerIdx));
 
 
    for (uint32_t vertexIdx = 0; vertexIdx < VERTICES_PER_SPRITE; ++vertexIdx)
    {
-      const auto offset = renderInfo.layerIdx * VERTICES_PER_SPRITE;
+      const auto offset = static_cast< uint32_t >(renderInfo.layerIdx) * VERTICES_PER_SPRITE;
 
-      auto& vertex = renderData->vertices.at(renderInfo.layer).at(offset + vertexIdx);
+      auto& vertex =
+         renderData->vertices.at(static_cast< uint32_t >(renderInfo.layer)).at(offset + vertexIdx);
       vertex = Vertex{};
    }
 }
@@ -310,29 +314,29 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
 {
    auto* renderData = &Data::renderData_[boundApplication_];
    // convert from depth value to render layer
-   const auto layer = static_cast< uint32_t >(vertices_in.front().m_position.z * 20.0f);
-   uint32_t idx = 0;
+   const auto layer = static_cast< int32_t >(vertices_in.front().m_position.z * 20.0f);
+   int32_t idx = 0;
 
-   auto& vertices = renderData->vertices.at(layer);
-   auto& verticesAvail = renderData->verticesAvail.at(layer);
-   uint32_t layerIdx = {};
+   auto& vertices = renderData->vertices.at(static_cast< size_t >(layer));
+   auto& verticesAvail = renderData->verticesAvail.at(static_cast< size_t >(layer));
+   int32_t layerIdx = {};
 
    for (uint32_t i = 0; i < MAX_SPRITES_PER_LAYER; ++i)
    {
       if (!verticesAvail.test(i))
       {
-         layerIdx = i;
+         layerIdx = static_cast< int32_t >(i);
          verticesAvail.set(i);
          break;
       }
    }
 
-   auto& numObjects = renderData->numMeshes.at(layer);
+   auto& numObjects = renderData->numMeshes.at(static_cast< size_t >(layer));
 
-   idx = layerIdx + MAX_SPRITES_PER_LAYER * layer;
+   idx = layerIdx + static_cast< int32_t >(MAX_SPRITES_PER_LAYER) * layer;
    for (uint32_t vertexIdx = 0; vertexIdx < VERTICES_PER_SPRITE; ++vertexIdx)
    {
-      const auto offset = layerIdx * VERTICES_PER_SPRITE;
+      const auto offset = static_cast< uint32_t >(layerIdx) * VERTICES_PER_SPRITE;
 
       auto& vertex = vertices.at(offset + vertexIdx);
       vertex = vertices_in.at(vertexIdx);
@@ -341,15 +345,15 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
 
    UpdateDescriptors();
 
-   // Only increase the coutner if we're not reusing the slot
-   if (numObjects == layerIdx)
+   // Only increase the counter if we're not reusing the slot
+   if (numObjects == static_cast< uint32_t >(layerIdx))
    {
       numObjects++;
    }
 
    ++renderData->totalNumMeshes;
 
-   SubmitMeshData(idx, textures_in, modelMat, color);
+   SubmitMeshData(static_cast< uint32_t >(idx), textures_in, modelMat, color);
 
    return {idx, layer, layerIdx};
 }

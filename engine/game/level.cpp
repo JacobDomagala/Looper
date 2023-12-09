@@ -685,24 +685,33 @@ Level::SetPlayersPosition(const glm::vec2& /*position*/)
 std::shared_ptr< GameObject >
 Level::GetGameObjectOnLocation(const glm::vec2& screenPosition)
 {
-   // std::shared_ptr< GameObject > foundObject = nullptr;
-
-   // if (m_player)
-   //{
-   //   foundObject = m_player->CheckIfCollidedScreenPosion(screenPosition) ? m_player : nullptr;
-
-   //   if (foundObject)
-   //   {
-   //      return foundObject;
-   //   }
-   //}
-
-   auto objectOnLocation =
-      std::find_if(m_objects.begin(), m_objects.end(), [screenPosition](const auto& object) {
-         return object->CheckIfCollidedScreenPosion(screenPosition);
-      });
+   auto objectOnLocation = stl::find_if(m_objects, [screenPosition](const auto& object) {
+      return object->CheckIfCollidedScreenPosion(screenPosition);
+   });
 
    return objectOnLocation != m_objects.end() ? *objectOnLocation : nullptr;
+}
+
+std::shared_ptr< GameObject >
+Level::GetGameObjectOnLocationAndLayer(const glm::vec2& screenPosition, int32_t renderLayer)
+{
+   std::shared_ptr< GameObject > objectFound = nullptr;
+   if (renderLayer != -1)
+   {
+      auto objectOnLocation =
+         stl::find_if(m_objects, [screenPosition, renderLayer](const auto& object) {
+            return object->CheckIfCollidedScreenPosion(screenPosition)
+                   and (object->GetSprite().GetRenderInfo().layer == renderLayer);
+         });
+
+      objectFound = objectOnLocation != m_objects.end() ? *objectOnLocation : nullptr;
+   }
+   else
+   {
+      objectFound = GetGameObjectOnLocation(screenPosition);
+   }
+
+   return objectFound;
 }
 
 void

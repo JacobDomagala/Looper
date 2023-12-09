@@ -48,7 +48,7 @@ class VulkanRenderer
                   const glm::vec4& color);
 
    static void
-   SetupVertexBuffer(const uint32_t layer);
+   SetupVertexBuffer(const int32_t layer);
 
    inline static void
    SetAppMarker(ApplicationType type)
