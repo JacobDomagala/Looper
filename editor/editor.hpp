@@ -225,45 +225,49 @@ class Editor : public Application
    void
    FreeLevelData();
 
-   std::unique_ptr< Game > m_game = {};
+   std::unique_ptr< Game > game_ = {};
 
    std::string m_levelFileName = {};
 
-   bool m_isRunning = true;
+   bool isRunning_ = true;
    bool m_levelLoaded = false;
-   bool m_mousePressedLastUpdate = false;
-   bool m_mouseDrag = false;
 
-   glm::vec2 m_lastCursorPosition = {};
+   // Left and right mouse buttons
+   bool LMBPressedLastUpdate_ = false;
+   bool RMBPressedLastUpdate_ = false;
+
+   bool mouseDrag_ = false;
+
+   glm::vec2 lastCursorPosition_ = {};
 
    // Handling game objects (which are visible in game)
-   bool m_animateGameObject = false;
-   bool m_movementOnGameObject = false;
-   bool m_gameObjectSelected = false;
-   std::shared_ptr< GameObject > m_currentSelectedGameObject = {};
+   bool animateGameObject_ = false;
+   bool movementOnGameObject_ = false;
+   bool gameObjectSelected_ = false;
+   std::shared_ptr< GameObject > currentSelectedGameObject_ = {};
 
-   std::shared_ptr< GameObject > m_copiedGameObject = {};
+   std::shared_ptr< GameObject > copiedGameObject_ = {};
 
    // Handling of editor objects (drawable objects linked to object in game)
-   bool m_movementOnEditorObject = false;
-   bool m_editorObjectSelected = false;
-   std::vector< std::shared_ptr< EditorObject > > m_editorObjects = {};
+   bool movementOnEditorObject_ = false;
+   bool editorObjectSelected_ = false;
+   std::vector< std::shared_ptr< EditorObject > > editorObjects_ = {};
    std::vector< std::shared_ptr< EditorObject > > pathfinderNodes_ = {};
    std::vector< std::shared_ptr< EditorObject > > animationPoints_ = {};
-   std::shared_ptr< EditorObject > m_currentEditorObjectSelected = {};
+   std::shared_ptr< EditorObject > currentEditorObjectSelected_ = {};
 
-   bool m_renderPathfinderNodes = false;
+   bool renderPathfinderNodes_ = false;
 
    uint32_t numPathfinderNodes_ = {};
 
-   bool m_drawGrid = false;
-   int32_t m_gridCellSize = 128;
+   bool drawGrid_ = false;
+   int32_t gridCellSize_ = 128;
    int32_t renderLayerToDraw_ = -1;
 
    // constructed in initializer list
    EditorGUI gui_;
 
-   bool m_playGame = false;
+   bool playGame_ = false;
    time::TimeStep timeLastFrame_ = time::TimeStep{time::microseconds{}};
    time::TimeStep uiTime_ = time::TimeStep{time::microseconds{}};
    time::TimeStep renderTime_ = time::TimeStep{time::microseconds{}};
