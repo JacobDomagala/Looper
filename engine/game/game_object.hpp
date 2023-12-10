@@ -147,6 +147,7 @@ class GameObject : public Object
       glm::mat4 m_scaleMatrix;
 
       std::vector< Tile > m_occupiedNodes;
+      std::vector< Tile > nodes_;
    };
 
    StateList<State> m_gameObjectStatesQueue;

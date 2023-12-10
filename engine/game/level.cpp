@@ -36,126 +36,121 @@ Level::Load(Application* context, const std::string& pathToLevel)
 {
    const auto json = FileManager::LoadJsonFile(pathToLevel);
 
-   for (const auto& [key, value] : json.items())
+   // BACKGROUND
    {
-      if (key == "BACKGROUND")
+      const auto& background = json["BACKGROUND"];
+      const auto backgroundTex = background["texture"];
+      const auto size = background["size"];
+
+      LoadPremade(backgroundTex, glm::ivec2(size[0], size[1]));
+
+      m_contextPointer = context;
+   }
+
+
+   // PATHFINDER
+   {
+      const auto& pathfinder = json["PATHFINDER"];
+
+      SCOPED_TIMER(fmt::format("Loading Pathfinder ({} nodes)", pathfinder["nodes"].size()));
+      m_pathFinder.InitializeEmpty(this);
+
+      for (const auto& nodeJson : pathfinder["nodes"])
       {
-         const auto background = json[key]["texture"];
-         const auto size = json[key]["size"];
-
-         LoadPremade(background, glm::ivec2(size[0], size[1]));
-
-         m_contextPointer = context;
+         m_pathFinder.AddNode(Node(
+            glm::ivec2(nodeJson["coords"][0], nodeJson["coords"][1]),
+            glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]), nodeJson["id"],
+            std::vector< NodeID >(nodeJson["connected to"].begin(), nodeJson["connected to"].end()),
+            nodeJson["occupied"],
+            std::vector< Object::ID >(nodeJson["nodesOccupying"].begin(),
+                                      nodeJson["nodesOccupying"].end())));
       }
-      else if (key == "PATHFINDER")
-      {
-         SCOPED_TIMER(fmt::format("Loading Pathfinder ({} nodes)", json[key]["nodes"].size()));
-         m_pathFinder.InitializeEmpty(this);
 
-         for (const auto& nodeJson : json[key]["nodes"])
+      m_pathFinder.SetInitialized();
+   }
+
+   // PLAYER
+   {
+      SCOPED_TIMER("Loading Player");
+
+      const auto& player = json["PLAYER"];
+      const auto& position = player["position"];
+      const auto& size = player["size"];
+      const auto& texture = player["texture"];
+      // const auto weapons = json[key]["weapons"];
+      const auto& name = player["name"];
+
+      m_player = std::make_shared< Player >(*context, glm::vec3(position[0], position[1], 0.0f),
+                                            glm::ivec2(size[0], size[1]), texture, name);
+      m_player->GetSprite().Scale(glm::vec2(player["scale"][0], player["scale"][1]));
+      m_player->GetSprite().Rotate(player["rotation"]);
+      m_player->GetSprite().ChangeRenderLayer(player["render_layer"]);
+      m_player->SetID(player["id"]);
+      m_objects.emplace_back(m_player);
+   }
+   // ENEMIES
+   {
+      const auto& enemies = json["ENEMIES"];
+      SCOPED_TIMER(fmt::format("Loading Enemies ({})", enemies.size()));
+
+      for (const auto& enemy : enemies)
+      {
+         const auto& position = enemy["position"];
+         const auto& size = enemy["size"];
+         const auto& texture = enemy["texture"];
+         // const auto weapons = enemy["weapons"];
+         const auto& name = enemy["name"];
+
+         auto object = std::make_shared< Enemy >(
+            *context, glm::vec3(position[0], position[1], 0.0f), glm::ivec2(size[0], size[1]),
+            texture, std::vector< AnimationPoint >{});
+         object->SetName(name);
+         object->SetID(enemy["id"]);
+         object->GetSprite().Scale(glm::vec2(enemy["scale"][0], enemy["scale"][1]));
+         object->GetSprite().Rotate(enemy["rotation"]);
+         object->GetSprite().ChangeRenderLayer(enemy["render_layer"]);
+
+         std::vector< AnimationPoint > keypointsPositions = {};
+         glm::vec2 beginPoint = glm::vec2(position[0], position[1]);
+
+         for (const auto& point : enemy["animate positions"])
          {
-            m_pathFinder.AddNode(Node(glm::ivec2(nodeJson["coords"][0], nodeJson["coords"][1]),
-                                      glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]),
-                                      nodeJson["id"],
-                                      std::vector< NodeID >(nodeJson["connected to"].begin(),
-                                                            nodeJson["connected to"].end()),
-                                      nodeJson["occupied"],
-                                      std::vector< Object::ID >(nodeJson["nodesOccupying"].begin(),
-                                                                nodeJson["nodesOccupying"].end())));
+            AnimationPoint animationPoint(object->GetID());
+            animationPoint.m_end = glm::vec2(point["end position"][0], point["end position"][1]);
+            animationPoint.m_timeDuration = time::seconds(point["time duration"]);
+
+            keypointsPositions.emplace_back(animationPoint);
+
+            beginPoint = animationPoint.m_end;
          }
 
-         m_pathFinder.SetInitialized();
+         object->SetAnimationKeypoints(std::move(keypointsPositions));
+         m_objects.emplace_back(object);
       }
-      else if (key == "SHADER")
+   }
+   // OBJECTS
+   {
+      const auto& objects = json["OBJECTS"];
+      SCOPED_TIMER(fmt::format("Loading Objects ({})", objects.size()));
+
+      for (const auto& object : objects)
       {
-         const auto shaderName = json[key]["name"];
-         LoadShaders(shaderName);
-      }
-      else if (key == "PLAYER")
-      {
-         SCOPED_TIMER("Loading Player");
+         const auto& position = object["position"];
+         const auto& size = object["size"];
+         const auto& texture = object["texture"];
+         const auto& name = object["name"];
 
-         const auto& player = json[key];
-         const auto& position = player["position"];
-         const auto& size = player["size"];
-         const auto& texture = player["texture"];
-         // const auto weapons = json[key]["weapons"];
-         const auto& name = player["name"];
+         auto gameObject = std::make_shared< GameObject >(
+            *context, glm::vec3(position[0], position[1], 0.0f), glm::ivec2(size[0], size[1]),
+            texture, ObjectType::OBJECT);
+         gameObject->SetName(name);
+         gameObject->SetID(object["id"]);
+         gameObject->GetSprite().Scale(glm::vec2(object["scale"][0], object["scale"][1]));
+         gameObject->GetSprite().Rotate(object["rotation"]);
+         gameObject->GetSprite().ChangeRenderLayer(object["render_layer"]);
+         gameObject->SetHasCollision(object["has collision"]);
 
-         m_player = std::make_shared< Player >(*context, glm::vec3(position[0], position[1], 0.0f),
-                                               glm::ivec2(size[0], size[1]), texture, name);
-         m_player->GetSprite().Scale(glm::vec2(player["scale"][0], player["scale"][1]));
-         m_player->GetSprite().Rotate(player["rotation"]);
-         m_player->GetSprite().ChangeRenderLayer(player["render_layer"]);
-         m_player->SetID(player["id"]);
-         m_objects.emplace_back(m_player);
-      }
-      else if (key == "ENEMIES")
-      {
-         SCOPED_TIMER(fmt::format("Loading Enemies ({})", json[key].size()));
-
-         for (const auto& enemy : json[key])
-         {
-            const auto& position = enemy["position"];
-            const auto& size = enemy["size"];
-            const auto& texture = enemy["texture"];
-            // const auto weapons = enemy["weapons"];
-            const auto& name = enemy["name"];
-
-            auto object = std::make_shared< Enemy >(
-               *context, glm::vec3(position[0], position[1], 0.0f), glm::ivec2(size[0], size[1]),
-               texture, std::vector< AnimationPoint >{});
-            object->SetName(name);
-            object->SetID(enemy["id"]);
-            object->GetSprite().Scale(glm::vec2(enemy["scale"][0], enemy["scale"][1]));
-            object->GetSprite().Rotate(enemy["rotation"]);
-            object->GetSprite().ChangeRenderLayer(enemy["render_layer"]);
-
-            std::vector< AnimationPoint > keypointsPositions = {};
-            glm::vec2 beginPoint = glm::vec2(position[0], position[1]);
-
-            for (const auto& point : enemy["animate positions"])
-            {
-               AnimationPoint animationPoint(object->GetID());
-               animationPoint.m_end = glm::vec2(point["end position"][0], point["end position"][1]);
-               animationPoint.m_timeDuration = time::seconds(point["time duration"]);
-
-               keypointsPositions.emplace_back(animationPoint);
-
-               beginPoint = animationPoint.m_end;
-            }
-
-            object->SetAnimationKeypoints(std::move(keypointsPositions));
-            m_objects.emplace_back(object);
-         }
-      }
-      else if (key == "OBJECTS")
-      {
-         SCOPED_TIMER(fmt::format("Loading Objects ({})", json[key].size()));
-
-         for (const auto& object : json[key])
-         {
-            const auto& position = object["position"];
-            const auto& size = object["size"];
-            const auto& texture = object["texture"];
-            const auto& name = object["name"];
-
-            auto gameObject = std::make_shared< GameObject >(
-               *context, glm::vec3(position[0], position[1], 0.0f), glm::ivec2(size[0], size[1]),
-               texture, ObjectType::OBJECT);
-            gameObject->SetName(name);
-            gameObject->SetID(object["id"]);
-            gameObject->GetSprite().Scale(glm::vec2(object["scale"][0], object["scale"][1]));
-            gameObject->GetSprite().Rotate(object["rotation"]);
-            gameObject->GetSprite().ChangeRenderLayer(object["render_layer"]);
-            gameObject->SetHasCollision(object["has collision"]);
-
-            m_objects.emplace_back(gameObject);
-         }
-      }
-      else
-      {
-         Logger::Fatal("Level::Load -> Unspecified type {} during level loading", key);
+         m_objects.emplace_back(gameObject);
       }
    }
 }
@@ -339,7 +334,8 @@ Level::AddGameObject(ObjectType objectType)
 
 std::vector< Tile >
 Level::GameObjectMoved(const std::array< glm::vec2, 4 >& box,
-                       const std::vector< Tile >& currentTiles, Object::ID objectID)
+                       const std::vector< Tile >& currentTiles, Object::ID objectID,
+                       bool hasCollision)
 {
    auto newTiles = GetTilesFromBoundingBox(box);
 
@@ -348,12 +344,22 @@ Level::GameObjectMoved(const std::array< glm::vec2, 4 >& box,
       // TODO: Discard common tiles and only free/occupy unique ones
       for (auto tileID : currentTiles)
       {
-         m_pathFinder.SetNodeFreed(tileID, objectID);
+         if (hasCollision)
+         {
+            m_pathFinder.SetNodeFreed(tileID, objectID);
+         }
+
+         m_pathFinder.SetObjectOffNode(tileID, objectID);
       }
 
       for (auto tileID : newTiles)
       {
-         m_pathFinder.SetNodeOccupied(tileID, objectID);
+         if (hasCollision)
+         {
+            m_pathFinder.SetNodeOccupied(tileID, objectID);
+         }
+
+         m_pathFinder.SetObjectOnNode(tileID, objectID);
       }
    }
 
@@ -378,6 +384,28 @@ Level::GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const
    insertToVec(GetTilesAlongTheLine(box[1], box[0]));
 
    return std::vector< Tile >{ret.begin(), ret.end()};
+}
+
+std::vector< Tile >
+Level::GetTilesFromRectangle(const std::array< glm::vec2, 4 >& rect) const
+{
+   std::vector< Tile > tiles;
+
+   // 'rect' is not rotated so we can assume left/right top/down boundaries
+   const std::array< Tile, 4 > tileRect = {
+      GetTileFromPosition(rect.at(0)), GetTileFromPosition(rect.at(1)),
+      GetTileFromPosition(rect.at(2)), GetTileFromPosition(rect.at(3))};
+
+   // 'y' tiles go bottom to top
+   for (auto i = tileRect.at(2).second; i < tileRect.at(0).second; ++i)
+   {
+      for (auto j = tileRect.at(0).first; j < tileRect.at(1).first; ++j)
+      {
+         tiles.push_back({i, j});
+      }
+   }
+
+   return tiles;
 }
 
 Tile
@@ -620,6 +648,25 @@ Level::GetObjectRef(Object::ID objectID)
    // requestedObject will never be nullptr
    // NOLINTNEXTLINE
    return *requestedObject;
+}
+
+std::vector< std::shared_ptr< GameObject > >
+Level::GetObjects(const std::vector< Object::ID >& objectIDs)
+{
+   std::vector< std::shared_ptr< GameObject > > objects = {};
+
+   for (const auto& gameObject : m_objects)
+   {
+      for (const auto objectID : objectIDs)
+      {
+         if (gameObject->GetID() == objectID)
+         {
+            objects.push_back(gameObject);
+         }
+      }
+   }
+
+   return objects;
 }
 
 void

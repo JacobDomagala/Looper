@@ -20,6 +20,9 @@ class Level
 
    [[nodiscard]] std::vector< Tile >
    GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const;
+   
+   [[nodiscard]] std::vector< Tile >
+   GetTilesFromRectangle(const std::array< glm::vec2, 4 >& rect) const;
 
    [[nodiscard]] Tile
    GetTileFromPosition(const glm::vec2& local) const;
@@ -34,12 +37,13 @@ class Level
     * \param[in] box Object's bounding box, needed to calculate collision
     * \param[in] currentTiles Tiles occupied by the object, up to this point
     * \param[in] objectID ID of the object that was moved
+    * \param[in] hasCollision Whether moved object has collision
     *
     * \return Vector of tiles/nodes occupied by given object
     */
    std::vector< Tile >
    GameObjectMoved(const std::array< glm::vec2, 4 >& box, const std::vector< Tile >& currentTiles,
-                   Object::ID objectID);
+                   Object::ID objectID, bool hasCollision);
 
    void
    Create(Application* context, const std::string& name, const glm::ivec2& size);
@@ -66,6 +70,9 @@ class Level
 
    Object&
    GetObjectRef(Object::ID objectID);
+
+   std::vector<std::shared_ptr<GameObject>>
+   GetObjects(const std::vector<Object::ID>& objectIDs);
 
    void
    Update(bool isReverse);

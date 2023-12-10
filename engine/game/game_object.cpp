@@ -54,8 +54,14 @@ GameObject::SetSize(const glm::vec2& newSize)
 {
    m_sprite.SetSize(newSize);
 
-   m_currentGameObjectState.m_occupiedNodes = m_appHandle.GetLevel().GameObjectMoved(
-      m_sprite.GetTransformedRectangle(), m_currentGameObjectState.m_occupiedNodes, m_id);
+   const auto nodes = m_appHandle.GetLevel().GameObjectMoved(
+      m_sprite.GetTransformedRectangle(), m_currentGameObjectState.m_occupiedNodes, m_id,
+      m_hasCollision);
+
+   if (m_hasCollision)
+   {
+      m_currentGameObjectState.m_occupiedNodes = nodes;
+   }
 }
 
 void
@@ -135,6 +141,7 @@ GameObject::SetHasCollision(bool hasCollision)
 
    if (!m_hasCollision)
    {
+      // Free remaining nodes
       for (const auto& node : m_currentGameObjectState.m_occupiedNodes)
       {
          m_appHandle.GetLevel().GetPathfinder().SetNodeFreed(node, m_id);
@@ -169,10 +176,15 @@ GameObject::GetName() const
 void
 GameObject::UpdateCollision()
 {
+   const auto nodes = m_appHandle.GetLevel().GameObjectMoved(
+      m_sprite.GetTransformedRectangle(), m_currentGameObjectState.m_occupiedNodes, m_id,
+      m_hasCollision);
+
+   m_currentGameObjectState.nodes_ = nodes;
+
    if (m_hasCollision)
    {
-      m_currentGameObjectState.m_occupiedNodes = m_appHandle.GetLevel().GameObjectMoved(
-         m_sprite.GetTransformedRectangle(), m_currentGameObjectState.m_occupiedNodes, m_id);
+      m_currentGameObjectState.m_occupiedNodes = nodes;
    }
 }
 

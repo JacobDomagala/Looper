@@ -141,7 +141,10 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
          movementOnEditorObject_ = false;
          movementOnGameObject_ = false;
          mouseDrag_ = false;
+
+         selectedObjects_ = GetObjectsInArea(selectRect_);
          selectStartPos_ = glm::vec2{};
+         selectRect_ = std::array< glm::vec2, 4 >{};
       }
 
       event.handled_ = true;
@@ -493,6 +496,28 @@ Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
    }
 }
 
+std::vector< std::shared_ptr< GameObject > >
+Editor::GetObjectsInArea(const std::array< glm::vec2, 4 >& area) const
+{
+   std::list< Object::ID > objectsList = {};
+
+   const auto& objects = m_currentLevel->GetObjects();
+   const auto tiles = m_currentLevel->GetTilesFromRectangle(area);
+   auto pathfinder = m_currentLevel->GetPathfinder();
+
+   for (const auto& tile : tiles)
+   {
+      const auto& objectsOnNode = pathfinder.GetNodeFromTile(tile).objectsOnThisNode_;
+      for (const auto object : objectsOnNode)
+      {
+         objectsList.push_back(object);
+      }
+   }
+
+   return m_currentLevel->GetObjects(
+      std::vector< Object::ID >{objectsList.begin(), objectsList.end()});
+}
+
 int32_t
 Editor::GetRenderLayerToDraw() const
 {
@@ -739,6 +764,11 @@ Editor::DrawBoundingBoxes()
       renderer::VulkanRenderer::DrawDynamicLine(rect[2], rect[3]);
       renderer::VulkanRenderer::DrawDynamicLine(rect[3], rect[0]);
    };
+
+   for (const auto& object : selectedObjects_)
+   {
+      drawBoundingBox(object->GetSprite());
+   }
 
    if (currentSelectedGameObject_)
    {
@@ -1103,7 +1133,7 @@ Editor::Update()
 
    DrawBoundingBoxes();
 
-   if (mouseDrag_)
+   if (mouseDrag_ and selectRect_ != std::array< glm::vec2, 4 >{})
    {
       renderer::VulkanRenderer::DrawDynamicLine(selectRect_[0], selectRect_[1]);
       renderer::VulkanRenderer::DrawDynamicLine(selectRect_[1], selectRect_[2]);

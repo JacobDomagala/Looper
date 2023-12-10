@@ -207,6 +207,9 @@ class Editor : public Application
    void
    CheckIfObjectGotSelected(const glm::vec2& cursorPosition);
 
+   std::vector< std::shared_ptr< GameObject > >
+   GetObjectsInArea(const std::array< glm::vec2, 4 >& area) const;
+
    void
    UnselectEditorObject();
 
@@ -240,6 +243,7 @@ class Editor : public Application
 
    glm::vec2 selectStartPos_ = {};
    std::array< glm::vec2, 4 > selectRect_ = {};
+   std::vector< std::shared_ptr< GameObject > > selectedObjects_ = {};
 
    glm::vec2 lastCursorPosition_ = {};
 

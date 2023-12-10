@@ -159,6 +159,12 @@ PathFinder::GetNodeIDFromTile(const Tile& tile)
    return GetNodeItFromTile(nodes_, tile)->id_;
 }
 
+Node&
+PathFinder::GetNodeFromTile(const Tile& tile)
+{
+   return *GetNodeItFromTile(nodes_, tile);
+}
+
 std::vector< NodeID >
 PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
 {
@@ -268,6 +274,30 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
    }
 
    return nodePath;
+}
+
+
+void
+PathFinder::SetObjectOnNode(const Tile& nodeCoords, Object::ID objectID)
+{
+   if (nodeCoords != INVALID_TILE)
+   {
+      auto nodeFound = GetNodeItFromTile(nodes_, nodeCoords);
+      nodeFound->objectsOnThisNode_.push_back(objectID);
+   }
+}
+
+
+void
+PathFinder::SetObjectOffNode(const Tile& nodeCoords, Object::ID objectID)
+{
+   if (nodeCoords != INVALID_TILE)
+   {
+      auto nodeFound = GetNodeItFromTile(nodes_, nodeCoords);
+      auto objectFound = stl::find(nodeFound->objectsOnThisNode_, objectID);
+
+      nodeFound->objectsOnThisNode_.erase(objectFound);
+   }
 }
 
 void
