@@ -141,6 +141,7 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
          movementOnEditorObject_ = false;
          movementOnGameObject_ = false;
          mouseDrag_ = false;
+         selectStartPos_ = glm::vec2{};
       }
 
       event.handled_ = true;
@@ -154,12 +155,8 @@ Editor::CursorPositionCallback(CursorPositionEvent& event)
    {
       const auto currentCursorPosition = glm::vec2(event.xPos_, event.yPos_);
 
-      if (LMBPressedLastUpdate_)
+      if (RMBPressedLastUpdate_ or LMBPressedLastUpdate_)
       {
-      }
-      else if (RMBPressedLastUpdate_)
-      {
-         ShowCursor(false);
          HandleMouseDrag(currentCursorPosition, currentCursorPosition - lastCursorPosition_);
       }
       else
@@ -175,8 +172,24 @@ Editor::CursorPositionCallback(CursorPositionEvent& event)
 void
 Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis)
 {
-   if (RMBPressedLastUpdate_)
+   if (LMBPressedLastUpdate_)
    {
+      const auto globalPos = ScreenToGlobal(currentCursorPos);
+
+      if (selectStartPos_ == glm::vec2{})
+      {
+         selectStartPos_ = globalPos;
+      }
+
+      selectRect_[0] = selectStartPos_;
+      selectRect_[1] = glm::vec2(globalPos.x, selectStartPos_.y);
+      selectRect_[2] = globalPos;
+      selectRect_[3] = glm::vec2(selectStartPos_.x, globalPos.y);
+   }
+   else if (RMBPressedLastUpdate_)
+   {
+      ShowCursor(false);
+
       // Rotate camera (or currently selected Object)
       if (InputManager::CheckKeyPressed(GLFW_KEY_LEFT_SHIFT))
       {
@@ -453,10 +466,9 @@ Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
 {
    auto CheckIfEditorObjectSelected =
       [this, cursorPosition](const std::vector< std::shared_ptr< EditorObject > >& objects) {
-         auto newSelectedEditorObject =
-            std::find_if(objects.begin(), objects.end(), [cursorPosition](auto& object) {
-               return object->IsVisible() && object->CheckIfCollidedScreenPosion(cursorPosition);
-            });
+         auto newSelectedEditorObject = stl::find_if(objects, [cursorPosition](auto& object) {
+            return object->IsVisible() && object->CheckIfCollidedScreenPosion(cursorPosition);
+         });
 
          if (newSelectedEditorObject != objects.end())
          {
@@ -656,7 +668,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       vkCmdDrawIndexed(cmdBuffer, renderer::EditorData::numGridLines * renderer::INDICES_PER_LINE,
                        1, 0, 0, 0);
 
-      linePushConstants.color = glm::vec4(0.5f, 0.8f, 0.8f, 1.0f);
+      linePushConstants.color = glm::vec4(0.5f, 0.0f, 0.0f, 1.0f);
       vkCmdPushConstants(cmdBuffer, renderer::EditorData::linePipelineLayout_,
                          VK_SHADER_STAGE_FRAGMENT_BIT, 0,
                          sizeof(renderer::LineShader::PushConstants), &linePushConstants);
@@ -1090,6 +1102,14 @@ Editor::Update()
    renderData.projMat = m_camera.GetProjectionMatrix();
 
    DrawBoundingBoxes();
+
+   if (mouseDrag_)
+   {
+      renderer::VulkanRenderer::DrawDynamicLine(selectRect_[0], selectRect_[1]);
+      renderer::VulkanRenderer::DrawDynamicLine(selectRect_[1], selectRect_[2]);
+      renderer::VulkanRenderer::DrawDynamicLine(selectRect_[2], selectRect_[3]);
+      renderer::VulkanRenderer::DrawDynamicLine(selectRect_[3], selectRect_[0]);
+   }
 
    {
       const time::ScopedTimer uiTImer(&uiTime_);

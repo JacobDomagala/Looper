@@ -238,6 +238,9 @@ class Editor : public Application
 
    bool mouseDrag_ = false;
 
+   glm::vec2 selectStartPos_ = {};
+   std::array< glm::vec2, 4 > selectRect_ = {};
+
    glm::vec2 lastCursorPosition_ = {};
 
    // Handling game objects (which are visible in game)
