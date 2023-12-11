@@ -5,7 +5,7 @@
 
 namespace looper {
 
-static ImGuiKey
+static inline ImGuiKey
 KeyToImGuiKey(int key)
 {
    switch (key)

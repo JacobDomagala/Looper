@@ -47,7 +47,6 @@ Level::Load(Application* context, const std::string& pathToLevel)
       m_contextPointer = context;
    }
 
-
    // PATHFINDER
    {
       const auto& pathfinder = json["PATHFINDER"];
@@ -85,6 +84,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
       m_player->GetSprite().ChangeRenderLayer(player["render_layer"]);
       m_objects.emplace_back(m_player);
    }
+
    // ENEMIES
    {
       const auto& enemies = json["ENEMIES"];
@@ -125,6 +125,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
          m_objects.emplace_back(object);
       }
    }
+
    // OBJECTS
    {
       const auto& objects = json["OBJECTS"];
@@ -380,17 +381,32 @@ Level::GetTilesFromRectangle(const std::array< glm::vec2, 4 >& rect) const
 {
    std::vector< Tile > tiles;
 
+   auto CustomGetTileFromPosition = [](const glm::ivec2& levelSize, uint32_t tileWidth,
+                                       const glm::vec2& position) -> Tile {
+      const auto w =
+         static_cast< int32_t >(glm::floor(position.x / static_cast< float >(tileWidth)));
+      const auto h =
+         static_cast< int32_t >(glm::floor(position.y / static_cast< float >(tileWidth)));
+
+      return {glm::clamp(w, 0, levelSize.x), glm::clamp(h, 0, levelSize.y)};
+   };
+
    // 'rect' is not rotated so we can assume left/right top/down boundaries
    const std::array< Tile, 4 > tileRect = {
-      GetTileFromPosition(rect.at(0)), GetTileFromPosition(rect.at(1)),
-      GetTileFromPosition(rect.at(2)), GetTileFromPosition(rect.at(3))};
+      CustomGetTileFromPosition(m_levelSize, m_tileWidth, rect.at(0)),
+      CustomGetTileFromPosition(m_levelSize, m_tileWidth, rect.at(1)),
+      CustomGetTileFromPosition(m_levelSize, m_tileWidth, rect.at(2)),
+      CustomGetTileFromPosition(m_levelSize, m_tileWidth, rect.at(3))};
 
    // 'y' tiles go bottom to top
    for (auto y = tileRect.at(2).second; y <= tileRect.at(0).second; ++y)
    {
       for (auto x = tileRect.at(0).first; x <= tileRect.at(1).first; ++x)
       {
-         tiles.emplace_back(x, y);
+         if (x != -1 and y != -1)
+         {
+            tiles.emplace_back(x, y);
+         }
       }
    }
 

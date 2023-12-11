@@ -100,7 +100,13 @@ class EditorGUI : public InputListener
    RenderLevelMenu();
 
    void
+   RenderSelectedObjectsMenu();
+
+   void
    RenderGameObjectMenu();
+
+   void
+   RenderGameObjectContent();
 
    void
    RenderCreateNewLevelWindow();

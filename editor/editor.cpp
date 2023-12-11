@@ -135,9 +135,9 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
 
       if (mousePressed)
       {
-         CheckIfObjectGotSelected(InputManager::GetMousePos());
+         const auto newObjectSelected = CheckIfObjectGotSelected(InputManager::GetMousePos());
 
-         if (gameObjectSelected_)
+         if (newObjectSelected)
          {
             for (const auto& object : selectedObjects_)
             {
@@ -157,14 +157,24 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
 
          if (selectingObjects_)
          {
-            ActionOnObject(ACTION::UNSELECT);
             const auto selectedObjects = GetObjectsInArea(selectRect_);
-            for (const auto object : selectedObjects)
-            {
-               gui_.ObjectSelected(object);
-            }
 
-            selectedObjects_ = m_currentLevel->GetObjects(selectedObjects);
+            if (not selectedObjects.empty())
+            {
+               ActionOnObject(ACTION::UNSELECT);
+
+               for (const auto object : selectedObjects)
+               {
+                  gui_.ObjectSelected(object);
+               }
+
+               for (const auto& object : selectedObjects_)
+               {
+                  gui_.ObjectUnselected(object->GetID());
+               }
+
+               selectedObjects_ = m_currentLevel->GetObjects(selectedObjects);
+            }
             selectStartPos_ = glm::vec2{};
             selectRect_ = std::array< glm::vec2, 4 >{};
          }
@@ -422,6 +432,12 @@ Editor::GetSelectedGameObject() const
    return selected;
 }
 
+const std::vector< std::shared_ptr< GameObject > >&
+Editor::GetSelectedObjects() const
+{
+   return selectedObjects_;
+}
+
 void
 Editor::SelectGameObject()
 {
@@ -497,9 +513,11 @@ Editor::UnselectEditorObject()
    }
 }
 
-void
+bool
 Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
 {
+   bool objectSelected = false;
+
    auto CheckIfEditorObjectSelected =
       [this, cursorPosition](const std::vector< std::shared_ptr< EditorObject > >& objects) {
          auto newSelectedEditorObject = stl::find_if(objects, [cursorPosition](auto& object) {
@@ -517,16 +535,21 @@ Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
 
    if (CheckIfEditorObjectSelected(editorObjects_) or CheckIfEditorObjectSelected(animationPoints_))
    {
-      return;
+      objectSelected = true;
    }
-
-   auto newSelectedObject =
-      m_currentLevel->GetGameObjectOnLocationAndLayer(cursorPosition, renderLayerToDraw_);
-
-   if (newSelectedObject)
+   else
    {
-      HandleGameObjectSelected(newSelectedObject);
+      auto newSelectedObject =
+         m_currentLevel->GetGameObjectOnLocationAndLayer(cursorPosition, renderLayerToDraw_);
+
+      if (newSelectedObject)
+      {
+         HandleGameObjectSelected(newSelectedObject);
+         objectSelected = true;
+      }
    }
+
+   return objectSelected;
 }
 
 std::vector< Object::ID >
@@ -540,9 +563,24 @@ Editor::GetObjectsInArea(const std::array< glm::vec2, 4 >& area) const
    for (const auto& tile : tiles)
    {
       const auto& objectsOnNode = pathfinder.GetNodeFromTile(tile).objectsOnThisNode_;
-      for (const auto object : objectsOnNode)
+
+      if (renderLayerToDraw_ != -1)
       {
-         objectsList.insert(object);
+         const auto gameObjectsOnNode = m_currentLevel->GetObjects(objectsOnNode);
+         for (const auto& object : gameObjectsOnNode)
+         {
+            if (object->GetSprite().GetRenderInfo().layer == renderLayerToDraw_)
+            {
+               objectsList.insert(object->GetID());
+            }
+         }
+      }
+      else
+      {
+         for (const auto object : objectsOnNode)
+         {
+            objectsList.insert(object);
+         }
       }
    }
 

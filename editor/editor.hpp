@@ -154,6 +154,9 @@ class Editor : public Application
    [[nodiscard]] Object::ID
    GetSelectedGameObject() const;
 
+   const std::vector< std::shared_ptr< GameObject > >&
+   GetSelectedObjects() const;
+
    void
    HandleEditorObjectSelected(const std::shared_ptr< EditorObject >& newSelectedEditorObject,
                               bool fromGUI = false);
@@ -204,7 +207,7 @@ class Editor : public Application
    void
    HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis);
 
-   void
+   [[nodiscard]] bool
    CheckIfObjectGotSelected(const glm::vec2& cursorPosition);
 
    std::vector< Object::ID >
