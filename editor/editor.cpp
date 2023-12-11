@@ -81,6 +81,7 @@ Editor::KeyCallback(KeyEvent& event)
          if (event.key_ == GLFW_KEY_ESCAPE)
          {
             ActionOnObject(ACTION::UNSELECT);
+            selectedObjects_.clear();
             event.handled_ = true;
          }
 
@@ -140,11 +141,16 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
 
          movementOnEditorObject_ = false;
          movementOnGameObject_ = false;
-         mouseDrag_ = false;
 
-         selectedObjects_ = GetObjectsInArea(selectRect_);
-         selectStartPos_ = glm::vec2{};
-         selectRect_ = std::array< glm::vec2, 4 >{};
+         if (selectingObjects_)
+         {
+            selectedObjects_ = GetObjectsInArea(selectRect_);
+            selectStartPos_ = glm::vec2{};
+            selectRect_ = std::array< glm::vec2, 4 >{};
+         }
+
+         mouseDrag_ = false;
+         selectingObjects_ = false;
       }
 
       event.handled_ = true;
@@ -179,8 +185,10 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
    {
       const auto globalPos = ScreenToGlobal(currentCursorPos);
 
+      // Initial mouse drag on selection
       if (selectStartPos_ == glm::vec2{})
       {
+         selectingObjects_ = true;
          selectStartPos_ = globalPos;
       }
 
@@ -339,7 +347,7 @@ Editor::HandleObjectSelected(Object::ID objectID, bool fromGUI)
    switch (Object::GetTypeFromID(objectID))
    {
       case ObjectType::ANIMATION_POINT: {
-         auto it = std::ranges::find_if(animationPoints_, [objectID](const auto& point) {
+         auto it = stl::find_if(animationPoints_, [objectID](const auto& point) {
             return point->GetLinkedObjectID() == objectID;
          });
 
@@ -506,7 +514,6 @@ Editor::GetObjectsInArea(const std::array< glm::vec2, 4 >& area) const
 {
    std::set< Object::ID > objectsList = {};
 
-   const auto& objects = m_currentLevel->GetObjects();
    const auto tiles = m_currentLevel->GetTilesFromRectangle(area);
    auto pathfinder = m_currentLevel->GetPathfinder();
 
@@ -573,12 +580,13 @@ bool
 Editor::IsAnyObjectSelected() const
 {
    return editorObjectSelected_ or currentEditorObjectSelected_ or gameObjectSelected_
-          or currentSelectedGameObject_;
+          or currentSelectedGameObject_ or not selectedObjects_.empty();
 }
 
 void
 Editor::ActionOnObject(Editor::ACTION action, const std::optional< Object::ID >& object)
 {
+   // This moves the camera to the object
    if (object)
    {
       HandleObjectSelected(object.value(), true);

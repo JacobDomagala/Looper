@@ -240,6 +240,7 @@ class Editor : public Application
    bool RMBPressedLastUpdate_ = false;
 
    bool mouseDrag_ = false;
+   bool selectingObjects_ = false;
 
    glm::vec2 selectStartPos_ = {};
    std::array< glm::vec2, 4 > selectRect_ = {};

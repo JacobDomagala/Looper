@@ -39,8 +39,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
    // BACKGROUND
    {
       const auto& background = json["BACKGROUND"];
-      const auto backgroundTex = background["texture"];
-      const auto size = background["size"];
+      const auto& backgroundTex = background["texture"];
+      const auto& size = background["size"];
 
       LoadPremade(backgroundTex, glm::ivec2(size[0], size[1]));
 
@@ -175,8 +175,6 @@ Level::Save(const std::string& pathToLevel)
    // Serialize game objects
    for (const auto& object : m_objects)
    {
-      const auto id = object->GetID();
-
       switch (object->GetType())
       {
          case ObjectType::PLAYER: {
@@ -392,7 +390,7 @@ Level::GetTilesFromRectangle(const std::array< glm::vec2, 4 >& rect) const
    {
       for (auto x = tileRect.at(0).first; x <= tileRect.at(1).first; ++x)
       {
-         tiles.push_back({x, y});
+         tiles.emplace_back(x, y);
       }
    }
 
@@ -642,7 +640,7 @@ Level::GetObjectRef(Object::ID objectID)
 }
 
 std::vector< std::shared_ptr< GameObject > >
-Level::GetObjects(const std::vector< Object::ID >& objectIDs)
+Level::GetObjects(const std::vector< Object::ID >& objectIDs) const
 {
    std::vector< std::shared_ptr< GameObject > > objects = {};
 

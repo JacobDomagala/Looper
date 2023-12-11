@@ -72,7 +72,7 @@ class Level
    GetObjectRef(Object::ID objectID);
 
    std::vector<std::shared_ptr<GameObject>>
-   GetObjects(const std::vector<Object::ID>& objectIDs);
+   GetObjects(const std::vector<Object::ID>& objectIDs) const;
 
    void
    Update(bool isReverse);
