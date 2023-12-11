@@ -796,17 +796,25 @@ EditorGUI::RenderLevelMenu() // NOLINT
       }
 
       ImGui::BeginChild("Loaded Objects", {0, 200}, true);
+      const auto selectedID = parent_.GetSelectedGameObject();
 
       for (const auto& object : gameObjects)
       {
          if (selectedFilter == filterObjects.at(0) or object->GetTypeString() == selectedFilter)
          {
             auto label = objectLabels_.at(object->GetID());
+            bool isSelected = selectedID == object->GetID();
 
-            if (ImGui::Selectable(label.c_str()))
+            if (ImGui::Selectable(label.c_str(), isSelected))
             {
                parent_.GetCamera().SetCameraAtPosition(object->GetPosition());
                parent_.HandleGameObjectSelected(object, true);
+            }
+
+            if (isSelected)
+            {
+               // Scroll to make this widget visible
+               ImGui::SetScrollHereY();
             }
          }
       }
