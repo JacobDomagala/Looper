@@ -57,13 +57,11 @@ Level::Load(Application* context, const std::string& pathToLevel)
 
       for (const auto& nodeJson : pathfinder["nodes"])
       {
-         m_pathFinder.AddNode(Node(
-            glm::ivec2(nodeJson["coords"][0], nodeJson["coords"][1]),
-            glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]), nodeJson["id"],
-            std::vector< NodeID >(nodeJson["connected to"].begin(), nodeJson["connected to"].end()),
-            nodeJson["occupied"],
-            std::vector< Object::ID >(nodeJson["nodesOccupying"].begin(),
-                                      nodeJson["nodesOccupying"].end())));
+         m_pathFinder.AddNode(Node(glm::ivec2(nodeJson["coords"][0], nodeJson["coords"][1]),
+                                   glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]),
+                                   nodeJson["id"],
+                                   std::vector< NodeID >(nodeJson["connected to"].begin(),
+                                                         nodeJson["connected to"].end())));
       }
 
       m_pathFinder.SetInitialized();
@@ -85,7 +83,6 @@ Level::Load(Application* context, const std::string& pathToLevel)
       m_player->GetSprite().Scale(glm::vec2(player["scale"][0], player["scale"][1]));
       m_player->GetSprite().Rotate(player["rotation"]);
       m_player->GetSprite().ChangeRenderLayer(player["render_layer"]);
-      m_player->SetID(player["id"]);
       m_objects.emplace_back(m_player);
    }
    // ENEMIES
@@ -144,7 +141,6 @@ Level::Load(Application* context, const std::string& pathToLevel)
             *context, glm::vec3(position[0], position[1], 0.0f), glm::ivec2(size[0], size[1]),
             texture, ObjectType::OBJECT);
          gameObject->SetName(name);
-         gameObject->SetID(object["id"]);
          gameObject->GetSprite().Scale(glm::vec2(object["scale"][0], object["scale"][1]));
          gameObject->GetSprite().Rotate(object["rotation"]);
          gameObject->GetSprite().ChangeRenderLayer(object["render_layer"]);
@@ -168,8 +164,6 @@ Level::Save(const std::string& pathToLevel)
       nodeJson["coords"] = {node.xPos_, node.yPos_};
       nodeJson["position"] = {node.position_.x, node.position_.y};
       nodeJson["connected to"] = node.connectedNodes_;
-      nodeJson["occupied"] = node.occupied_;
-      nodeJson["nodesOccupying"] = node.objectsOccupyingThisNode_;
 
       json["PATHFINDER"]["nodes"].emplace_back(nodeJson);
    }
@@ -187,7 +181,6 @@ Level::Save(const std::string& pathToLevel)
       {
          case ObjectType::PLAYER: {
             json["PLAYER"]["name"] = m_player->GetName();
-            json["PLAYER"]["id"] = id;
             json["PLAYER"]["position"] = {m_player->GetPosition().x, m_player->GetPosition().y};
             json["PLAYER"]["scale"] = {m_player->GetSprite().GetScale().x,
                                        m_player->GetSprite().GetScale().y};
@@ -204,7 +197,6 @@ Level::Save(const std::string& pathToLevel)
             nlohmann::json enemyJson;
 
             enemyJson["name"] = object->GetName();
-            enemyJson["id"] = id;
             enemyJson["position"] = {object->GetPosition().x, object->GetPosition().y};
             enemyJson["size"] = {object->GetSprite().GetOriginalSize().x,
                                  object->GetSprite().GetOriginalSize().y};
@@ -239,7 +231,6 @@ Level::Save(const std::string& pathToLevel)
             nlohmann::json objectJson;
 
             objectJson["name"] = object->GetName();
-            objectJson["id"] = id;
             objectJson["has collision"] = object->GetHasCollision();
 
             const auto occupiedNodes = object->GetOccupiedNodes();

@@ -184,10 +184,15 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
          selectStartPos_ = globalPos;
       }
 
-      selectRect_[0] = selectStartPos_;
-      selectRect_[1] = glm::vec2(globalPos.x, selectStartPos_.y);
-      selectRect_[2] = globalPos;
-      selectRect_[3] = glm::vec2(selectStartPos_.x, globalPos.y);
+      const auto minVal = glm::vec2(glm::min(selectStartPos_.x, globalPos.x),
+                                    glm::min(selectStartPos_.y, globalPos.y));
+      const auto maxVal = glm::vec2(glm::max(selectStartPos_.x, globalPos.x),
+                                    glm::max(selectStartPos_.y, globalPos.y));
+
+      selectRect_[0] = glm::vec2{minVal.x, maxVal.y};
+      selectRect_[1] = maxVal;
+      selectRect_[2] = glm::vec2{maxVal.x, minVal.y};
+      selectRect_[3] = minVal;
    }
    else if (RMBPressedLastUpdate_)
    {
