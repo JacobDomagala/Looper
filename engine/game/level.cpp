@@ -397,11 +397,11 @@ Level::GetTilesFromRectangle(const std::array< glm::vec2, 4 >& rect) const
       GetTileFromPosition(rect.at(2)), GetTileFromPosition(rect.at(3))};
 
    // 'y' tiles go bottom to top
-   for (auto i = tileRect.at(2).second; i < tileRect.at(0).second; ++i)
+   for (auto y = tileRect.at(2).second; y <= tileRect.at(0).second; ++y)
    {
-      for (auto j = tileRect.at(0).first; j < tileRect.at(1).first; ++j)
+      for (auto x = tileRect.at(0).first; x <= tileRect.at(1).first; ++x)
       {
-         tiles.push_back({i, j});
+         tiles.push_back({x, y});
       }
    }
 

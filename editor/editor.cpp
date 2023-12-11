@@ -499,7 +499,7 @@ Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
 std::vector< std::shared_ptr< GameObject > >
 Editor::GetObjectsInArea(const std::array< glm::vec2, 4 >& area) const
 {
-   std::list< Object::ID > objectsList = {};
+   std::set< Object::ID > objectsList = {};
 
    const auto& objects = m_currentLevel->GetObjects();
    const auto tiles = m_currentLevel->GetTilesFromRectangle(area);
@@ -510,7 +510,7 @@ Editor::GetObjectsInArea(const std::array< glm::vec2, 4 >& area) const
       const auto& objectsOnNode = pathfinder.GetNodeFromTile(tile).objectsOnThisNode_;
       for (const auto object : objectsOnNode)
       {
-         objectsList.push_back(object);
+         objectsList.insert(object);
       }
    }
 
