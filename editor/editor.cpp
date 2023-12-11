@@ -81,6 +81,10 @@ Editor::KeyCallback(KeyEvent& event)
          if (event.key_ == GLFW_KEY_ESCAPE)
          {
             ActionOnObject(ACTION::UNSELECT);
+            for (const auto& object : selectedObjects_)
+            {
+               gui_.ObjectUnselected(object->GetID());
+            }
             selectedObjects_.clear();
             event.handled_ = true;
          }
@@ -132,6 +136,15 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
       if (mousePressed)
       {
          CheckIfObjectGotSelected(InputManager::GetMousePos());
+
+         if (gameObjectSelected_)
+         {
+            for (const auto& object : selectedObjects_)
+            {
+               gui_.ObjectUnselected(object->GetID());
+            }
+            selectedObjects_.clear();
+         }
       }
       else
       {
@@ -144,7 +157,14 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
 
          if (selectingObjects_)
          {
-            selectedObjects_ = GetObjectsInArea(selectRect_);
+            ActionOnObject(ACTION::UNSELECT);
+            const auto selectedObjects = GetObjectsInArea(selectRect_);
+            for (const auto object : selectedObjects)
+            {
+               gui_.ObjectSelected(object);
+            }
+
+            selectedObjects_ = m_currentLevel->GetObjects(selectedObjects);
             selectStartPos_ = glm::vec2{};
             selectRect_ = std::array< glm::vec2, 4 >{};
          }
@@ -509,7 +529,7 @@ Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition)
    }
 }
 
-std::vector< std::shared_ptr< GameObject > >
+std::vector< Object::ID >
 Editor::GetObjectsInArea(const std::array< glm::vec2, 4 >& area) const
 {
    std::set< Object::ID > objectsList = {};
@@ -526,8 +546,7 @@ Editor::GetObjectsInArea(const std::array< glm::vec2, 4 >& area) const
       }
    }
 
-   return m_currentLevel->GetObjects(
-      std::vector< Object::ID >{objectsList.begin(), objectsList.end()});
+   return {objectsList.begin(), objectsList.end()};
 }
 
 int32_t

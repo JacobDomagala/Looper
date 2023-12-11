@@ -94,7 +94,7 @@ EditorGUI::CharCallback(CharEvent& event)
 void
 EditorGUI::MouseButtonCallback(MouseButtonEvent& event)
 {
-   ImGuiIO& io = ImGui::GetIO();
+   auto& io = ImGui::GetIO();
 
    io.MouseDown[0] = (event.button_ == GLFW_MOUSE_BUTTON_1) && event.action_;
    io.MouseDown[1] = (event.button_ == GLFW_MOUSE_BUTTON_2) && event.action_;
@@ -103,13 +103,16 @@ EditorGUI::MouseButtonCallback(MouseButtonEvent& event)
 void
 EditorGUI::CursorPositionCallback(CursorPositionEvent& event)
 {
-   ImGuiIO& io = ImGui::GetIO();
+   auto& io = ImGui::GetIO();
    io.MousePos = ImVec2(static_cast< float >(event.xPos_), static_cast< float >(event.yPos_));
 }
 
 void
-EditorGUI::MouseScrollCallback(MouseScrollEvent& /*event*/)
+EditorGUI::MouseScrollCallback(MouseScrollEvent& event)
 {
+   auto& io = ImGui::GetIO();
+   io.MouseWheelH += static_cast< float >(event.xOffset_);
+   io.MouseWheel += static_cast< float >(event.yOffset_);
 }
 
 void
@@ -796,22 +799,24 @@ EditorGUI::RenderLevelMenu() // NOLINT
       }
 
       ImGui::BeginChild("Loaded Objects", {0, 200}, true);
-      const auto selectedID = parent_.GetSelectedGameObject();
 
       for (const auto& object : gameObjects)
       {
          if (selectedFilter == filterObjects.at(0) or object->GetTypeString() == selectedFilter)
          {
-            auto label = objectLabels_.at(object->GetID());
-            bool isSelected = selectedID == object->GetID();
+            const auto& objectInfo = objectsInfo_.at(object->GetID());
+            auto label = objectInfo.first;
 
-            if (ImGui::Selectable(label.c_str(), isSelected))
+            if (ImGui::Selectable(label.c_str(), objectInfo.second))
             {
                parent_.GetCamera().SetCameraAtPosition(object->GetPosition());
                parent_.HandleGameObjectSelected(object, true);
+
+               // Don't make the UI jump
+               setScrollTo_ = {};
             }
 
-            if (isSelected)
+            if (setScrollTo_ == object->GetID())
             {
                // Scroll to make this widget visible
                ImGui::SetScrollHereY();
@@ -836,9 +841,11 @@ EditorGUI::RenderLevelMenu() // NOLINT
                   const auto objectID = parent_.GetSelectedGameObject();
                   const auto& object =
                      static_cast< GameObject& >(parent_.GetLevel().GetObjectRef(objectID));
-                  objectLabels_[objectID] = fmt::format(
-                     "[{}] {} ({:.2f}, {:.2f})", object.GetTypeString().c_str(),
-                     object.GetName().c_str(), object.GetPosition().x, object.GetPosition().y);
+                  objectsInfo_[objectID] = {
+                     fmt::format("[{}] {} ({:.2f}, {:.2f})", object.GetTypeString().c_str(),
+                                 object.GetName().c_str(), object.GetPosition().x,
+                                 object.GetPosition().y),
+                     true};
                });
             }
          }
@@ -902,7 +909,7 @@ EditorGUI::RenderGameObjectMenu() // NOLINT
          if (ImGui::InputText("##Name", name.data(), nameLength))
          {
             currentlySelectedGameObject_->SetName(name);
-            objectLabels_[currentlySelectedGameObject_->GetID()] = fmt::format(
+            objectsInfo_[currentlySelectedGameObject_->GetID()].first = fmt::format(
                "[{}] {} ({:.2f}, {:.2f})", currentlySelectedGameObject_->GetTypeString().c_str(),
                currentlySelectedGameObject_->GetName().c_str(),
                currentlySelectedGameObject_->GetPosition().x,
@@ -1195,17 +1202,22 @@ EditorGUI::UpdateUI()
    }
 
    ImGui::Render();
+
+   setScrollTo_ = {};
 }
 
 void
 EditorGUI::GameObjectSelected(const std::shared_ptr< GameObject >& selectedGameObject)
 {
    currentlySelectedGameObject_ = selectedGameObject;
+   objectsInfo_[selectedGameObject->GetID()].second = true;
+   setScrollTo_ = selectedGameObject->GetID();
 }
 
 void
 EditorGUI::GameObjectUnselected()
 {
+   objectsInfo_[currentlySelectedGameObject_->GetID()].second = false;
    currentlySelectedGameObject_ = nullptr;
 }
 
@@ -1228,10 +1240,24 @@ EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
    const auto objects = currentLevel_->GetObjects();
    for (const auto& object : objects)
    {
-      objectLabels_[object->GetID()] =
+      objectsInfo_[object->GetID()] = {
          fmt::format("[{}] {} ({:.2f}, {:.2f})", object->GetTypeString().c_str(),
-                     object->GetName().c_str(), object->GetPosition().x, object->GetPosition().y);
+                     object->GetName().c_str(), object->GetPosition().x, object->GetPosition().y),
+         false};
    }
+}
+
+void
+EditorGUI::ObjectSelected(Object::ID ID)
+{
+   objectsInfo_[ID].second = true;
+   setScrollTo_ = ID;
+}
+
+void
+EditorGUI::ObjectUnselected(Object::ID ID)
+{
+   objectsInfo_[ID].second = false;
 }
 
 void
@@ -1246,7 +1272,7 @@ EditorGUI::ObjectUpdated(Object::ID ID)
       case ObjectType::OBJECT: {
          const auto& gameObject = static_cast< const GameObject& >(object);
 
-         objectLabels_[ID] = fmt::format(
+         objectsInfo_[ID].first = fmt::format(
             "[{}] {} ({:.2f}, {:.2f})", gameObject.GetTypeString().c_str(),
             gameObject.GetName().c_str(), gameObject.GetPosition().x, gameObject.GetPosition().y);
       }

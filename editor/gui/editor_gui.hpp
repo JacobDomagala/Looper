@@ -72,6 +72,12 @@ class EditorGUI : public InputListener
    LevelLoaded(const std::shared_ptr< Level >& loadedLevel);
 
    void
+   ObjectSelected(Object::ID ID);
+
+   void
+   ObjectUnselected(Object::ID ID);
+
+   void
    ObjectUpdated(Object::ID ID);
 
    void
@@ -123,7 +129,10 @@ class EditorGUI : public InputListener
 
    bool createPushed_ = false;
    bool exitPushed_ = false;
-   std::unordered_map< Object::ID, std::string > objectLabels_{};
+
+   // Data needed for loaded objects menu
+   std::unordered_map< Object::ID, std::pair<std::string, bool >> objectsInfo_ = {};
+   Object::ID setScrollTo_ = {};
 
    inline static VkImage fontImage_ = {};
    inline static VkDeviceMemory fontMemory_ = {};

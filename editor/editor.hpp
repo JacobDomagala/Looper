@@ -207,7 +207,7 @@ class Editor : public Application
    void
    CheckIfObjectGotSelected(const glm::vec2& cursorPosition);
 
-   std::vector< std::shared_ptr< GameObject > >
+   std::vector< Object::ID >
    GetObjectsInArea(const std::array< glm::vec2, 4 >& area) const;
 
    void
