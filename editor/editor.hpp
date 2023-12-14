@@ -226,12 +226,6 @@ class Editor : public Application
    UnselectGameObject();
 
    void
-   SelectObject(Object::ID object);
-
-   void
-   UnselectObject(Object::ID object);
-
-   void
    ShowCursor(bool choice);
 
    void

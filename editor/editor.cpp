@@ -491,28 +491,18 @@ Editor::UnselectGameObject()
    movementOnGameObject_ = false;
    gui_.GameObjectUnselected();
 
-   auto* animatable =
-      dynamic_cast< Animatable* >(&m_currentLevel->GetObjectRef(currentSelectedGameObject_));
-
-   if (animatable and animatable->GetRenderAnimationSteps())
-   {
-      SetVisibleAnimationPoints(*animatable, false);
-   }
-
    if (currentSelectedGameObject_ != Object::INVALID_ID)
    {
+      auto* animatable =
+         dynamic_cast< Animatable* >(&m_currentLevel->GetObjectRef(currentSelectedGameObject_));
+
+      if (animatable and animatable->GetRenderAnimationSteps())
+      {
+         SetVisibleAnimationPoints(*animatable, false);
+      }
+
       currentSelectedGameObject_ = Object::INVALID_ID;
    }
-}
-
-void
-Editor::SelectObject(Object::ID object)
-{
-}
-
-void
-Editor::UnselectObject(Object::ID object)
-{
 }
 
 void
