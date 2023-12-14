@@ -16,7 +16,8 @@ class Level
 {
  public:
    std::shared_ptr< GameObject >
-   AddGameObject(ObjectType objectType);
+   AddGameObject(ObjectType objectType,
+                 const glm::vec2& position);
 
    [[nodiscard]] std::vector< Tile >
    GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const;

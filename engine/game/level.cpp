@@ -271,9 +271,8 @@ Level::Quit()
 }
 
 std::shared_ptr< GameObject >
-Level::AddGameObject(ObjectType objectType)
+Level::AddGameObject(ObjectType objectType, const glm::vec2& position)
 {
-   const auto defaultPosition = m_contextPointer->GetCamera().GetPosition();
    const auto defaultSize = glm::ivec2(128, 128);
    const auto defaultTexture = std::string("Default128.png");
 
@@ -282,7 +281,7 @@ Level::AddGameObject(ObjectType objectType)
    switch (objectType)
    {
       case ObjectType::ENEMY: {
-         newObject = std::make_shared< Enemy >(*m_contextPointer, defaultPosition, defaultSize,
+         newObject = std::make_shared< Enemy >(*m_contextPointer, position, defaultSize,
                                                defaultTexture, std::vector< AnimationPoint >{});
          m_objects.push_back(newObject);
       }
@@ -295,7 +294,8 @@ Level::AddGameObject(ObjectType objectType)
          }
          else
          {
-            newObject = std::make_shared< Player >(*m_contextPointer, defaultPosition, defaultSize,
+            newObject =
+               std::make_shared< Player >(*m_contextPointer, position, defaultSize,
                                                    defaultTexture);
             m_player = std::dynamic_pointer_cast< Player >(newObject);
             m_objects.push_back(newObject);
@@ -304,7 +304,7 @@ Level::AddGameObject(ObjectType objectType)
       break;
 
       case ObjectType::OBJECT: {
-         newObject = std::make_shared< GameObject >(*m_contextPointer, defaultPosition, defaultSize,
+         newObject = std::make_shared< GameObject >(*m_contextPointer, position, defaultSize,
                                                     defaultTexture, ObjectType::OBJECT);
 
          m_objects.push_back(newObject);

@@ -30,6 +30,13 @@ GameObject::GameObject(Application& application, const glm::vec3& position, cons
    UpdateCollision();
 }
 
+GameObject::GameObject(Application& application, const glm::vec2& position, const glm::vec2& size,
+                       const std::string& sprite, ObjectType type)
+   : GameObject(application, glm::vec3{position, 0.0f}, size, sprite, type)
+{
+   
+}
+
 bool
 GameObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 {

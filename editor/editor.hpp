@@ -79,10 +79,13 @@ class Editor : public Application
    SaveLevel(const std::string& levelPath);
 
    void
-   AddGameObject(ObjectType objectType);
+   AddGameObject(ObjectType objectType, const glm::vec2& position);
 
    void
    CopyGameObject(const Object::ID objectToCopy);
+
+   void
+   CopyGameObjects(const std::vector<Object::ID>& objectsToCopy);
 
    void
    AddObject(ObjectType objectType);
@@ -221,6 +224,12 @@ class Editor : public Application
 
    void
    UnselectGameObject();
+
+   void
+   SelectObject(Object::ID object);
+
+   void
+   UnselectObject(Object::ID object);
 
    void
    ShowCursor(bool choice);

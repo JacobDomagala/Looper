@@ -1,6 +1,6 @@
-#include "editor_gui.hpp"
 #include "animatable.hpp"
 #include "editor.hpp"
+#include "editor_gui.hpp"
 #include "game_object.hpp"
 #include "helpers.hpp"
 #include "icons.hpp"
@@ -299,7 +299,8 @@ EditorGUI::RenderLevelMenu() // NOLINT
             if (ImGui::Selectable(item.c_str()))
             {
                parent_.AddToWorkQueue([this, item] {
-                  parent_.AddGameObject(Object::GetTypeFromString(item));
+                  parent_.AddGameObject(Object::GetTypeFromString(item),
+                                        parent_.GetCamera().GetPosition());
                   const auto objectID = parent_.GetSelectedGameObject();
                   const auto& object =
                      static_cast< GameObject& >(parent_.GetLevel().GetObjectRef(objectID));
