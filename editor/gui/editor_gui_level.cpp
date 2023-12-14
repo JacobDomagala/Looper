@@ -272,7 +272,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
             if (ImGui::Selectable(label.c_str(), objectInfo.second))
             {
                parent_.GetCamera().SetCameraAtPosition(object->GetPosition());
-               parent_.HandleGameObjectSelected(object, true);
+               parent_.HandleGameObjectSelected(object->GetID(), true);
 
                // Don't make the UI jump
                setScrollTo_ = {};

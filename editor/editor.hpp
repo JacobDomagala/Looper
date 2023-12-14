@@ -82,7 +82,7 @@ class Editor : public Application
    AddGameObject(ObjectType objectType);
 
    void
-   CopyGameObject(const std::shared_ptr< GameObject >& objectToCopy);
+   CopyGameObject(const Object::ID objectToCopy);
 
    void
    AddObject(ObjectType objectType);
@@ -142,7 +142,7 @@ class Editor : public Application
    GetRenderOffsets() const;
 
    void
-   HandleGameObjectSelected(const std::shared_ptr< GameObject >& newSelectedGameObject,
+   HandleGameObjectSelected(Object::ID newSelectedGameObject,
                             bool fromGUI = false);
 
    void
@@ -154,7 +154,7 @@ class Editor : public Application
    [[nodiscard]] Object::ID
    GetSelectedGameObject() const;
 
-   const std::vector< std::shared_ptr< GameObject > >&
+   const std::vector< Object::ID >&
    GetSelectedObjects() const;
 
    void
@@ -193,7 +193,7 @@ class Editor : public Application
    DrawAnimationPoints();
 
    void
-   SetVisibleAnimationPoints(const std::shared_ptr< Animatable >& animatablePtr, bool visible);
+   SetVisibleAnimationPoints(const Animatable& animatable, bool visible);
 
    // void
    // DrawBoundingBoxes();
@@ -247,7 +247,7 @@ class Editor : public Application
 
    glm::vec2 selectStartPos_ = {};
    std::array< glm::vec2, 4 > selectRect_ = {};
-   std::vector< std::shared_ptr< GameObject > > selectedObjects_ = {};
+   std::vector< Object::ID > selectedObjects_ = {};
 
    glm::vec2 lastCursorPosition_ = {};
 
@@ -255,9 +255,10 @@ class Editor : public Application
    bool animateGameObject_ = false;
    bool movementOnGameObject_ = false;
    bool gameObjectSelected_ = false;
-   std::shared_ptr< GameObject > currentSelectedGameObject_ = {};
+   Object::ID currentSelectedGameObject_ = Object::INVALID_ID;
 
-   std::shared_ptr< GameObject > copiedGameObject_ = {};
+   std::vector< Object::ID > copiedGameObjects_ = {};
+   Object::ID copiedGameObject_ = Object::INVALID_ID;
 
    // Handling of editor objects (drawable objects linked to object in game)
    bool movementOnEditorObject_ = false;

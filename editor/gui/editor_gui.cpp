@@ -145,7 +145,7 @@ EditorGUI::UpdateUI()
    {
       RenderSelectedObjectsMenu();
    }
-   else if (currentlySelectedGameObject_)
+   else if (currentlySelectedGameObject_ != Object::INVALID_ID)
    {
       RenderGameObjectMenu();
    }
@@ -161,18 +161,19 @@ EditorGUI::UpdateUI()
 }
 
 void
-EditorGUI::GameObjectSelected(const std::shared_ptr< GameObject >& selectedGameObject)
+EditorGUI::GameObjectSelected(Object::ID selectedGameObject)
 {
    currentlySelectedGameObject_ = selectedGameObject;
-   objectsInfo_[selectedGameObject->GetID()].second = true;
-   setScrollTo_ = selectedGameObject->GetID();
+
+   objectsInfo_[selectedGameObject].second = true;
+   setScrollTo_ = selectedGameObject;
 }
 
 void
 EditorGUI::GameObjectUnselected()
 {
-   objectsInfo_[currentlySelectedGameObject_->GetID()].second = false;
-   currentlySelectedGameObject_ = nullptr;
+   objectsInfo_[currentlySelectedGameObject_].second = false;
+   currentlySelectedGameObject_ = Object::INVALID_ID;
 }
 
 void

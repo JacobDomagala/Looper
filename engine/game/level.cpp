@@ -102,7 +102,6 @@ Level::Load(Application* context, const std::string& pathToLevel)
             *context, glm::vec3(position[0], position[1], 0.0f), glm::ivec2(size[0], size[1]),
             texture, std::vector< AnimationPoint >{});
          object->SetName(name);
-         object->SetID(enemy["id"]);
          object->GetSprite().Scale(glm::vec2(enemy["scale"][0], enemy["scale"][1]));
          object->GetSprite().Rotate(enemy["rotation"]);
          object->GetSprite().ChangeRenderLayer(enemy["render_layer"]);
@@ -593,6 +592,7 @@ Level::GetObjectRef(Object::ID objectID)
 
    switch (Object::GetTypeFromID(objectID))
    {
+      case ObjectType::OBJECT:
       case ObjectType::ENEMY: {
          auto it = stl::find_if(
             m_objects, [objectID](const auto& object) { return object->GetID() == objectID; });

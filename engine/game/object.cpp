@@ -89,21 +89,25 @@ Object::GetTypeFromID(ID id)
    const auto type_part = id >> TYPE_NUM_BITS;
    ObjectType type = ObjectType::NONE;
 
-   if (type_part & static_cast< ID >(ObjectType::ENEMY))
+   if (type_part == static_cast< ID >(ObjectType::ENEMY))
    {
       type = ObjectType::ENEMY;
    }
-   else if (type_part & static_cast< ID >(ObjectType::PLAYER))
+   else if (type_part == static_cast< ID >(ObjectType::PLAYER))
    {
       type = ObjectType::PLAYER;
    }
-   else if (type_part & static_cast< ID >(ObjectType::ANIMATION_POINT))
+   else if (type_part == static_cast< ID >(ObjectType::ANIMATION_POINT))
    {
       type = ObjectType::ANIMATION_POINT;
    }
-   else if (type_part & static_cast< ID >(ObjectType::PATHFINDER_NODE))
+   else if (type_part == static_cast< ID >(ObjectType::PATHFINDER_NODE))
    {
       type = ObjectType::PATHFINDER_NODE;
+   }
+   else if (type_part == static_cast< ID >(ObjectType::OBJECT))
+   {
+      type = ObjectType::OBJECT;
    }
 
    return type;
