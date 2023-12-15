@@ -52,18 +52,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
       const auto& pathfinder = json["PATHFINDER"];
 
       SCOPED_TIMER(fmt::format("Loading Pathfinder ({} nodes)", pathfinder["nodes"].size()));
-      m_pathFinder.InitializeEmpty(this);
-
-      for (const auto& nodeJson : pathfinder["nodes"])
-      {
-         m_pathFinder.AddNode(Node(glm::ivec2(nodeJson["coords"][0], nodeJson["coords"][1]),
-                                   glm::ivec2(nodeJson["position"][0], nodeJson["position"][1]),
-                                   nodeJson["id"],
-                                   std::vector< NodeID >(nodeJson["connected to"].begin(),
-                                                         nodeJson["connected to"].end())));
-      }
-
-      m_pathFinder.SetInitialized();
+      m_pathFinder.Initialize(this);
    }
 
    // PLAYER
@@ -295,8 +284,7 @@ Level::AddGameObject(ObjectType objectType, const glm::vec2& position)
          else
          {
             newObject =
-               std::make_shared< Player >(*m_contextPointer, position, defaultSize,
-                                                   defaultTexture);
+               std::make_shared< Player >(*m_contextPointer, position, defaultSize, defaultTexture);
             m_player = std::dynamic_pointer_cast< Player >(newObject);
             m_objects.push_back(newObject);
          }
@@ -595,12 +583,18 @@ Level::GetObjectRef(Object::ID objectID)
    {
       case ObjectType::OBJECT:
       case ObjectType::ENEMY: {
-         auto it = stl::find_if(
-            m_objects, [objectID](const auto& object) { return object->GetID() == objectID; });
+         auto it = stl::find_if(m_objects, [objectID](const auto& object) {
+            return object->GetID() == objectID;
+         });
 
          if (it != m_objects.end())
          {
             requestedObject = it->get();
+         }
+         else
+         {
+            utils::Assert(false, fmt::format("Object with Type={} and ID={} not found!",
+                                             Object::GetTypeString(objectID), objectID));
          }
       }
       break;

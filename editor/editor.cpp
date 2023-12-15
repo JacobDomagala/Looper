@@ -689,6 +689,9 @@ Editor::ActionOnObject(Editor::ACTION action, const std::optional< Object::ID >&
 
          if (editorObjectSelected_ && currentEditorObjectSelected_)
          {
+            // TODO: Make sure to copy the ID once we change the representation of Objects
+            UnselectEditorObject();
+            
             gui_.ObjectDeleted(currentEditorObjectSelected_->GetLinkedObjectID());
             if (Object::GetTypeFromID(currentEditorObjectSelected_->GetLinkedObjectID())
                 == ObjectType::ANIMATION_POINT)
@@ -696,15 +699,17 @@ Editor::ActionOnObject(Editor::ACTION action, const std::optional< Object::ID >&
                animationPoints_.erase(stl::find(animationPoints_, currentEditorObjectSelected_));
             }
             currentEditorObjectSelected_->DeleteLinkedObject();
-            UnselectEditorObject();
+            
          }
          else if (gameObjectSelected_ && currentSelectedGameObject_ != Object::INVALID_ID)
          {
-            m_currentLevel->DeleteObject(currentSelectedGameObject_);
-
-            gui_.ObjectDeleted(currentSelectedGameObject_);
-
+            // 'currentSelectedGameObject_' gets invalidated after UnselectGameObject call
+            const auto selectedID = currentSelectedGameObject_;
+            
             UnselectGameObject();
+            gui_.ObjectDeleted(selectedID);
+            
+            m_currentLevel->DeleteObject(selectedID);
          }
          break;
    }
