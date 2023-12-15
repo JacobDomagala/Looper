@@ -161,34 +161,6 @@ EditorGUI::UpdateUI()
 }
 
 void
-EditorGUI::GameObjectSelected(Object::ID selectedGameObject)
-{
-   currentlySelectedGameObject_ = selectedGameObject;
-
-   objectsInfo_[selectedGameObject].second = true;
-   setScrollTo_ = selectedGameObject;
-}
-
-void
-EditorGUI::GameObjectUnselected()
-{
-   objectsInfo_[currentlySelectedGameObject_].second = false;
-   currentlySelectedGameObject_ = Object::INVALID_ID;
-}
-
-void
-EditorGUI::EditorObjectSelected(const std::shared_ptr< EditorObject >& /*object*/)
-{
-   // m_currentlySelectedEditorObject = object;
-}
-
-void
-EditorGUI::EditorObjectUnselected()
-{
-   // m_currentlySelectedEditorObject = nullptr;
-}
-
-void
 EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
 {
    currentLevel_ = loadedLevel;
@@ -207,12 +179,24 @@ EditorGUI::ObjectSelected(Object::ID ID)
 {
    objectsInfo_[ID].second = true;
    setScrollTo_ = ID;
+
+   if (currentlySelectedGameObject_ == Object::INVALID_ID)
+   {
+      currentlySelectedGameObject_ = ID;
+   }
 }
 
 void
 EditorGUI::ObjectUnselected(Object::ID ID)
 {
+   objectsInfo_[currentlySelectedGameObject_].second = false;
+   currentlySelectedGameObject_ = Object::INVALID_ID;
+
    objectsInfo_[ID].second = false;
+   if (currentlySelectedGameObject_ == ID)
+   {
+      currentlySelectedGameObject_ = Object::INVALID_ID;
+   }
 }
 
 void
@@ -233,6 +217,7 @@ EditorGUI::ObjectUpdated(Object::ID ID)
       }
       break;
 
+      case ObjectType::EDITOR_OBJECT:
       case ObjectType::ANIMATION_POINT:
       case ObjectType::NONE:
       case ObjectType::PATHFINDER_NODE: {

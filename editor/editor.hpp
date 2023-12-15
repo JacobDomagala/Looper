@@ -85,7 +85,7 @@ class Editor : public Application
    CopyGameObject(const Object::ID objectToCopy);
 
    void
-   CopyGameObjects(const std::vector<Object::ID>& objectsToCopy);
+   CopyGameObjects(const std::vector< Object::ID >& objectsToCopy);
 
    void
    AddObject(ObjectType objectType);
@@ -145,8 +145,7 @@ class Editor : public Application
    GetRenderOffsets() const;
 
    void
-   HandleGameObjectSelected(Object::ID newSelectedGameObject,
-                            bool fromGUI = false);
+   HandleGameObjectSelected(Object::ID newSelectedGameObject, bool groupSelect, bool fromGUI = false);
 
    void
    HandleObjectSelected(Object::ID objectID, bool fromGUI);
@@ -165,7 +164,7 @@ class Editor : public Application
                               bool fromGUI = false);
 
    void
-   ActionOnObject(ACTION action, const std::optional< Object::ID >& = {});
+   ActionOnObject(ACTION action, Object::ID object);
 
    void
    AddToWorkQueue(
@@ -181,6 +180,9 @@ class Editor : public Application
    GetRenderLayerToDraw() const;
 
    void SetRenderLayerToDraw(int32_t);
+
+   EditorObject&
+   GetEditorObjectRef(Object::ID object);
 
  private:
    // [[nodiscard]] std::shared_ptr< EditorObject >
@@ -210,20 +212,26 @@ class Editor : public Application
    void
    HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis);
 
-   [[nodiscard]] bool
-   CheckIfObjectGotSelected(const glm::vec2& cursorPosition);
+   void
+   RotateLogic(const glm::vec2& currentCursorPos);
+
+   void
+   MoveLogic(const glm::vec2& axis);
+
+   void
+   CheckIfObjectGotSelected(const glm::vec2& cursorPosition, bool groupSelect);
 
    std::vector< Object::ID >
    GetObjectsInArea(const std::array< glm::vec2, 4 >& area) const;
 
    void
-   UnselectEditorObject();
+   UnselectEditorObject(Object::ID object);
 
    void
    SelectGameObject();
 
    void
-   UnselectGameObject();
+   UnselectGameObject(Object::ID object, bool groupSelect);
 
    void
    ShowCursor(bool choice);

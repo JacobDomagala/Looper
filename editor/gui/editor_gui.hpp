@@ -57,18 +57,6 @@ class EditorGUI : public InputListener
    UpdateUI();
 
    void
-   GameObjectSelected(Object::ID selectedGameObject);
-
-   void
-   GameObjectUnselected();
-
-   void
-   EditorObjectSelected(const std::shared_ptr< EditorObject >& object);
-
-   void
-   EditorObjectUnselected();
-
-   void
    LevelLoaded(const std::shared_ptr< Level >& loadedLevel);
 
    void

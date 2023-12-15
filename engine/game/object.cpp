@@ -29,6 +29,11 @@ TypeToString(ObjectType type)
       }
       break;
 
+      case ObjectType::EDITOR_OBJECT: {
+         typeStr = "Editor Object";
+      }
+      break;
+
       case ObjectType::PATHFINDER_NODE: {
          typeStr = "Pathfinder Node";
       }
@@ -104,6 +109,10 @@ Object::GetTypeFromID(ID id)
    else if (type_part == static_cast< ID >(ObjectType::PATHFINDER_NODE))
    {
       type = ObjectType::PATHFINDER_NODE;
+   }
+   else if (type_part == static_cast< ID >(ObjectType::EDITOR_OBJECT))
+   {
+      type = ObjectType::EDITOR_OBJECT;
    }
    else if (type_part == static_cast< ID >(ObjectType::OBJECT))
    {

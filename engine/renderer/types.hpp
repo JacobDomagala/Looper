@@ -15,6 +15,7 @@ enum class ObjectType
    PLAYER = 2,
    OBJECT = 3,
    ANIMATION_POINT = 4,
+   EDITOR_OBJECT = 5,
    PATHFINDER_NODE = 8
 };
 

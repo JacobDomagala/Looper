@@ -11,7 +11,7 @@ namespace looper {
 
 class Editor;
 
-class EditorObject
+class EditorObject : public Object
 {
  public:
    EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size,

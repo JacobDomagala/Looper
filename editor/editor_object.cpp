@@ -7,14 +7,15 @@ namespace looper {
 
 EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size,
                            const std::string& sprite, Object::ID linkedObject)
-   : m_editor(editor),
+   : Object(ObjectType::EDITOR_OBJECT),
+     m_editor(editor),
      m_position(positionOnMap),
      m_centeredPosition(positionOnMap),
      m_objectID(linkedObject),
      m_hasLinkedObject(true)
 {
    auto depth = 0.0f;
-   
+
    m_sprite.SetSpriteTextured(glm::vec3{m_position, depth}, size, sprite);
 }
 
