@@ -78,37 +78,32 @@ Editor::KeyCallback(KeyEvent& event)
    {
       if (IsAnyObjectSelected())
       {
+         ACTION action = ACTION::NONE;
+
          if (event.key_ == GLFW_KEY_ESCAPE)
+         {
+            action = ACTION::UNSELECT;
+         }
+         if (event.key_ == GLFW_KEY_DELETE)
+         {
+            action = ACTION::REMOVE;
+         }
+
+         if (action != ACTION::NONE)
          {
             if (currentEditorObjectSelected_)
             {
-               ActionOnObject(ACTION::UNSELECT, currentEditorObjectSelected_->GetID());
-            }
-            else if (currentSelectedGameObject_ != Object::INVALID_ID)
-            {
-               ActionOnObject(ACTION::UNSELECT, currentSelectedGameObject_);
+               ActionOnObject(action, currentEditorObjectSelected_->GetID());
             }
             else
             {
-               for (const auto object : selectedObjects_)
+               for (auto it = selectedObjects_.begin(); it < selectedObjects_.end();)
                {
-                  gui_.ObjectUnselected(object);
+                  ActionOnObject(action, *it);
+                  // 'ActionOnObject' will delete an entry in 'selectedObjects_' we have to
+                  // re-assign iterator here
+                  it = selectedObjects_.begin();
                }
-               selectedObjects_.clear();
-            }
-
-            event.handled_ = true;
-         }
-
-         if (event.key_ == GLFW_KEY_DELETE)
-         {
-            if (currentEditorObjectSelected_)
-            {
-               ActionOnObject(ACTION::REMOVE, currentEditorObjectSelected_->GetID());
-            }
-            else if (currentSelectedGameObject_ != Object::INVALID_ID)
-            {
-               ActionOnObject(ACTION::REMOVE, currentSelectedGameObject_);
             }
 
             event.handled_ = true;
@@ -121,28 +116,13 @@ Editor::KeyCallback(KeyEvent& event)
       {
          if (event.key_ == GLFW_KEY_C)
          {
-            if (not selectedObjects_.empty())
-            {
-               copiedGameObjects_ = selectedObjects_;
-            }
-            else if (gameObjectSelected_)
-            {
-               copiedGameObject_ = currentSelectedGameObject_;
-               event.handled_ = true;
-            }
+            copiedGameObjects_ = selectedObjects_;
+            event.handled_ = true;
          }
          else if (event.key_ == GLFW_KEY_V)
          {
-            if (not copiedGameObjects_.empty())
-            {
-               CopyGameObjects(copiedGameObjects_);
-               event.handled_ = true;
-            }
-            else if (copiedGameObject_)
-            {
-               CopyGameObject(copiedGameObject_);
-               event.handled_ = true;
-            }
+            CopyGameObjects(copiedGameObjects_);
+            event.handled_ = true;
          }
       }
    }
@@ -391,7 +371,7 @@ Editor::HandleGameObjectSelected(Object::ID newSelectedGameObject, bool groupSel
       stl::find(selectedObjects_, newSelectedGameObject) != selectedObjects_.end();
    const auto mainSelectedObject = currentSelectedGameObject_ == newSelectedGameObject;
 
-   if (objectAlreadySelected and groupSelect)
+   if (objectAlreadySelected and groupSelect and not fromGUI)
    {
       UnselectGameObject(newSelectedGameObject, groupSelect);
    }
@@ -540,15 +520,6 @@ Editor::UnselectGameObject(Object::ID object, bool groupSelect)
 
    gui_.ObjectUnselected(object);
 
-   if (groupSelect)
-   {
-      auto it = stl::find(selectedObjects_, object);
-      if (it != selectedObjects_.end())
-      {
-         selectedObjects_.erase(it);
-      }
-   }
-
    const auto* animatable = dynamic_cast< Animatable* >(&m_currentLevel->GetObjectRef(object));
 
    if (animatable and animatable->GetRenderAnimationSteps())
@@ -559,6 +530,15 @@ Editor::UnselectGameObject(Object::ID object, bool groupSelect)
    if (currentSelectedGameObject_ == object)
    {
       currentSelectedGameObject_ = Object::INVALID_ID;
+   }
+
+   if (groupSelect)
+   {
+      auto it = stl::find(selectedObjects_, object);
+      if (it != selectedObjects_.end())
+      {
+         selectedObjects_.erase(it);
+      }
    }
 }
 
@@ -723,9 +703,6 @@ Editor::IsAnyObjectSelected() const
 void
 Editor::ActionOnObject(Editor::ACTION action, Object::ID object)
 {
-   // This moves the camera to the object
-   HandleObjectSelected(object, true);
-
    switch (action)
    {
       case ACTION::UNSELECT:
@@ -736,7 +713,7 @@ Editor::ActionOnObject(Editor::ACTION action, Object::ID object)
          }
          else
          {
-            UnselectGameObject(object, false);
+            UnselectGameObject(object, true);
          }
          break;
 
@@ -762,6 +739,8 @@ Editor::ActionOnObject(Editor::ACTION action, Object::ID object)
             m_currentLevel->DeleteObject(object);
          }
          break;
+      default: {
+      }
    }
 }
 
@@ -1106,22 +1085,6 @@ Editor::AddGameObject(ObjectType objectType, const glm::vec2& position)
 {
    HandleGameObjectSelected(m_currentLevel->AddGameObject(objectType, position)->GetID(), false,
                             false);
-}
-
-void
-Editor::CopyGameObject(const Object::ID objectToCopy)
-{
-   // For now we only copy type/size/collision/sprite
-   const auto& object = dynamic_cast< GameObject& >(m_currentLevel->GetObjectRef(objectToCopy));
-
-   auto newObject =
-      m_currentLevel->AddGameObject(object.GetType(), ScreenToGlobal(InputManager::GetMousePos()));
-   newObject->SetSize(object.GetSize());
-   newObject->SetHasCollision(object.GetHasCollision());
-   newObject->GetSprite().SetTextureFromFile(object.GetSprite().GetTextureName());
-
-   HandleGameObjectSelected(newObject->GetID(), false, false);
-   gui_.ObjectUpdated(newObject->GetID());
 }
 
 void

@@ -27,7 +27,8 @@ class Editor : public Application
    enum class ACTION
    {
       UNSELECT,
-      REMOVE
+      REMOVE,
+      NONE
    };
    explicit Editor(const glm::ivec2& screenSize);
 
@@ -80,9 +81,6 @@ class Editor : public Application
 
    void
    AddGameObject(ObjectType objectType, const glm::vec2& position);
-
-   void
-   CopyGameObject(const Object::ID objectToCopy);
 
    void
    CopyGameObjects(const std::vector< Object::ID >& objectsToCopy);
@@ -269,7 +267,6 @@ class Editor : public Application
    Object::ID currentSelectedGameObject_ = Object::INVALID_ID;
 
    std::vector< Object::ID > copiedGameObjects_ = {};
-   Object::ID copiedGameObject_ = Object::INVALID_ID;
 
    // Handling of editor objects (drawable objects linked to object in game)
    bool movementOnEditorObject_ = false;

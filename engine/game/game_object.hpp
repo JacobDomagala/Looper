@@ -22,6 +22,8 @@ class GameObject : public Object
    GameObject(Application& application, const glm::vec2& position, const glm::vec2& size,
               const std::string& sprite, ObjectType type);
 
+   ~GameObject() override;
+
    virtual void Hit(int32_t /*dmg*/)
    {
    }

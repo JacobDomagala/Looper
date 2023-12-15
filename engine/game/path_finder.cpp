@@ -283,7 +283,10 @@ PathFinder::SetObjectOnNode(const Tile& nodeCoords, Object::ID objectID)
    if (nodeCoords != INVALID_TILE)
    {
       auto nodeFound = GetNodeItFromTile(nodes_, nodeCoords);
-      nodeFound->objectsOnThisNode_.push_back(objectID);
+      if (stl::find(nodeFound->objectsOnThisNode_, objectID) == nodeFound->objectsOnThisNode_.end())
+      {
+         nodeFound->objectsOnThisNode_.push_back(objectID);
+      }
    }
 }
 
@@ -296,7 +299,10 @@ PathFinder::SetObjectOffNode(const Tile& nodeCoords, Object::ID objectID)
       auto nodeFound = GetNodeItFromTile(nodes_, nodeCoords);
       auto objectFound = stl::find(nodeFound->objectsOnThisNode_, objectID);
 
-      nodeFound->objectsOnThisNode_.erase(objectFound);
+      if (objectFound != nodeFound->objectsOnThisNode_.end())
+      {
+         nodeFound->objectsOnThisNode_.erase(objectFound);
+      }
    }
 }
 

@@ -583,9 +583,8 @@ Level::GetObjectRef(Object::ID objectID)
    {
       case ObjectType::OBJECT:
       case ObjectType::ENEMY: {
-         auto it = stl::find_if(m_objects, [objectID](const auto& object) {
-            return object->GetID() == objectID;
-         });
+         auto it = stl::find_if(
+            m_objects, [objectID](const auto& object) { return object->GetID() == objectID; });
 
          if (it != m_objects.end())
          {

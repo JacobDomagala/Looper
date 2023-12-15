@@ -34,7 +34,20 @@ GameObject::GameObject(Application& application, const glm::vec2& position, cons
                        const std::string& sprite, ObjectType type)
    : GameObject(application, glm::vec3{position, 0.0f}, size, sprite, type)
 {
-   
+}
+
+GameObject::~GameObject()
+{
+   auto& pathfinder = m_appHandle.GetLevel().GetPathfinder();
+   for (auto tileID : m_currentGameObjectState.nodes_)
+   {
+      if (m_hasCollision)
+      {
+         pathfinder.SetNodeFreed(tileID, m_id);
+      }
+
+      pathfinder.SetObjectOffNode(tileID, m_id);
+   }
 }
 
 bool
@@ -158,6 +171,10 @@ GameObject::SetHasCollision(bool hasCollision)
    }
    else
    {
+      for (const auto& node : m_currentGameObjectState.nodes_)
+      {
+         m_appHandle.GetLevel().GetPathfinder().SetObjectOffNode(node, m_id);
+      }
       UpdateCollision();
    }
 }

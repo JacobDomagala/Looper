@@ -180,10 +180,7 @@ EditorGUI::ObjectSelected(Object::ID ID)
    objectsInfo_[ID].second = true;
    setScrollTo_ = ID;
 
-   if (currentlySelectedGameObject_ == Object::INVALID_ID)
-   {
-      currentlySelectedGameObject_ = ID;
-   }
+   currentlySelectedGameObject_ = ID;
 }
 
 void
