@@ -68,8 +68,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
 
       m_player = std::make_shared< Player >(*context, glm::vec3(position[0], position[1], 0.0f),
                                             glm::ivec2(size[0], size[1]), texture, name);
-      m_player->GetSprite().Scale(glm::vec2(player["scale"][0], player["scale"][1]));
-      m_player->GetSprite().Rotate(player["rotation"]);
+      m_player->Scale(glm::vec2(player["scale"][0], player["scale"][1]));
+      m_player->Rotate(player["rotation"]);
       m_player->GetSprite().ChangeRenderLayer(player["render_layer"]);
       m_objects.emplace_back(m_player);
    }
@@ -91,8 +91,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
             *context, glm::vec3(position[0], position[1], 0.0f), glm::ivec2(size[0], size[1]),
             texture, std::vector< AnimationPoint >{});
          object->SetName(name);
-         object->GetSprite().Scale(glm::vec2(enemy["scale"][0], enemy["scale"][1]));
-         object->GetSprite().Rotate(enemy["rotation"]);
+         object->Scale(glm::vec2(enemy["scale"][0], enemy["scale"][1]));
+         object->Rotate(enemy["rotation"]);
          object->GetSprite().ChangeRenderLayer(enemy["render_layer"]);
 
          std::vector< AnimationPoint > keypointsPositions = {};
@@ -130,8 +130,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
             *context, glm::vec3(position[0], position[1], 0.0f), glm::ivec2(size[0], size[1]),
             texture, ObjectType::OBJECT);
          gameObject->SetName(name);
-         gameObject->GetSprite().Scale(glm::vec2(object["scale"][0], object["scale"][1]));
-         gameObject->GetSprite().Rotate(object["rotation"]);
+         gameObject->Scale(glm::vec2(object["scale"][0], object["scale"][1]));
+         gameObject->Rotate(object["rotation"]);
          gameObject->GetSprite().ChangeRenderLayer(object["render_layer"]);
          gameObject->SetHasCollision(object["has collision"]);
 
@@ -319,28 +319,45 @@ Level::GameObjectMoved(const std::array< glm::vec2, 4 >& box,
    if (m_pathFinder.IsInitialized())
    {
       // TODO: Discard common tiles and only free/occupy unique ones
-      for (auto tileID : currentTiles)
-      {
-         if (hasCollision)
-         {
-            m_pathFinder.SetNodeFreed(tileID, objectID);
-         }
-
-         m_pathFinder.SetObjectOffNode(tileID, objectID);
-      }
-
-      for (auto tileID : newTiles)
-      {
-         if (hasCollision)
-         {
-            m_pathFinder.SetNodeOccupied(tileID, objectID);
-         }
-
-         m_pathFinder.SetObjectOnNode(tileID, objectID);
-      }
+      FreeNodes(objectID, currentTiles, hasCollision);
+      OccupyNodes(objectID, newTiles, hasCollision);       
    }
 
    return newTiles;
+}
+
+void
+Level::FreeNodes(Object::ID object, const std::vector< Tile >& nodes, bool hasCollision)
+{
+   if (m_pathFinder.IsInitialized())
+   {
+      for (auto tileID : nodes)
+      {
+         if (hasCollision)
+         {
+            m_pathFinder.SetNodeFreed(tileID, object);
+         }
+
+         m_pathFinder.SetObjectOffNode(tileID, object);
+      }
+   }
+}
+
+void
+Level::OccupyNodes(Object::ID object, const std::vector< Tile >& nodes, bool hasCollision)
+{
+   if (m_pathFinder.IsInitialized())
+   {
+      for (auto tileID : nodes)
+      {
+         if (hasCollision)
+         {
+            m_pathFinder.SetNodeOccupied(tileID, object);
+         }
+
+         m_pathFinder.SetObjectOnNode(tileID, object);
+      }
+   }
 }
 
 std::vector< Tile >

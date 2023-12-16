@@ -16,12 +16,11 @@ class Level
 {
  public:
    std::shared_ptr< GameObject >
-   AddGameObject(ObjectType objectType,
-                 const glm::vec2& position);
+   AddGameObject(ObjectType objectType, const glm::vec2& position);
 
    [[nodiscard]] std::vector< Tile >
    GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const;
-   
+
    [[nodiscard]] std::vector< Tile >
    GetTilesFromRectangle(const std::array< glm::vec2, 4 >& rect) const;
 
@@ -45,6 +44,12 @@ class Level
    std::vector< Tile >
    GameObjectMoved(const std::array< glm::vec2, 4 >& box, const std::vector< Tile >& currentTiles,
                    Object::ID objectID, bool hasCollision);
+
+   void
+   FreeNodes(Object::ID object, const std::vector< Tile >& nodes, bool hasCollision);
+
+   void
+   OccupyNodes(Object::ID object, const std::vector< Tile >& nodes, bool hasCollision);
 
    void
    Create(Application* context, const std::string& name, const glm::ivec2& size);
@@ -72,8 +77,8 @@ class Level
    Object&
    GetObjectRef(Object::ID objectID);
 
-   std::vector<std::shared_ptr<GameObject>>
-   GetObjects(const std::vector<Object::ID>& objectIDs) const;
+   std::vector< std::shared_ptr< GameObject > >
+   GetObjects(const std::vector< Object::ID >& objectIDs) const;
 
    void
    Update(bool isReverse);
@@ -211,6 +216,7 @@ class Level
  private:
    Application* m_contextPointer = nullptr;
    renderer::Sprite m_background = {};
+   PathFinder m_pathFinder = {};
 
    // Base texture and collision texture
    renderer::TextureID baseTexture_ = {};
@@ -226,7 +232,6 @@ class Level
    glm::ivec2 m_levelSize = {0, 0};
    uint32_t m_tileWidth = 128;
    std::vector< std::shared_ptr< GameObject > > m_objects = {};
-   PathFinder m_pathFinder = {};
 };
 
 } // namespace looper
