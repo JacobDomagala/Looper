@@ -59,6 +59,7 @@ class Object
       {"Player", ObjectType::PLAYER},
       {"Object", ObjectType::OBJECT},
       {"Animation Point", ObjectType::ANIMATION_POINT},
+      {"Editor Object", ObjectType::EDITOR_OBJECT},
       {"Pathfinder Node", ObjectType::PATHFINDER_NODE}};
    static inline ID s_currentID = 0; // NOLINT
 };

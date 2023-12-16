@@ -27,7 +27,23 @@ GameObject::GameObject(Application& application, const glm::vec3& position, cons
    m_currentGameObjectState.m_visible = true;
    m_currentGameObjectState.m_centeredPosition = m_sprite.GetPosition();
    m_currentGameObjectState.previousPosition_ = glm::vec2(position);
-   UpdateCollision();
+
+
+   m_currentGameObjectState.nodes_ =
+      m_appHandle.GetLevel().GetTilesFromBoundingBox(m_sprite.GetTransformedRectangle());
+
+   m_appHandle.GetLevel().OccupyNodes(m_id, m_currentGameObjectState.nodes_, m_hasCollision);
+}
+
+GameObject::GameObject(Application& application, const glm::vec2& position, const glm::vec2& size,
+                       const std::string& sprite, ObjectType type)
+   : GameObject(application, glm::vec3{position, 0.0f}, size, sprite, type)
+{
+}
+
+GameObject::~GameObject()
+{
+   m_appHandle.GetLevel().FreeNodes(m_id, m_currentGameObjectState.nodes_, m_hasCollision);
 }
 
 bool
@@ -54,8 +70,8 @@ GameObject::SetSize(const glm::vec2& newSize)
 {
    m_sprite.SetSize(newSize);
 
-   m_currentGameObjectState.m_occupiedNodes = m_appHandle.GetLevel().GameObjectMoved(
-      m_sprite.GetTransformedRectangle(), m_currentGameObjectState.m_occupiedNodes, m_id);
+   m_currentGameObjectState.nodes_ = m_appHandle.GetLevel().GameObjectMoved(
+      m_sprite.GetTransformedRectangle(), m_currentGameObjectState.nodes_, m_id, m_hasCollision);
 }
 
 void
@@ -131,20 +147,24 @@ GameObject::CreateSpriteTextured(const glm::vec3& position, const glm::ivec2& si
 void
 GameObject::SetHasCollision(bool hasCollision)
 {
+   if (hasCollision == m_hasCollision)
+   {
+      return;
+   }
+
    m_hasCollision = hasCollision;
 
    if (!m_hasCollision)
    {
-      for (const auto& node : m_currentGameObjectState.m_occupiedNodes)
+      auto& pathfinder = m_appHandle.GetLevel().GetPathfinder();
+      for (const auto& node : m_currentGameObjectState.nodes_)
       {
-         m_appHandle.GetLevel().GetPathfinder().SetNodeFreed(node, m_id);
+         pathfinder.SetNodeFreed(node, m_id);
       }
-
-      m_currentGameObjectState.m_occupiedNodes.clear();
    }
    else
    {
-      UpdateCollision();
+      m_appHandle.GetLevel().OccupyNodes(m_id, m_currentGameObjectState.nodes_, m_hasCollision);
    }
 }
 
@@ -169,17 +189,14 @@ GameObject::GetName() const
 void
 GameObject::UpdateCollision()
 {
-   if (m_hasCollision)
-   {
-      m_currentGameObjectState.m_occupiedNodes = m_appHandle.GetLevel().GameObjectMoved(
-         m_sprite.GetTransformedRectangle(), m_currentGameObjectState.m_occupiedNodes, m_id);
-   }
+   m_currentGameObjectState.nodes_ = m_appHandle.GetLevel().GameObjectMoved(
+      m_sprite.GetTransformedRectangle(), m_currentGameObjectState.nodes_, m_id, m_hasCollision);
 }
 
 std::vector< Tile >
 GameObject::GetOccupiedNodes() const
 {
-   return m_currentGameObjectState.m_occupiedNodes;
+   return m_currentGameObjectState.nodes_;
 }
 
 void

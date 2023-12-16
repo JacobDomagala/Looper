@@ -27,7 +27,8 @@ class Editor : public Application
    enum class ACTION
    {
       UNSELECT,
-      REMOVE
+      REMOVE,
+      NONE
    };
    explicit Editor(const glm::ivec2& screenSize);
 
@@ -79,10 +80,10 @@ class Editor : public Application
    SaveLevel(const std::string& levelPath);
 
    void
-   AddGameObject(ObjectType objectType);
+   AddGameObject(ObjectType objectType, const glm::vec2& position);
 
    void
-   CopyGameObject(const std::shared_ptr< GameObject >& objectToCopy);
+   CopyGameObjects(const std::vector< Object::ID >& objectsToCopy);
 
    void
    AddObject(ObjectType objectType);
@@ -142,8 +143,7 @@ class Editor : public Application
    GetRenderOffsets() const;
 
    void
-   HandleGameObjectSelected(const std::shared_ptr< GameObject >& newSelectedGameObject,
-                            bool fromGUI = false);
+   HandleGameObjectSelected(Object::ID newSelectedGameObject, bool groupSelect, bool fromGUI = false);
 
    void
    HandleObjectSelected(Object::ID objectID, bool fromGUI);
@@ -154,12 +154,15 @@ class Editor : public Application
    [[nodiscard]] Object::ID
    GetSelectedGameObject() const;
 
+   const std::vector< Object::ID >&
+   GetSelectedObjects() const;
+
    void
    HandleEditorObjectSelected(const std::shared_ptr< EditorObject >& newSelectedEditorObject,
                               bool fromGUI = false);
 
    void
-   ActionOnObject(ACTION action, const std::optional< Object::ID >& = {});
+   ActionOnObject(ACTION action, Object::ID object);
 
    void
    AddToWorkQueue(
@@ -176,6 +179,9 @@ class Editor : public Application
 
    void SetRenderLayerToDraw(int32_t);
 
+   EditorObject&
+   GetEditorObjectRef(Object::ID object);
+
  private:
    // [[nodiscard]] std::shared_ptr< EditorObject >
    // GetEditorObjectByID(Object::ID ID);
@@ -190,7 +196,7 @@ class Editor : public Application
    DrawAnimationPoints();
 
    void
-   SetVisibleAnimationPoints(const std::shared_ptr< Animatable >& animatablePtr, bool visible);
+   SetVisibleAnimationPoints(const Animatable& animatable, bool visible);
 
    // void
    // DrawBoundingBoxes();
@@ -205,16 +211,25 @@ class Editor : public Application
    HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis);
 
    void
-   CheckIfObjectGotSelected(const glm::vec2& cursorPosition);
+   RotateLogic(const glm::vec2& currentCursorPos);
 
    void
-   UnselectEditorObject();
+   MoveLogic(const glm::vec2& axis);
+
+   void
+   CheckIfObjectGotSelected(const glm::vec2& cursorPosition, bool groupSelect);
+
+   std::vector< Object::ID >
+   GetObjectsInArea(const std::array< glm::vec2, 4 >& area) const;
+
+   void
+   UnselectEditorObject(Object::ID object);
 
    void
    SelectGameObject();
 
    void
-   UnselectGameObject();
+   UnselectGameObject(Object::ID object, bool groupSelect);
 
    void
    ShowCursor(bool choice);
@@ -225,45 +240,54 @@ class Editor : public Application
    void
    FreeLevelData();
 
-   std::unique_ptr< Game > m_game = {};
+   std::unique_ptr< Game > game_ = {};
 
    std::string m_levelFileName = {};
 
-   bool m_isRunning = true;
+   bool isRunning_ = true;
    bool m_levelLoaded = false;
-   bool m_mousePressedLastUpdate = false;
-   bool m_mouseDrag = false;
 
-   glm::vec2 m_lastCursorPosition = {};
+   // Left and right mouse buttons
+   bool LMBPressedLastUpdate_ = false;
+   bool RMBPressedLastUpdate_ = false;
+
+   bool mouseDrag_ = false;
+   bool selectingObjects_ = false;
+
+   glm::vec2 selectStartPos_ = {};
+   std::array< glm::vec2, 4 > selectRect_ = {};
+   std::vector< Object::ID > selectedObjects_ = {};
+
+   glm::vec2 lastCursorPosition_ = {};
 
    // Handling game objects (which are visible in game)
-   bool m_animateGameObject = false;
-   bool m_movementOnGameObject = false;
-   bool m_gameObjectSelected = false;
-   std::shared_ptr< GameObject > m_currentSelectedGameObject = {};
+   bool animateGameObject_ = false;
+   bool movementOnGameObject_ = false;
+   bool gameObjectSelected_ = false;
+   Object::ID currentSelectedGameObject_ = Object::INVALID_ID;
 
-   std::shared_ptr< GameObject > m_copiedGameObject = {};
+   std::vector< Object::ID > copiedGameObjects_ = {};
 
    // Handling of editor objects (drawable objects linked to object in game)
-   bool m_movementOnEditorObject = false;
-   bool m_editorObjectSelected = false;
-   std::vector< std::shared_ptr< EditorObject > > m_editorObjects = {};
+   bool movementOnEditorObject_ = false;
+   bool editorObjectSelected_ = false;
+   std::vector< std::shared_ptr< EditorObject > > editorObjects_ = {};
    std::vector< std::shared_ptr< EditorObject > > pathfinderNodes_ = {};
    std::vector< std::shared_ptr< EditorObject > > animationPoints_ = {};
-   std::shared_ptr< EditorObject > m_currentEditorObjectSelected = {};
+   std::shared_ptr< EditorObject > currentEditorObjectSelected_ = {};
 
-   bool m_renderPathfinderNodes = false;
+   bool renderPathfinderNodes_ = false;
 
    uint32_t numPathfinderNodes_ = {};
 
-   bool m_drawGrid = false;
-   int32_t m_gridCellSize = 128;
+   bool drawGrid_ = false;
+   int32_t gridCellSize_ = 128;
    int32_t renderLayerToDraw_ = -1;
 
    // constructed in initializer list
    EditorGUI gui_;
 
-   bool m_playGame = false;
+   bool playGame_ = false;
    time::TimeStep timeLastFrame_ = time::TimeStep{time::microseconds{}};
    time::TimeStep uiTime_ = time::TimeStep{time::microseconds{}};
    time::TimeStep renderTime_ = time::TimeStep{time::microseconds{}};

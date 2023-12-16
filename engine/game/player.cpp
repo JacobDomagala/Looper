@@ -22,6 +22,13 @@ Player::Player(Application& game, const glm::vec3& position, const glm::ivec2& s
    m_currentWeapon = m_weapons.at(0).get();
 }
 
+Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& size,
+               const std::string& sprite, const std::string& name)
+   : Player(game, glm::vec3{position, 0.0f}, size, sprite, name)
+{
+   
+}
+
 bool
 Player::CheckCollision(const glm::vec2& bulletPosition, Enemy const* enemy, bool enemyShooting)
 {

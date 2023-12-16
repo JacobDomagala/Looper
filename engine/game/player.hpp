@@ -18,6 +18,9 @@ class Player : public GameObject
    Player(Application& game, const glm::vec3& position, const glm::ivec2& size,
           const std::string& sprite, const std::string& name = "Anonymous");
 
+   Player(Application& game, const glm::vec2& position, const glm::ivec2& size,
+          const std::string& sprite, const std::string& name = "Anonymous");
+
    // check if player got git by enemy
    bool
    CheckCollision(const glm::vec2& bulletPosition, Enemy const* enemy, bool enemyShooting = true);

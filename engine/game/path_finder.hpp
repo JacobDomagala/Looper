@@ -50,6 +50,7 @@ struct Node : public Object
 
    std::vector< NodeID > connectedNodes_ = {};
    std::vector< Object::ID > objectsOccupyingThisNode_ = {};
+   std::vector< Object::ID > objectsOnThisNode_ = {};
 
    bool visited_ = false;
    int32_t localCost_ = std::numeric_limits< int32_t >::max();
@@ -161,6 +162,16 @@ class PathFinder
    GetNodeIDFromTile(const Tile& tile);
 
    /**
+    * \brief Get Node from tile
+    *
+    * \param[in] tile Tile on the map
+    *
+    * \return Node on that Tile
+    */
+   Node&
+   GetNodeFromTile(const Tile& tile);
+
+   /**
     * \brief Get Node from NodeID
     *
     * \param[in] ID NodeID
@@ -180,6 +191,25 @@ class PathFinder
     */
    std::vector< NodeID >
    GetPath(const glm::vec2& source, const glm::vec2& destination);
+
+
+   /**
+    * \brief Assign GameObject to node (on the given tile)
+    *
+    * \param[in] nodeCoords Tile on the map
+    * \param[in] objectID Object that resides on this node/tile
+    */
+   void
+   SetObjectOnNode(const Tile& nodeCoords, Object::ID objectID);
+
+   /**
+    * \brief Remove GameObject from given node (on the given tile)
+    *
+    * \param[in] nodeCoords Tile on the map
+    * \param[in] objectID Object that no longer resides on this node/tile
+    */
+   void
+   SetObjectOffNode(const Tile& nodeCoords, Object::ID objectID);
 
    /**
     * \brief Set node (on the given tile) occupied

@@ -159,6 +159,12 @@ PathFinder::GetNodeIDFromTile(const Tile& tile)
    return GetNodeItFromTile(nodes_, tile)->id_;
 }
 
+Node&
+PathFinder::GetNodeFromTile(const Tile& tile)
+{
+   return *GetNodeItFromTile(nodes_, tile);
+}
+
 std::vector< NodeID >
 PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
 {
@@ -270,6 +276,36 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
    return nodePath;
 }
 
+
+void
+PathFinder::SetObjectOnNode(const Tile& nodeCoords, Object::ID objectID)
+{
+   if (nodeCoords != INVALID_TILE)
+   {
+      auto nodeFound = GetNodeItFromTile(nodes_, nodeCoords);
+      if (stl::find(nodeFound->objectsOnThisNode_, objectID) == nodeFound->objectsOnThisNode_.end())
+      {
+         nodeFound->objectsOnThisNode_.push_back(objectID);
+      }
+   }
+}
+
+
+void
+PathFinder::SetObjectOffNode(const Tile& nodeCoords, Object::ID objectID)
+{
+   if (nodeCoords != INVALID_TILE)
+   {
+      auto nodeFound = GetNodeItFromTile(nodes_, nodeCoords);
+      auto objectFound = stl::find(nodeFound->objectsOnThisNode_, objectID);
+
+      if (objectFound != nodeFound->objectsOnThisNode_.end())
+      {
+         nodeFound->objectsOnThisNode_.erase(objectFound);
+      }
+   }
+}
+
 void
 PathFinder::SetNodeOccupied(const Tile& nodeCoords, Object::ID objectID)
 {
@@ -292,15 +328,19 @@ PathFinder::SetNodeFreed(const Tile& nodeCoords, Object::ID objectID)
 
       auto objectFound = stl::find(nodeFound->objectsOccupyingThisNode_, objectID);
 
-      utils::Assert(objectFound != nodeFound->objectsOccupyingThisNode_.end(),
-                    fmt::format("PathFinder::SetNodeFreed object (ID:{}) not found!", objectID));
-
-      nodeFound->objectsOccupyingThisNode_.erase(objectFound);
-
-      if (nodeFound->objectsOccupyingThisNode_.empty())
+      if (objectFound == nodeFound->objectsOccupyingThisNode_.end())
       {
-         nodeFound->occupied_ = false;
-         nodesModifiedLastFrame_.insert(nodeFound->id_);
+         Logger::Warn("PathFinder::SetNodeFreed object (ID:{}) not found!", objectID);
+      }
+      else
+      {
+         nodeFound->objectsOccupyingThisNode_.erase(objectFound);
+
+         if (nodeFound->objectsOccupyingThisNode_.empty())
+         {
+            nodeFound->occupied_ = false;
+            nodesModifiedLastFrame_.insert(nodeFound->id_);
+         }
       }
    }
 }

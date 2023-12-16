@@ -29,6 +29,15 @@ Enemy::Enemy(Application& context, const glm::vec3& pos, const glm::ivec2& size,
    ResetAnimation();
 }
 
+Enemy::Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size,
+             const std::string& textureName, const std::vector< AnimationPoint >& keypoints,
+             Animatable::ANIMATION_TYPE animationType)
+   : Enemy(context, glm::vec3{pos, 0.0f}, size, textureName, keypoints, animationType)
+{
+   
+}
+
+
 void
 Enemy::DealWithPlayer()
 {

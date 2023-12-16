@@ -19,6 +19,11 @@ class GameObject : public Object
    GameObject(Application& application, const glm::vec3& position, const glm::vec2& size,
               const std::string& sprite, ObjectType type);
 
+   GameObject(Application& application, const glm::vec2& position, const glm::vec2& size,
+              const std::string& sprite, ObjectType type);
+
+   ~GameObject() override;
+
    virtual void Hit(int32_t /*dmg*/)
    {
    }
@@ -146,7 +151,7 @@ class GameObject : public Object
       glm::mat4 m_rotateMatrix;
       glm::mat4 m_scaleMatrix;
 
-      std::vector< Tile > m_occupiedNodes;
+      std::vector< Tile > nodes_;
    };
 
    StateList<State> m_gameObjectStatesQueue;

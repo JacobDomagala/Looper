@@ -57,19 +57,13 @@ class EditorGUI : public InputListener
    UpdateUI();
 
    void
-   GameObjectSelected(const std::shared_ptr< GameObject >& selectedGameObject);
-
-   void
-   GameObjectUnselected();
-
-   void
-   EditorObjectSelected(const std::shared_ptr< EditorObject >& object);
-
-   void
-   EditorObjectUnselected();
-
-   void
    LevelLoaded(const std::shared_ptr< Level >& loadedLevel);
+
+   void
+   ObjectSelected(Object::ID ID);
+
+   void
+   ObjectUnselected(Object::ID ID);
 
    void
    ObjectUpdated(Object::ID ID);
@@ -94,7 +88,13 @@ class EditorGUI : public InputListener
    RenderLevelMenu();
 
    void
+   RenderSelectedObjectsMenu();
+
+   void
    RenderGameObjectMenu();
+
+   void
+   RenderGameObjectContent();
 
    void
    RenderCreateNewLevelWindow();
@@ -112,7 +112,7 @@ class EditorGUI : public InputListener
    Editor& parent_;
 
    // EditorObjectWindow m_editorObjectWindow;
-   std::shared_ptr< GameObject > currentlySelectedGameObject_;
+   Object::ID currentlySelectedGameObject_ = Object::INVALID_ID;
    std::shared_ptr< Level > currentLevel_;
 
    glm::vec2 windowSize_ = {};
@@ -123,7 +123,10 @@ class EditorGUI : public InputListener
 
    bool createPushed_ = false;
    bool exitPushed_ = false;
-   std::unordered_map< Object::ID, std::string > objectLabels_{};
+
+   // Data needed for loaded objects menu
+   std::unordered_map< Object::ID, std::pair<std::string, bool >> objectsInfo_ = {};
+   Object::ID setScrollTo_ = Object::INVALID_ID;
 
    inline static VkImage fontImage_ = {};
    inline static VkDeviceMemory fontMemory_ = {};
