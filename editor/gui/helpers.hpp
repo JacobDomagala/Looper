@@ -316,6 +316,12 @@ SetStyle()
    style.TabRounding = 4;
 }
 
+static inline void
+BlankLine(const ImVec2& line = ImVec2(0.0f, 5.0f))
+{
+   ImGui::Dummy(line);
+}
+
 template < typename Action >
 static constexpr inline void
 DrawWidget(std::string_view label, const Action& action)
@@ -337,6 +343,13 @@ CreateRow(std::string_view name, std::string_view value)
    ImGui::Text("%s", name.data());
    ImGui::TableNextColumn();
    ImGui::Text("%s", value.data());
+}
+
+static inline void 
+BlankColumn()
+{
+   ImGui::TableNextColumn();
+   BlankLine();
 }
 
 template < typename Action >
@@ -367,13 +380,6 @@ CreateActionRow(const FirstAction& firstAction, const Actions&... actions)
    CreateActionColumn(firstAction);
 
    (CreateActionColumn(actions), ...);
-}
-
-
-static inline void
-BlankLine(const ImVec2& line = ImVec2(0.0f, 5.0f))
-{
-   ImGui::Dummy(line);
 }
 
 } // namespace looper

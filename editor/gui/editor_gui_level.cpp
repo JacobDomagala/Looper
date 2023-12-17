@@ -243,9 +243,8 @@ EditorGUI::RenderLevelMenu() // NOLINT
       // NOLINTNEXTLINE
       static std::string selectedFilter = filterObjects.at(0);
       static Object::ID searchID = 0;
-      static std::string newObjectType = "Object";
 
-      DrawWidget("Render by Type", [&filterObjects, this] {
+      DrawWidget("Render by Type", [&filterObjects] {
          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 
          // The second parameter is the label previewed before opening the combo.
@@ -293,15 +292,15 @@ EditorGUI::RenderLevelMenu() // NOLINT
 
       if (ImGui::BeginTable("LevelTable", 3))
       {
-         float total_width = ImGui::GetContentRegionAvail().x;
+         const auto totalWidth = ImGui::GetContentRegionAvail().x;
 
-         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthStretch, 0.35f * total_width);
-         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch, 0.55f * total_width);
-         ImGui::TableSetupColumn("Button", ImGuiTableColumnFlags_WidthStretch, 0.10f * total_width);
+         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthStretch, 0.35f * totalWidth);
+         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch, 0.55f * totalWidth);
+         ImGui::TableSetupColumn("Button", ImGuiTableColumnFlags_WidthStretch, 0.10f * totalWidth);
 
          CreateActionRowLabel(
             "Search by ID",
-            [this] {
+            [] {
                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                ImGui::InputScalar("##searchByID", ImGuiDataType_U64, &searchID, nullptr, nullptr,
                                   nullptr, ImGuiInputTextFlags_EnterReturnsTrue);
@@ -323,9 +322,11 @@ EditorGUI::RenderLevelMenu() // NOLINT
                }
             });
 
+         static std::string newObjectType = "Object";
+
          CreateActionRowLabel(
             "Add",
-            [this] {
+            [] {
                const auto items = std::to_array< std::string >({"Enemy", "Player", "Object"});
 
                // The second parameter is the label previewed before opening the combo.

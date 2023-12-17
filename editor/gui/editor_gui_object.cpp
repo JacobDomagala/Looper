@@ -191,7 +191,7 @@ EditorGUI::RenderGameObjectContent()
    BlankLine();
 
    ImGui::SetNextItemOpen(true);
-   if (ImGui::CollapsingHeader("Shader"))
+   if (ImGui::CollapsingHeader("Texture"))
    {
       auto& gameObject =
          dynamic_cast< GameObject& >(currentLevel_->GetObjectRef(currentlySelectedGameObject_));
@@ -204,28 +204,44 @@ EditorGUI::RenderGameObjectContent()
                                                   descriptorPool_, descriptorSetLayout_)),
          {glm::min(sectionSize.x, 128.0f), glm::min(sectionSize.x, 128.0f)});
 
-      if (ImGui::BeginTable("TextureInfoTable", 2))
+      if (ImGui::BeginTable("TextureInfoTable", 3))
       {
+         const auto totalWidth = ImGui::GetContentRegionAvail().x;
+
+         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthStretch, 0.20f * totalWidth);
+         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch, 0.70f * totalWidth);
+         ImGui::TableSetupColumn("Button", ImGuiTableColumnFlags_WidthStretch, 0.10f * totalWidth);
+
+
          auto& sprite = gameObject.GetSprite();
          CreateRow("Name", fmt::format("{}", sprite.GetTextureName()));
+         BlankColumn();
+
          CreateRow("ID", fmt::format("{}", sprite.GetTexture()->GetID()));
-         CreateActionRowLabel("File", [&gameObject]() {
-            auto& sprite = gameObject.GetSprite();
+         BlankColumn();
 
-            ImGui::InputText("##Texture", sprite.GetTextureName().data(),
-                             sprite.GetTextureName().size(), ImGuiInputTextFlags_ReadOnly);
-            ImGui::SameLine();
+         CreateActionRowLabel(
+            "File",
+            [&gameObject]() {
+               auto& sprite = gameObject.GetSprite();
 
-            if (ImGui::Button(ICON_FA_PENCIL ""))
-            {
-               auto textureName = FileManager::FileDialog(
-                  IMAGES_DIR, {{"PNG texture", "png"}, {"JPEG texture", "jpg"}}, false);
-               if (!textureName.empty())
+               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+               ImGui::InputText("##Texture", sprite.GetTextureName().data(),
+                                sprite.GetTextureName().size(), ImGuiInputTextFlags_ReadOnly);
+            },
+            [&sprite] {
+               if (ImGui::Button(ICON_FA_PENCIL "##ChangeTextureButton"))
                {
-                  sprite.SetTextureFromFile(textureName);
+                  auto textureName = FileManager::FileDialog(
+                     IMAGES_DIR, {{"PNG texture", "png"}, {"JPEG texture", "jpg"}}, false);
+                  if (!textureName.empty())
+                  {
+                     sprite.SetTextureFromFile(textureName);
+                  }
                }
             }
-         });
+
+         );
       }
       ImGui::EndTable();
    }
