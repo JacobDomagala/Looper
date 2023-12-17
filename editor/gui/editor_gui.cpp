@@ -29,23 +29,12 @@ EditorGUI::EditorGUI(Editor& parent) : parent_(parent)
 void
 EditorGUI::KeyCallback(KeyEvent& event)
 {
-   // Editor shoould have priority with KeyCallback
+   // This HAS to be here as Editor should handle key callbacks first
    parent_.KeyCallback(event);
-   if (!event.handled_)
+
+   if (not event.handled_)
    {
-      auto* window = parent_.GetWindow().GetWindowHandle();
       ImGuiIO& io = ImGui::GetIO();
-      io.AddKeyEvent(ImGuiMod_Ctrl,
-                     (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-                        || (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS));
-      io.AddKeyEvent(ImGuiMod_Shift,
-                     (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-                        || (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS));
-      io.AddKeyEvent(ImGuiMod_Alt, (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
-                                      || (glfwGetKey(window, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS));
-      io.AddKeyEvent(ImGuiMod_Super,
-                     (glfwGetKey(window, GLFW_KEY_LEFT_SUPER) == GLFW_PRESS)
-                        || (glfwGetKey(window, GLFW_KEY_RIGHT_SUPER) == GLFW_PRESS));
 
       const auto imguiKey = KeyToImGuiKey(event.key_);
       io.AddKeyEvent(imguiKey, (event.action_ == GLFW_PRESS));
