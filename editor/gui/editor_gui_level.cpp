@@ -266,21 +266,21 @@ EditorGUI::RenderLevelMenu() // NOLINT
 
       for (const auto& object : gameObjects)
       {
-         if (selectedFilter == filterObjects.at(0) or object->GetTypeString() == selectedFilter)
+         if (selectedFilter == filterObjects.at(0) or object.GetTypeString() == selectedFilter)
          {
-            const auto& objectInfo = objectsInfo_.at(object->GetID());
+            const auto& objectInfo = objectsInfo_.at(object.GetID());
             auto label = objectInfo.first;
 
             if (ImGui::Selectable(label.c_str(), objectInfo.second))
             {
-               parent_.GetCamera().SetCameraAtPosition(object->GetPosition());
-               parent_.HandleGameObjectSelected(object->GetID(), false, true);
+               parent_.GetCamera().SetCameraAtPosition(object.GetPosition());
+               parent_.HandleGameObjectSelected(object.GetID(), false, true);
 
                // Don't make the UI jump
                setScrollTo_ = {};
             }
 
-            if (setScrollTo_ == object->GetID())
+            if (setScrollTo_ == object.GetID())
             {
                // Scroll to make this widget visible
                ImGui::SetScrollHereY();

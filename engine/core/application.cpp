@@ -6,28 +6,28 @@
 
 namespace looper {
 
-std::shared_ptr< Player >
+const Player&
 Application::GetPlayer()
 {
-   return m_currentLevel->GetPlayer();
+   return currentLevel_->GetPlayer();
 }
 
 renderer::Window&
 Application::GetWindow()
 {
-   return *m_window;
+   return *window_;
 }
 
 Level&
 Application::GetLevel()
 {
-   return *m_currentLevel;
+   return *currentLevel_;
 }
 
 renderer::Camera&
 Application::GetCamera()
 {
-   return m_camera;
+   return camera_;
 }
 
 time::milliseconds
@@ -36,16 +36,22 @@ Application::GetDeltaTime() const
    return deltaTime_;
 }
 
+int32_t
+Application::GetFramesLastSecond() const
+{
+   return framesLastSecond_;
+}
+
 bool
 Application::IsGame() const
 {
-   return m_isGame;
+   return isGame_;
 }
 
 void
 Application::CenterCameraOnPlayer()
 {
-   m_camera.SetCameraAtObject(m_currentLevel->GetPlayer());
+   camera_.SetCameraAtPosition(currentLevel_->GetPlayer().GetCenteredPosition());
 }
 
 glm::vec2
@@ -69,16 +75,15 @@ Application::ScreenToGlobal(const glm::vec2& screenPos) const
 
    // Compute distance from center of screen to 'screenPos' value
    // Remember to multiply it by the current zoomRatio
-   const auto distanceToObject =
-      (screenPos - windowCenterScreen) * zoomRatio;
+   const auto distanceToObject = (screenPos - windowCenterScreen) * zoomRatio;
 
    // Rotate vector according to current camera's rotation
    const auto rotatedDistanceToObject =
-      glm::rotateZ(glm::vec3(distanceToObject.x, -distanceToObject.y, 0.0f), m_camera.GetRotation());
+      glm::rotateZ(glm::vec3(distanceToObject.x, -distanceToObject.y, 0.0f), camera_.GetRotation());
 
    // Compute global position by adding computed distance to camera position (which is located in
    // the center of the screen)
-   const auto globalPos = m_camera.GetPosition() + rotatedDistanceToObject;
+   const auto globalPos = camera_.GetPosition() + rotatedDistanceToObject;
 
    return globalPos;
 }

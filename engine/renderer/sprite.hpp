@@ -82,6 +82,9 @@ class Sprite
    [[nodiscard]] glm::vec2&
    GetScale();
 
+   [[nodiscard]] const glm::vec2&
+   GetScale() const;
+
    [[nodiscard]] float&
    GetUniformScaleValue();
 

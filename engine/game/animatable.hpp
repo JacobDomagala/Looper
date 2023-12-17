@@ -46,6 +46,7 @@ class Animatable
       REVERSABLE
    };
 
+   Animatable() = default;
    explicit Animatable(ANIMATION_TYPE type);
 
    void SetAnimationType(ANIMATION_TYPE);
@@ -115,7 +116,7 @@ class Animatable
    GetTotalTimeElapsed() const;
 
    void
-   Update(bool isReverse);
+   UpdateAnimation(bool isReverse);
 
    void
    ResetAnimation();

@@ -186,6 +186,12 @@ Sprite::GetScale()
    return currentState_.scaleVal_;
 }
 
+const glm::vec2&
+Sprite::GetScale() const
+{
+   return currentState_.scaleVal_;
+}
+
 float&
 Sprite::GetUniformScaleValue()
 {

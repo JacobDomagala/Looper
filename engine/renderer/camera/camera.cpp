@@ -56,13 +56,6 @@ Camera::SetCameraAtPosition(const glm::vec2& globalPosition)
 }
 
 void
-Camera::SetCameraAtObject(const std::shared_ptr< GameObject >& object)
-{
-   m_position = glm::vec3(object->GetCenteredPosition(), 0.0f);
-   UpdateViewMatrix();
-}
-
-void
 Camera::Move(const glm::vec3& conventionalVector)
 {
    m_position += ConvertToCameraVector(conventionalVector) * m_cameraSpeed;

@@ -1,5 +1,7 @@
 #include "object.hpp"
 
+#include <unordered_map>
+
 namespace looper {
 namespace {
 std::string
@@ -46,39 +48,56 @@ TypeToString(ObjectType type)
 
    return typeStr;
 }
+
+std::unordered_map< std::string, ObjectType > typesMap = {
+   {"Enemy", ObjectType::ENEMY},
+   {"Player", ObjectType::PLAYER},
+   {"Object", ObjectType::OBJECT},
+   {"Animation Point", ObjectType::ANIMATION_POINT},
+   {"Editor Object", ObjectType::EDITOR_OBJECT},
+   {"Pathfinder Node", ObjectType::PATHFINDER_NODE}};
+
 } // namespace
 
 ObjectType
 Object::GetTypeFromString(const std::string& stringType)
 {
-   return s_map[stringType];
+   return typesMap[stringType];
 }
 
-Object::Object(ObjectType type) : m_type(type)
+Object::Object(ObjectType type) : type_(type)
 {
+   Setup(type);
+}
+
+void
+Object::Setup(ObjectType type)
+{
+   type_ = type;
+
    // First 32 bits are for ids, the other are for type storage
    auto type_val = static_cast< ID >(type) << TYPE_NUM_BITS;
-   m_id = type_val + s_currentID;
+   id_ = type_val + currentID_;
 
-   ++s_currentID;
+   ++currentID_;
 }
 
 void
 Object::SetType(ObjectType newType)
 {
-   m_type = newType;
+   type_ = newType;
 }
 
 ObjectType
 Object::GetType() const
 {
-   return m_type;
+   return type_;
 }
 
 std::string
 Object::GetTypeString() const
 {
-   return TypeToString(m_type);
+   return TypeToString(type_);
 }
 
 std::string
@@ -125,13 +144,13 @@ Object::GetTypeFromID(ID id)
 Object::ID
 Object::GetID() const
 {
-   return m_id;
+   return id_;
 }
 
 void
 Object::SetID(Object::ID id)
 {
-   m_id = id;
+   id_ = id;
 }
 
 } // namespace looper

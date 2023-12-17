@@ -2,9 +2,9 @@
 
 #include "input_listener.hpp"
 #include "level.hpp"
-#include "utils/time/timer.hpp"
 #include "logger.hpp"
 #include "renderer/camera/camera.hpp"
+#include "utils/time/timer.hpp"
 #include "work_queue.hpp"
 
 #include <glm/glm.hpp>
@@ -33,7 +33,7 @@ class Application : public InputListener
    Application(Application&) = delete;
    Application(Application&&) = delete;
 
-   [[nodiscard]] std::shared_ptr< Player >
+   [[nodiscard]] const Player&
    GetPlayer();
 
    [[nodiscard]] renderer::Window&
@@ -49,10 +49,7 @@ class Application : public InputListener
    GetDeltaTime() const;
 
    [[nodiscard]] int32_t
-   GetFramesLastSecond() const
-   {
-      return m_framesLastSecond;
-   }
+   GetFramesLastSecond() const;
 
    [[nodiscard]] bool
    IsGame() const;
@@ -93,19 +90,18 @@ class Application : public InputListener
    [[nodiscard]] virtual bool
    IsRunning() const = 0;
 
-   bool m_isGame = false;
+   bool isGame_ = false;
    bool windowInFocus_ = true;
 
-   std::shared_ptr< Player > m_player = nullptr;
-   std::shared_ptr< Level > m_currentLevel = nullptr;
+   std::shared_ptr< Level > currentLevel_ = nullptr;
 
-   std::unique_ptr< renderer::Window > m_window = {};
-   renderer::Camera m_camera = {};
-   time::Timer m_timer = {};
+   std::unique_ptr< renderer::Window > window_ = {};
+   renderer::Camera camera_ = {};
+   time::Timer timer_ = {};
    time::milliseconds deltaTime_ = {};
-   int32_t m_frames = 0;
-   float m_frameTimer = 0.0f;
-   int32_t m_framesLastSecond = 0;
+   int32_t frames_ = 0;
+   float frameTimer_ = 0.0f;
+   int32_t framesLastSecond_ = 0;
    uint32_t numObjects_ = {};
 
    WorkQueue workQueue_ = {};

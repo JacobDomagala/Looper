@@ -16,15 +16,20 @@ class Game;
 class GameObject : public Object
 {
  public:
-   GameObject(Application& application, const glm::vec3& position, const glm::vec2& size,
+   GameObject(Application* application, const glm::vec3& position, const glm::vec2& size,
               const std::string& sprite, ObjectType type);
 
-   GameObject(Application& application, const glm::vec2& position, const glm::vec2& size,
+   GameObject(Application* application, const glm::vec2& position, const glm::vec2& size,
               const std::string& sprite, ObjectType type);
-
+   GameObject();
    ~GameObject() override;
 
-   virtual void Hit(int32_t /*dmg*/)
+   void
+   Setup(Application* application, const glm::vec3& position, const glm::vec2& size,
+         const std::string& sprite, ObjectType type);
+
+   virtual void
+   Hit(int32_t /*dmg*/)
    {
    }
 
@@ -37,9 +42,6 @@ class GameObject : public Object
 
    virtual void
    SetPosition(const glm::vec2& position);
-
-   virtual void
-   SetShaders(const std::string& shader);
 
    virtual void
    SetName(const std::string& name);
@@ -135,37 +137,36 @@ class GameObject : public Object
    struct State
    {
       // global position (in OpenGL coords)
-      glm::vec2 m_position;
+      glm::vec2 position_;
 
       // center of global's position (in OpenGL coords)
-      glm::vec2 m_centeredPosition;
+      glm::vec2 centeredPosition_;
 
       glm::vec2 previousPosition_ = {};
 
       // should this object be visible
-      bool m_visible;
+      bool visible_;
 
       // matrices for transforming object
-      glm::mat4 m_translateMatrix;
-      glm::vec2 m_translateVal;
-      glm::mat4 m_rotateMatrix;
-      glm::mat4 m_scaleMatrix;
+      glm::mat4 translateMatrix_;
+      glm::vec2 translateVal_;
+      glm::mat4 rotateMatrix_;
+      glm::mat4 scaleMatrix_;
 
       std::vector< Tile > nodes_;
    };
 
-   StateList<State> m_gameObjectStatesQueue;
-   State m_currentGameObjectState;
+   StateList< State > gameObjectStatesQueue_;
+   State currentGameObjectState_;
 
-   Application& m_appHandle;
+   Application* appHandle_;
 
-   bool m_hasCollision = false;
+   bool hasCollision_ = false;
 
    // object's sprite
-   renderer::Sprite m_sprite;
-   std::string m_shaderName;
+   renderer::Sprite sprite_;
 
-   std::string m_name = "DummyName";
+   std::string name_ = "DummyName";
 };
 
 } // namespace looper

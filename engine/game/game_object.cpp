@@ -6,9 +6,9 @@
 
 namespace looper {
 
-GameObject::GameObject(Application& application, const glm::vec3& position, const glm::vec2& size,
+GameObject::GameObject(Application* application, const glm::vec3& position, const glm::vec2& size,
                        const std::string& sprite, ObjectType type)
-   : Object(type), m_appHandle(application)
+   : Object(type), appHandle_(application)
 {
    auto newPosition = position;
    switch (type)
@@ -22,190 +22,221 @@ GameObject::GameObject(Application& application, const glm::vec3& position, cons
          break;
    }
 
-   m_sprite.SetSpriteTextured(newPosition, size, sprite);
-   m_currentGameObjectState.m_position = glm::vec2(position);
-   m_currentGameObjectState.m_visible = true;
-   m_currentGameObjectState.m_centeredPosition = m_sprite.GetPosition();
-   m_currentGameObjectState.previousPosition_ = glm::vec2(position);
+   sprite_.SetSpriteTextured(newPosition, size, sprite);
+   currentGameObjectState_.position_ = glm::vec2(position);
+   currentGameObjectState_.visible_ = true;
+   currentGameObjectState_.centeredPosition_ = sprite_.GetPosition();
+   currentGameObjectState_.previousPosition_ = glm::vec2(position);
 
 
-   m_currentGameObjectState.nodes_ =
-      m_appHandle.GetLevel().GetTilesFromBoundingBox(m_sprite.GetTransformedRectangle());
+   currentGameObjectState_.nodes_ =
+      appHandle_->GetLevel().GetTilesFromBoundingBox(sprite_.GetTransformedRectangle());
 
-   m_appHandle.GetLevel().OccupyNodes(m_id, m_currentGameObjectState.nodes_, m_hasCollision);
+   appHandle_->GetLevel().OccupyNodes(id_, currentGameObjectState_.nodes_, hasCollision_);
 }
 
-GameObject::GameObject(Application& application, const glm::vec2& position, const glm::vec2& size,
+GameObject::GameObject(Application* application, const glm::vec2& position, const glm::vec2& size,
                        const std::string& sprite, ObjectType type)
    : GameObject(application, glm::vec3{position, 0.0f}, size, sprite, type)
 {
 }
 
+GameObject::GameObject()
+{
+}
+
 GameObject::~GameObject()
 {
-   m_appHandle.GetLevel().FreeNodes(m_id, m_currentGameObjectState.nodes_, m_hasCollision);
+   appHandle_->GetLevel().FreeNodes(id_, currentGameObjectState_.nodes_, hasCollision_);
 }
+
+void
+GameObject::Setup(Application* application, const glm::vec3& position, const glm::vec2& size,
+                  const std::string& sprite, ObjectType type)
+{
+   Object::Setup(type);
+
+   appHandle_ = application;
+   auto newPosition = position;
+   switch (type)
+   {
+      case looper::ObjectType::OBJECT: {
+         newPosition.z = 0.1f;
+      }
+      break;
+
+      default:
+         break;
+   }
+
+   sprite_.SetSpriteTextured(newPosition, size, sprite);
+   currentGameObjectState_.position_ = glm::vec2(position);
+   currentGameObjectState_.visible_ = true;
+   currentGameObjectState_.centeredPosition_ = sprite_.GetPosition();
+   currentGameObjectState_.previousPosition_ = glm::vec2(position);
+
+
+   currentGameObjectState_.nodes_ =
+      appHandle_->GetLevel().GetTilesFromBoundingBox(sprite_.GetTransformedRectangle());
+
+   appHandle_->GetLevel().OccupyNodes(id_, currentGameObjectState_.nodes_, hasCollision_);
+}
+
 
 bool
 GameObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 {
-   const renderer::CollisionCamera camera(m_appHandle.GetCamera().GetPosition(), this);
-   return camera.CheckCollision(m_appHandle.ScreenToGlobal(screenPosition));
+   const renderer::CollisionCamera camera(appHandle_->GetCamera().GetPosition(), this);
+   return camera.CheckCollision(appHandle_->ScreenToGlobal(screenPosition));
 }
 
 glm::vec2
 GameObject::GetScreenPositionPixels() const
 {
-   return m_appHandle.GlobalToScreen(m_currentGameObjectState.m_centeredPosition);
+   return appHandle_->GlobalToScreen(currentGameObjectState_.centeredPosition_);
 }
 
 bool
 GameObject::Visible() const
 {
-   return m_currentGameObjectState.m_visible;
+   return currentGameObjectState_.visible_;
 }
 
 void
 GameObject::SetSize(const glm::vec2& newSize)
 {
-   m_sprite.SetSize(newSize);
+   sprite_.SetSize(newSize);
 
-   m_currentGameObjectState.nodes_ = m_appHandle.GetLevel().GameObjectMoved(
-      m_sprite.GetTransformedRectangle(), m_currentGameObjectState.nodes_, m_id, m_hasCollision);
+   currentGameObjectState_.nodes_ = appHandle_->GetLevel().GameObjectMoved(
+      sprite_.GetTransformedRectangle(), currentGameObjectState_.nodes_, id_, hasCollision_);
 }
 
 void
 GameObject::SetColor(const glm::vec4& color)
 {
-   m_sprite.SetColor(color);
+   sprite_.SetColor(color);
 }
 
 glm::ivec2
 GameObject::GetSize() const
 {
-   return m_sprite.GetSize();
+   return sprite_.GetSize();
 }
 
 void
 GameObject::SetPosition(const glm::vec2& position)
 {
-   m_currentGameObjectState.m_position = position;
+   currentGameObjectState_.position_ = position;
 }
 
 glm::vec2
 GameObject::GetPosition() const
 {
-   return m_currentGameObjectState.m_position;
+   return currentGameObjectState_.position_;
 }
 
 glm::vec2
 GameObject::GetPreviousPosition() const
 {
-   return m_currentGameObjectState.previousPosition_;
+   return currentGameObjectState_.previousPosition_;
 }
 
 glm::vec2
 GameObject::GetCenteredPosition() const
 {
-   return m_currentGameObjectState.m_position;
-   // return m_currentGameObjectState.m_centeredPosition;
+   return currentGameObjectState_.position_;
+   // return currentGameObjectState_.centeredPosition_;
 }
 
 const renderer::Sprite&
 GameObject::GetSprite() const
 {
-   return m_sprite;
+   return sprite_;
 }
 
 renderer::Sprite&
 GameObject::GetSprite()
 {
-   return m_sprite;
-}
-
-void
-GameObject::SetShaders(const std::string& shader)
-{
-   m_shaderName = shader;
+   return sprite_;
 }
 
 void
 GameObject::CreateSprite(const glm::vec3& position, const glm::ivec2& size)
 {
-   m_sprite.SetSprite(position, size);
-   m_currentGameObjectState.m_position = m_sprite.GetPosition();
+   sprite_.SetSprite(position, size);
+   currentGameObjectState_.position_ = sprite_.GetPosition();
 }
 
 void
 GameObject::CreateSpriteTextured(const glm::vec3& position, const glm::ivec2& size,
                                  const std::string& fileName)
 {
-   m_sprite.SetSpriteTextured(position, size, fileName);
-   m_currentGameObjectState.m_position = m_sprite.GetPosition();
+   sprite_.SetSpriteTextured(position, size, fileName);
+   currentGameObjectState_.position_ = sprite_.GetPosition();
 }
 
 void
 GameObject::SetHasCollision(bool hasCollision)
 {
-   if (hasCollision == m_hasCollision)
+   if (hasCollision == hasCollision_)
    {
       return;
    }
 
-   m_hasCollision = hasCollision;
+   hasCollision_ = hasCollision;
 
-   if (!m_hasCollision)
+   if (!hasCollision_)
    {
-      auto& pathfinder = m_appHandle.GetLevel().GetPathfinder();
-      for (const auto& node : m_currentGameObjectState.nodes_)
+      auto& pathfinder = appHandle_->GetLevel().GetPathfinder();
+      for (const auto& node : currentGameObjectState_.nodes_)
       {
-         pathfinder.SetNodeFreed(node, m_id);
+         pathfinder.SetNodeFreed(node, id_);
       }
    }
    else
    {
-      m_appHandle.GetLevel().OccupyNodes(m_id, m_currentGameObjectState.nodes_, m_hasCollision);
+      appHandle_->GetLevel().OccupyNodes(id_, currentGameObjectState_.nodes_, hasCollision_);
    }
 }
 
 bool
 GameObject::GetHasCollision() const
 {
-   return m_hasCollision;
+   return hasCollision_;
 }
 
 void
 GameObject::SetName(const std::string& name)
 {
-   m_name = name;
+   name_ = name;
 }
 
 std::string
 GameObject::GetName() const
 {
-   return m_name;
+   return name_;
 }
 
 void
 GameObject::UpdateCollision()
 {
-   m_currentGameObjectState.nodes_ = m_appHandle.GetLevel().GameObjectMoved(
-      m_sprite.GetTransformedRectangle(), m_currentGameObjectState.nodes_, m_id, m_hasCollision);
+   currentGameObjectState_.nodes_ = appHandle_->GetLevel().GameObjectMoved(
+      sprite_.GetTransformedRectangle(), currentGameObjectState_.nodes_, id_, hasCollision_);
 }
 
 std::vector< Tile >
 GameObject::GetOccupiedNodes() const
 {
-   return m_currentGameObjectState.nodes_;
+   return currentGameObjectState_.nodes_;
 }
 
 void
 GameObject::Move(const glm::vec2& moveBy)
 {
-   m_currentGameObjectState.previousPosition_ = m_currentGameObjectState.m_position;
-   m_sprite.Translate(glm::vec3(moveBy, 0.0f));
-   m_currentGameObjectState.m_position += moveBy;
-   m_currentGameObjectState.m_centeredPosition += moveBy;
+   currentGameObjectState_.previousPosition_ = currentGameObjectState_.position_;
+   sprite_.Translate(glm::vec3(moveBy, 0.0f));
+   currentGameObjectState_.position_ += moveBy;
+   currentGameObjectState_.centeredPosition_ += moveBy;
 
    UpdateCollision();
 }
@@ -213,7 +244,7 @@ GameObject::Move(const glm::vec2& moveBy)
 void
 GameObject::Scale(const glm::vec2& scaleVal, bool cumulative)
 {
-   cumulative ? m_sprite.ScaleCumulative(scaleVal) : m_sprite.Scale(scaleVal);
+   cumulative ? sprite_.ScaleCumulative(scaleVal) : sprite_.Scale(scaleVal);
 
    UpdateCollision();
 }
@@ -221,7 +252,7 @@ GameObject::Scale(const glm::vec2& scaleVal, bool cumulative)
 void
 GameObject::Rotate(float angle, bool cumulative)
 {
-   cumulative ? m_sprite.RotateCumulative(angle) : m_sprite.Rotate(angle);
+   cumulative ? sprite_.RotateCumulative(angle) : sprite_.Rotate(angle);
 
    UpdateCollision();
 }
@@ -231,27 +262,27 @@ GameObject::Update(bool isReverse)
 {
    if (isReverse)
    {
-      m_currentGameObjectState = m_gameObjectStatesQueue.GetLastState();
+      currentGameObjectState_ = gameObjectStatesQueue_.GetLastState();
    }
    else
    {
-      m_gameObjectStatesQueue.PushState(m_currentGameObjectState);
+      gameObjectStatesQueue_.PushState(currentGameObjectState_);
    }
 
-   m_sprite.Update(isReverse);
+   sprite_.Update(isReverse);
    UpdateInternal(isReverse);
 }
 
 void
 GameObject::Render()
 {
-   m_sprite.Render();
+   sprite_.Render();
 }
 
 Game*
 GameObject::ConvertToGameHandle()
 {
-   auto* gameHandle = dynamic_cast< Game* >(&m_appHandle);
+   auto* gameHandle = dynamic_cast< Game* >(appHandle_);
    if (gameHandle == nullptr)
    {
       Logger::Fatal("GameObject: Game logic called not from Game class");

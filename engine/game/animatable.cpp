@@ -293,7 +293,7 @@ Animatable::GetAnimationDuration() const
 }
 
 void
-Animatable::Update(bool isReverse)
+Animatable::UpdateAnimation(bool isReverse)
 {
    if (isReverse)
    {

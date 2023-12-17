@@ -5,41 +5,64 @@
 
 namespace looper {
 
-Player::Player(Application& game, const glm::vec3& position, const glm::ivec2& size,
+Player::Player(Application* game, const glm::vec3& position, const glm::ivec2& size,
                const std::string& sprite, const std::string& name)
    : GameObject(game, position, size, sprite, ObjectType::PLAYER)
 {
-   m_name = name;
-   m_currentState.m_velocity = {0.0f, 0.0f};
-   m_currentState.m_speed = 0.05f;
+   name_ = name;
+   currentState_.velocity_ = {0.0f, 0.0f};
+   currentState_.speed_ = 0.05f;
 
-   m_currentState.m_currentHP = m_maxHP;
-   // m_currentGameObjectState.m_position = position;
-   m_weapons[0] = std::make_unique< SniperRifle >();
-   m_weapons[1] = std::make_unique< Glock >();
+   currentState_.currentHP_ = maxHP_;
+   // currentGameObjectState_.position_ = position;
+   weapons_[0] = std::make_unique< SniperRifle >();
+   weapons_[1] = std::make_unique< Glock >();
 
    // NOLINTNEXTLINE
-   m_currentWeapon = m_weapons.at(0).get();
+   currentWeapon_ = weapons_.at(0).get();
 }
 
-Player::Player(Application& game, const glm::vec2& position, const glm::ivec2& size,
+Player::Player(Application* game, const glm::vec2& position, const glm::ivec2& size,
                const std::string& sprite, const std::string& name)
    : Player(game, glm::vec3{position, 0.0f}, size, sprite, name)
 {
    
 }
 
+Player::Player()
+{
+}
+
+   void
+Player::Setup(Application* game, const glm::vec3& position, const glm::ivec2& size,
+              const std::string& sprite, const std::string& name)
+{
+   GameObject::Setup(game, position, size, sprite, ObjectType::PLAYER);
+
+   name_ = name;
+   currentState_.velocity_ = {0.0f, 0.0f};
+   currentState_.speed_ = 0.05f;
+
+   currentState_.currentHP_ = maxHP_;
+   // currentGameObjectState_.position_ = position;
+   weapons_[0] = std::make_unique< SniperRifle >();
+   weapons_[1] = std::make_unique< Glock >();
+
+   // NOLINTNEXTLINE
+   currentWeapon_ = weapons_.at(0).get();
+   }
+
 bool
 Player::CheckCollision(const glm::vec2& bulletPosition, Enemy const* enemy, bool enemyShooting)
 {
    // if the bullet is inside collision zone then player got hit
-   if (glm::length(bulletPosition - glm::vec2(m_currentGameObjectState.m_centeredPosition))
-       < (static_cast< float >(m_sprite.GetSize().x)) / 2.5f)
+   if (glm::length(bulletPosition - glm::vec2(currentGameObjectState_.centeredPosition_))
+       < (static_cast< float >(sprite_.GetSize().x)) / 2.5f)
    {
       if (enemyShooting)
       {
-         m_currentState.m_currentHP -= enemy->GetDmg();
-         m_sprite.SetColor({1.0f, 0.0f, 0.0f, 0.75f});
+         // currentState_.currentHP_ -= enemy->GetDmg();
+         sprite_.SetColor({1.0f, 0.0f, 0.0f, 0.75f});
       }
       return false;
    }
@@ -49,8 +72,8 @@ Player::CheckCollision(const glm::vec2& bulletPosition, Enemy const* enemy, bool
 glm::vec2
 Player::GetScreenPosition() const
 {
-   const glm::vec4 screenPosition = m_appHandle.GetProjection()
-                              * glm::vec4(m_currentGameObjectState.m_centeredPosition, 0.0f, 1.0f);
+   const glm::vec4 screenPosition = appHandle_->GetProjection()
+                              * glm::vec4(currentGameObjectState_.centeredPosition_, 0.0f, 1.0f);
    return {screenPosition.x, screenPosition.y};
 }
 
@@ -59,24 +82,24 @@ Player::UpdateInternal(bool isReverse)
 {
    if (isReverse)
    {
-      m_currentState = m_statesQueue.GetLastState();
+      currentState_ = statesQueue_.GetLastState();
    }
    else
    {
-      if (m_appHandle.IsGame())
+      if (appHandle_->IsGame())
       {
          auto* const gameHandle = ConvertToGameHandle();
          const auto cursorPos = gameHandle->ScreenToGlobal(gameHandle->GetCursor());
-         const auto spritePosition = m_currentGameObjectState.m_position;
+         const auto spritePosition = currentGameObjectState_.position_;
 
-         m_currentState.m_viewAngle =
+         currentState_.viewAngle_ =
             glm::atan(cursorPos.y - spritePosition.y, cursorPos.x - spritePosition.x);
       }
 
-      m_sprite.Rotate(m_currentState.m_viewAngle);
-      m_sprite.SetColor({1.0f, 1.0f, 1.0f, 1.0f});
+      sprite_.Rotate(currentState_.viewAngle_);
+      sprite_.SetColor({1.0f, 1.0f, 1.0f, 1.0f});
 
-      m_statesQueue.PushState(m_currentState);
+      statesQueue_.PushState(currentState_);
    }
 }
 
@@ -85,38 +108,38 @@ Player::Shoot()
 {
    auto* gameHandle = ConvertToGameHandle();
 
-   const auto direction = gameHandle->GetCursor() - glm::vec2(m_currentGameObjectState.m_position);
-   m_currentWeapon->Shoot(direction);
+   const auto direction = gameHandle->GetCursor() - glm::vec2(currentGameObjectState_.position_);
+   currentWeapon_->Shoot(direction);
 }
 
 void
 Player::SetPosition(const glm::vec2& position)
 {
-   m_currentGameObjectState.m_position = position;
+   currentGameObjectState_.position_ = position;
 }
 
 float
 Player::GetReloadTime() const
 {
-   return m_currentWeapon->GetReloadTime();
+   return currentWeapon_->GetReloadTime();
 }
 
 void
 Player::ChangeWepon(int32_t idx)
 {
-   m_currentWeapon = m_weapons.at(static_cast< size_t >(idx)).get();
+   currentWeapon_ = weapons_.at(static_cast< size_t >(idx)).get();
 }
 
 float
 Player::GetWeaponRange() const
 {
-   return m_currentWeapon->GetRange();
+   return currentWeapon_->GetRange();
 }
 
 int32_t
 Player::GetWeaponDmg() const
 {
-   return m_currentWeapon->GetDamage();
+   return currentWeapon_->GetDamage();
 }
 
 std::vector< std::string >
@@ -124,7 +147,7 @@ Player::GetWeapons() const
 {
    std::vector< std::string > weapons{};
 
-   for (const auto& weapon : m_weapons)
+   for (const auto& weapon : weapons_)
    {
       if (weapon)
       {

@@ -80,7 +80,7 @@ class Game : public Application
     * \param[in] moveBy Movement vector
     */
    void
-   MoveGameObject(GameObject* gameObject, const glm::vec2& moveBy) const;
+   MoveGameObject(Object::ID gameObject, const glm::vec2& moveBy) const;
 
    void
    KeyEvents();

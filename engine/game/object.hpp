@@ -4,7 +4,6 @@
 
 #include <memory>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace looper {
@@ -22,8 +21,13 @@ class Object
    static constexpr ID INVALID_ID = static_cast< ID >(~0);
    static constexpr uint32_t TYPE_NUM_BITS = 32;
 
+   Object() = default;
+   Object(const Object&) = default;
    explicit Object(ObjectType type);
    virtual ~Object() = default;
+
+   void
+   Setup(ObjectType type);
 
    static ObjectType
    GetTypeFromString(const std::string& stringType);
@@ -45,23 +49,13 @@ class Object
    [[nodiscard]] ID
    GetID() const;
 
-   void
-   SetID(ID);
+   void SetID(ID);
 
  protected:
-   ObjectType m_type;
+   ObjectType type_ = ObjectType::NONE;
+   ID id_ = INVALID_ID;
 
-   ID m_id;
-
-   // NOLINTNEXTLINE
-   static inline std::unordered_map< std::string, ObjectType > s_map = {
-      {"Enemy", ObjectType::ENEMY},
-      {"Player", ObjectType::PLAYER},
-      {"Object", ObjectType::OBJECT},
-      {"Animation Point", ObjectType::ANIMATION_POINT},
-      {"Editor Object", ObjectType::EDITOR_OBJECT},
-      {"Pathfinder Node", ObjectType::PATHFINDER_NODE}};
-   static inline ID s_currentID = 0; // NOLINT
+   static inline ID currentID_ = 0; // NOLINT
 };
 
 inline bool
