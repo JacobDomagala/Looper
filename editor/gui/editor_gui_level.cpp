@@ -234,8 +234,6 @@ EditorGUI::RenderLevelMenu() // NOLINT
       }
    }
 
-   BlankLine();
-
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Objects"))
    {
@@ -244,21 +242,26 @@ EditorGUI::RenderLevelMenu() // NOLINT
       const auto filterObjects = std::to_array< std::string >({"All", "Enemy", "Player", "Object"});
       // NOLINTNEXTLINE
       static std::string selectedFilter = filterObjects.at(0);
+      static Object::ID searchID = 0;
+      static std::string newObjectType = "Object";
 
-      ImGui::SetNextItemWidth(windowWidth_ * 0.95f);
+      DrawWidget("Render by Type", [&filterObjects, this] {
+         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 
-      // The second parameter is the label previewed before opening the combo.
-      if (ImGui::BeginCombo("##combo1", selectedFilter.c_str()))
-      {
-         for (const auto& item : filterObjects)
+         // The second parameter is the label previewed before opening the combo.
+         if (ImGui::BeginCombo("##combo1", selectedFilter.c_str()))
          {
-            if (ImGui::Selectable(item.c_str()))
+            for (const auto& item : filterObjects)
             {
-               selectedFilter = item;
+               if (ImGui::Selectable(item.c_str()))
+               {
+                  selectedFilter = item;
+               }
             }
+            ImGui::EndCombo();
          }
-         ImGui::EndCombo();
-      }
+      });
+
 
       ImGui::BeginChild("Loaded Objects", {0, 200}, true);
 
@@ -288,31 +291,75 @@ EditorGUI::RenderLevelMenu() // NOLINT
 
       ImGui::EndChild();
 
-      const auto items = std::to_array< std::string >({"Enemy", "Player", "Object"});
-      ImGui::SetNextItemWidth(windowWidth_ * 0.95f);
-
-      // The second parameter is the label previewed before opening the combo.
-      if (ImGui::BeginCombo("##combo2", "Add"))
+      if (ImGui::BeginTable("LevelTable", 3))
       {
-         for (const auto& item : items)
-         {
-            if (ImGui::Selectable(item.c_str()))
-            {
-               parent_.AddToWorkQueue([this, item] {
-                  parent_.AddGameObject(Object::GetTypeFromString(item),
-                                        parent_.GetCamera().GetPosition());
-                  const auto objectID = parent_.GetSelectedGameObject();
-                  const auto& object =
-                     static_cast< GameObject& >(parent_.GetLevel().GetObjectRef(objectID));
-                  objectsInfo_[objectID] = {
-                     fmt::format("[{}] {} ({:.2f}, {:.2f})", object.GetTypeString().c_str(),
-                                 object.GetName().c_str(), object.GetPosition().x,
-                                 object.GetPosition().y),
-                     true};
-               });
-            }
-         }
-         ImGui::EndCombo();
+         float total_width = ImGui::GetContentRegionAvail().x;
+
+         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthStretch, 0.35f * total_width);
+         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch, 0.55f * total_width);
+         ImGui::TableSetupColumn("Button", ImGuiTableColumnFlags_WidthStretch, 0.10f * total_width);
+
+         CreateActionRowLabel(
+            "Search by ID",
+            [this] {
+               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+               ImGui::InputScalar("##searchByID", ImGuiDataType_U64, &searchID, nullptr, nullptr,
+                                  nullptr, ImGuiInputTextFlags_EnterReturnsTrue);
+            },
+            [this] {
+               if (ImGui::Button(ICON_FA_PLAY "##SearchByID"))
+               {
+                  if (currentlySelectedGameObject_ != searchID)
+                  {
+                     auto it = objectsInfo_.find(searchID);
+                     if (it != objectsInfo_.end())
+                     {
+                        parent_.HandleObjectSelected(searchID, true);
+                        parent_.GetCamera().SetCameraAtPosition(
+                           dynamic_cast< GameObject& >(parent_.GetLevel().GetObjectRef(searchID))
+                              .GetPosition());
+                     }
+                  }
+               }
+            });
+
+         CreateActionRowLabel(
+            "Add",
+            [this] {
+               const auto items = std::to_array< std::string >({"Enemy", "Player", "Object"});
+
+               // The second parameter is the label previewed before opening the combo.
+               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+               if (ImGui::BeginCombo("##combo2", newObjectType.c_str()))
+               {
+                  for (const auto& item : items)
+                  {
+                     if (ImGui::Selectable(item.c_str()))
+                     {
+                        newObjectType = item;
+                     }
+                  }
+                  ImGui::EndCombo();
+               }
+            },
+            [this] {
+               if (ImGui::Button(ICON_FA_PLAY "##AddObject"))
+               {
+                  parent_.AddToWorkQueue([this] {
+                     parent_.AddGameObject(Object::GetTypeFromString(newObjectType),
+                                           parent_.GetCamera().GetPosition());
+                     const auto objectID = parent_.GetSelectedGameObject();
+                     const auto& object =
+                        static_cast< GameObject& >(parent_.GetLevel().GetObjectRef(objectID));
+                     objectsInfo_[objectID] = {
+                        fmt::format("[{}] {} ({:.2f}, {:.2f})", object.GetTypeString().c_str(),
+                                    object.GetName().c_str(), object.GetPosition().x,
+                                    object.GetPosition().y),
+                        true};
+                  });
+               }
+            });
+         ImGui::EndTable();
       }
    }
 
