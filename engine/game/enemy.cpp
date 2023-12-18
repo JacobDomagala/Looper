@@ -43,6 +43,7 @@ Enemy::Setup(Application* context, const glm::vec2& pos, const glm::ivec2& size,
    GameObject::Setup(context, glm::vec3{pos, 0.0f}, size, textureName, ObjectType::ENEMY);
    SetAnimationType(animationType);
 
+   initialPosition_ = currentGameObjectState_.position_;
    currentState_.currentHP_ = maxHP_;
    currentState_.visionRange_ = 1000.0f;
 

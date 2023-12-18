@@ -7,7 +7,8 @@
 
 namespace looper::renderer {
 
-Sprite::~Sprite()
+void
+Sprite::ClearData()
 {
    const auto transformMat = ComputeModelMat();
 
@@ -16,6 +17,7 @@ Sprite::~Sprite()
 
    renderer::VulkanRenderer::MeshDeleted(renderInfo_);
 }
+
 
 glm::mat4
 Sprite::ComputeModelMat() const

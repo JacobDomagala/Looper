@@ -26,7 +26,8 @@ class Sprite
       glm::vec2 scale = {1.0f, 1.0f};
    };
 
-   ~Sprite();
+   void
+   ClearData();
 
    // Create sprite without texture
    void

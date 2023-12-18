@@ -5,18 +5,18 @@
 
 namespace looper {
 
-EditorObject::EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size,
+EditorObject::EditorObject(Editor* editor, const glm::vec2& positionOnMap, const glm::ivec2& size,
                            const std::string& sprite, Object::ID linkedObject)
    : Object(ObjectType::EDITOR_OBJECT),
-     m_editor(editor),
-     m_position(positionOnMap),
-     m_centeredPosition(positionOnMap),
-     m_objectID(linkedObject),
-     m_hasLinkedObject(true)
+     editor_(editor),
+     position_(positionOnMap),
+     centeredPosition_(positionOnMap),
+     objectID_(linkedObject),
+     hasLinkedObject_(true)
 {
    auto depth = 0.0f;
 
-   m_sprite.SetSpriteTextured(glm::vec3{m_position, depth}, size, sprite);
+   sprite_.SetSpriteTextured(glm::vec3{position_, depth}, size, sprite);
 }
 
 bool
@@ -24,10 +24,10 @@ EditorObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 {
    bool collided = false;
 
-   renderer::Camera camera = m_editor.GetCamera();
-   camera.Rotate(m_sprite.GetRotation(), false);
+   renderer::Camera camera = editor_->GetCamera();
+   camera.Rotate(sprite_.GetRotation(), false);
 
-   const auto boundingRectangle = m_sprite.GetTransformedRectangle();
+   const auto boundingRectangle = sprite_.GetTransformedRectangle();
 
    const auto transformed0 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[0], 0.0f, 1.0f);
    const auto transformed1 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[1], 0.0f, 1.0f);
@@ -39,7 +39,7 @@ EditorObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
    const auto maxY = transformed0.y;
 
    const auto globalPosition =
-      camera.GetViewMatrix() * glm::vec4(m_editor.ScreenToGlobal(screenPosition), 0.0f, 1.0f);
+      camera.GetViewMatrix() * glm::vec4(editor_->ScreenToGlobal(screenPosition), 0.0f, 1.0f);
 
    // If 'screenPosition' is inside 'object' sprite (rectangle)
    if (globalPosition.x >= minX && globalPosition.x <= maxX && globalPosition.y <= maxY
@@ -54,129 +54,129 @@ EditorObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 glm::vec2
 EditorObject::GetScreenPositionPixels() const
 {
-   return m_editor.GlobalToScreen(m_centeredPosition);
+   return editor_->GlobalToScreen(centeredPosition_);
 }
 
 bool
 EditorObject::Visible() const
 {
-   return m_visible;
+   return visible_;
 }
 
 void
 EditorObject::SetColor(const glm::vec4& color)
 {
-   m_sprite.SetColor(color);
+   sprite_.SetColor(color);
 }
 
 void
 EditorObject::SetIsBackground(bool isBackground)
 {
-   m_isBackground = isBackground;
+   isBackground_ = isBackground;
 }
 
 bool
 EditorObject::GetIsBackground() const
 {
-   return m_isBackground;
+   return isBackground_;
 }
 
 glm::ivec2
 EditorObject::GetSize() const
 {
-   return m_sprite.GetSize();
+   return sprite_.GetSize();
 }
 
 void
 EditorObject::SetPosition(const glm::vec2& position)
 {
-   m_position = position;
+   position_ = position;
 }
 
 glm::vec2
 EditorObject::GetPosition() const
 {
-   return m_position;
+   return position_;
 }
 
 glm::vec2
 EditorObject::GetCenteredPosition() const
 {
-   return m_centeredPosition;
+   return centeredPosition_;
 }
 
 const renderer::Sprite&
 EditorObject::GetSprite() const
 {
-   return m_sprite;
+   return sprite_;
 }
 
 renderer::Sprite&
 EditorObject::GetSprite()
 {
-   return m_sprite;
+   return sprite_;
 }
 
 void
 EditorObject::CreateSprite(const glm::vec2& globalPosition, const glm::ivec2& size)
 {
-   m_sprite.SetSprite(glm::vec3(globalPosition, 0.0f), size);
-   m_position = m_sprite.GetPosition();
+   sprite_.SetSprite(glm::vec3(globalPosition, 0.0f), size);
+   position_ = sprite_.GetPosition();
 }
 
 void
 EditorObject::CreateSpriteTextured(const glm::vec2& /*position*/, const glm::ivec2& /*size*/,
                                    const std::string& /*fileName*/)
 {
-   m_position = m_sprite.GetPosition();
+   position_ = sprite_.GetPosition();
 }
 
 void
 EditorObject::SetObjectSelected()
 {
    SetColor({1.0f, 0.0f, 0.0f, 1.0f});
-   m_selected = true;
+   selected_ = true;
 }
 
 void
 EditorObject::SetObjectUnselected()
 {
-   m_selected = false;
+   selected_ = false;
    SetColor({1.0f, 1.0f, 1.0f, 1.0f});
 }
 
 void
 EditorObject::SetName(const std::string& name)
 {
-   m_name = name;
+   name_ = name;
 }
 
 std::string
 EditorObject::GetName() const
 {
-   return m_name;
+   return name_;
 }
 
 Object::ID
 EditorObject::GetLinkedObjectID() const
 {
-   return m_objectID;
+   return objectID_;
 }
 
 void
 EditorObject::DeleteLinkedObject()
 {
-   if (m_hasLinkedObject)
+   if (hasLinkedObject_)
    {
-      switch (Object::GetTypeFromID(m_objectID))
+      switch (Object::GetTypeFromID(objectID_))
       {
          case ObjectType::ANIMATION_POINT: {
             auto& animationPoint =
-               dynamic_cast< AnimationPoint& >(m_editor.GetLevel().GetObjectRef(m_objectID));
-            auto& object = m_editor.GetLevel().GetObjectRef(animationPoint.m_parent);
+               dynamic_cast< AnimationPoint& >(editor_->GetLevel().GetObjectRef(objectID_));
+            auto& object = editor_->GetLevel().GetObjectRef(animationPoint.m_parent);
 
             auto& enemy = dynamic_cast< Enemy& >(object);
-            enemy.DeleteAnimationNode(m_objectID);
+            enemy.DeleteAnimationNode(objectID_);
             enemy.ResetAnimation();
             enemy.Move(enemy.GetAnimationStartLocation() - enemy.GetPosition());
          }
@@ -191,19 +191,19 @@ EditorObject::DeleteLinkedObject()
 void
 EditorObject::Move(const glm::vec2& moveBy)
 {
-   m_sprite.Translate(glm::vec3(moveBy, 0.0f));
-   m_position += moveBy;
-   m_centeredPosition += moveBy;
+   sprite_.Translate(glm::vec3(moveBy, 0.0f));
+   position_ += moveBy;
+   centeredPosition_ += moveBy;
 
-   if (m_hasLinkedObject)
+   if (hasLinkedObject_)
    {
-      switch (Object::GetTypeFromID(m_objectID))
+      switch (Object::GetTypeFromID(objectID_))
       {
          case ObjectType::ANIMATION_POINT: {
             auto& animationPoint =
-               dynamic_cast< AnimationPoint& >(m_editor.GetLevel().GetObjectRef(m_objectID));
+               dynamic_cast< AnimationPoint& >(editor_->GetLevel().GetObjectRef(objectID_));
             animationPoint.m_end += moveBy;
-            m_editor.UpdateAnimationData();
+            editor_->UpdateAnimationData();
          }
          break;
 
@@ -216,24 +216,24 @@ EditorObject::Move(const glm::vec2& moveBy)
 void
 EditorObject::Scale(const glm::vec2& scaleVal, bool cumulative)
 {
-   cumulative ? m_sprite.ScaleCumulative(scaleVal) : m_sprite.Scale(scaleVal);
+   cumulative ? sprite_.ScaleCumulative(scaleVal) : sprite_.Scale(scaleVal);
 }
 
 void
 EditorObject::Rotate(float angle, bool cumulative)
 {
-   cumulative ? m_sprite.RotateCumulative(angle) : m_sprite.Rotate(angle);
+   cumulative ? sprite_.RotateCumulative(angle) : sprite_.Rotate(angle);
 
-   auto rotate = m_sprite.GetRotation(renderer::Sprite::RotationType::DEGREES);
-   if (m_hasLinkedObject)
+   auto rotate = sprite_.GetRotation(renderer::Sprite::RotationType::DEGREES);
+   if (hasLinkedObject_)
    {
-      switch (Object::GetTypeFromID(m_objectID))
+      switch (Object::GetTypeFromID(objectID_))
       {
          case ObjectType::ANIMATION_POINT: {
             auto& animationPoint =
-               dynamic_cast< AnimationPoint& >(m_editor.GetLevel().GetObjectRef(m_objectID));
+               dynamic_cast< AnimationPoint& >(editor_->GetLevel().GetObjectRef(objectID_));
             animationPoint.m_rotation = rotate;
-            m_editor.UpdateAnimationData();
+            editor_->UpdateAnimationData();
          }
          default: {
          }
@@ -249,13 +249,13 @@ EditorObject::Update(bool /*isReverse*/)
 void
 EditorObject::Render()
 {
-   if (m_hasLinkedObject)
+   if (hasLinkedObject_)
    {
-      switch (Object::GetTypeFromID(m_objectID))
+      switch (Object::GetTypeFromID(objectID_))
       {
          case ObjectType::ANIMATION_POINT: {
-            m_sprite.SetColor({1.0f, 1.0f, 1.0f, static_cast< float >(m_visible)});
-            m_sprite.Render();
+            sprite_.SetColor({1.0f, 1.0f, 1.0f, static_cast< float >(visible_)});
+            sprite_.Render();
          }
          break;
 
@@ -268,14 +268,14 @@ EditorObject::Render()
 void
 EditorObject::SetVisible(bool visible)
 {
-   m_visible = visible;
-   m_sprite.SetColor({1.0f, 1.0f, 1.0f, static_cast< float >(m_visible)});
+   visible_ = visible;
+   sprite_.SetColor({1.0f, 1.0f, 1.0f, static_cast< float >(visible_)});
 }
 
 bool
 EditorObject::IsVisible() const
 {
-   return m_visible;
+   return visible_;
 }
 
 } // namespace looper

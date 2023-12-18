@@ -26,14 +26,13 @@ Player::Player(Application* game, const glm::vec2& position, const glm::ivec2& s
                const std::string& sprite, const std::string& name)
    : Player(game, glm::vec3{position, 0.0f}, size, sprite, name)
 {
-   
 }
 
 Player::Player()
 {
 }
 
-   void
+void
 Player::Setup(Application* game, const glm::vec3& position, const glm::ivec2& size,
               const std::string& sprite, const std::string& name)
 {
@@ -50,10 +49,10 @@ Player::Setup(Application* game, const glm::vec3& position, const glm::ivec2& si
 
    // NOLINTNEXTLINE
    currentWeapon_ = weapons_.at(0).get();
-   }
+}
 
 bool
-Player::CheckCollision(const glm::vec2& bulletPosition, Enemy const* enemy, bool enemyShooting)
+Player::CheckCollision(const glm::vec2& bulletPosition, Enemy const* /* enemy*/, bool enemyShooting)
 {
    // if the bullet is inside collision zone then player got hit
    if (glm::length(bulletPosition - glm::vec2(currentGameObjectState_.centeredPosition_))
@@ -72,8 +71,9 @@ Player::CheckCollision(const glm::vec2& bulletPosition, Enemy const* enemy, bool
 glm::vec2
 Player::GetScreenPosition() const
 {
-   const glm::vec4 screenPosition = appHandle_->GetProjection()
-                              * glm::vec4(currentGameObjectState_.centeredPosition_, 0.0f, 1.0f);
+   const glm::vec4 screenPosition =
+      appHandle_->GetProjection()
+      * glm::vec4(currentGameObjectState_.centeredPosition_, 0.0f, 1.0f);
    return {screenPosition.x, screenPosition.y};
 }
 

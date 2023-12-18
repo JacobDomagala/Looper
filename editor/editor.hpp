@@ -149,7 +149,7 @@ class Editor : public Application
    HandleObjectSelected(Object::ID objectID, bool fromGUI);
 
    [[nodiscard]] Object::ID
-   GetSelectedEditorObject() const;
+   GetSelectedEditorObject();
 
    [[nodiscard]] Object::ID
    GetSelectedGameObject() const;
@@ -158,7 +158,7 @@ class Editor : public Application
    GetSelectedObjects() const;
 
    void
-   HandleEditorObjectSelected(const std::shared_ptr< EditorObject >& newSelectedEditorObject,
+   HandleEditorObjectSelected(EditorObject& newSelectedEditorObject,
                               bool fromGUI = false);
 
    void
@@ -188,9 +188,6 @@ class Editor : public Application
 
    void
    SetupRendererData() const;
-
-   void
-   DrawEditorObjects();
 
    void
    DrawAnimationPoints();
@@ -235,7 +232,7 @@ class Editor : public Application
    ShowCursor(bool choice);
 
    void
-   SetMouseOnObject() const;
+   SetMouseOnObject();
 
    void
    FreeLevelData();
@@ -245,7 +242,7 @@ class Editor : public Application
    std::string m_levelFileName = {};
 
    bool isRunning_ = true;
-   bool m_levelLoaded = false;
+   bool levelLoaded_ = false;
 
    // Left and right mouse buttons
    bool LMBPressedLastUpdate_ = false;
@@ -271,10 +268,9 @@ class Editor : public Application
    // Handling of editor objects (drawable objects linked to object in game)
    bool movementOnEditorObject_ = false;
    bool editorObjectSelected_ = false;
-   std::vector< std::shared_ptr< EditorObject > > editorObjects_ = {};
-   std::vector< std::shared_ptr< EditorObject > > pathfinderNodes_ = {};
-   std::vector< std::shared_ptr< EditorObject > > animationPoints_ = {};
-   std::shared_ptr< EditorObject > currentEditorObjectSelected_ = {};
+   std::vector< EditorObject > pathfinderNodes_ = {};
+   std::vector< EditorObject > animationPoints_ = {};
+   Object::ID currentEditorObjectSelected_ = Object::INVALID_ID;
 
    bool renderPathfinderNodes_ = false;
 
