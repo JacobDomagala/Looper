@@ -10,6 +10,20 @@
 
 #undef max
 
+struct TileHash
+{
+   std::size_t
+   operator()(const looper::Tile& pair) const
+   {
+      auto hash1 = std::hash< int32_t >{}(pair.first);
+      auto hash2 = std::hash< int32_t >{}(pair.second);
+
+      // Combine the two hash values. This is a common way to combine hashes
+      // but there are other methods as well.
+      return hash1 ^ (hash2 << 1);
+   }
+};
+
 namespace looper {
 
 class Level;
@@ -25,8 +39,7 @@ struct Node : public Object
         std::vector< NodeID > connectedTo = {}, bool occupied = false,
         std::vector< Object::ID > objectOccupying = {})
       : Object(ObjectType::PATHFINDER_NODE),
-        xPos_(coords.x),
-        yPos_(coords.y),
+        tile_(coords.x, coords.y),
         position_(posOnMap),
         occupied_(occupied),
         id_(nodeID),
@@ -36,8 +49,7 @@ struct Node : public Object
    }
 
    // X.Y coords
-   int32_t xPos_ = {};
-   int32_t yPos_ = {};
+   Tile tile_ = INVALID_TILE;
 
    glm::vec2 position_ = {};
 
@@ -98,22 +110,6 @@ class PathFinder
     */
    [[nodiscard]] bool
    IsInitialized() const;
-
-   /**
-    * \brief Add node to the Pathfinder
-    *
-    * \param[in] newNode Node to add
-    */
-   void
-   AddNode(Node&& newNode);
-
-   /**
-    * \brief Delete node from the Pathfinder
-    *
-    * \param[in] nodeToDelete Node to delete
-    */
-   void
-   DeleteNode(NodeID nodeToDelete);
 
    /**
     * \brief Get nodes (const version)
@@ -232,13 +228,13 @@ class PathFinder
    void
    ClearPerFrameData();
 
-   const std::unordered_set< NodeID >&
+   const std::unordered_set< Tile, TileHash >&
    GetNodesModifiedLastFrame() const;
 
  private:
    bool initialized_ = false;
    std::vector< Node > nodes_ = {};
-   std::unordered_set< NodeID > nodesModifiedLastFrame_ = {};
+   std::unordered_set< Tile, TileHash > nodesModifiedLastFrame_ = {};
    Level* levelHandle_ = nullptr;
 };
 

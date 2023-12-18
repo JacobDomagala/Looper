@@ -106,9 +106,7 @@ void
 GameObject::SetSize(const glm::vec2& newSize)
 {
    sprite_.SetSize(newSize);
-
-   currentGameObjectState_.nodes_ = appHandle_->GetLevel().GameObjectMoved(
-      sprite_.GetTransformedRectangle(), currentGameObjectState_.nodes_, id_, hasCollision_);
+   updateCollision_ = true;
 }
 
 void
@@ -238,7 +236,7 @@ GameObject::Move(const glm::vec2& moveBy)
    currentGameObjectState_.position_ += moveBy;
    currentGameObjectState_.centeredPosition_ += moveBy;
 
-   UpdateCollision();
+   updateCollision_ = true;
 }
 
 void
@@ -246,15 +244,14 @@ GameObject::Scale(const glm::vec2& scaleVal, bool cumulative)
 {
    cumulative ? sprite_.ScaleCumulative(scaleVal) : sprite_.Scale(scaleVal);
 
-   UpdateCollision();
+   updateCollision_ = true;
 }
 
 void
 GameObject::Rotate(float angle, bool cumulative)
 {
    cumulative ? sprite_.RotateCumulative(angle) : sprite_.Rotate(angle);
-
-   UpdateCollision();
+   updateCollision_ = true;
 }
 
 void
@@ -276,6 +273,12 @@ GameObject::Update(bool isReverse)
 void
 GameObject::Render()
 {
+   if (updateCollision_)
+   {
+      UpdateCollision();
+      updateCollision_ = false;
+   }
+
    sprite_.Render();
 }
 

@@ -7,28 +7,6 @@
 
 namespace looper {
 
-inline auto
-GetNodeItFromTile(std::vector< Node >& nodes, const Tile& tile)
-{
-   auto nodeFound = stl::find_if(nodes, [tile](const auto& node) {
-      return node.xPos_ == tile.first and node.yPos_ == tile.second;
-   });
-
-   utils::Assert(nodeFound != nodes.end(), "PathFinder::GetNodeIDFromPosition node not found!");
-
-   return nodeFound;
-}
-
-auto
-GetNodeItFromID(std::vector< Node >& nodes, NodeID id)
-{
-   auto nodeFound = stl::find_if(nodes, [id](const auto& node) { return node.id_ == id; });
-
-   utils::Assert(nodeFound != nodes.end(), "PathFinder::GetNodeItFromID node not found!");
-
-   return nodeFound;
-}
-
 PathFinder::PathFinder(Level* level, std::vector< Node >&& nodes)
    : nodes_(std::move(nodes)), levelHandle_(level)
 {
@@ -55,6 +33,8 @@ PathFinder::Initialize(Level* level)
    const auto offset =
       glm::vec2(static_cast< float >(grad) / 2.0f, static_cast< float >(grad) / 2.0f);
 
+   nodes_.reserve(static_cast< size_t >(w * h));
+
    // TODO: parallelize!
 
    // height
@@ -63,8 +43,6 @@ PathFinder::Initialize(Level* level)
       // width
       for (int x = 0; x < w; ++x)
       {
-         const bool obstacle = false;
-
          std::vector< NodeID > connectedTo{};
 
          if (y > 0)
@@ -87,33 +65,12 @@ PathFinder::Initialize(Level* level)
             connectedTo.push_back((x + 1) + y * w);
          }
 
-         Node node(glm::ivec2{x, y}, glm::vec2(x * grad, y * grad) + offset, x + y * w,
-                   connectedTo);
-         node.occupied_ = obstacle;
-
-
-         AddNode(std::move(node));
+         nodes_.emplace_back(glm::ivec2{x, y}, glm::vec2(x * grad, y * grad) + offset, x + y * w,
+                             connectedTo);
       }
    }
 
    initialized_ = true;
-}
-
-void
-PathFinder::AddNode(Node&& newNode)
-{
-   nodes_.push_back(std::move(newNode));
-}
-
-void
-PathFinder::DeleteNode(NodeID nodeToDelete)
-{
-   nodes_.erase(GetNodeItFromID(nodes_, nodeToDelete));
-
-   if (nodes_.empty())
-   {
-      initialized_ = false;
-   }
 }
 
 const std::vector< Node >&
@@ -136,33 +93,36 @@ PathFinder::GetNodeIDFromPosition(const glm::vec2& position)
       return INVALID_NODE;
    }
 
-   auto nodeFound = GetNodeItFromTile(nodes_, levelHandle_->GetTileFromPosition(position));
+   auto nodeFound = GetNodeFromTile(levelHandle_->GetTileFromPosition(position));
 
-   return nodeFound->id_;
+   return nodeFound.id_;
 }
 
 Node&
 PathFinder::GetNodeFromPosition(const glm::vec2& position)
 {
-   return GetNodeFromID(GetNodeIDFromPosition(position));
+   return GetNodeFromTile(levelHandle_->GetTileFromPosition(position));
 }
 
 Node&
 PathFinder::GetNodeFromID(NodeID ID)
 {
-   return *GetNodeItFromID(nodes_, ID);
+   utils::Assert(ID != INVALID_NODE,
+                 fmt::format("Trying to access a node with ID = {} which doesn't exist!\n", ID));
+   return nodes_.at(static_cast< size_t >(ID));
 }
 
 NodeID
 PathFinder::GetNodeIDFromTile(const Tile& tile)
 {
-   return GetNodeItFromTile(nodes_, tile)->id_;
+   return GetNodeFromTile(tile).id_;
 }
 
 Node&
 PathFinder::GetNodeFromTile(const Tile& tile)
 {
-   return *GetNodeItFromTile(nodes_, tile);
+   return nodes_.at(static_cast< size_t >(
+      tile.first + tile.second * static_cast< int32_t >(levelHandle_->GetTileSize())));
 }
 
 std::vector< NodeID >
@@ -282,26 +242,25 @@ PathFinder::SetObjectOnNode(const Tile& nodeCoords, Object::ID objectID)
 {
    if (nodeCoords != INVALID_TILE)
    {
-      auto nodeFound = GetNodeItFromTile(nodes_, nodeCoords);
-      if (stl::find(nodeFound->objectsOnThisNode_, objectID) == nodeFound->objectsOnThisNode_.end())
+      auto& nodeFound = GetNodeFromTile(nodeCoords);
+      if (stl::find(nodeFound.objectsOnThisNode_, objectID) == nodeFound.objectsOnThisNode_.end())
       {
-         nodeFound->objectsOnThisNode_.push_back(objectID);
+         nodeFound.objectsOnThisNode_.push_back(objectID);
       }
    }
 }
-
 
 void
 PathFinder::SetObjectOffNode(const Tile& nodeCoords, Object::ID objectID)
 {
    if (nodeCoords != INVALID_TILE)
    {
-      auto nodeFound = GetNodeItFromTile(nodes_, nodeCoords);
-      auto objectFound = stl::find(nodeFound->objectsOnThisNode_, objectID);
+      auto& nodeAtTile = GetNodeFromTile(nodeCoords);
+      auto objectFound = stl::find(nodeAtTile.objectsOnThisNode_, objectID);
 
-      if (objectFound != nodeFound->objectsOnThisNode_.end())
+      if (objectFound != nodeAtTile.objectsOnThisNode_.end())
       {
-         nodeFound->objectsOnThisNode_.erase(objectFound);
+         nodeAtTile.objectsOnThisNode_.erase(objectFound);
       }
    }
 }
@@ -311,11 +270,11 @@ PathFinder::SetNodeOccupied(const Tile& nodeCoords, Object::ID objectID)
 {
    if (nodeCoords != INVALID_TILE)
    {
-      auto nodeFound = GetNodeItFromTile(nodes_, nodeCoords);
-      nodeFound->occupied_ = true;
-      nodeFound->objectsOccupyingThisNode_.push_back(objectID);
+      auto& nodeAtTile = GetNodeFromTile(nodeCoords);
+      nodeAtTile.occupied_ = true;
+      nodeAtTile.objectsOccupyingThisNode_.push_back(objectID);
 
-      nodesModifiedLastFrame_.insert(nodeFound->id_);
+      nodesModifiedLastFrame_.insert(nodeAtTile.tile_);
    }
 }
 
@@ -324,22 +283,22 @@ PathFinder::SetNodeFreed(const Tile& nodeCoords, Object::ID objectID)
 {
    if (nodeCoords != INVALID_TILE)
    {
-      auto nodeFound = GetNodeItFromTile(nodes_, nodeCoords);
+      auto& nodeAtTile = GetNodeFromTile(nodeCoords);
 
-      auto objectFound = stl::find(nodeFound->objectsOccupyingThisNode_, objectID);
+      auto objectFound = stl::find(nodeAtTile.objectsOccupyingThisNode_, objectID);
 
-      if (objectFound == nodeFound->objectsOccupyingThisNode_.end())
+      if (objectFound == nodeAtTile.objectsOccupyingThisNode_.end())
       {
          Logger::Warn("PathFinder::SetNodeFreed object (ID:{}) not found!", objectID);
       }
       else
       {
-         nodeFound->objectsOccupyingThisNode_.erase(objectFound);
+         nodeAtTile.objectsOccupyingThisNode_.erase(objectFound);
 
-         if (nodeFound->objectsOccupyingThisNode_.empty())
+         if (nodeAtTile.objectsOccupyingThisNode_.empty())
          {
-            nodeFound->occupied_ = false;
-            nodesModifiedLastFrame_.insert(nodeFound->id_);
+            nodeAtTile.occupied_ = false;
+            nodesModifiedLastFrame_.insert(nodeAtTile.tile_);
          }
       }
    }
@@ -363,7 +322,7 @@ PathFinder::ClearPerFrameData()
    nodesModifiedLastFrame_.clear();
 }
 
-const std::unordered_set< NodeID >&
+const std::unordered_set< Tile, TileHash >&
 PathFinder::GetNodesModifiedLastFrame() const
 {
    return nodesModifiedLastFrame_;

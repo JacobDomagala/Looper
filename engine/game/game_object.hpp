@@ -162,6 +162,7 @@ class GameObject : public Object
    Application* appHandle_;
 
    bool hasCollision_ = false;
+   bool updateCollision_ = false;
 
    // object's sprite
    renderer::Sprite sprite_;

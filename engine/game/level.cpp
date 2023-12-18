@@ -80,18 +80,18 @@ Level::Load(Application* context, const std::string& pathToLevel)
       SCOPED_TIMER(fmt::format("Loading Enemies ({})", enemies.size()));
       enemies_.resize(enemies.size());
 
-      for (int32_t i = 0; i < enemies.size(); ++i)
+      for (uint32_t i = 0; i < enemies.size(); ++i)
       {
-         const auto& enemy = enemies.at(i);
+         const auto& enemy = enemies.at(static_cast< size_t >(i));
          const auto& position = enemy["position"];
          const auto& size = enemy["size"];
          const auto& texture = enemy["texture"];
          // const auto weapons = enemy["weapons"];
          const auto& name = enemy["name"];
 
-         auto& object = enemies_[i];
+         auto& object = enemies_.at(static_cast< size_t >(i));
          object.Setup(context, glm::vec3(position[0], position[1], 0.0f),
-                           glm::ivec2(size[0], size[1]), texture, std::vector< AnimationPoint >{});
+                      glm::ivec2(size[0], size[1]), texture, std::vector< AnimationPoint >{});
          object.SetName(name);
          object.Scale(glm::vec2(enemy["scale"][0], enemy["scale"][1]));
          object.Rotate(enemy["rotation"]);
@@ -120,17 +120,17 @@ Level::Load(Application* context, const std::string& pathToLevel)
       const auto& objects = json["OBJECTS"];
       SCOPED_TIMER(fmt::format("Loading Objects ({})", objects.size()));
       objects_.resize(objects.size());
-      for (int32_t i = 0; i < objects.size(); ++i)
+      for (uint32_t i = 0; i < objects.size(); ++i)
       {
-         const auto& object = objects.at(i);
+         const auto& object = objects.at(static_cast< size_t >(i));
          const auto& position = object["position"];
          const auto& size = object["size"];
          const auto& texture = object["texture"];
          const auto& name = object["name"];
 
-         auto& gameObject = objects_[i];
+         auto& gameObject = objects_.at(static_cast< size_t >(i));
          gameObject.Setup(context, glm::vec3(position[0], position[1], 0.0f),
-                               glm::ivec2(size[0], size[1]), texture, ObjectType::OBJECT);
+                          glm::ivec2(size[0], size[1]), texture, ObjectType::OBJECT);
          gameObject.SetName(name);
          gameObject.Scale(glm::vec2(object["scale"][0], object["scale"][1]));
          gameObject.Rotate(object["rotation"]);
@@ -873,18 +873,18 @@ Level::RenderPathfinder(bool render)
 void
 Level::UpdateCollisionTexture()
 {
-   const auto& nodes = m_pathFinder.GetNodesModifiedLastFrame();
+   const auto& tilesChanged = m_pathFinder.GetNodesModifiedLastFrame();
    auto* data = collisionTextureData_.m_bytes.get();
    const auto tileWidth = static_cast< int32_t >(m_tileWidth);
    const auto width = m_levelSize.x / tileWidth;
 
-   if (!nodes.empty())
+   if (!tilesChanged.empty())
    {
-      for (const auto& nodeID : nodes)
+      for (const auto& tile : tilesChanged)
       {
-         const auto& node = m_pathFinder.GetNodeFromID(nodeID);
-         const auto x = node.xPos_;
-         const auto y = node.yPos_;
+         const auto& node = m_pathFinder.GetNodeFromTile(tile);
+         const auto x = tile.first;
+         const auto y = tile.second;
          const auto offset = tileWidth - 1 - (y % tileWidth);
 
          const auto index = (x + width * offset) * 4;
@@ -894,7 +894,6 @@ Level::UpdateCollisionTexture()
          data[index + 2] = !node.occupied_ * 255; // B
          data[index + 3] = 255;                   // A
       }
-
 
       renderer::TextureLibrary::GetTexture(collisionTexture_)->UpdateTexture(collisionTextureData_);
    }

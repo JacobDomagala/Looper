@@ -617,7 +617,7 @@ Editor::GetObjectsInArea(const std::array< glm::vec2, 4 >& area) const
    std::set< Object::ID > objectsList = {};
 
    const auto tiles = currentLevel_->GetTilesFromRectangle(area);
-   auto pathfinder = currentLevel_->GetPathfinder();
+   auto& pathfinder = currentLevel_->GetPathfinder();
 
    for (const auto& tile : tiles)
    {

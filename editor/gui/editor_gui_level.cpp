@@ -387,13 +387,20 @@ EditorGUI::RenderLevelMenu() // NOLINT
          const auto cursorPos = parent_.ScreenToGlobal(InputManager::GetMousePos());
          CreateRow("Cursor Position", fmt::format("{}", cursorPos));
 
-         auto& pathfinder = parent_.GetLevel().GetPathfinder();
+         if (parent_.GetLevel().IsInLevelBoundaries(cursorPos))
+         {
+            auto& pathfinder = parent_.GetLevel().GetPathfinder();
+            const auto& curNode = pathfinder.GetNodeFromPosition(cursorPos);
+            CreateRow("Cursor on TileID", fmt::format("{}", curNode.id_));
+            CreateRow("Cursor on Coords",
+                      fmt::format("({}, {})", curNode.tile_.first, curNode.tile_.second));
+         }
+         else
+         {
+            CreateRow("Cursor on TileID", "INVALID");
+            CreateRow("Cursor on Coords", "INVALID");
+         }
 
-         const auto nodeID = pathfinder.GetNodeIDFromPosition(cursorPos);
-         const auto curNode = nodeID != -1 ? pathfinder.GetNodeFromID(nodeID) : Node{};
-
-         CreateRow("Cursor on TileID", fmt::format("{}", curNode.id_));
-         CreateRow("Cursor on Coords", fmt::format("({}, {})", curNode.xPos_, curNode.yPos_));
 
          ImGui::EndTable();
       }
