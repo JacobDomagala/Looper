@@ -78,6 +78,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
    {
       const auto& enemies = json["ENEMIES"];
       SCOPED_TIMER(fmt::format("Loading Enemies ({})", enemies.size()));
+      // This is a magic number that we should figure out later
+      enemies_.reserve(100);
       enemies_.resize(enemies.size());
 
       for (uint32_t i = 0; i < enemies.size(); ++i)
@@ -119,6 +121,8 @@ Level::Load(Application* context, const std::string& pathToLevel)
    {
       const auto& objects = json["OBJECTS"];
       SCOPED_TIMER(fmt::format("Loading Objects ({})", objects.size()));
+      // This is a magic number that we should figure out later
+      enemies_.reserve(10000);
       objects_.resize(objects.size());
       for (uint32_t i = 0; i < objects.size(); ++i)
       {
@@ -597,6 +601,7 @@ Level::DeleteObject(Object::ID deletedObject)
             fmt::format("Level: Trying to delete an Enemy that doesn't exist! Object ID: {}",
                         deletedObject));
 
+         enemyIter->GetSprite().ClearData();
          // Don't call erase
          std::iter_swap(enemyIter, enemies_.end() - 1);
          enemies_.pop_back();
@@ -611,6 +616,8 @@ Level::DeleteObject(Object::ID deletedObject)
             objectIter != objects_.end(),
             fmt::format("Level: Trying to delete an object that doesn't exist! Object type: {}",
                         Object::GetTypeString(deletedObject)));
+
+         objectIter->GetSprite().ClearData();
 
          // Don't call erase
          std::iter_swap(objectIter, objects_.end() - 1);

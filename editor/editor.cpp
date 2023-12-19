@@ -1222,11 +1222,6 @@ Editor::SetLockAnimationPoints(bool lock)
 void
 Editor::Update()
 {
-   if (levelLoaded_)
-   {
-      currentLevel_->UpdateCollisionTexture();
-   }
-
    HandleCamera();
 
    if (animateGameObject_ && currentSelectedGameObject_ != Object::INVALID_ID)
@@ -1360,6 +1355,7 @@ Editor::MainLoop()
          renderer::EditorData::curDynLineIdx = 0;
          if (levelLoaded_ and currentLevel_->GetPathfinder().IsInitialized())
          {
+            currentLevel_->UpdateCollisionTexture();
             currentLevel_->GetPathfinder().ClearPerFrameData();
          }
 
