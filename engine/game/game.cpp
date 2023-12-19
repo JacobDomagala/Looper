@@ -122,7 +122,7 @@ Game::Init(const std::string& configFile, bool loadLevel)
 void
 Game::MoveGameObject(Object::ID gameObject, const glm::vec2& moveBy) const
 {
-   auto& object = dynamic_cast< GameObject& >(currentLevel_->GetObjectRef(gameObject));
+   auto& object = currentLevel_->GetGameObjectRef(gameObject);
    const auto fromPosition = object.GetCenteredPosition();
    const auto destination = fromPosition + moveBy;
 

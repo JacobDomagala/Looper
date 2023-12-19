@@ -249,8 +249,7 @@ Editor::RotateLogic(const glm::vec2& currentCursorPos)
       }
       else
       {
-         dynamic_cast< GameObject& >(currentLevel_->GetObjectRef(currentSelectedGameObject_))
-            .Rotate(-angle, true);
+         currentLevel_->GetGameObjectRef(currentSelectedGameObject_).Rotate(-angle, true);
          gui_.ObjectUpdated(currentSelectedGameObject_);
       }
    }
@@ -362,8 +361,7 @@ Editor::SetMouseOnObject()
       else if (movementOnGameObject_)
       {
          InputManager::SetMousePos(
-            dynamic_cast< GameObject& >(currentLevel_->GetObjectRef(currentSelectedGameObject_))
-               .GetScreenPositionPixels());
+            currentLevel_->GetGameObjectRef(currentSelectedGameObject_).GetScreenPositionPixels());
       }
    }
 }
@@ -627,8 +625,7 @@ Editor::GetObjectsInArea(const std::array< glm::vec2, 4 >& area) const
       {
          for (const auto& object : objectsOnNode)
          {
-            const auto& gameObject =
-               dynamic_cast< GameObject& >(currentLevel_->GetObjectRef(object));
+            const auto& gameObject = currentLevel_->GetGameObjectRef(object);
             if (gameObject.GetSprite().GetRenderInfo().layer == renderLayerToDraw_)
             {
                objectsList.insert(object);
@@ -697,8 +694,8 @@ bool
 Editor::IsAnyObjectSelected() const
 {
    return editorObjectSelected_ or currentEditorObjectSelected_ != Object::INVALID_ID
-          or gameObjectSelected_
-          or currentSelectedGameObject_ != Object::INVALID_ID or not selectedObjects_.empty();
+          or gameObjectSelected_ or currentSelectedGameObject_ != Object::INVALID_ID
+          or not selectedObjects_.empty();
 }
 
 void
@@ -775,9 +772,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       if (currentSelectedGameObject_ != Object::INVALID_ID)
       {
          const auto tmpIdx =
-            dynamic_cast< GameObject& >(currentLevel_->GetObjectRef(currentSelectedGameObject_))
-               .GetSprite()
-               .GetRenderIdx();
+            currentLevel_->GetGameObjectRef(currentSelectedGameObject_).GetSprite().GetRenderIdx();
          pushConstants.selectedIdx = static_cast< float >(tmpIdx);
       }
 
@@ -893,14 +888,12 @@ Editor::DrawBoundingBoxes()
 
    for (const auto object : selectedObjects_)
    {
-      drawBoundingBox(dynamic_cast< GameObject& >(currentLevel_->GetObjectRef(object)).GetSprite());
+      drawBoundingBox(currentLevel_->GetGameObjectRef(object).GetSprite());
    }
 
    if (currentSelectedGameObject_ != Object::INVALID_ID)
    {
-      drawBoundingBox(
-         dynamic_cast< GameObject& >(currentLevel_->GetObjectRef(currentSelectedGameObject_))
-            .GetSprite());
+      drawBoundingBox(currentLevel_->GetGameObjectRef(currentSelectedGameObject_).GetSprite());
    }
 
    if (currentEditorObjectSelected_ != Object::INVALID_ID)
@@ -1022,7 +1015,7 @@ Editor::LoadLevel(const std::string& levelPath)
       SCOPED_TIMER("Total level load");
 
       m_levelFileName = levelPath;
-      
+
       // Should we actually compute total num points?
       animationPoints_.reserve(1000);
 
@@ -1086,8 +1079,14 @@ Editor::CopyGameObjects(const std::vector< Object::ID >& objectsToCopy)
    auto offset = glm::vec2{};
    for (const auto objectToCopy : objectsToCopy)
    {
-      const auto& object = dynamic_cast< GameObject& >(currentLevel_->GetObjectRef(objectToCopy));
-      const auto position = object.GetPosition();
+      const auto& object = currentLevel_->GetGameObjectRef(objectToCopy);
+      const auto& position = object.GetPosition();
+      const auto& size = object.GetSize();
+      const auto hasCollision = object.GetHasCollision();
+      const auto& textureName = object.GetSprite().GetTextureName();
+      const auto rotation = object.GetSprite().GetRotation();
+
+      auto newObjectID = currentLevel_->AddGameObject(Object::GetTypeFromID(objectToCopy), {});
 
       // Set it only once
       if (offset == glm::vec2{})
@@ -1095,12 +1094,12 @@ Editor::CopyGameObjects(const std::vector< Object::ID >& objectsToCopy)
          offset = (mousePos - position);
       }
 
-      auto newObjectID = currentLevel_->AddGameObject(object.GetType(), position + offset);
-      auto& newObject = dynamic_cast< GameObject& >(currentLevel_->GetObjectRef(newObjectID));
-      newObject.SetSize(object.GetSize());
-      newObject.SetHasCollision(object.GetHasCollision());
-      newObject.GetSprite().SetTextureFromFile(object.GetSprite().GetTextureName());
-      newObject.GetSprite().Rotate(object.GetSprite().GetRotation());
+      auto& newObject = currentLevel_->GetGameObjectRef(newObjectID);
+      newObject.SetPosition(position + offset);
+      newObject.SetSize(size);
+      newObject.SetHasCollision(hasCollision);
+      newObject.GetSprite().SetTextureFromFile(textureName);
+      newObject.Rotate(rotation);
 
       gui_.ObjectUpdated(newObjectID);
       newObjects.push_back(newObjectID);

@@ -315,8 +315,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
                      {
                         parent_.HandleObjectSelected(searchID, true);
                         parent_.GetCamera().SetCameraAtPosition(
-                           dynamic_cast< GameObject& >(parent_.GetLevel().GetObjectRef(searchID))
-                              .GetPosition());
+                           parent_.GetLevel().GetGameObjectRef(searchID).GetPosition());
                      }
                   }
                }

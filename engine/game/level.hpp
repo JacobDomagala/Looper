@@ -78,6 +78,9 @@ class Level
    Object&
    GetObjectRef(Object::ID objectID);
 
+   GameObject&
+   GetGameObjectRef(Object::ID gameObjectID);
+
    const std::vector< GameObject >&
    GetObjects() const;
 
@@ -205,6 +208,7 @@ class Level
 
    Player player_ = {};
    std::vector< Enemy > enemies_ = {};
+   std::unordered_map< Object::ID, size_t > objectToIdx_ = {};
    std::vector< GameObject > objects_ = {};
 };
 

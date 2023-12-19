@@ -82,16 +82,16 @@ Level::Load(Application* context, const std::string& pathToLevel)
       enemies_.reserve(100);
       enemies_.resize(enemies.size());
 
-      for (uint32_t i = 0; i < enemies.size(); ++i)
+      for (size_t i = 0; i < enemies.size(); ++i)
       {
-         const auto& enemy = enemies.at(static_cast< size_t >(i));
+         const auto& enemy = enemies.at(i);
          const auto& position = enemy["position"];
          const auto& size = enemy["size"];
          const auto& texture = enemy["texture"];
          // const auto weapons = enemy["weapons"];
          const auto& name = enemy["name"];
 
-         auto& object = enemies_.at(static_cast< size_t >(i));
+         auto& object = enemies_.at(i);
          object.Setup(context, glm::vec3(position[0], position[1], 0.0f),
                       glm::ivec2(size[0], size[1]), texture, std::vector< AnimationPoint >{});
          object.SetName(name);
@@ -122,19 +122,20 @@ Level::Load(Application* context, const std::string& pathToLevel)
       const auto& objects = json["OBJECTS"];
       SCOPED_TIMER(fmt::format("Loading Objects ({})", objects.size()));
       // This is a magic number that we should figure out later
-      enemies_.reserve(10000);
+      objects_.reserve(10000);
       objects_.resize(objects.size());
-      for (uint32_t i = 0; i < objects.size(); ++i)
+      for (size_t i = 0; i < objects.size(); ++i)
       {
-         const auto& object = objects.at(static_cast< size_t >(i));
+         const auto& object = objects.at(i);
          const auto& position = object["position"];
          const auto& size = object["size"];
          const auto& texture = object["texture"];
          const auto& name = object["name"];
 
-         auto& gameObject = objects_.at(static_cast< size_t >(i));
+         auto& gameObject = objects_.at(i);
          gameObject.Setup(context, glm::vec3(position[0], position[1], 0.0f),
                           glm::ivec2(size[0], size[1]), texture, ObjectType::OBJECT);
+         objectToIdx_[gameObject.GetID()] = i;
          gameObject.SetName(name);
          gameObject.Scale(glm::vec2(object["scale"][0], object["scale"][1]));
          gameObject.Rotate(object["rotation"]);
@@ -310,6 +311,7 @@ Level::AddGameObject(ObjectType objectType, const glm::vec2& position)
          auto& newObj = objects_.emplace_back(m_contextPointer, position, defaultSize,
                                               defaultTexture, ObjectType::OBJECT);
          newObject = newObj.GetID();
+         objectToIdx_[newObject] = objects_.size() - 1;
       }
       break;
 
@@ -509,13 +511,11 @@ Level::GetTilesAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos) co
 {
    std::set< Tile > tiles;
 
-   constexpr auto numSteps = 100;
-   constexpr auto singleStep = 1 / static_cast< float >(numSteps);
+   const auto numSteps =
+      static_cast< int32_t >(glm::length(toPos - fromPos) / static_cast< float >(m_tileWidth / 2));
+   const auto stepSize = (toPos - fromPos) / static_cast< float >(numSteps);
 
-   const auto pathVec = toPos - fromPos;
-   const auto stepSize = pathVec * singleStep;
-
-   for (int i = 0; i < numSteps; ++i)
+   for (int32_t i = 0; i < numSteps; ++i)
    {
       tiles.insert(GetTileFromPosition(fromPos + (stepSize * static_cast< float >(i))));
    }
@@ -619,8 +619,16 @@ Level::DeleteObject(Object::ID deletedObject)
 
          objectIter->GetSprite().ClearData();
 
-         // Don't call erase
-         std::iter_swap(objectIter, objects_.end() - 1);
+         if (objectIter != objects_.end() - 1)
+         {
+            const auto deletedIdx = objectToIdx_.at(deletedObject);
+            objectToIdx_.erase(deletedObject);
+            objectToIdx_.at(objects_.back().GetID()) = deletedIdx;
+
+            // Don't call erase
+            std::iter_swap(objectIter, objects_.end() - 1);
+         }
+
          objects_.pop_back();
       }
       break;
@@ -637,14 +645,9 @@ Level::GetObjectRef(Object::ID objectID)
    switch (Object::GetTypeFromID(objectID))
    {
       case ObjectType::OBJECT: {
-         auto objectIt = stl::find_if(
-            objects_, [objectID](const auto& object) { return object.GetID() == objectID; });
+         const auto idx = objectToIdx_.at(objectID);
 
-         utils::Assert(objectIt != objects_.end(),
-                       fmt::format("Object with Type={} and ID={} not found!",
-                                   Object::GetTypeString(objectID), objectID));
-
-         requestedObject = &(*objectIt);
+         requestedObject = &objects_.at(idx);
       }
       break;
       case ObjectType::ENEMY: {
@@ -694,6 +697,53 @@ Level::GetObjectRef(Object::ID objectID)
 
       default: {
          Logger::Fatal("Level: Trying to get Object on unknown type!");
+      }
+   }
+
+   // This should never happen
+   // NOLINTNEXTLINE
+   assert(requestedObject);
+
+   // requestedObject will never be nullptr
+   // NOLINTNEXTLINE
+   return *requestedObject;
+}
+
+GameObject&
+Level::GetGameObjectRef(Object::ID gameObjectID)
+{
+   const auto type = Object::GetTypeFromID(gameObjectID);
+
+   GameObject* requestedObject = nullptr;
+
+   switch (type)
+   {
+      case ObjectType::OBJECT: {
+         const auto idx = objectToIdx_.at(gameObjectID);
+
+         requestedObject = &objects_.at(idx);
+      }
+      break;
+      case ObjectType::ENEMY: {
+         auto enemyIt = stl::find_if(
+            enemies_, [gameObjectID](const auto& enemy) { return enemy.GetID() == gameObjectID; });
+
+         utils::Assert(enemyIt != enemies_.end(),
+                       fmt::format("Object with Type={} and ID={} not found!",
+                                   Object::GetTypeString(gameObjectID), gameObjectID));
+
+         requestedObject = &(*enemyIt);
+      }
+      break;
+
+      case ObjectType::PLAYER: {
+         requestedObject = &player_;
+      }
+      break;
+
+      default: {
+         Logger::Fatal("Level::GetGameObjectRef called with invalid type {}!\n",
+                       Object::GetTypeString(gameObjectID));
       }
    }
 
