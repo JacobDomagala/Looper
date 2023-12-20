@@ -379,10 +379,15 @@ Level::GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const
       }
    };
 
+   // Standard Rect
    insertToVec(GetTilesAlongTheLine(box[0], box[3]));
    insertToVec(GetTilesAlongTheLine(box[3], box[2]));
    insertToVec(GetTilesAlongTheLine(box[2], box[1]));
    insertToVec(GetTilesAlongTheLine(box[1], box[0]));
+
+   // Diagonals for inside nodes
+   insertToVec(GetTilesAlongTheLine(box[0], box[2]));
+   insertToVec(GetTilesAlongTheLine(box[1], box[3]));
 
    return std::vector< Tile >{ret.begin(), ret.end()};
 }
@@ -502,8 +507,10 @@ Level::GetTilesAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos) co
 {
    std::set< Tile > tiles;
 
+   // NOLINTNEXTLINE
    const auto numSteps = static_cast< int32_t >(glm::length(toPos - fromPos)
-                                                / static_cast< float >(m_tileWidth) / 2.0f);
+                                                / static_cast< float >(m_tileWidth / uint32_t{2}));
+
    const auto stepSize = (toPos - fromPos) / static_cast< float >(numSteps);
 
    for (int32_t i = 0; i < numSteps; ++i)
@@ -841,19 +848,53 @@ Level::SetPlayersPosition(const glm::vec2& /*position*/)
 Object::ID
 Level::GetGameObjectOnLocation(const glm::vec2& screenPosition)
 {
-   const auto& node =
-      m_pathFinder.GetNodeFromPosition(m_contextPointer->ScreenToGlobal(screenPosition));
    Object::ID object = Object::INVALID_ID;
+   const auto globalPos = m_contextPointer->ScreenToGlobal(screenPosition);
 
-   auto objectOnLocation =
-      stl::find_if(node.objectsOnThisNode_, [this, screenPosition](const auto& objectID) {
-         const auto& object = GetGameObjectRef(objectID);
-         return object.CheckIfCollidedScreenPosion(screenPosition);
-      });
-
-   if (objectOnLocation != node.objectsOnThisNode_.end())
+   if (IsInLevelBoundaries(globalPos))
    {
-      object = *objectOnLocation;
+      const auto& node = m_pathFinder.GetNodeFromPosition(globalPos);
+
+      // Try luck with Tile at mouse pos
+      auto objectOnLocation =
+         stl::find_if(node.objectsOnThisNode_, [this, screenPosition](const auto& objectID) {
+            const auto& object = GetGameObjectRef(objectID);
+            return object.CheckIfCollidedScreenPosion(screenPosition);
+         });
+
+      if (objectOnLocation != node.objectsOnThisNode_.end())
+      {
+         object = *objectOnLocation;
+      }
+      // If Tile at mouse pos doesn't have any Objects on it
+      // See neighbouring Tiles, because of our collision generation,
+      // we only generate outline and diagonals
+      else
+      {
+         const int32_t xLower = glm::max(0, node.tile_.first - 2);
+         const int32_t xUpper = glm::min(127, node.tile_.first + 2);
+
+         const int32_t yLower = glm::max(0, node.tile_.second - 2);
+         const int32_t yUpper = glm::min(127, node.tile_.second + 2);
+         for (int32_t y = yLower; y < yUpper; ++y)
+         {
+            for (int32_t x = xLower; x < xUpper; ++x)
+            {
+               const auto& neighbour = m_pathFinder.GetNodeFromTile({x, y});
+               auto objectFound = stl::find_if(
+                  neighbour.objectsOnThisNode_, [this, screenPosition](const auto& objectID) {
+                     const auto& object = GetGameObjectRef(objectID);
+                     return object.CheckIfCollidedScreenPosion(screenPosition);
+                  });
+
+               if (objectFound != neighbour.objectsOnThisNode_.end())
+               {
+                  object = *objectFound;
+                  break;
+               }
+            }
+         }
+      }
    }
 
    return object;
@@ -862,47 +903,34 @@ Level::GetGameObjectOnLocation(const glm::vec2& screenPosition)
 Object::ID
 Level::GetGameObjectOnLocationAndLayer(const glm::vec2& screenPosition, int32_t renderLayer)
 {
-   Object::ID objectFound = Object::INVALID_ID;
+   Object::ID object = Object::INVALID_ID;
+   const auto globalPos = m_contextPointer->ScreenToGlobal(screenPosition);
 
-   if (renderLayer != -1)
+   if (IsInLevelBoundaries(globalPos))
    {
-      auto objectOnLocation =
-         stl::find_if(objects_, [screenPosition, renderLayer](const auto& object) {
-            return object.CheckIfCollidedScreenPosion(screenPosition)
-                   and (object.GetSprite().GetRenderInfo().layer == renderLayer);
-         });
-
-      if (objectOnLocation == objects_.end())
+      if (renderLayer != -1)
       {
-         auto enemyOnLocation =
-            stl::find_if(enemies_, [screenPosition, renderLayer](const auto& enemy) {
-               return enemy.CheckIfCollidedScreenPosion(screenPosition)
-                      and (enemy.GetSprite().GetRenderInfo().layer == renderLayer);
+         const auto& node = m_pathFinder.GetNodeFromPosition(globalPos);
+
+         auto objectOnLocation = stl::find_if(
+            node.objectsOnThisNode_, [this, screenPosition, renderLayer](const auto& objectID) {
+               const auto& object = GetGameObjectRef(objectID);
+               return object.CheckIfCollidedScreenPosion(screenPosition)
+                      and (object.GetSprite().GetRenderInfo().layer == renderLayer);
             });
 
-         if (enemyOnLocation == enemies_.end())
+         if (objectOnLocation != node.objectsOnThisNode_.end())
          {
-            objectFound = player_.CheckIfCollidedScreenPosion(screenPosition)
-                                and (player_.GetSprite().GetRenderInfo().layer == renderLayer)
-                             ? player_.GetID()
-                             : Object::INVALID_ID;
-         }
-         else
-         {
-            objectFound = enemyOnLocation->GetID();
+            object = *objectOnLocation;
          }
       }
       else
       {
-         objectFound = objectOnLocation->GetID();
+         object = GetGameObjectOnLocation(screenPosition);
       }
    }
-   else
-   {
-      objectFound = GetGameObjectOnLocation(screenPosition);
-   }
 
-   return objectFound;
+   return object;
 }
 
 void
