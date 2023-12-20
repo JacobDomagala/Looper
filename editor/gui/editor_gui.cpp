@@ -171,7 +171,7 @@ EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
          false};
    }
 
-   auto& player = currentLevel_->GetPlayer();
+   const auto& player = currentLevel_->GetPlayer();
    if (player.GetID() != Object::INVALID_ID)
    {
       objectsInfo_[player.GetID()] = {

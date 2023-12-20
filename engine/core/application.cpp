@@ -7,7 +7,7 @@
 namespace looper {
 
 const Player&
-Application::GetPlayer()
+Application::GetPlayer() const
 {
    return currentLevel_->GetPlayer();
 }

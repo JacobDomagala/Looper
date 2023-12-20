@@ -21,7 +21,7 @@ class GameObject : public Object
 
    GameObject(Application* application, const glm::vec2& position, const glm::vec2& size,
               const std::string& sprite, ObjectType type);
-   GameObject();
+   GameObject() = default;
    ~GameObject() override;
 
    void
@@ -156,16 +156,16 @@ class GameObject : public Object
       std::vector< Tile > nodes_;
    };
 
-   StateList< State > gameObjectStatesQueue_;
-   State currentGameObjectState_;
+   StateList< State > gameObjectStatesQueue_ = {};
+   State currentGameObjectState_ = {};
 
-   Application* appHandle_;
+   Application* appHandle_ = nullptr;
 
    bool hasCollision_ = false;
    bool updateCollision_ = false;
 
    // object's sprite
-   renderer::Sprite sprite_;
+   renderer::Sprite sprite_ = {};
 
    std::string name_ = "DummyName";
 };

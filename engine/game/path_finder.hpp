@@ -42,7 +42,7 @@ struct Node : public Object
         tile_(coords.x, coords.y),
         position_(posOnMap),
         occupied_(occupied),
-        id_(nodeID),
+        nodeId_(nodeID),
         connectedNodes_(std::move(connectedTo)),
         objectsOccupyingThisNode_(std::move(objectOccupying))
    {
@@ -55,7 +55,7 @@ struct Node : public Object
 
    bool occupied_ = false;
 
-   NodeID id_ = INVALID_NODE;
+   NodeID nodeId_ = INVALID_NODE;
 
    // Node which updated this node
    NodeID parentNode_ = INVALID_NODE;
@@ -72,7 +72,7 @@ struct Node : public Object
 inline bool
 operator==(const Node& left, const Node& right)
 {
-   return left.id_ == right.id_;
+   return left.nodeId_ == right.nodeId_;
 }
 
 class PathFinder

@@ -154,10 +154,13 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
       }
       else if (movementOnEditorObject_ or movementOnGameObject_ or selectingObjects_)
       {
-         // Object movement finished
-         ShowCursor(true);
-         SetMouseOnObject();
-
+         if (movementOnGameObject_ or movementOnEditorObject_)
+         {
+            // Object movement finished
+            ShowCursor(true);
+            SetMouseOnObject();
+         }
+         
          movementOnEditorObject_ = false;
          movementOnGameObject_ = false;
 
@@ -351,14 +354,14 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
 void
 Editor::SetMouseOnObject()
 {
-   if (mouseDrag_ && (movementOnEditorObject_ || movementOnGameObject_))
+   if (mouseDrag_)
    {
-      if (movementOnEditorObject_)
+      if (movementOnEditorObject_ and currentEditorObjectSelected_ != Object::INVALID_ID)
       {
          const auto& selectedEditorObject = GetEditorObjectRef(currentEditorObjectSelected_);
          InputManager::SetMousePos(selectedEditorObject.GetScreenPositionPixels());
       }
-      else if (movementOnGameObject_)
+      else if (movementOnGameObject_ and currentSelectedGameObject_ != Object::INVALID_ID)
       {
          InputManager::SetMousePos(
             currentLevel_->GetGameObjectRef(currentSelectedGameObject_).GetScreenPositionPixels());
@@ -1086,7 +1089,8 @@ Editor::CopyGameObjects(const std::vector< Object::ID >& objectsToCopy)
       const auto& textureName = object.GetSprite().GetTextureName();
       const auto rotation = object.GetSprite().GetRotation();
 
-      auto newObjectID = currentLevel_->AddGameObject(Object::GetTypeFromID(objectToCopy), {});
+      auto newObjectID =
+         currentLevel_->AddGameObject(Object::GetTypeFromID(objectToCopy), position + offset);
 
       // Set it only once
       if (offset == glm::vec2{})
@@ -1095,7 +1099,6 @@ Editor::CopyGameObjects(const std::vector< Object::ID >& objectsToCopy)
       }
 
       auto& newObject = currentLevel_->GetGameObjectRef(newObjectID);
-      newObject.SetPosition(position + offset);
       newObject.SetSize(size);
       newObject.SetHasCollision(hasCollision);
       newObject.GetSprite().SetTextureFromFile(textureName);

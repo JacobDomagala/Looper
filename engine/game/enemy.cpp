@@ -20,11 +20,11 @@ Enemy::Enemy(Application* context, const glm::vec3& pos, const glm::ivec2& size,
    currentState_.visionRange_ = 1000.0f;
 
    currentState_.combatStarted_ = false;
-   m_animationPoints = keypoints;
+   animationPoints_ = keypoints;
 
    timer_.ToggleTimer();
 
-   m_animationStartPosition = initialPosition_;
+   animationStartPosition_ = initialPosition_;
    ResetAnimation();
 }
 
@@ -48,11 +48,11 @@ Enemy::Setup(Application* context, const glm::vec2& pos, const glm::ivec2& size,
    currentState_.visionRange_ = 1000.0f;
 
    currentState_.combatStarted_ = false;
-   m_animationPoints = keypoints;
+   animationPoints_ = keypoints;
 
    timer_.ToggleTimer();
 
-   m_animationStartPosition = initialPosition_;
+   animationStartPosition_ = initialPosition_;
    ResetAnimation();
 }
 
@@ -266,7 +266,7 @@ Enemy::UpdateInternal(bool isReverse)
 {
    if (isReverse)
    {
-      currentState_ = statesQueue_.GetLastState();
+      currentState_ = enemyStatesQueue_.GetLastState();
    }
    else
    {
@@ -277,7 +277,7 @@ Enemy::UpdateInternal(bool isReverse)
          EnemyMove(Animate(appHandle_->GetDeltaTime()));
       }
 
-      statesQueue_.PushState(currentState_);
+      enemyStatesQueue_.PushState(currentState_);
    }
 
    Animatable::UpdateAnimation(isReverse);

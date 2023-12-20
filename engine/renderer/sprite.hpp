@@ -27,7 +27,7 @@ class Sprite
    };
 
    void
-   ClearData();
+   ClearData() const;
 
    // Create sprite without texture
    void

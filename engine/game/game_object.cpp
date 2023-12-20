@@ -41,10 +41,6 @@ GameObject::GameObject(Application* application, const glm::vec2& position, cons
 {
 }
 
-GameObject::GameObject()
-{
-}
-
 GameObject::~GameObject()
 {
    appHandle_->GetLevel().FreeNodes(id_, currentGameObjectState_.nodes_, hasCollision_);

@@ -105,7 +105,7 @@ class Enemy : public GameObject, public Animatable
       float viewAngle_ = {};
    };
 
-   StateList< State > statesQueue_;
+   StateList< State > enemyStatesQueue_;
    State currentState_;
 
    // helper timer

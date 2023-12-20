@@ -49,9 +49,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
 
    // PATHFINDER
    {
-      const auto& pathfinder = json["PATHFINDER"];
-
-      SCOPED_TIMER(fmt::format("Loading Pathfinder ({} nodes)", pathfinder["nodes"].size()));
+      SCOPED_TIMER(fmt::format("Loading Pathfinder"));
       m_pathFinder.Initialize(this);
    }
 
@@ -88,7 +86,6 @@ Level::Load(Application* context, const std::string& pathToLevel)
          const auto& position = enemy["position"];
          const auto& size = enemy["size"];
          const auto& texture = enemy["texture"];
-         // const auto weapons = enemy["weapons"];
          const auto& name = enemy["name"];
 
          auto& object = enemies_.at(i);
@@ -154,6 +151,7 @@ Level::Save(const std::string& pathToLevel)
    json["BACKGROUND"]["texture"] = m_background.GetTextureName();
    json["BACKGROUND"]["size"] = {m_background.GetSize().x, m_background.GetSize().y};
 
+   // PLAYER
    json["PLAYER"]["name"] = player_.GetName();
    json["PLAYER"]["position"] = {player_.GetPosition().x, player_.GetPosition().y};
    json["PLAYER"]["scale"] = {player_.GetSprite().GetScale().x, player_.GetSprite().GetScale().y};
@@ -164,6 +162,7 @@ Level::Save(const std::string& pathToLevel)
    json["PLAYER"]["weapons"] = player_.GetWeapons();
    json["PLAYER"]["render_layer"] = player_.GetSprite().GetRenderInfo().layer;
 
+   // ENEMIES
    for (const auto& enemy : enemies_)
    {
       nlohmann::json enemyJson;
@@ -193,22 +192,13 @@ Level::Save(const std::string& pathToLevel)
       json["ENEMIES"].emplace_back(enemyJson);
    }
 
-   // Serialize game objects
+   // OBJECTS
    for (const auto& object : objects_)
    {
       nlohmann::json objectJson;
 
       objectJson["name"] = object.GetName();
       objectJson["has collision"] = object.GetHasCollision();
-
-      const auto occupiedNodes = object.GetOccupiedNodes();
-      for (const auto& node : occupiedNodes)
-      {
-         nlohmann::json occupiedNode;
-         occupiedNode["tile position"] = {node.first, node.second};
-
-         objectJson["occupied nodes"].emplace_back(occupiedNode);
-      }
 
       objectJson["position"] = {object.GetPosition().x, object.GetPosition().y};
       objectJson["size"] = {object.GetSprite().GetOriginalSize().x,
@@ -275,7 +265,7 @@ Level::GetPathfinder()
 }
 
 const Player&
-Level::GetPlayer()
+Level::GetPlayer() const
 {
    return player_;
 }
@@ -291,8 +281,9 @@ Level::AddGameObject(ObjectType objectType, const glm::vec2& position)
    switch (objectType)
    {
       case ObjectType::ENEMY: {
-         auto& newEnemy = enemies_.emplace_back(m_contextPointer, position, defaultSize,
-                                                defaultTexture, std::vector< AnimationPoint >{});
+         const auto& newEnemy =
+            enemies_.emplace_back(m_contextPointer, position, defaultSize, defaultTexture,
+                                  std::vector< AnimationPoint >{});
 
          newObject = newEnemy.GetID();
       }
@@ -308,8 +299,8 @@ Level::AddGameObject(ObjectType objectType, const glm::vec2& position)
       break;
 
       case ObjectType::OBJECT: {
-         auto& newObj = objects_.emplace_back(m_contextPointer, position, defaultSize,
-                                              defaultTexture, ObjectType::OBJECT);
+         const auto& newObj = objects_.emplace_back(m_contextPointer, position, defaultSize,
+                                                    defaultTexture, ObjectType::OBJECT);
          newObject = newObj.GetID();
          objectToIdx_[newObject] = objects_.size() - 1;
       }
@@ -511,8 +502,8 @@ Level::GetTilesAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos) co
 {
    std::set< Tile > tiles;
 
-   const auto numSteps =
-      static_cast< int32_t >(glm::length(toPos - fromPos) / static_cast< float >(m_tileWidth / 2));
+   const auto numSteps = static_cast< int32_t >(glm::length(toPos - fromPos)
+                                                / static_cast< float >(m_tileWidth) / 2.0f);
    const auto stepSize = (toPos - fromPos) / static_cast< float >(numSteps);
 
    for (int32_t i = 0; i < numSteps; ++i)
@@ -850,27 +841,19 @@ Level::SetPlayersPosition(const glm::vec2& /*position*/)
 Object::ID
 Level::GetGameObjectOnLocation(const glm::vec2& screenPosition)
 {
+   const auto& node =
+      m_pathFinder.GetNodeFromPosition(m_contextPointer->ScreenToGlobal(screenPosition));
    Object::ID object = Object::INVALID_ID;
 
-   auto objectOnLocation = stl::find_if(objects_, [screenPosition](const auto& object) {
-      return object.CheckIfCollidedScreenPosion(screenPosition);
-   });
-
-   object = objectOnLocation != objects_.end() ? objectOnLocation->GetID() : Object::INVALID_ID;
-
-   if (object == Object::INVALID_ID)
-   {
-      auto enemyOnLocation = stl::find_if(enemies_, [screenPosition](const auto& enemy) {
-         return enemy.CheckIfCollidedScreenPosion(screenPosition);
+   auto objectOnLocation =
+      stl::find_if(node.objectsOnThisNode_, [this, screenPosition](const auto& objectID) {
+         const auto& object = GetGameObjectRef(objectID);
+         return object.CheckIfCollidedScreenPosion(screenPosition);
       });
 
-      object = enemyOnLocation != enemies_.end() ? enemyOnLocation->GetID() : Object::INVALID_ID;
-
-      if (object == Object::INVALID_ID)
-      {
-         object = player_.CheckIfCollidedScreenPosion(screenPosition) ? player_.GetID()
-                                                                      : Object::INVALID_ID;
-      }
+   if (objectOnLocation != node.objectsOnThisNode_.end())
+   {
+      object = *objectOnLocation;
    }
 
    return object;
@@ -889,10 +872,7 @@ Level::GetGameObjectOnLocationAndLayer(const glm::vec2& screenPosition, int32_t 
                    and (object.GetSprite().GetRenderInfo().layer == renderLayer);
          });
 
-      objectFound =
-         objectOnLocation != objects_.end() ? objectOnLocation->GetID() : Object::INVALID_ID;
-
-      if (objectFound == Object::INVALID_ID)
+      if (objectOnLocation == objects_.end())
       {
          auto enemyOnLocation =
             stl::find_if(enemies_, [screenPosition, renderLayer](const auto& enemy) {
@@ -900,16 +880,21 @@ Level::GetGameObjectOnLocationAndLayer(const glm::vec2& screenPosition, int32_t 
                       and (enemy.GetSprite().GetRenderInfo().layer == renderLayer);
             });
 
-         objectFound =
-            enemyOnLocation != enemies_.end() ? enemyOnLocation->GetID() : Object::INVALID_ID;
-
-         if (objectFound == Object::INVALID_ID)
+         if (enemyOnLocation == enemies_.end())
          {
             objectFound = player_.CheckIfCollidedScreenPosion(screenPosition)
                                 and (player_.GetSprite().GetRenderInfo().layer == renderLayer)
                              ? player_.GetID()
                              : Object::INVALID_ID;
          }
+         else
+         {
+            objectFound = enemyOnLocation->GetID();
+         }
+      }
+      else
+      {
+         objectFound = objectOnLocation->GetID();
       }
    }
    else

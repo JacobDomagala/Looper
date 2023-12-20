@@ -164,7 +164,7 @@ class Level
    GetPathfinder();
 
    const Player&
-   GetPlayer();
+   GetPlayer() const;
 
    void
    RenderPathfinder(bool render);

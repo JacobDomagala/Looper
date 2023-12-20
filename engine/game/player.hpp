@@ -21,7 +21,7 @@ class Player : public GameObject
    Player(Application* game, const glm::vec2& position, const glm::ivec2& size,
           const std::string& sprite, const std::string& name = "Anonymous");
 
-   Player();
+   Player() = default;
 
    void
    Setup(Application* game, const glm::vec3& position, const glm::ivec2& size,

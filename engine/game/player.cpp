@@ -28,10 +28,6 @@ Player::Player(Application* game, const glm::vec2& position, const glm::ivec2& s
 {
 }
 
-Player::Player()
-{
-}
-
 void
 Player::Setup(Application* game, const glm::vec3& position, const glm::ivec2& size,
               const std::string& sprite, const std::string& name)

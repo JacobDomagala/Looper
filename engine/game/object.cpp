@@ -49,6 +49,7 @@ TypeToString(ObjectType type)
    return typeStr;
 }
 
+// NOLINTNEXTLINE 
 std::unordered_map< std::string, ObjectType > typesMap = {
    {"Enemy", ObjectType::ENEMY},
    {"Player", ObjectType::PLAYER},

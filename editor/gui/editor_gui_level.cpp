@@ -240,9 +240,11 @@ EditorGUI::RenderLevelMenu() // NOLINT
       const auto& gameObjects = currentLevel_->GetObjects();
 
       const auto filterObjects = std::to_array< std::string >({"All", "Enemy", "Player", "Object"});
-      // NOLINTNEXTLINE
+
+      // NOLINTBEGIN
       static std::string selectedFilter = filterObjects.at(0);
       static Object::ID searchID = 0;
+      // NOLINTEND
 
       DrawWidget("Render by Type", [&filterObjects] {
          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -321,6 +323,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
                }
             });
 
+         // NOLINTNEXTLINE
          static std::string newObjectType = "Object";
 
          CreateActionRowLabel(
@@ -390,7 +393,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
          {
             auto& pathfinder = parent_.GetLevel().GetPathfinder();
             const auto& curNode = pathfinder.GetNodeFromPosition(cursorPos);
-            CreateRow("Cursor on TileID", fmt::format("{}", curNode.id_));
+            CreateRow("Cursor on TileID", fmt::format("{}", curNode.nodeId_));
             CreateRow("Cursor on Coords",
                       fmt::format("({}, {})", curNode.tile_.first, curNode.tile_.second));
          }

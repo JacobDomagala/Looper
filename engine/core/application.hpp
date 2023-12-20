@@ -34,7 +34,7 @@ class Application : public InputListener
    Application(Application&&) = delete;
 
    [[nodiscard]] const Player&
-   GetPlayer();
+   GetPlayer() const;
 
    [[nodiscard]] renderer::Window&
    GetWindow();

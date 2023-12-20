@@ -33,7 +33,7 @@ PathFinder::Initialize(Level* level)
    const auto offset =
       glm::vec2(static_cast< float >(grad) / 2.0f, static_cast< float >(grad) / 2.0f);
 
-   nodes_.reserve(static_cast< size_t >(w * h));
+   nodes_.reserve(static_cast< size_t >(w) * static_cast< size_t >(h));
 
    // TODO: parallelize!
 
@@ -95,7 +95,7 @@ PathFinder::GetNodeIDFromPosition(const glm::vec2& position)
 
    auto nodeFound = GetNodeFromTile(levelHandle_->GetTileFromPosition(position));
 
-   return nodeFound.id_;
+   return nodeFound.nodeId_;
 }
 
 Node&
@@ -115,14 +115,15 @@ PathFinder::GetNodeFromID(NodeID ID)
 NodeID
 PathFinder::GetNodeIDFromTile(const Tile& tile)
 {
-   return GetNodeFromTile(tile).id_;
+   return GetNodeFromTile(tile).nodeId_;
 }
 
 Node&
 PathFinder::GetNodeFromTile(const Tile& tile)
 {
-   return nodes_.at(static_cast< size_t >(
-      tile.first + tile.second * static_cast< int32_t >(levelHandle_->GetTileSize())));
+   return nodes_.at(static_cast< size_t >(tile.first)
+                    + static_cast< size_t >(tile.second)
+                         * static_cast< size_t >(levelHandle_->GetTileSize()));
 }
 
 std::vector< NodeID >
@@ -201,7 +202,7 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
          // as the path source, and set its distance scores as necessary
          if (fPossiblyLowerGoal < static_cast< float >(nodeNeighbour.localCost_))
          {
-            nodeNeighbour.parentNode_ = nodeCurrent->id_;
+            nodeNeighbour.parentNode_ = nodeCurrent->nodeId_;
             nodeNeighbour.localCost_ = static_cast< int32_t >(fPossiblyLowerGoal);
 
             // The best path length to the neighbour being tested has changed, so
@@ -222,7 +223,7 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
    auto* currentNode = &nodeEnd;
    while (*currentNode != nodeStart)
    {
-      nodePath.push_back(currentNode->id_);
+      nodePath.push_back(currentNode->nodeId_);
       if (currentNode->parentNode_ != -1)
       {
          currentNode = &GetNodeFromID(currentNode->parentNode_);

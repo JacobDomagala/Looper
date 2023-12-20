@@ -8,7 +8,7 @@
 namespace looper::renderer {
 
 void
-Sprite::ClearData()
+Sprite::ClearData() const
 {
    const auto transformMat = ComputeModelMat();
 
