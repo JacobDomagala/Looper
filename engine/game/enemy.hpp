@@ -15,11 +15,17 @@ class Application;
 class Enemy : public GameObject, public Animatable
 {
  public:
-   Enemy(Application& context, const glm::vec3& pos, const glm::ivec2& size,
+   Enemy(Application* context, const glm::vec3& pos, const glm::ivec2& size,
          const std::string& textureName, const std::vector< AnimationPoint >& keypoints = {},
          Animatable::ANIMATION_TYPE animationType = Animatable::ANIMATION_TYPE::REVERSABLE);
 
-   Enemy(Application& context, const glm::vec2& pos, const glm::ivec2& size,
+   Enemy(Application* context, const glm::vec2& pos, const glm::ivec2& size,
+         const std::string& textureName, const std::vector< AnimationPoint >& keypoints = {},
+         Animatable::ANIMATION_TYPE animationType = Animatable::ANIMATION_TYPE::REVERSABLE);
+
+   Enemy() = default;
+
+   void Setup(Application* context, const glm::vec2& pos, const glm::ivec2& size,
          const std::string& textureName, const std::vector< AnimationPoint >& keypoints = {},
          Animatable::ANIMATION_TYPE animationType = Animatable::ANIMATION_TYPE::REVERSABLE);
 
@@ -31,12 +37,6 @@ class Enemy : public GameObject, public Animatable
 
    void
    DealWithPlayer();
-
-   [[nodiscard]] std::string
-   GetWeapon() const;
-
-   [[nodiscard]] int32_t
-   GetDmg() const;
 
    [[nodiscard]] glm::ivec2
    GetInitialPosition() const;
@@ -84,40 +84,37 @@ class Enemy : public GameObject, public Animatable
 
    struct State
    {
-      ACTION m_action = ACTION::IDLE;
-      int32_t m_currentHP = {};
-      glm::vec2 m_targetShootPosition = {};
-      glm::vec2 m_targetMovePosition = {};
+      ACTION action_ = ACTION::IDLE;
+      int32_t currentHP_ = {};
+      glm::vec2 targetShootPosition_ = {};
+      glm::vec2 targetMovePosition_ = {};
 
-      glm::vec2 m_lastPlayersPos = {};
+      glm::vec2 lastPlayersPos_ = {};
 
-      bool m_isChasingPlayer = false;
-      bool m_isAtInitialPos = true;
+      bool isChasingPlayer_ = false;
+      bool isAtInitialPos_ = true;
 
-      time::microseconds m_timeSinceCombatEnded = time::microseconds(0);
-      float m_timeSinceCombatStarted = 0.0f;
-      float m_timeSinceLastShot = 0.0f;
-      float m_reactionTime = 0.1f;
-      float m_movementSpeed = 0.5f;
-      float m_visionRange = 0.0f;
+      time::microseconds timeSinceCombatEnded_ = time::microseconds(0);
+      float timeSinceCombatStarted_ = 0.0f;
+      float timeSinceLastShot_ = 0.0f;
+      float reactionTime_ = 0.1f;
+      float movementSpeed_ = 0.5f;
+      float visionRange_ = 0.0f;
 
-      bool m_combatStarted = false;
-      float m_viewAngle = {};
+      bool combatStarted_ = false;
+      float viewAngle_ = {};
    };
 
-   StateList< State > m_statesQueue;
-   State m_currentState;
+   StateList< State > enemyStatesQueue_;
+   State currentState_;
 
    // helper timer
-   time::Timer m_timer;
+   time::Timer timer_;
 
    // total HP
-   int32_t m_maxHP = 100;
+   int32_t maxHP_ = 100;
 
-   // current weapon
-   std::unique_ptr< Weapon > m_weapon;
-
-   glm::vec2 m_initialPosition = {};
+   glm::vec2 initialPosition_ = {};
 };
 
 } // namespace looper

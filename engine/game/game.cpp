@@ -15,14 +15,14 @@ namespace looper {
 void
 Game::MainLoop()
 {
-   if (m_currentLevel)
+   if (currentLevel_)
    {
       auto singleFrameTimer = time::microseconds(0);
 
       while (IsRunning())
       {
-         m_timer.ToggleTimer();
-         singleFrameTimer += m_timer.GetMicroDeltaTime();
+         timer_.ToggleTimer();
+         singleFrameTimer += timer_.GetMicroDeltaTime();
 
          while (IsRunning() and (singleFrameTimer.count() >= TARGET_TIME_MICRO))
          {
@@ -37,16 +37,16 @@ Game::MainLoop()
                renderer::VulkanRenderer::Render(this);
             }
 
-            if (m_frameTimer > 1.0f)
+            if (frameTimer_ > 1.0f)
             {
-               m_framesLastSecond = m_frames;
-               m_frameTimer = 0.0f;
-               m_frames = 0;
+               framesLastSecond_ = frames_;
+               frameTimer_ = 0.0f;
+               frames_ = 0;
             }
 
             // Increment frame count and frame timer
-            ++m_frames;
-            m_frameTimer += TARGET_TIME_S;
+            ++frames_;
+            frameTimer_ += TARGET_TIME_S;
 
             // Decrement frame timer for next frame
             singleFrameTimer -= time::microseconds(TARGET_TIME_MICRO);
@@ -55,14 +55,14 @@ Game::MainLoop()
          }
       }
    }
-   InputManager::UnregisterFromInput(m_window->GetWindowHandle(), this);
+   InputManager::UnregisterFromInput(window_->GetWindowHandle(), this);
 }
 
 
 void
 Game::Init(const std::string& configFile, bool loadLevel)
 {
-   m_isGame = true;
+   isGame_ = true;
 
    std::ifstream initFile((ASSETS_DIR / configFile).string());
 
@@ -71,10 +71,10 @@ Game::Init(const std::string& configFile, bool loadLevel)
       Logger::Fatal("Game: Can't open {}", (ASSETS_DIR / configFile).string());
    }
 
-   m_window = std::make_unique< renderer::Window >(USE_DEFAULT_SIZE, "WindowTitle", true);
-   m_window->MakeFocus();
+   window_ = std::make_unique< renderer::Window >(USE_DEFAULT_SIZE, "WindowTitle", true);
+   window_->MakeFocus();
 
-   renderer::VulkanRenderer::Initialize(m_window->GetWindowHandle(),
+   renderer::VulkanRenderer::Initialize(window_->GetWindowHandle(),
                                         renderer::ApplicationType::GAME);
 
    while (!initFile.eof())
@@ -98,8 +98,8 @@ Game::Init(const std::string& configFile, bool loadLevel)
 
    initFile.close();
 
-   InputManager::Init(m_window->GetWindowHandle());
-   InputManager::RegisterForInput(m_window->GetWindowHandle(), this);
+   InputManager::Init(window_->GetWindowHandle());
+   InputManager::RegisterForInput(window_->GetWindowHandle(), this);
 
    if (loadLevel)
    {
@@ -114,20 +114,21 @@ Game::Init(const std::string& configFile, bool loadLevel)
 // glm::vec2
 // Game::CheckBulletCollision(const glm::vec2& positon, float range)
 //{
-//    return m_currentLevel->GetCollidedPosition(
+//    return currentLevel_->GetCollidedPosition(
 //       positon, glm::clamp(positon + range, glm::vec2{0.0f, 0.0f},
-//                           static_cast< glm::vec2 >(m_currentLevel->GetSize())));
+//                           static_cast< glm::vec2 >(currentLevel_->GetSize())));
 // }
 
 void
-Game::MoveGameObject(GameObject* gameObject, const glm::vec2& moveBy) const
+Game::MoveGameObject(Object::ID gameObject, const glm::vec2& moveBy) const
 {
-   const auto fromPosition = gameObject->GetCenteredPosition();
+   auto& object = currentLevel_->GetGameObjectRef(gameObject);
+   const auto fromPosition = object.GetCenteredPosition();
    const auto destination = fromPosition + moveBy;
 
    const auto actualMoveBy =
-      m_currentLevel->GetCollidedPosition(fromPosition, destination) - fromPosition;
-   gameObject->Move(actualMoveBy);
+      currentLevel_->GetCollidedPosition(fromPosition, destination) - fromPosition;
+   object.Move(actualMoveBy);
 }
 
 void
@@ -147,11 +148,11 @@ Game::KeyEvents() // NOLINT
    {
       if (InputManager::CheckKeyPressed(GLFW_KEY_LEFT))
       {
-         m_currentLevel->MoveObjs(glm::vec2(2.0f, 0.0f));
+         currentLevel_->MoveObjs(glm::vec2(2.0f, 0.0f));
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_RIGHT))
       {
-         m_currentLevel->MoveObjs(glm::vec2(-2.0f, 0.0f));
+         currentLevel_->MoveObjs(glm::vec2(-2.0f, 0.0f));
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_O))
       {
@@ -160,11 +161,11 @@ Game::KeyEvents() // NOLINT
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_1))
       {
-         m_window->ShowCursor(true);
+         window_->ShowCursor(true);
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_2))
       {
-         m_window->ShowCursor(false);
+         window_->ShowCursor(false);
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_P))
       {
@@ -200,13 +201,13 @@ Game::KeyEvents() // NOLINT
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_SPACE))
       {
-         m_camera.SetCameraAtObject(m_player);
+         CenterCameraOnPlayer();
       }
 
       if (glm::length(playerMoveBy) > 0.0f)
       {
-         m_camera.Move(glm::vec3{cameraMoveBy, 0.0f});
-         MoveGameObject(m_player.get(), playerMoveBy);
+         camera_.Move(glm::vec3{cameraMoveBy, 0.0f});
+         MoveGameObject(currentLevel_->GetPlayer().GetID(), playerMoveBy);
       }
    }
 }
@@ -216,7 +217,7 @@ Game::MouseEvents()
 {
    // const auto playerPos = m_player->GetCenteredPosition();
    // const auto mousePos = ScreenToGlobal(InputManager::GetMousePos());
-   // const auto collided = m_currentLevel->GetCollidedPosition(playerPos, mousePos);
+   // const auto collided = currentLevel_->GetCollidedPosition(playerPos, mousePos);
 
    // Renderer::DrawLine(m_player->GetCenteredPosition(), collided, {0.8f, 0.0f, 0.3f, 1.0f});
 
@@ -231,7 +232,7 @@ Game::MouseEvents()
 
       const auto cameraMovement = modifier * floorf(static_cast< float >(deltaTime_.count()));
       auto cameraMoveBy = glm::vec2();
-      const auto cursor = m_window->GetCursorNormalized();
+      const auto cursor = window_->GetCursorNormalized();
 
       if (cursor.x > borderValue)
       {
@@ -255,7 +256,7 @@ Game::MouseEvents()
       }
       if (glm::length(glm::vec2(cameraMoveBy)) > 0.0f)
       {
-         m_camera.Move(glm::vec3(cameraMoveBy, 0.0f));
+         camera_.Move(glm::vec3(cameraMoveBy, 0.0f));
       }
    }
 }
@@ -263,7 +264,7 @@ Game::MouseEvents()
 void
 Game::UpdateGameState()
 {
-   m_currentLevel->Update(m_reverse);
+   currentLevel_->Update(m_reverse);
 }
 
 void
@@ -271,7 +272,7 @@ Game::RenderFirstPass()
 {
    // m_frameBuffer.BeginDrawingToTexture();
 
-   m_currentLevel->Render();
+   currentLevel_->Render();
 
    // m_frameBuffer.EndDrawingToTexture();
 }
@@ -291,12 +292,12 @@ Game::LoadLevel(const std::string& pathToLevel)
 {
    renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::GAME);
 
-   m_currentLevel = std::make_shared< Level >();
-   m_currentLevel->Load(this, pathToLevel);
-   m_player = m_currentLevel->GetPlayer();
+   currentLevel_ = std::make_shared< Level >();
+   currentLevel_->Load(this, pathToLevel);
 
-   m_camera.Create(glm::vec3(m_player->GetCenteredPosition(), 0.0f), m_window->GetSize());
-   m_camera.SetLevelSize(m_currentLevel->GetSize());
+   camera_.Create(glm::vec3(currentLevel_->GetPlayer().GetCenteredPosition(), 0.0f),
+                  window_->GetSize());
+   camera_.SetLevelSize(currentLevel_->GetSize());
 
    workQueue_.PushWorkUnit([this] { return windowInFocus_; },
                            [] { renderer::VulkanRenderer::SetupData(); });
@@ -305,43 +306,43 @@ Game::LoadLevel(const std::string& pathToLevel)
 glm::vec2
 Game::GetWindowSize() const
 {
-   return m_window->GetSize();
+   return window_->GetSize();
 }
 
 const glm::mat4&
 Game::GetProjection() const
 {
-   return m_camera.GetProjectionMatrix();
+   return camera_.GetProjectionMatrix();
 }
 
 const glm::mat4&
 Game::GetViewMatrix() const
 {
-   return m_camera.GetViewMatrix();
+   return camera_.GetViewMatrix();
 }
 
 float
 Game::GetZoomLevel() const
 {
-   return m_camera.GetZoomLevel();
+   return camera_.GetZoomLevel();
 }
 
 glm::vec2
 Game::GetCursor()
 {
-   return m_window->GetCursor();
+   return window_->GetCursor();
 }
 
 glm::vec2
 Game::GetCursorScreenPosition()
 {
-   return m_window->GetCursorScreenPosition(m_camera.GetProjectionMatrix());
+   return window_->GetCursorScreenPosition(camera_.GetProjectionMatrix());
 }
 
 bool
 Game::IsRunning() const
 {
-   return m_window->IsRunning();
+   return window_->IsRunning();
 }
 
 void
@@ -356,8 +357,8 @@ Game::ProcessInput(time::milliseconds deltaTime)
 
    auto& renderData =
       renderer::Data::renderData_.at(renderer::VulkanRenderer::GetCurrentlyBoundType());
-   renderData.viewMat = m_camera.GetViewMatrix();
-   renderData.projMat = m_camera.GetProjectionMatrix();
+   renderData.viewMat = camera_.GetViewMatrix();
+   renderData.projMat = camera_.GetProjectionMatrix();
 }
 
 void
@@ -365,8 +366,8 @@ Game::KeyCallback(KeyEvent& event)
 {
    if ((event.key_ == GLFW_KEY_ESCAPE) and (event.action_ == GLFW_PRESS))
    {
-      m_currentLevel->Quit();
-      m_window->ShutDown();
+      currentLevel_->Quit();
+      window_->ShutDown();
 
       event.handled_ = true;
    }
@@ -392,7 +393,7 @@ Game::HandleReverseLogic()
          --m_frameCount;
          auto pos = cameraPositions_.GetLastState();
 
-         m_camera.SetCameraAtPosition(pos);
+         camera_.SetCameraAtPosition(pos);
       }
    }
    else
@@ -402,7 +403,7 @@ Game::HandleReverseLogic()
          ++m_frameCount;
       }
 
-      cameraPositions_.PushState(m_camera.GetPosition());
+      cameraPositions_.PushState(camera_.GetPosition());
    }
 }
 

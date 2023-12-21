@@ -46,6 +46,7 @@ class Animatable
       REVERSABLE
    };
 
+   Animatable() = default;
    explicit Animatable(ANIMATION_TYPE type);
 
    void SetAnimationType(ANIMATION_TYPE);
@@ -115,7 +116,7 @@ class Animatable
    GetTotalTimeElapsed() const;
 
    void
-   Update(bool isReverse);
+   UpdateAnimation(bool isReverse);
 
    void
    ResetAnimation();
@@ -129,31 +130,31 @@ class Animatable
 
    struct State
    {
-      std::vector< AnimationPoint >::iterator m_currentAnimationPoint;
-      glm::vec2 m_currentAnimationBegin;
-      glm::vec2 m_currentAnimationEnd;
-      glm::vec2 m_currentAnimationPosition;
-      glm::vec2 m_currentAnimationDistance;
+      std::vector< AnimationPoint >::iterator currentAnimationPoint_;
+      glm::vec2 currentAnimationBegin_;
+      glm::vec2 currentAnimationEnd_;
+      glm::vec2 currentAnimationPosition_;
+      glm::vec2 currentAnimationDistance_;
 
-      bool m_isReverse = false;
-      bool m_animationFinished = false;
+      bool isReverse_ = false;
+      bool animationFinished_ = false;
 
       // time from current Animation Point start
-      time::milliseconds m_currentTimeElapsed = time::milliseconds(0);
+      time::milliseconds currentTimeElapsed_ = time::milliseconds(0);
 
       // time from Animation start
-      time::milliseconds m_totalTimeElapsed = time::milliseconds(0);
+      time::milliseconds totalTimeElapsed_ = time::milliseconds(0);
    };
 
-   StateList< State > statesQueue_;
-   State currentState_;
+   StateList< State > animatableStatesQueue_;
+   State animatableCurrentState_;
 
-   std::vector< AnimationPoint > m_animationPoints;
-   ANIMATION_TYPE m_type = ANIMATION_TYPE::LOOP;
-   glm::vec2 m_animationStartPosition = {};
+   std::vector< AnimationPoint > animationPoints_;
+   ANIMATION_TYPE type_ = ANIMATION_TYPE::LOOP;
+   glm::vec2 animationStartPosition_ = {};
 
-   bool m_renderAnimationSteps = false;
-   bool m_lockAnimationSteps = false;
+   bool renderAnimationSteps_ = false;
+   bool lockAnimationSteps_ = false;
 
  private:
    // Uses 'updateTime' value to determine which animation point is appropriate for this time value

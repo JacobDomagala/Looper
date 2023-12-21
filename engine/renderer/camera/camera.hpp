@@ -5,10 +5,6 @@
 #include <glm/glm.hpp>
 #include <memory>
 
-namespace looper {
-class GameObject;
-}
-
 namespace looper::renderer {
 
 class Camera
@@ -36,9 +32,6 @@ class Camera
 
    void
    SetCameraAtPosition(const glm::vec2& globalPosition);
-
-   void
-   SetCameraAtObject(const std::shared_ptr< GameObject >& object);
 
    void
    Move(const glm::vec3& conventionalVector);

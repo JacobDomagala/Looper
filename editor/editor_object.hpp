@@ -14,7 +14,7 @@ class Editor;
 class EditorObject : public Object
 {
  public:
-   EditorObject(Editor& editor, const glm::vec2& positionOnMap, const glm::ivec2& size,
+   EditorObject(Editor* editor, const glm::vec2& positionOnMap, const glm::ivec2& size,
                 const std::string& sprite, Object::ID linkedObject);
 
    [[nodiscard]] bool
@@ -112,28 +112,28 @@ class EditorObject : public Object
    SetObjectUnselected();
 
  private:
-   Editor& m_editor;
+   Editor* editor_;
 
    // global position (in OpenGL coords)
-   glm::vec2 m_position;
+   glm::vec2 position_;
 
    // center of global's position (in OpenGL coords)
-   glm::vec2 m_centeredPosition;
+   glm::vec2 centeredPosition_;
 
    // should this object be visible
-   bool m_visible = false;
+   bool visible_ = false;
 
-   std::string m_name;
+   std::string name_;
 
    // Linked object's ID
-   Object::ID m_objectID = Object::INVALID_ID;
-   bool m_hasLinkedObject = false;
+   Object::ID objectID_ = Object::INVALID_ID;
+   bool hasLinkedObject_ = false;
 
-   bool m_selected = false;
-   bool m_isBackground = false;
+   bool selected_ = false;
+   bool isBackground_ = false;
 
    // object's sprite
-   renderer::Sprite m_sprite;
+   renderer::Sprite sprite_;
 };
 
 } // namespace looper

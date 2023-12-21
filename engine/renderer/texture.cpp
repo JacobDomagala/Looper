@@ -3,6 +3,7 @@
 #include "command.hpp"
 #include "logger/logger.hpp"
 #include "renderer.hpp"
+#include "time/scoped_timer.hpp"
 #include "utils/assert.hpp"
 #include "utils/file_manager.hpp"
 #include "vulkan_common.hpp"
@@ -447,7 +448,7 @@ TextureLibrary::GetTexture(TextureType type, const std::string& textureName)
 {
    if (s_loadedTextures.find(textureName) == s_loadedTextures.end())
    {
-      Logger::Debug("Texture: {} not found in library. Loading it", textureName);
+      SCOPED_TIMER(fmt::format("Texture: {} not found in library. Loading it", textureName));
       LoadTexture(type, textureName);
    }
 
@@ -484,7 +485,7 @@ TextureLibrary::CreateTexture(TextureType type, const std::string& textureName,
 {
    if (s_loadedTextures.find(textureName) == s_loadedTextures.end())
    {
-      Logger::Debug("Creating texture {}", textureName);
+      SCOPED_TIMER(fmt::format("Creating texture {}", textureName));
       LoadTexture(type, textureName, props);
    }
    else
@@ -501,7 +502,7 @@ TextureLibrary::CreateTexture(TextureType type, const std::string& textureName,
 {
    if (s_loadedTextures.find(textureName) == s_loadedTextures.end())
    {
-      Logger::Debug("Creating texture {}", textureName);
+      SCOPED_TIMER(fmt::format("Creating texture {}", textureName));
       LoadTexture(type, textureName, data, props);
    }
    else

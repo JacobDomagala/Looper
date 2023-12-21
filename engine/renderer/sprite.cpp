@@ -7,7 +7,8 @@
 
 namespace looper::renderer {
 
-Sprite::~Sprite()
+void
+Sprite::ClearData() const
 {
    const auto transformMat = ComputeModelMat();
 
@@ -16,6 +17,7 @@ Sprite::~Sprite()
 
    renderer::VulkanRenderer::MeshDeleted(renderInfo_);
 }
+
 
 glm::mat4
 Sprite::ComputeModelMat() const
@@ -182,6 +184,12 @@ Sprite::GetRotation(RotationType type) const
 
 glm::vec2&
 Sprite::GetScale()
+{
+   return currentState_.scaleVal_;
+}
+
+const glm::vec2&
+Sprite::GetScale() const
 {
    return currentState_.scaleVal_;
 }

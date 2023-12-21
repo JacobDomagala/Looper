@@ -240,9 +240,11 @@ EditorGUI::RenderLevelMenu() // NOLINT
       const auto& gameObjects = currentLevel_->GetObjects();
 
       const auto filterObjects = std::to_array< std::string >({"All", "Enemy", "Player", "Object"});
-      // NOLINTNEXTLINE
+
+      // NOLINTBEGIN
       static std::string selectedFilter = filterObjects.at(0);
       static Object::ID searchID = 0;
+      // NOLINTEND
 
       DrawWidget("Render by Type", [&filterObjects] {
          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -266,21 +268,21 @@ EditorGUI::RenderLevelMenu() // NOLINT
 
       for (const auto& object : gameObjects)
       {
-         if (selectedFilter == filterObjects.at(0) or object->GetTypeString() == selectedFilter)
+         if (selectedFilter == filterObjects.at(0) or object.GetTypeString() == selectedFilter)
          {
-            const auto& objectInfo = objectsInfo_.at(object->GetID());
+            const auto& objectInfo = objectsInfo_.at(object.GetID());
             auto label = objectInfo.first;
 
             if (ImGui::Selectable(label.c_str(), objectInfo.second))
             {
-               parent_.GetCamera().SetCameraAtPosition(object->GetPosition());
-               parent_.HandleGameObjectSelected(object->GetID(), false, true);
+               parent_.GetCamera().SetCameraAtPosition(object.GetPosition());
+               parent_.HandleGameObjectSelected(object.GetID(), false, true);
 
                // Don't make the UI jump
                setScrollTo_ = {};
             }
 
-            if (setScrollTo_ == object->GetID())
+            if (setScrollTo_ == object.GetID())
             {
                // Scroll to make this widget visible
                ImGui::SetScrollHereY();
@@ -315,13 +317,13 @@ EditorGUI::RenderLevelMenu() // NOLINT
                      {
                         parent_.HandleObjectSelected(searchID, true);
                         parent_.GetCamera().SetCameraAtPosition(
-                           dynamic_cast< GameObject& >(parent_.GetLevel().GetObjectRef(searchID))
-                              .GetPosition());
+                           parent_.GetLevel().GetGameObjectRef(searchID).GetPosition());
                      }
                   }
                }
             });
 
+         // NOLINTNEXTLINE
          static std::string newObjectType = "Object";
 
          CreateActionRowLabel(
@@ -387,13 +389,20 @@ EditorGUI::RenderLevelMenu() // NOLINT
          const auto cursorPos = parent_.ScreenToGlobal(InputManager::GetMousePos());
          CreateRow("Cursor Position", fmt::format("{}", cursorPos));
 
-         auto& pathfinder = parent_.GetLevel().GetPathfinder();
+         if (parent_.GetLevel().IsInLevelBoundaries(cursorPos))
+         {
+            auto& pathfinder = parent_.GetLevel().GetPathfinder();
+            const auto& curNode = pathfinder.GetNodeFromPosition(cursorPos);
+            CreateRow("Cursor on TileID", fmt::format("{}", curNode.nodeId_));
+            CreateRow("Cursor on Coords",
+                      fmt::format("({}, {})", curNode.tile_.first, curNode.tile_.second));
+         }
+         else
+         {
+            CreateRow("Cursor on TileID", "INVALID");
+            CreateRow("Cursor on Coords", "INVALID");
+         }
 
-         const auto nodeID = pathfinder.GetNodeIDFromPosition(cursorPos);
-         const auto curNode = nodeID != -1 ? pathfinder.GetNodeFromID(nodeID) : Node{};
-
-         CreateRow("Cursor on TileID", fmt::format("{}", curNode.id_));
-         CreateRow("Cursor on Coords", fmt::format("({}, {})", curNode.xPos_, curNode.yPos_));
 
          ImGui::EndTable();
       }

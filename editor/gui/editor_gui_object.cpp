@@ -70,7 +70,7 @@ EditorGUI::RenderSelectedObjectsMenu()
                                               ? currentlySelectedGameObject_ == object
                                               : false))
       {
-         const auto& gameObject = dynamic_cast< GameObject& >(currentLevel_->GetObjectRef(object));
+         const auto& gameObject = currentLevel_->GetGameObjectRef(object);
          parent_.GetCamera().SetCameraAtPosition(gameObject.GetPosition());
          parent_.HandleGameObjectSelected(object, true, true);
 
@@ -96,8 +96,7 @@ EditorGUI::RenderGameObjectContent()
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("General"))
    {
-      auto& gameObject =
-         dynamic_cast< GameObject& >(currentLevel_->GetObjectRef(currentlySelectedGameObject_));
+      auto& gameObject = currentLevel_->GetGameObjectRef(currentlySelectedGameObject_);
 
       DrawWidget("Name", [this, &gameObject]() {
          auto name = gameObject.GetName();
@@ -159,8 +158,7 @@ EditorGUI::RenderGameObjectContent()
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Transform"))
    {
-      auto& gameObject =
-         dynamic_cast< GameObject& >(currentLevel_->GetObjectRef(currentlySelectedGameObject_));
+      auto& gameObject = currentLevel_->GetGameObjectRef(currentlySelectedGameObject_);
 
       DrawWidget("Position", [&gameObject]() {
          auto objectPosition = gameObject.GetSprite().GetPosition();
@@ -193,8 +191,7 @@ EditorGUI::RenderGameObjectContent()
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Texture"))
    {
-      auto& gameObject =
-         dynamic_cast< GameObject& >(currentLevel_->GetObjectRef(currentlySelectedGameObject_));
+      auto& gameObject = currentLevel_->GetGameObjectRef(currentlySelectedGameObject_);
 
       const auto sectionSize = ImGui::GetContentRegionAvail();
       const auto currentPos = ImGui::GetCursorScreenPos();

@@ -15,11 +15,17 @@ class Enemy;
 class Player : public GameObject
 {
  public:
-   Player(Application& game, const glm::vec3& position, const glm::ivec2& size,
+   Player(Application* game, const glm::vec3& position, const glm::ivec2& size,
           const std::string& sprite, const std::string& name = "Anonymous");
 
-   Player(Application& game, const glm::vec2& position, const glm::ivec2& size,
+   Player(Application* game, const glm::vec2& position, const glm::ivec2& size,
           const std::string& sprite, const std::string& name = "Anonymous");
+
+   Player() = default;
+
+   void
+   Setup(Application* game, const glm::vec3& position, const glm::ivec2& size,
+         const std::string& sprite, const std::string& name = "Anonymous");
 
    // check if player got git by enemy
    bool
@@ -68,29 +74,29 @@ class Player : public GameObject
    {
       // speed at which the player moves
       // (any moving imparing effects should lower this value)
-      float m_speed;
+      float speed_;
 
       // player's current health
-      int32_t m_currentHP;
+      int32_t currentHP_;
 
       // player's velocity
-      glm::vec2 m_velocity;
+      glm::vec2 velocity_;
 
       // direction where player is looking
-      float m_viewAngle;
+      float viewAngle_;
    };
 
-   StateList< State > m_statesQueue;
-   State m_currentState = {};
+   StateList< State > statesQueue_;
+   State currentState_ = {};
 
    // array of player's weapons
-   std::array< std::unique_ptr< Weapon >, 3 > m_weapons;
+   std::array< std::unique_ptr< Weapon >, 3 > weapons_;
 
    // current weapon
-   Weapon* m_currentWeapon = nullptr;
+   Weapon* currentWeapon_ = nullptr;
 
    // player's max health
-   int32_t m_maxHP = 100;
+   int32_t maxHP_ = 100;
 };
 
 } // namespace looper

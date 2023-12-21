@@ -26,7 +26,8 @@ class Sprite
       glm::vec2 scale = {1.0f, 1.0f};
    };
 
-   ~Sprite();
+   void
+   ClearData() const;
 
    // Create sprite without texture
    void
@@ -81,6 +82,9 @@ class Sprite
 
    [[nodiscard]] glm::vec2&
    GetScale();
+
+   [[nodiscard]] const glm::vec2&
+   GetScale() const;
 
    [[nodiscard]] float&
    GetUniformScaleValue();

@@ -43,7 +43,7 @@ template < typename StateT > struct StateList
    int32_t numFrames_ = {};
    int32_t firstIdx_ = {};
    int32_t lastIdx_ = {};
-   const int32_t lastFrame_ = NUM_FRAMES_TO_SAVE - 1;
+   int32_t lastFrame_ = NUM_FRAMES_TO_SAVE - 1;
 };
 
 } // namespace looper

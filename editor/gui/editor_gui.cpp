@@ -153,12 +153,30 @@ void
 EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
 {
    currentLevel_ = loadedLevel;
-   const auto objects = currentLevel_->GetObjects();
+   const auto& objects = currentLevel_->GetObjects();
    for (const auto& object : objects)
    {
-      objectsInfo_[object->GetID()] = {
-         fmt::format("[{}] {} ({:.2f}, {:.2f})", object->GetTypeString().c_str(),
-                     object->GetName().c_str(), object->GetPosition().x, object->GetPosition().y),
+      objectsInfo_[object.GetID()] = {
+         fmt::format("[{}] {} ({:.2f}, {:.2f})", object.GetTypeString().c_str(),
+                     object.GetName().c_str(), object.GetPosition().x, object.GetPosition().y),
+         false};
+   }
+
+   const auto& enemies = currentLevel_->GetEnemies();
+   for (const auto& enemy : enemies)
+   {
+      objectsInfo_[enemy.GetID()] = {
+         fmt::format("[{}] {} ({:.2f}, {:.2f})", enemy.GetTypeString().c_str(),
+                     enemy.GetName().c_str(), enemy.GetPosition().x, enemy.GetPosition().y),
+         false};
+   }
+
+   const auto& player = currentLevel_->GetPlayer();
+   if (player.GetID() != Object::INVALID_ID)
+   {
+      objectsInfo_[player.GetID()] = {
+         fmt::format("[{}] {} ({:.2f}, {:.2f})", player.GetTypeString().c_str(),
+                     player.GetName().c_str(), player.GetPosition().x, player.GetPosition().y),
          false};
    }
 }
