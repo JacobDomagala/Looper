@@ -7,6 +7,7 @@ imgui/1.89.9
 stb/cci.20230920
 glm/0.9.9.8
 nlohmann_json/3.11.2
+vulkan-memory-allocator/cci.20231120
 
 [generators]
 CMakeToolchain

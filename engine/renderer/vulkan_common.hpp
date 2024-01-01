@@ -14,6 +14,7 @@
 #include <vulkan/vk_enum_string_helper.h>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
+#include <vk_mem_alloc.h>
 
 struct GLFWwindow;
 
@@ -144,6 +145,7 @@ struct Data
 {
    inline static VkInstance vk_instance = {};
    inline static VkDevice vk_device = {};
+   inline static VmaAllocator vk_hAllocator;
    inline static VkPhysicalDevice vk_physicalDevice = VK_NULL_HANDLE;
    inline static VkQueue vk_graphicsQueue = {};
    inline static VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;

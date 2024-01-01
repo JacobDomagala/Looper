@@ -3,7 +3,6 @@
 #include "utils/assert.hpp"
 #include "vulkan_common.hpp"
 
-
 #include <fmt/format.h>
 
 namespace looper::renderer {
