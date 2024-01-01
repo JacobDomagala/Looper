@@ -43,7 +43,7 @@ EditorGUI::UpdateBuffers()
 
    // Vertex buffer
    if ((vertexBuffer_[currentFrame].m_buffer == VK_NULL_HANDLE)
-       || (vertexCount_[currentFrame] != imDrawData->TotalVtxCount))
+       || (vertexCount_[currentFrame] < imDrawData->TotalVtxCount))
    {
       vertexBuffer_[currentFrame].Unmap();
       vertexBuffer_[currentFrame].Destroy();
