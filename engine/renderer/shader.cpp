@@ -166,13 +166,13 @@ QuadShader::UpdateDescriptorSets()
    for (size_t i = 0; i < size; i++)
    {
       VkDescriptorBufferInfo bufferInfo{};
-      bufferInfo.buffer = renderData.uniformBuffers[i];
+      bufferInfo.buffer = renderData.uniformBuffers[i].buffer_;
       bufferInfo.offset = 0;
       bufferInfo.range = sizeof(UniformBufferObject);
 
 
       VkDescriptorBufferInfo instanceBufferInfo = {};
-      instanceBufferInfo.buffer = renderData.ssbo.at(i);
+      instanceBufferInfo.buffer = renderData.ssbo.at(i).buffer_;
       instanceBufferInfo.offset = 0;
       instanceBufferInfo.range = renderData.perInstance.size() * sizeof(PerInstanceBuffer);
 
@@ -274,7 +274,7 @@ LineShader::CreateDescriptorSets()
    for (size_t i = 0; i < size; i++)
    {
       VkDescriptorBufferInfo bufferInfo{};
-      bufferInfo.buffer = renderData.uniformBuffers[i];
+      bufferInfo.buffer = renderData.uniformBuffers[i].buffer_;
       bufferInfo.offset = 0;
       bufferInfo.range = sizeof(UniformBufferObject);
 

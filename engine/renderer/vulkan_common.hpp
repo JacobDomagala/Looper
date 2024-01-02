@@ -11,13 +11,87 @@
 #include <string_view>
 #include <unordered_map>
 #include <vector>
-#include <vulkan/vk_enum_string_helper.h>
+#include <vk_mem_alloc.h>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
 struct GLFWwindow;
 
 namespace looper::renderer {
+
+constexpr inline const char*
+string_VkResult(VkResult input_value)
+{
+   switch (input_value)
+   {
+      case VK_ERROR_DEVICE_LOST:
+         return "VK_ERROR_DEVICE_LOST";
+      case VK_ERROR_EXTENSION_NOT_PRESENT:
+         return "VK_ERROR_EXTENSION_NOT_PRESENT";
+      case VK_ERROR_FEATURE_NOT_PRESENT:
+         return "VK_ERROR_FEATURE_NOT_PRESENT";
+      case VK_ERROR_FORMAT_NOT_SUPPORTED:
+         return "VK_ERROR_FORMAT_NOT_SUPPORTED";
+      case VK_ERROR_FRAGMENTATION_EXT:
+         return "VK_ERROR_FRAGMENTATION_EXT";
+      case VK_ERROR_FRAGMENTED_POOL:
+         return "VK_ERROR_FRAGMENTED_POOL";
+      case VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT:
+         return "VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT";
+      case VK_ERROR_INCOMPATIBLE_DISPLAY_KHR:
+         return "VK_ERROR_INCOMPATIBLE_DISPLAY_KHR";
+      case VK_ERROR_INCOMPATIBLE_DRIVER:
+         return "VK_ERROR_INCOMPATIBLE_DRIVER";
+      case VK_ERROR_INITIALIZATION_FAILED:
+         return "VK_ERROR_INITIALIZATION_FAILED";
+      case VK_ERROR_INVALID_DEVICE_ADDRESS_EXT:
+         return "VK_ERROR_INVALID_DEVICE_ADDRESS_EXT";
+      case VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT:
+         return "VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT";
+      case VK_ERROR_INVALID_EXTERNAL_HANDLE:
+         return "VK_ERROR_INVALID_EXTERNAL_HANDLE";
+      case VK_ERROR_INVALID_SHADER_NV:
+         return "VK_ERROR_INVALID_SHADER_NV";
+      case VK_ERROR_LAYER_NOT_PRESENT:
+         return "VK_ERROR_LAYER_NOT_PRESENT";
+      case VK_ERROR_MEMORY_MAP_FAILED:
+         return "VK_ERROR_MEMORY_MAP_FAILED";
+      case VK_ERROR_NATIVE_WINDOW_IN_USE_KHR:
+         return "VK_ERROR_NATIVE_WINDOW_IN_USE_KHR";
+      case VK_ERROR_NOT_PERMITTED_EXT:
+         return "VK_ERROR_NOT_PERMITTED_EXT";
+      case VK_ERROR_OUT_OF_DATE_KHR:
+         return "VK_ERROR_OUT_OF_DATE_KHR";
+      case VK_ERROR_OUT_OF_DEVICE_MEMORY:
+         return "VK_ERROR_OUT_OF_DEVICE_MEMORY";
+      case VK_ERROR_OUT_OF_HOST_MEMORY:
+         return "VK_ERROR_OUT_OF_HOST_MEMORY";
+      case VK_ERROR_OUT_OF_POOL_MEMORY:
+         return "VK_ERROR_OUT_OF_POOL_MEMORY";
+      case VK_ERROR_SURFACE_LOST_KHR:
+         return "VK_ERROR_SURFACE_LOST_KHR";
+      case VK_ERROR_TOO_MANY_OBJECTS:
+         return "VK_ERROR_TOO_MANY_OBJECTS";
+      case VK_ERROR_VALIDATION_FAILED_EXT:
+         return "VK_ERROR_VALIDATION_FAILED_EXT";
+      case VK_EVENT_RESET:
+         return "VK_EVENT_RESET";
+      case VK_EVENT_SET:
+         return "VK_EVENT_SET";
+      case VK_INCOMPLETE:
+         return "VK_INCOMPLETE";
+      case VK_NOT_READY:
+         return "VK_NOT_READY";
+      case VK_SUBOPTIMAL_KHR:
+         return "VK_SUBOPTIMAL_KHR";
+      case VK_SUCCESS:
+         return "VK_SUCCESS";
+      case VK_TIMEOUT:
+         return "VK_TIMEOUT";
+      default:
+         return "Unhandled VkResult";
+   }
+}
 
 constexpr inline void
 vk_check_error(VkResult vkResult, std::string_view errorMessage)
@@ -74,13 +148,11 @@ struct RenderData
    std::array< std::vector< Vertex >, NUM_LAYERS > vertices = {};
    std::array< std::bitset< MAX_SPRITES_PER_LAYER >, NUM_LAYERS > verticesAvail = {};
 
-   std::array< VkBuffer, NUM_LAYERS > vertexBuffer = {VK_NULL_HANDLE};
-   std::array< VkDeviceMemory, NUM_LAYERS > vertexBufferMemory = {VK_NULL_HANDLE};
+   std::array< Buffer, NUM_LAYERS > vertexBuffer = {};
 
    // Index
    std::array< std::vector< IndexType >, NUM_LAYERS > indices = {};
-   std::array< VkBuffer, NUM_LAYERS > indexBuffer = {VK_NULL_HANDLE};
-   std::array< VkDeviceMemory, NUM_LAYERS > indexBufferMemory = {VK_NULL_HANDLE};
+   std::array< Buffer, NUM_LAYERS > indexBuffer = {};
 
    std::array< uint32_t, NUM_LAYERS > numMeshes = {};
    uint32_t totalNumMeshes = {};
@@ -92,14 +164,11 @@ struct RenderData
 
    // SSBO (PerInstanceBuffer)
    std::vector< PerInstanceBuffer > perInstance = {};
-   std::array< VkBuffer, MAX_FRAMES_IN_FLIGHT > ssbo = {VK_NULL_HANDLE};
-   std::array< VkDeviceMemory, MAX_FRAMES_IN_FLIGHT > ssboMemory = {VK_NULL_HANDLE};
+   std::array< Buffer, MAX_FRAMES_IN_FLIGHT > ssbo = {};
 
 
    // UBO (UniformBufferObject)
-   std::vector< VkBuffer > uniformBuffers = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
-   std::vector< VkDeviceMemory > uniformBuffersMemory = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
-
+   std::vector< Buffer > uniformBuffers{MAX_FRAMES_IN_FLIGHT};
 
    VkSurfaceKHR surface = VK_NULL_HANDLE;
    GLFWwindow* windowHandle = nullptr;
@@ -144,6 +213,7 @@ struct Data
 {
    inline static VkInstance vk_instance = {};
    inline static VkDevice vk_device = {};
+   inline static VmaAllocator vk_hAllocator;
    inline static VkPhysicalDevice vk_physicalDevice = VK_NULL_HANDLE;
    inline static VkQueue vk_graphicsQueue = {};
    inline static VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
@@ -161,19 +231,15 @@ struct EditorData
    // Pathfinder
    inline static std::vector< Vertex > pathfinderVertices_ = {};
    inline static std::vector< uint32_t > pathfinderIndices_ = {};
-   inline static VkBuffer pathfinderVertexBuffer = {};
-   inline static VkDeviceMemory pathfinderVertexBufferMemory = {};
-   inline static VkBuffer pathfinderIndexBuffer = {};
-   inline static VkDeviceMemory pathfinderIndexBufferMemory = {};
+   inline static Buffer pathfinderVertexBuffer = {};
+   inline static Buffer pathfinderIndexBuffer = {};
    inline static uint32_t numNodes_ = {};
 
    // Animation
    inline static std::vector< Vertex > animationVertices_ = {};
    inline static std::vector< uint32_t > animationIndices_ = {};
-   inline static VkBuffer animationVertexBuffer = {};
-   inline static VkDeviceMemory animationVertexBufferMemory = {};
-   inline static VkBuffer animationIndexBuffer = {};
-   inline static VkDeviceMemory animationIndexBufferMemory = {};
+   inline static Buffer animationVertexBuffer = {};
+   inline static Buffer animationIndexBuffer = {};
    inline static uint32_t numPoints_ = {};
 
    // Lines
@@ -182,14 +248,11 @@ struct EditorData
    inline static VkDescriptorPool lineDescriptorPool = {};
    inline static VkDescriptorSetLayout lineDescriptorSetLayout_ = {};
    inline static std::vector< VkDescriptorSet > lineDescriptorSets_ = {};
-   inline static VkBuffer lineVertexBuffer = {};
-   inline static VkDeviceMemory lineVertexBufferMemory = {};
-   inline static VkBuffer lineIndexBuffer = {};
-   inline static VkDeviceMemory lineIndexBufferMemory = {};
+   inline static Buffer lineVertexBuffer = {};
+   inline static Buffer lineIndexBuffer = {};
    inline static std::vector< LineVertex > lineVertices_ = {};
    inline static std::vector< uint32_t > lineIndices_ = {};
-   inline static std::vector< VkBuffer > lineUniformBuffers_ = {};
-   inline static std::vector< VkDeviceMemory > lineUniformBuffersMemory_ = {};
+   inline static std::vector< Buffer > lineUniformBuffers_ = {};
    inline static uint32_t numGridLines = {};
    inline static uint32_t numLines = {};
    inline static uint32_t curDynLineIdx = {};

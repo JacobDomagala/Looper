@@ -11,6 +11,9 @@
 #include "utils/file_manager.hpp"
 #include "vulkan_common.hpp"
 
+
+#include <vk_mem_alloc.h>
+
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
@@ -182,44 +185,41 @@ CreatePipeline(std::string_view vertexShader, std::string_view fragmentShader, P
 }
 
 template < typename DataT >
-void
-CreateVertexBuffer(size_t bufferSize, const std::vector< DataT >& vertices, VkBuffer& buffer,
-                   VkDeviceMemory& bufferMem)
+Buffer
+CreateVertexBuffer(size_t bufferSize, const std::vector< DataT >& vertices)
 {
    if (vertices.empty())
    {
-      return;
+      return {};
    }
 
-   VkBuffer stagingBuffer = {};
-   VkDeviceMemory stagingBufferMemory = {};
-   Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        stagingBuffer, stagingBufferMemory);
+   auto stagingBuffer = Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                                                | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
    void* data = nullptr;
-   vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
+   vmaMapMemory(Data::vk_hAllocator, stagingBuffer.allocation_, &data);
    memcpy(data, vertices.data(), bufferSize);
-   vkUnmapMemory(Data::vk_device, stagingBufferMemory);
+   vmaUnmapMemory(Data::vk_hAllocator, stagingBuffer.allocation_);
 
-   Buffer::CreateBuffer(bufferSize,
-                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMem);
+   auto vertexBuffer = Buffer::CreateBuffer(
+      bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-   Buffer::CopyBuffer(stagingBuffer, buffer, bufferSize);
+   Buffer::CopyBuffer(stagingBuffer.buffer_, vertexBuffer.buffer_, bufferSize);
 
-   vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
-   vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
+   stagingBuffer.Destroy();
+
+   return vertexBuffer;
 }
 
 template < auto INDICES_PER_OBJECT >
-void
-CreateIndexBuffer(std::vector< IndexType >& indices, const size_t numObjects, VkBuffer& buffer,
-                  VkDeviceMemory& bufferMem)
+Buffer
+CreateIndexBuffer(std::vector< IndexType >& indices, const size_t numObjects)
 {
    if (!numObjects)
    {
-      return;
+      return {};
    }
 
    indices.resize(numObjects * static_cast< size_t >(INDICES_PER_OBJECT));
@@ -250,25 +250,24 @@ CreateIndexBuffer(std::vector< IndexType >& indices, const size_t numObjects, Vk
 
    const VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
-   VkBuffer stagingBuffer = {};
-   VkDeviceMemory stagingBufferMemory = {};
-   Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        stagingBuffer, stagingBufferMemory);
+   auto stagingBuffer = Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                                                | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
    void* data = nullptr;
-   vkMapMemory(Data::vk_device, stagingBufferMemory, 0, bufferSize, 0, &data);
+   vmaMapMemory(Data::vk_hAllocator, stagingBuffer.allocation_, &data);
    memcpy(data, indices.data(), bufferSize);
-   vkUnmapMemory(Data::vk_device, stagingBufferMemory);
+   vmaUnmapMemory(Data::vk_hAllocator, stagingBuffer.allocation_);
 
-   Buffer::CreateBuffer(bufferSize,
-                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMem);
+   auto indexBuffer = Buffer::CreateBuffer(
+      bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-   Buffer::CopyBuffer(stagingBuffer, buffer, bufferSize);
+   Buffer::CopyBuffer(stagingBuffer.buffer_, indexBuffer.buffer_, bufferSize);
 
-   vkDestroyBuffer(Data::vk_device, stagingBuffer, nullptr);
-   vkFreeMemory(Data::vk_device, stagingBufferMemory, nullptr);
+   stagingBuffer.Destroy();
+
+   return indexBuffer;
 }
 
 void
@@ -284,9 +283,8 @@ VulkanRenderer::SetupVertexBuffer(const int32_t layer)
    auto* renderData = &Data::renderData_[boundApplication_];
    const auto bufferSize = sizeof(Vertex) * MAX_NUM_VERTICES_PER_LAYER;
 
-   CreateVertexBuffer(bufferSize, renderData->vertices.at(layerCasted),
-                      renderData->vertexBuffer.at(layerCasted),
-                      renderData->vertexBufferMemory.at(layerCasted));
+   renderData->vertexBuffer.at(layerCasted) =
+      CreateVertexBuffer(bufferSize, renderData->vertices.at(layerCasted));
 }
 
 void
@@ -388,8 +386,7 @@ VulkanRenderer::CreateQuadVertexBuffer()
       vertices.at(layer).resize(MAX_NUM_VERTICES_PER_LAYER);
       // const auto bufferSize = sizeof(Vertex) * vertices.at(layer).size();
       const auto bufferSize = sizeof(Vertex) * MAX_NUM_VERTICES_PER_LAYER;
-      CreateVertexBuffer(bufferSize, vertices.at(layer), renderData.vertexBuffer.at(layer),
-                         renderData.vertexBufferMemory.at(layer));
+      renderData.vertexBuffer.at(layer) = CreateVertexBuffer(bufferSize, vertices.at(layer));
    }
 }
 
@@ -436,33 +433,33 @@ VulkanRenderer::UpdateLineData(uint32_t startingLine)
 {
    const auto lastLine = (EditorData::curDynLineIdx / VERTICES_PER_LINE) + EditorData::numGridLines;
    const auto numLines = lastLine - startingLine;
-   const auto bufferSize = numLines * sizeof(LineVertex) * VERTICES_PER_LINE;
-   if (bufferSize)
+   
+   if (numLines)
    {
+      const auto bufferSize = numLines * sizeof(LineVertex) * VERTICES_PER_LINE;
       const auto offset = startingLine * sizeof(LineVertex) * VERTICES_PER_LINE;
 
       void* data = nullptr;
-      vkMapMemory(Data::vk_device, EditorData::lineVertexBufferMemory, offset, bufferSize, 0,
-                  &data);
-      memcpy(data,
+      vmaMapMemory(Data::vk_hAllocator, EditorData::lineVertexBuffer.allocation_, &data);
+      char* dest = static_cast< char* >(data) + offset;
+      memcpy(dest,
              EditorData::lineVertices_.data()
                 + static_cast< size_t >(startingLine) * VERTICES_PER_LINE,
              bufferSize);
-      vkUnmapMemory(Data::vk_device, EditorData::lineVertexBufferMemory);
+      vmaUnmapMemory(Data::vk_hAllocator, EditorData::lineVertexBuffer.allocation_);
    }
 }
 
 void
 VulkanRenderer::SetupLineData()
 {
-   Buffer::CreateBuffer(sizeof(LineVertex) * MAX_NUM_LINES * 2,
-                        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        EditorData::lineVertexBuffer, EditorData::lineVertexBufferMemory);
+   EditorData::lineVertexBuffer = Buffer::CreateBuffer(
+      sizeof(LineVertex) * MAX_NUM_LINES * 2,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-   CreateIndexBuffer< INDICES_PER_LINE >(EditorData::lineIndices_, MAX_NUM_LINES,
-                                         EditorData::lineIndexBuffer,
-                                         EditorData::lineIndexBufferMemory);
+   EditorData::lineIndexBuffer =
+      CreateIndexBuffer< INDICES_PER_LINE >(EditorData::lineIndices_, MAX_NUM_LINES);
 }
 
 void
@@ -568,33 +565,31 @@ VulkanRenderer::FreeData(renderer::ApplicationType type, bool destroyPipeline)
 
       for (size_t layer = 0; layer < static_cast< size_t >(NUM_LAYERS); ++layer)
       {
-         Buffer::FreeMemory(renderData.indexBuffer.at(layer),
-                            renderData.indexBufferMemory.at(layer));
+         renderData.indexBuffer.at(layer).Destroy();
          renderData.indices.at(layer).clear();
 
-         Buffer::FreeMemory(renderData.vertexBuffer.at(layer),
-                            renderData.vertexBufferMemory.at(layer));
+         renderData.vertexBuffer.at(layer).Destroy();
          renderData.vertices.at(layer).clear();
       }
 
       for (size_t i = 0; i < renderData.uniformBuffers.size(); ++i)
       {
-         Buffer::FreeMemory(renderData.uniformBuffers.at(i), renderData.uniformBuffersMemory.at(i));
-         Buffer::FreeMemory(renderData.ssbo.at(i), renderData.ssboMemory.at(i));
+         renderData.uniformBuffers.at(i).Destroy();
+         renderData.ssbo.at(i).Destroy();
       }
 
       if (type == ApplicationType::EDITOR)
       {
          // Lines
-         Buffer::FreeMemory(EditorData::lineVertexBuffer, EditorData::lineVertexBufferMemory);
-         Buffer::FreeMemory(EditorData::lineIndexBuffer, EditorData::lineIndexBufferMemory);
+         EditorData::lineVertexBuffer.Destroy();
+         EditorData::lineIndexBuffer.Destroy();
          EditorData::lineVertices_.clear();
          EditorData::lineIndices_.clear();
-         for (size_t i = 0; i < EditorData::lineUniformBuffers_.size(); ++i)
+         for (auto& buffer : EditorData::lineUniformBuffers_)
          {
-            Buffer::FreeMemory(EditorData::lineUniformBuffers_.at(i),
-                               EditorData::lineUniformBuffersMemory_.at(i));
+            buffer.Destroy();
          }
+
          EditorData::lineIndices_.clear();
 
          if (EditorData::lineDescriptorPool != VK_NULL_HANDLE)
@@ -633,9 +628,8 @@ VulkanRenderer::CreateQuadIndexBuffer()
 
    for (size_t layer = 0; layer < static_cast< size_t >(NUM_LAYERS); ++layer)
    {
-      CreateIndexBuffer< INDICES_PER_SPRITE >(renderData.indices.at(layer), MAX_SPRITES_PER_LAYER,
-                                              renderData.indexBuffer.at(layer),
-                                              renderData.indexBufferMemory.at(layer));
+      renderData.indexBuffer.at(layer) = CreateIndexBuffer< INDICES_PER_SPRITE >(
+         renderData.indices.at(layer), MAX_SPRITES_PER_LAYER);
    }
 }
 
@@ -647,21 +641,19 @@ VulkanRenderer::CreateUniformBuffer()
 
    // We always (for now) create buffers for all frames in flight, so we only have to check the
    // first one
-   if (renderData.uniformBuffers[0] != VK_NULL_HANDLE)
+   if (renderData.uniformBuffers[0].buffer_ != VK_NULL_HANDLE)
    {
       for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
       {
-         vkDestroyBuffer(Data::vk_device, renderData.uniformBuffers[i], nullptr);
-         vkFreeMemory(Data::vk_device, renderData.uniformBuffersMemory[i], nullptr);
+         renderData.uniformBuffers[i].Destroy();
       }
    }
 
    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
    {
-      Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-                              | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                           renderData.uniformBuffers[i], renderData.uniformBuffersMemory[i]);
+      renderData.uniformBuffers[i] = Buffer::CreateBuffer(
+         bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
    }
 }
 
@@ -674,21 +666,19 @@ VulkanRenderer::CreatePerInstanceBuffer()
 
    // We always (for now) create buffers for all frames in flight, so we only have to check the
    // first one
-   if (renderData.ssboMemory[0] != VK_NULL_HANDLE)
+   if (renderData.ssbo[0].buffer_ != VK_NULL_HANDLE)
    {
       for (size_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; frame++)
       {
-         vkDestroyBuffer(Data::vk_device, renderData.ssbo.at(frame), nullptr);
-         vkFreeMemory(Data::vk_device, renderData.ssboMemory.at(frame), nullptr);
+         renderData.ssbo.at(frame).Destroy();
       }
    }
 
    for (size_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; frame++)
    {
-      Buffer::CreateBuffer(SSBObufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-                              | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                           renderData.ssbo.at(frame), renderData.ssboMemory.at(frame));
+      renderData.ssbo.at(frame) = Buffer::CreateBuffer(
+         SSBObufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
    }
 }
 
@@ -717,6 +707,14 @@ VulkanRenderer::Initialize(GLFWwindow* windowHandle, ApplicationType type)
    if (not initialized_)
    {
       CreateDevice();
+      VmaAllocatorCreateInfo allocatorInfo = {};
+      allocatorInfo.physicalDevice = Data::vk_physicalDevice;
+      allocatorInfo.device = Data::vk_device;
+      allocatorInfo.instance = Data::vk_instance;
+      allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_3;
+
+
+      vmaCreateAllocator(&allocatorInfo, &Data::vk_hAllocator);
    }
 
    for (uint32_t layer = 0; layer < NUM_LAYERS; ++layer)
@@ -759,8 +757,8 @@ void
 VulkanRenderer::UpdateUniformBuffer(uint32_t currentImage)
 {
    auto& renderData = Data::renderData_.at(boundApplication_);
-   if (renderData.uniformBuffersMemory.at(currentImage) != VK_NULL_HANDLE
-       and renderData.ssboMemory.at(currentImage) != VK_NULL_HANDLE)
+   if (renderData.uniformBuffers.at(currentImage).bufferMemory_ != VK_NULL_HANDLE
+       and renderData.ssbo.at(currentImage).bufferMemory_ != VK_NULL_HANDLE)
    {
       UniformBufferObject ubo = {};
 
@@ -768,17 +766,15 @@ VulkanRenderer::UpdateUniformBuffer(uint32_t currentImage)
       ubo.proj = renderData.projMat;
 
       void* data = nullptr;
-      vkMapMemory(Data::vk_device, renderData.uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0,
-                  &data);
+      vmaMapMemory(Data::vk_hAllocator, renderData.uniformBuffers[currentImage].allocation_, &data);
       memcpy(data, &ubo, sizeof(ubo));
-      vkUnmapMemory(Data::vk_device, renderData.uniformBuffersMemory[currentImage]);
+      vmaUnmapMemory(Data::vk_hAllocator, renderData.uniformBuffers[currentImage].allocation_);
 
       void* data2 = nullptr;
-      vkMapMemory(Data::vk_device, renderData.ssboMemory.at(currentImage), 0,
-                  renderData.perInstance.size() * sizeof(PerInstanceBuffer), 0, &data2);
+      vmaMapMemory(Data::vk_hAllocator, renderData.ssbo.at(currentImage).allocation_, &data2);
       memcpy(data2, renderData.perInstance.data(),
              renderData.perInstance.size() * sizeof(PerInstanceBuffer));
-      vkUnmapMemory(Data::vk_device, renderData.ssboMemory.at(currentImage));
+      vmaUnmapMemory(Data::vk_hAllocator, renderData.ssbo.at(currentImage).allocation_);
    }
 }
 
@@ -787,12 +783,14 @@ VulkanRenderer::CreateColorResources()
 {
    auto& renderData = Data::renderData_.at(boundApplication_);
 
-   std::tie(renderData.colorImage, renderData.colorImageMemory) = Texture::CreateImage(
+   auto image = Texture::CreateImage(
       renderData.swapChainExtent.width, renderData.swapChainExtent.height, 1,
       renderer::Data::msaaSamples, renderData.swapChainImageFormat, VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
+   renderData.colorImage = image.textureImage_;
+   renderData.colorImageMemory = image.textureImageMemory_;
    renderData.colorImageView = Texture::CreateImageView(
       renderData.colorImage, renderData.swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 }
@@ -803,14 +801,13 @@ VulkanRenderer::CreateDepthResources()
    const auto depthFormat = FindDepthFormat();
    auto& renderData = Data::renderData_.at(boundApplication_);
 
-   const auto [depthImage, depthImageMemory] = Texture::CreateImage(
+   const auto image = Texture::CreateImage(
       renderData.swapChainExtent.width, renderData.swapChainExtent.height, 1,
       renderer::Data::msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-   renderData.depthImage = depthImage;
-   renderData.depthImageMemory = depthImageMemory;
-
+   renderData.depthImage = image.textureImage_;
+   renderData.depthImageMemory = image.textureImageMemory_;
    renderData.depthImageView =
       Texture::CreateImageView(renderData.depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 }
@@ -979,8 +976,12 @@ VulkanRenderer::CreateDevice()
       queueCreateInfos.push_back(queueCreateInfo);
    }
 
+   VkPhysicalDeviceVulkan12Features deviceFeatures_13 = {};
+   deviceFeatures_13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+
    VkPhysicalDeviceVulkan12Features deviceFeatures_12 = {};
    deviceFeatures_12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+   deviceFeatures_12.pNext = &deviceFeatures_13;
    deviceFeatures_12.drawIndirectCount = VK_TRUE;
 
    VkPhysicalDeviceVulkan11Features deviceFeatures_11 = {};

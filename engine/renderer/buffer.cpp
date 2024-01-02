@@ -3,10 +3,20 @@
 #include "utils/assert.hpp"
 #include "vulkan_common.hpp"
 
+#define VMA_IMPLEMENTATION
+#include <vk_mem_alloc.h>
 
 #include <fmt/format.h>
 
 namespace looper::renderer {
+bool
+IsMapped(VmaAllocation alloc)
+{
+   VmaAllocationInfo allocInfo;
+   vmaGetAllocationInfo(Data::vk_hAllocator, alloc, &allocInfo);
+
+   return allocInfo.pMappedData != nullptr;
+}
 
 uint32_t
 FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
@@ -29,79 +39,79 @@ FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 }
 
 void
-Buffer::Map(VkDeviceSize size)
+Buffer::Map()
 {
-   vkMapMemory(Data::vk_device, m_bufferMemory, 0, size, 0, &m_mappedMemory);
-   m_mapped = true;
+   if (not IsMapped(allocation_))
+   {
+      vmaMapMemory(Data::vk_hAllocator, allocation_, &mappedMemory_);
+      mapped_ = true;
+   }
 }
 
 void
 Buffer::Unmap()
 {
-   if (m_mapped)
+   if (IsMapped(allocation_))
    {
-      vkUnmapMemory(Data::vk_device, m_bufferMemory);
-      m_mapped = false;
-      m_mappedMemory = nullptr;
+      vmaUnmapMemory(Data::vk_hAllocator, allocation_);
+      mapped_ = false;
+      mappedMemory_ = nullptr;
    }
 }
 
 void
 Buffer::CopyData(const void* data) const
 {
-   utils::Assert(m_mapped, "Buffer is not mapped!");
-   memcpy(m_mappedMemory, data, m_bufferSize);
+   utils::Assert(mapped_, "Buffer is not mapped!");
+   memcpy(mappedMemory_, data, bufferSize_);
 }
 
 void
 Buffer::CopyDataWithStaging(const void* data, const size_t dataSize) const
 {
-   VkBuffer stagingBuffer = {};
-   VkDeviceMemory stagingBufferMemory = {};
-   Buffer::CreateBuffer(dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        stagingBuffer, stagingBufferMemory);
+   auto stagingBuffer = Buffer::CreateBuffer(dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                                                | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
    void* mapped_data = {};
-   vkMapMemory(Data::vk_device, stagingBufferMemory, 0, dataSize, 0, &mapped_data);
+   vmaMapMemory(Data::vk_hAllocator, allocation_, &mapped_data);
    memcpy(mapped_data, data, dataSize);
-   vkUnmapMemory(Data::vk_device, stagingBufferMemory);
+   vmaUnmapMemory(Data::vk_hAllocator, allocation_);
 
-   Buffer::CopyBuffer(stagingBuffer, m_buffer, dataSize);
-   Buffer::FreeMemory(stagingBuffer, stagingBufferMemory);
+   Buffer::CopyBuffer(stagingBuffer.buffer_, buffer_, dataSize);
+   stagingBuffer.Destroy();
 }
 
 void
 Buffer::CopyDataToImageWithStaging(VkImage image, const void* data, const size_t dataSize,
                                    const std::vector< VkBufferImageCopy >& copyRegions)
 {
-   VkBuffer stagingBuffer = {};
-   VkDeviceMemory stagingBufferMemory = {};
-   Buffer::CreateBuffer(dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        stagingBuffer, stagingBufferMemory);
+   auto stagingBuffer = Buffer::CreateBuffer(dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                                                | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
    void* mapped_data = {};
-   vkMapMemory(Data::vk_device, stagingBufferMemory, 0, dataSize, 0, &mapped_data);
+   vmaMapMemory(Data::vk_hAllocator, stagingBuffer.allocation_, &mapped_data);
    memcpy(mapped_data, data, dataSize);
-   vkUnmapMemory(Data::vk_device, stagingBufferMemory);
+   vmaUnmapMemory(Data::vk_hAllocator, stagingBuffer.allocation_);
 
    auto* commandBuffer = Command::BeginSingleTimeCommands();
 
-   vkCmdCopyBufferToImage(commandBuffer, stagingBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+   vkCmdCopyBufferToImage(commandBuffer, stagingBuffer.buffer_, image,
+                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                           static_cast< uint32_t >(copyRegions.size()), copyRegions.data());
 
    Command::EndSingleTimeCommands(commandBuffer);
 
-   Buffer::FreeMemory(stagingBuffer, stagingBufferMemory);
+   stagingBuffer.Destroy();
 }
 
 void
 Buffer::SetupDescriptor(VkDeviceSize /*size*/, VkDeviceSize offset)
 {
-   m_descriptor.offset = offset;
-   m_descriptor.buffer = m_buffer;
-   m_descriptor.range = m_bufferSize;
+   descriptor_.offset = offset;
+   descriptor_.buffer = buffer_;
+   descriptor_.range = bufferSize_;
 }
 
 void
@@ -141,29 +151,35 @@ Buffer
 Buffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
 {
    Buffer newBuffer = {};
-   newBuffer.m_bufferSize = size;
-   CreateBuffer(size, usage, properties, newBuffer.m_buffer, newBuffer.m_bufferMemory);
-   newBuffer.SetupDescriptor();
+   newBuffer.bufferSize_ = size;
 
-   return newBuffer;
-}
-
-void
-Buffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
-                     VkBuffer& buffer, VkDeviceMemory& bufferMemory)
-{
    VkBufferCreateInfo bufferInfo = {};
    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
    bufferInfo.size = size;
    bufferInfo.usage = usage;
    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-   vk_check_error(vkCreateBuffer(Data::vk_device, &bufferInfo, nullptr, &buffer),
-                  "failed to create buffer!");
+   VmaAllocationCreateInfo allocInfo = {};
+   allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
+   
+   if (properties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+   {
+      allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+   }
 
-   AllocateBufferMemory(buffer, bufferMemory, properties);
+   allocInfo.requiredFlags = properties;
 
-   vkBindBufferMemory(Data::vk_device, buffer, bufferMemory, 0);
+   VmaAllocationInfo allocationInfo;
+   vk_check_error(vmaCreateBuffer(Data::vk_hAllocator, &bufferInfo, &allocInfo, &newBuffer.buffer_,
+                                  &newBuffer.allocation_, &allocationInfo),
+                  "");
+
+  newBuffer.bufferMemory_ = allocationInfo.deviceMemory;
+
+  //  vkBindBufferMemory(Data::vk_device, newBuffer.buffer_, newBuffer.bufferMemory_, 0);
+   newBuffer.SetupDescriptor();
+
+   return newBuffer;
 }
 
 void
@@ -193,7 +209,7 @@ Buffer::Flush(VkDeviceSize size, VkDeviceSize offset) const
 {
    VkMappedMemoryRange mappedRange = {};
    mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-   mappedRange.memory = m_bufferMemory;
+   mappedRange.memory = bufferMemory_;
    mappedRange.offset = offset;
    mappedRange.size = size;
 
@@ -204,16 +220,9 @@ Buffer::Flush(VkDeviceSize size, VkDeviceSize offset) const
 void
 Buffer::Destroy()
 {
-   if (m_buffer)
-   {
-      vkDestroyBuffer(Data::vk_device, m_buffer, nullptr);
-      m_buffer = VK_NULL_HANDLE;
-   }
-   if (m_bufferMemory)
-   {
-      vkFreeMemory(Data::vk_device, m_bufferMemory, nullptr);
-      m_bufferMemory = VK_NULL_HANDLE;
-   }
+   vmaDestroyBuffer(Data::vk_hAllocator, buffer_, allocation_);
+   buffer_ = VK_NULL_HANDLE;
+   bufferMemory_ = VK_NULL_HANDLE;
 }
 
 } // namespace looper::renderer

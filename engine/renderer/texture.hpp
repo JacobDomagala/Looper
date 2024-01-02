@@ -6,7 +6,9 @@
 
 #include <unordered_map>
 #include <vector>
+
 #include <vulkan/vulkan.h>
+#include <vk_mem_alloc.h>
 
 namespace looper::renderer {
 
@@ -18,6 +20,13 @@ struct TextureProperties
    VkSamplerAddressMode modeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
    VkSamplerAddressMode modeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
    VkSamplerAddressMode modeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+};
+
+struct VulkanImage
+{
+   VkImage textureImage_ = {};
+   VkDeviceMemory textureImageMemory_ = {};
+   VmaAllocation allocation_ = {};
 };
 
 class Texture
@@ -36,7 +45,7 @@ class Texture
    void
    UpdateTexture(const FileManager::ImageData& data) const;
 
-   static std::pair< VkImage, VkDeviceMemory >
+   static VulkanImage
    CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels,
                VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling,
                VkImageUsageFlags usage, VkMemoryPropertyFlags properties, bool cubemap = false);
@@ -95,8 +104,7 @@ class Texture
  private:
    TextureID id_ = {};
    TextureType m_type = {};
-   VkImage m_textureImage = {};
-   VkDeviceMemory m_textureImageMemory = {};
+   VulkanImage image_ = {};
    VkImageView m_textureImageView = {};
    VkSampler m_textureSampler = {};
    TextureProperties textureProps_ = {};
