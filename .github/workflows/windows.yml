@@ -8,7 +8,7 @@ on:
 
 env:
   VULKAN_DIR: C:\VulkanSDK
-  SDK_VERSION: 1.3.204.1
+  SDK_VERSION: 1.3.268.0
   BUILD_TYPE: Release
 
 jobs:
