@@ -27,7 +27,7 @@ class Buffer
    FreeMemory(VkBuffer& buffer, VkDeviceMemory& memory);
 
    void
-   Map(VkDeviceSize size = VK_WHOLE_SIZE);
+   Map();
 
    void
    Unmap();

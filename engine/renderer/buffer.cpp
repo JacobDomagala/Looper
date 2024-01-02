@@ -39,7 +39,7 @@ FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 }
 
 void
-Buffer::Map(VkDeviceSize size)
+Buffer::Map()
 {
    if (not IsMapped(allocation_))
    {
