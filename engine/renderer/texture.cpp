@@ -22,8 +22,7 @@ Texture::Destroy()
 {
    vkDestroySampler(Data::vk_device, m_textureSampler, nullptr);
    vkDestroyImageView(Data::vk_device, m_textureImageView, nullptr);
-   vkDestroyImage(Data::vk_device, m_textureImage, nullptr);
-   vkFreeMemory(Data::vk_device, m_textureImageMemory, nullptr);
+   vmaDestroyImage(Data::vk_hAllocator, image_.textureImage_, image_.allocation_);
 }
 
 Texture::Texture(TextureType type, std::string_view textureName, TextureID id,
@@ -50,14 +49,14 @@ Texture::CreateTextureImage(const FileManager::ImageData& data)
       m_type == TextureType::DIFFUSE_MAP ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
    m_mips = static_cast< uint32_t >(std::floor(std::log2(std::max(m_width, m_height)))) + 1;
 
-   std::tie(m_textureImage, m_textureImageMemory) = CreateImage(
-      m_width, m_height, m_mips, VK_SAMPLE_COUNT_1_BIT, m_format, VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT
-         | VK_IMAGE_USAGE_SAMPLED_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, false);
+   image_ = CreateImage(m_width, m_height, m_mips, VK_SAMPLE_COUNT_1_BIT, m_format,
+                        VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT
+                           | VK_IMAGE_USAGE_SAMPLED_BIT,
+                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, false);
 
    m_textureImageView =
-      CreateImageView(m_textureImage, m_format, VK_IMAGE_ASPECT_COLOR_BIT, m_mips, false);
+      CreateImageView(image_.textureImage_, m_format, VK_IMAGE_ASPECT_COLOR_BIT, m_mips, false);
 
    CreateTextureSampler();
    UpdateTexture(data);
@@ -66,23 +65,23 @@ Texture::CreateTextureImage(const FileManager::ImageData& data)
 void
 Texture::UpdateTexture(const FileManager::ImageData& data) const
 {
-   TransitionImageLayout(m_textureImage, VK_IMAGE_LAYOUT_UNDEFINED,
+   TransitionImageLayout(image_.textureImage_, VK_IMAGE_LAYOUT_UNDEFINED,
                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mips);
 
-   CopyBufferToImage(m_textureImage, m_width, m_height, data.m_bytes.get());
+   CopyBufferToImage(image_.textureImage_, m_width, m_height, data.m_bytes.get());
 
    // transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
-   GenerateMipmaps(m_textureImage, VK_FORMAT_R8G8B8A8_SRGB, static_cast< int32_t >(m_width),
+   GenerateMipmaps(image_.textureImage_, VK_FORMAT_R8G8B8A8_SRGB, static_cast< int32_t >(m_width),
                    static_cast< int32_t >(m_height), m_mips);
 }
 
-std::pair< VkImage, VkDeviceMemory >
+VulkanImage
 Texture::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels,
                      VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling,
                      VkImageUsageFlags usage, VkMemoryPropertyFlags properties, bool cubemap)
 {
    VkImage image = {};
-   VkDeviceMemory imageMemory = {};
+   VmaAllocation allocation = {};
 
    VkImageCreateInfo imageInfo = {};
    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -106,14 +105,17 @@ Texture::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels,
       imageInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
    }
 
-   vk_check_error(vkCreateImage(Data::vk_device, &imageInfo, nullptr, &image),
-                  "failed to create image!");
+   VmaAllocationCreateInfo allocInfo = {};
+   allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
+   allocInfo.requiredFlags = properties;
 
-   Buffer::AllocateImageMemory(image, imageMemory, properties);
+   VmaAllocationInfo allocationInfo;
 
-   vkBindImageMemory(Data::vk_device, image, imageMemory, 0);
+   vk_check_error(vmaCreateImage(Data::vk_hAllocator, &imageInfo, &allocInfo, &image, &allocation,
+                                 &allocationInfo),
+      "failed to create image!");
 
-   return {image, imageMemory};
+   return {image, allocationInfo.deviceMemory, allocation};
 }
 
 VkImageView
@@ -319,7 +321,7 @@ Texture::GetName() const
 VkImage
 Texture::GetImage() const
 {
-   return m_textureImage;
+   return image_.textureImage_;
 }
 
 TextureID

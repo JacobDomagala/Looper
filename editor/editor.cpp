@@ -793,9 +793,10 @@ Editor::Render(VkCommandBuffer cmdBuffer)
             continue;
          }
 
-         vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer.at(idx), offsets.data());
+         vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer.at(idx).buffer_, offsets.data());
 
-         vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer.at(idx), 0, VK_INDEX_TYPE_UINT32);
+         vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer.at(idx).buffer_, 0,
+                              VK_INDEX_TYPE_UINT32);
 
          vkCmdDrawIndexed(cmdBuffer, numObjects * renderer::INDICES_PER_SPRITE, 1, 0, 0, 0);
       }
@@ -804,10 +805,10 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                         renderer::EditorData::linePipeline_);
 
-      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::EditorData::lineVertexBuffer,
+      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::EditorData::lineVertexBuffer.buffer_,
                              offsets.data());
 
-      vkCmdBindIndexBuffer(cmdBuffer, renderer::EditorData::lineIndexBuffer, 0,
+      vkCmdBindIndexBuffer(cmdBuffer, renderer::EditorData::lineIndexBuffer.buffer_, 0,
                            VK_INDEX_TYPE_UINT32);
 
       vkCmdBindDescriptorSets(

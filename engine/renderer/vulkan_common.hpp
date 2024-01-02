@@ -11,10 +11,10 @@
 #include <string_view>
 #include <unordered_map>
 #include <vector>
+#include <vk_mem_alloc.h>
 #include <vulkan/vk_enum_string_helper.h>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
-#include <vk_mem_alloc.h>
 
 struct GLFWwindow;
 
@@ -75,13 +75,11 @@ struct RenderData
    std::array< std::vector< Vertex >, NUM_LAYERS > vertices = {};
    std::array< std::bitset< MAX_SPRITES_PER_LAYER >, NUM_LAYERS > verticesAvail = {};
 
-   std::array< VkBuffer, NUM_LAYERS > vertexBuffer = {VK_NULL_HANDLE};
-   std::array< VkDeviceMemory, NUM_LAYERS > vertexBufferMemory = {VK_NULL_HANDLE};
+   std::array< Buffer, NUM_LAYERS > vertexBuffer = {VK_NULL_HANDLE};
 
    // Index
    std::array< std::vector< IndexType >, NUM_LAYERS > indices = {};
-   std::array< VkBuffer, NUM_LAYERS > indexBuffer = {VK_NULL_HANDLE};
-   std::array< VkDeviceMemory, NUM_LAYERS > indexBufferMemory = {VK_NULL_HANDLE};
+   std::array< Buffer, NUM_LAYERS > indexBuffer = {VK_NULL_HANDLE};
 
    std::array< uint32_t, NUM_LAYERS > numMeshes = {};
    uint32_t totalNumMeshes = {};
@@ -93,14 +91,11 @@ struct RenderData
 
    // SSBO (PerInstanceBuffer)
    std::vector< PerInstanceBuffer > perInstance = {};
-   std::array< VkBuffer, MAX_FRAMES_IN_FLIGHT > ssbo = {VK_NULL_HANDLE};
-   std::array< VkDeviceMemory, MAX_FRAMES_IN_FLIGHT > ssboMemory = {VK_NULL_HANDLE};
+   std::array< Buffer, MAX_FRAMES_IN_FLIGHT > ssbo = {VK_NULL_HANDLE};
 
 
    // UBO (UniformBufferObject)
-   std::vector< VkBuffer > uniformBuffers = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
-   std::vector< VkDeviceMemory > uniformBuffersMemory = {MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE};
-
+   std::vector< Buffer > uniformBuffers{MAX_FRAMES_IN_FLIGHT};
 
    VkSurfaceKHR surface = VK_NULL_HANDLE;
    GLFWwindow* windowHandle = nullptr;
@@ -163,19 +158,15 @@ struct EditorData
    // Pathfinder
    inline static std::vector< Vertex > pathfinderVertices_ = {};
    inline static std::vector< uint32_t > pathfinderIndices_ = {};
-   inline static VkBuffer pathfinderVertexBuffer = {};
-   inline static VkDeviceMemory pathfinderVertexBufferMemory = {};
-   inline static VkBuffer pathfinderIndexBuffer = {};
-   inline static VkDeviceMemory pathfinderIndexBufferMemory = {};
+   inline static Buffer pathfinderVertexBuffer = {};
+   inline static Buffer pathfinderIndexBuffer = {};
    inline static uint32_t numNodes_ = {};
 
    // Animation
    inline static std::vector< Vertex > animationVertices_ = {};
    inline static std::vector< uint32_t > animationIndices_ = {};
-   inline static VkBuffer animationVertexBuffer = {};
-   inline static VkDeviceMemory animationVertexBufferMemory = {};
-   inline static VkBuffer animationIndexBuffer = {};
-   inline static VkDeviceMemory animationIndexBufferMemory = {};
+   inline static Buffer animationVertexBuffer = {};
+   inline static Buffer animationIndexBuffer = {};
    inline static uint32_t numPoints_ = {};
 
    // Lines
@@ -184,14 +175,11 @@ struct EditorData
    inline static VkDescriptorPool lineDescriptorPool = {};
    inline static VkDescriptorSetLayout lineDescriptorSetLayout_ = {};
    inline static std::vector< VkDescriptorSet > lineDescriptorSets_ = {};
-   inline static VkBuffer lineVertexBuffer = {};
-   inline static VkDeviceMemory lineVertexBufferMemory = {};
-   inline static VkBuffer lineIndexBuffer = {};
-   inline static VkDeviceMemory lineIndexBufferMemory = {};
+   inline static Buffer lineVertexBuffer = {};
+   inline static Buffer lineIndexBuffer = {};
    inline static std::vector< LineVertex > lineVertices_ = {};
    inline static std::vector< uint32_t > lineIndices_ = {};
-   inline static std::vector< VkBuffer > lineUniformBuffers_ = {};
-   inline static std::vector< VkDeviceMemory > lineUniformBuffersMemory_ = {};
+   inline static std::vector< Buffer > lineUniformBuffers_ = {};
    inline static uint32_t numGridLines = {};
    inline static uint32_t numLines = {};
    inline static uint32_t curDynLineIdx = {};

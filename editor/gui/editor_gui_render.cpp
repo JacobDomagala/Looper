@@ -42,11 +42,14 @@ EditorGUI::UpdateBuffers()
    const auto currentFrame = renderer::Data::currentFrame_;
 
    // Vertex buffer
-   if ((vertexBuffer_[currentFrame].m_buffer == VK_NULL_HANDLE)
+   if ((vertexBuffer_[currentFrame].buffer_ == VK_NULL_HANDLE)
        || (vertexCount_[currentFrame] < imDrawData->TotalVtxCount))
    {
-      vertexBuffer_[currentFrame].Unmap();
-      vertexBuffer_[currentFrame].Destroy();
+      if (vertexBuffer_[currentFrame].buffer_ != VK_NULL_HANDLE)
+      {
+         vertexBuffer_[currentFrame].Unmap();
+         vertexBuffer_[currentFrame].Destroy();
+      }
 
       vertexBuffer_[currentFrame] = renderer::Buffer::CreateBuffer(
          vertexBufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
@@ -55,11 +58,14 @@ EditorGUI::UpdateBuffers()
    }
 
    // Index buffer
-   if ((indexBuffer_[currentFrame].m_buffer == VK_NULL_HANDLE)
+   if ((indexBuffer_[currentFrame].buffer_ == VK_NULL_HANDLE)
        || (indexCount_[currentFrame] < imDrawData->TotalIdxCount))
    {
-      indexBuffer_[currentFrame].Unmap();
-      indexBuffer_[currentFrame].Destroy();
+      if (indexBuffer_[currentFrame].buffer_ != VK_NULL_HANDLE)
+      {
+         indexBuffer_[currentFrame].Unmap();
+         indexBuffer_[currentFrame].Destroy();
+      }
 
       indexBuffer_[currentFrame] = renderer::Buffer::CreateBuffer(
          indexBufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
@@ -68,8 +74,8 @@ EditorGUI::UpdateBuffers()
    }
 
    // Upload data
-   auto* vtxDst = static_cast< ImDrawVert* >(vertexBuffer_[currentFrame].m_mappedMemory);
-   auto* idxDst = static_cast< ImDrawIdx* >(indexBuffer_[currentFrame].m_mappedMemory);
+   auto* vtxDst = static_cast< ImDrawVert* >(vertexBuffer_[currentFrame].mappedMemory_);
+   auto* idxDst = static_cast< ImDrawIdx* >(indexBuffer_[currentFrame].mappedMemory_);
 
    for (int n = 0; n < imDrawData->CmdListsCount; n++)
    {
@@ -112,9 +118,9 @@ EditorGUI::Render(VkCommandBuffer commandBuffer)
                       sizeof(PushConstBlock), &pushConstant_);
 
    std::array< VkDeviceSize, 1 > offsets = {0};
-   vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer_[currentFrame].m_buffer,
+   vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer_[currentFrame].buffer_,
                           offsets.data());
-   vkCmdBindIndexBuffer(commandBuffer, indexBuffer_[currentFrame].m_buffer, 0,
+   vkCmdBindIndexBuffer(commandBuffer, indexBuffer_[currentFrame].buffer_, 0,
                         VK_INDEX_TYPE_UINT16);
 
    for (int32_t i = 0; i < imDrawData->CmdListsCount; i++)
@@ -176,11 +182,13 @@ EditorGUI::PrepareResources()
    int32_t texHeight = 0;
    io.Fonts->GetTexDataAsRGBA32(&fontData, &texWidth, &texHeight);
 
-   std::tie(fontImage_, fontMemory_) = renderer::Texture::CreateImage(
+   const auto image = renderer::Texture::CreateImage(
       static_cast< uint32_t >(texWidth), static_cast< uint32_t >(texHeight), 1,
       VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+   fontImage_ = image.textureImage_;
+   fontMemory_ = image.textureImageMemory_;
 
    m_fontView = renderer::Texture::CreateImageView(fontImage_, VK_FORMAT_R8G8B8A8_UNORM,
                                                    VK_IMAGE_ASPECT_COLOR_BIT, 1);

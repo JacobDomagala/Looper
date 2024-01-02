@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <vk_mem_alloc.h>
 #include <vulkan/vulkan.h>
 
 namespace looper::renderer {
@@ -18,10 +19,6 @@ class Buffer
 
    static Buffer
    CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
-
-   static void
-   CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
-                VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
    static void
    CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
@@ -55,12 +52,13 @@ class Buffer
    Destroy();
 
  public:
-   void* m_mappedMemory = nullptr;
-   bool m_mapped = false;
-   VkBuffer m_buffer = {};
-   VkDeviceMemory m_bufferMemory = {};
-   VkDeviceSize m_bufferSize = {};
-   VkDescriptorBufferInfo m_descriptor = {};
+   void* mappedMemory_ = nullptr;
+   bool mapped_ = false;
+   VkBuffer buffer_ = {};
+   VkDeviceMemory bufferMemory_ = {};
+   VkDeviceSize bufferSize_ = {};
+   VmaAllocation allocation_ = {};
+   VkDescriptorBufferInfo descriptor_ = {};
 };
 
 
