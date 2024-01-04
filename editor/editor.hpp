@@ -168,6 +168,13 @@ class Editor : public Application
    AddToWorkQueue(
       const WorkQueue::WorkUnit& work, const WorkQueue::Precondition& prec = [] { return true; });
 
+   template < class F, class... Args >
+   auto
+   AddToThreadPool(F&& f, Args&&... args)
+   {
+      return threadPool_.enqueue(std::forward< F >(f), std::forward< Args >(args)...);
+   }
+
    void
    Shutdown();
 
@@ -243,6 +250,7 @@ class Editor : public Application
 
    bool isRunning_ = true;
    bool levelLoaded_ = false;
+   bool shouldUpdateRenderer_ = false;
 
    // Left and right mouse buttons
    bool LMBPressedLastUpdate_ = false;
@@ -282,6 +290,7 @@ class Editor : public Application
 
    // constructed in initializer list
    EditorGUI gui_;
+   std::future< void > uiReady_ = {};
 
    bool playGame_ = false;
    time::TimeStep timeLastFrame_ = time::TimeStep{time::microseconds{}};

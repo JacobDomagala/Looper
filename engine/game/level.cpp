@@ -258,6 +258,12 @@ Level::GetTileSize() const
    return m_tileWidth;
 }
 
+size_t
+Level::GetNumOfObjects() const
+{
+   return objects_.size() + enemies_.size() + 1 /* player */;
+}
+
 PathFinder&
 Level::GetPathfinder()
 {
@@ -308,10 +314,7 @@ Level::AddGameObject(ObjectType objectType, const glm::vec2& position)
 
       default: {
       }
-   }
-
-   renderer::VulkanRenderer::UpdateBuffers();
-   renderer::VulkanRenderer::CreateLinePipeline();
+   }   
 
    return newObject;
 }

@@ -277,6 +277,21 @@ VulkanRenderer::UpdateDescriptors()
 }
 
 void
+VulkanRenderer::UpdateData()
+{
+   if (isLoaded_)
+   {
+      if (updateDescriptors_)
+      {
+         QuadShader::UpdateDescriptorSets();
+         updateDescriptors_ = false;
+      }
+
+      UpdateUniformBuffer();
+   }
+}
+
+void
 VulkanRenderer::SetupVertexBuffer(const int32_t layer)
 {
    const auto layerCasted = static_cast< size_t >(layer);
@@ -304,6 +319,8 @@ VulkanRenderer::MeshDeleted(const RenderInfo& renderInfo)
          renderData->vertices.at(static_cast< uint32_t >(renderInfo.layer)).at(offset + vertexIdx);
       vertex = Vertex{};
    }
+
+   updateBuffers_ = true;
 }
 
 RenderInfo
@@ -369,10 +386,7 @@ VulkanRenderer::SubmitMeshData(const uint32_t idx, const TextureIDs& ids, const 
    object.texSamples.z = static_cast< float >(ids.at(2));
    object.texSamples.w = static_cast< float >(ids.at(3));
 
-   if (isLoaded_ and updateDescriptors_)
-   {
-      QuadShader::UpdateDescriptorSets();
-   }
+   updateBuffers_ = true;
 }
 
 void
@@ -383,10 +397,16 @@ VulkanRenderer::CreateQuadVertexBuffer()
 
    for (size_t layer = 0; layer < static_cast< size_t >(NUM_LAYERS); layer++)
    {
+      auto& vertexBuffer = renderData.vertexBuffer.at(layer);
+      if (vertexBuffer.buffer_ != VK_NULL_HANDLE)
+      {
+         vertexBuffer.Destroy();
+      }
+
       vertices.at(layer).resize(MAX_NUM_VERTICES_PER_LAYER);
       // const auto bufferSize = sizeof(Vertex) * vertices.at(layer).size();
       const auto bufferSize = sizeof(Vertex) * MAX_NUM_VERTICES_PER_LAYER;
-      renderData.vertexBuffer.at(layer) = CreateVertexBuffer(bufferSize, vertices.at(layer));
+      vertexBuffer = CreateVertexBuffer(bufferSize, vertices.at(layer));
    }
 }
 
@@ -433,7 +453,7 @@ VulkanRenderer::UpdateLineData(uint32_t startingLine)
 {
    const auto lastLine = (EditorData::curDynLineIdx / VERTICES_PER_LINE) + EditorData::numGridLines;
    const auto numLines = lastLine - startingLine;
-   
+
    if (numLines)
    {
       const auto bufferSize = numLines * sizeof(LineVertex) * VERTICES_PER_LINE;
@@ -469,7 +489,6 @@ VulkanRenderer::UpdateBuffers()
 
    CreateQuadVertexBuffer();
    CreateQuadIndexBuffer();
-   CreateUniformBuffer();
    CreatePerInstanceBuffer();
 }
 
@@ -628,8 +647,14 @@ VulkanRenderer::CreateQuadIndexBuffer()
 
    for (size_t layer = 0; layer < static_cast< size_t >(NUM_LAYERS); ++layer)
    {
-      renderData.indexBuffer.at(layer) = CreateIndexBuffer< INDICES_PER_SPRITE >(
-         renderData.indices.at(layer), MAX_SPRITES_PER_LAYER);
+      auto& indexBuffer = renderData.indexBuffer.at(layer);
+      if (indexBuffer.buffer_ != VK_NULL_HANDLE)
+      {
+         indexBuffer.Destroy();
+      }
+
+      indexBuffer = CreateIndexBuffer< INDICES_PER_SPRITE >(renderData.indices.at(layer),
+                                                            MAX_SPRITES_PER_LAYER);
    }
 }
 
@@ -720,13 +745,13 @@ VulkanRenderer::Initialize(GLFWwindow* windowHandle, ApplicationType type)
    for (uint32_t layer = 0; layer < NUM_LAYERS; ++layer)
    {
       renderData.vertices.at(layer).resize(MAX_NUM_VERTICES_PER_LAYER);
-      renderData.indices.at(layer).resize(static_cast< size_t >(MAX_SPRITES_PER_LAYER)
-                                          * static_cast< size_t >(INDICES_PER_SPRITE));
+      renderData.indices.at(layer).resize(MAX_NUM_INDICES_PER_LAYER);
    }
 
    renderData.perInstance.resize(MAX_NUM_SPRITES);
 
    CreateRenderPipeline();
+   CreateUniformBuffer();
 
    initialized_ = true;
 }
@@ -754,28 +779,42 @@ VulkanRenderer::CreateRenderPipeline()
 }
 
 void
-VulkanRenderer::UpdateUniformBuffer(uint32_t currentImage)
+VulkanRenderer::UpdateUniformBuffer()
 {
    auto& renderData = Data::renderData_.at(boundApplication_);
-   if (renderData.uniformBuffers.at(currentImage).bufferMemory_ != VK_NULL_HANDLE
-       and renderData.ssbo.at(currentImage).bufferMemory_ != VK_NULL_HANDLE)
+
+   for (uint32_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; ++frame)
    {
-      UniformBufferObject ubo = {};
+      vkWaitForFences(Data::vk_device, 1, &VulkanRenderer::inFlightFences_[frame], VK_TRUE,
+                      UINT64_MAX);
 
-      ubo.view = renderData.viewMat;
-      ubo.proj = renderData.projMat;
+      {
+         UniformBufferObject tmpUBO = {};
 
-      void* data = nullptr;
-      vmaMapMemory(Data::vk_hAllocator, renderData.uniformBuffers[currentImage].allocation_, &data);
-      memcpy(data, &ubo, sizeof(ubo));
-      vmaUnmapMemory(Data::vk_hAllocator, renderData.uniformBuffers[currentImage].allocation_);
+         tmpUBO.view = renderData.viewMat;
+         tmpUBO.proj = renderData.projMat;
 
-      void* data2 = nullptr;
-      vmaMapMemory(Data::vk_hAllocator, renderData.ssbo.at(currentImage).allocation_, &data2);
-      memcpy(data2, renderData.perInstance.data(),
-             renderData.perInstance.size() * sizeof(PerInstanceBuffer));
-      vmaUnmapMemory(Data::vk_hAllocator, renderData.ssbo.at(currentImage).allocation_);
+         auto& ubo = renderData.uniformBuffers.at(frame);
+
+         void* data = nullptr;
+         vmaMapMemory(Data::vk_hAllocator, ubo.allocation_, &data);
+         memcpy(data, &tmpUBO, sizeof(tmpUBO));
+         vmaUnmapMemory(Data::vk_hAllocator, ubo.allocation_);
+      }
+
+      if (updateBuffers_)
+      {
+         auto& ssbo = renderData.ssbo.at(frame);
+
+         void* data = nullptr;
+         vmaMapMemory(Data::vk_hAllocator, ssbo.allocation_, &data);
+         memcpy(data, renderData.perInstance.data(),
+                renderData.perInstance.size() * sizeof(PerInstanceBuffer));
+         vmaUnmapMemory(Data::vk_hAllocator, ssbo.allocation_);
+      }
    }
+
+   updateBuffers_ = false;
 }
 
 void
@@ -856,7 +895,6 @@ VulkanRenderer::Render(Application* app)
                          &imageIndex);
 
    CreateCommandBuffers(app, imageIndex);
-   UpdateUniformBuffer(Data::currentFrame_);
 
    VkSubmitInfo submitInfo = {};
    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -892,9 +930,7 @@ VulkanRenderer::Render(Application* app)
 
    vkQueuePresentKHR(presentQueue_, &presentInfo);
 
-   Data::currentFrame_ = (Data::currentFrame_ + 1) % MAX_FRAMES_IN_FLIGHT;
-
-   updateDescriptors_ = false;
+   Data::currentFrame_ = GetNextFrame();
 }
 
 void

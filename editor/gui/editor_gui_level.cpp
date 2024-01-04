@@ -250,7 +250,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 
          // The second parameter is the label previewed before opening the combo.
-         if (ImGui::BeginCombo("##combo1", selectedFilter.c_str()))
+         if (ImGui::BeginCombo("##renderByType", selectedFilter.c_str()))
          {
             for (const auto& item : filterObjects)
             {
@@ -266,9 +266,8 @@ EditorGUI::RenderLevelMenu() // NOLINT
 
       ImGui::BeginChild("Loaded Objects", {0, 200}, true);
 
-      for (const auto& object : gameObjects)
-      {
-         if (selectedFilter == filterObjects.at(0) or object.GetTypeString() == selectedFilter)
+      auto DisplayObjects = [this](const auto& objects) {
+         for (const auto& object : objects)
          {
             const auto& objectInfo = objectsInfo_.at(object.GetID());
             auto label = objectInfo.first;
@@ -288,6 +287,25 @@ EditorGUI::RenderLevelMenu() // NOLINT
                ImGui::SetScrollHereY();
             }
          }
+      };
+
+      if (selectedFilter == "Object")
+      {
+         DisplayObjects(gameObjects);
+      }
+      else if (selectedFilter == "Enemy")
+      {
+         DisplayObjects(parent_.GetLevel().GetEnemies());
+      }
+      else if (selectedFilter == "Player")
+      {
+         DisplayObjects(std::vector< GameObject >{parent_.GetPlayer()});
+      }
+      else if (selectedFilter == "All")
+      {
+         DisplayObjects(std::vector< GameObject >{parent_.GetPlayer()});
+         DisplayObjects(parent_.GetLevel().GetEnemies());
+         DisplayObjects(gameObjects);
       }
 
       ImGui::EndChild();
@@ -376,10 +394,12 @@ EditorGUI::RenderLevelMenu() // NOLINT
          CreateRow("FPS", fmt::format("{}", parent_.GetFramesLastSecond()));
          CreateRow("Frame time",
                    fmt::format("{:.2f}ms", parent_.GetFrameTime().GetMilliseconds().count()));
-         CreateRow("UI time",
+         CreateRow("UI update",
                    fmt::format("{:.2f}ms", parent_.GetUpdateUITime().GetMilliseconds().count()));
-         CreateRow("Render time",
+         CreateRow("Render",
                    fmt::format("{:.2f}ms", parent_.GetRenderTime().GetMilliseconds().count()));
+         CreateRow("UI Render", fmt::format("{:.2f}ms", uiRenderTime.GetMilliseconds().count()));
+         CreateRow("Number of objects", fmt::format("{}", parent_.GetLevel().GetNumOfObjects()));
          const auto cameraPos = parent_.GetCamera().GetPosition();
          CreateRow("Camera Position", fmt::format("{}", static_cast< glm::vec2 >(cameraPos)));
          CreateRow("Camera Zoom", fmt::format("{:.1f}", parent_.GetCamera().GetZoomLevel()));

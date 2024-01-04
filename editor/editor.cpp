@@ -833,7 +833,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
                        renderer::EditorData::numGridLines * renderer::INDICES_PER_LINE, 0, 0);
    }
 
-   EditorGUI::Render(cmdBuffer);
+   gui_.Render(cmdBuffer);
 }
 
 void
@@ -1072,6 +1072,8 @@ void
 Editor::AddGameObject(ObjectType objectType, const glm::vec2& position)
 {
    HandleGameObjectSelected(currentLevel_->AddGameObject(objectType, position), false, false);
+
+   shouldUpdateRenderer_ = true;
 }
 
 void
@@ -1107,6 +1109,8 @@ Editor::CopyGameObjects(const std::vector< Object::ID >& objectsToCopy)
 
       gui_.ObjectUpdated(newObjectID);
       newObjects.push_back(newObjectID);
+
+      shouldUpdateRenderer_ = true;
    }
 }
 
@@ -1132,9 +1136,10 @@ Editor::AddObject(ObjectType objectType)
                                                    "NodeSprite.png", newNode.GetID());
    animatable.ResetAnimation();
 
+   shouldUpdateRenderer_ = true;
+
    renderer::VulkanRenderer::UpdateBuffers();
    renderer::VulkanRenderer::CreateLinePipeline();
-
 
    HandleEditorObjectSelected(newObject);
 }
@@ -1250,10 +1255,6 @@ Editor::Update()
       }
    }
 
-   auto& renderData = renderer::VulkanRenderer::GetRenderData();
-   renderData.viewMat = camera_.GetViewMatrix();
-   renderData.projMat = camera_.GetProjectionMatrix();
-
    DrawBoundingBoxes();
 
    if (mouseDrag_ and selectRect_ != std::array< glm::vec2, 4 >{})
@@ -1267,6 +1268,20 @@ Editor::Update()
    {
       const time::ScopedTimer uiTImer(&uiTime_);
       gui_.UpdateUI();
+   }
+
+   auto& renderData = renderer::VulkanRenderer::GetRenderData();
+   renderData.viewMat = camera_.GetViewMatrix();
+   renderData.projMat = camera_.GetProjectionMatrix();
+
+   {
+      if (shouldUpdateRenderer_)
+      {
+         renderer::VulkanRenderer::SetupData();
+         shouldUpdateRenderer_ = false;
+      }
+
+      renderer::VulkanRenderer::UpdateData();
    }
 }
 
@@ -1331,14 +1346,13 @@ Editor::MainLoop()
          deltaTime_ = timer_.GetMsDeltaTime();
          InputManager::PollEvents();
 
-         // Run all deffered work units
-         workQueue_.RunWorkUnits();
-
-         HandleCamera();
-         Update();
-
          if (windowInFocus_)
          {
+            // Run all deffered work units
+            workQueue_.RunWorkUnits();
+
+            Update();
+
             const time::ScopedTimer renderTimer(&renderTime_);
             renderer::VulkanRenderer::Render(this);
          }

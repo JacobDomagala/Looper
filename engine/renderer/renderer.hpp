@@ -92,7 +92,11 @@ class VulkanRenderer
    static void
    UpdateDescriptors();
 
+   static void
+   UpdateData();
+
    inline static bool isLoaded_ = false;
+   inline static std::vector< VkFence > inFlightFences_ = {};
 
  private:
    static void
@@ -138,7 +142,7 @@ class VulkanRenderer
    CreatePerInstanceBuffer();
 
    static void
-   UpdateUniformBuffer(uint32_t currentImage);
+   UpdateUniformBuffer();
 
    static void
    CreateDepthResources();
@@ -156,6 +160,7 @@ class VulkanRenderer
  private:
    inline static bool initialized_ = false;
    inline static bool updateDescriptors_ = false;
+   inline static bool updateBuffers_ = false;
    inline static VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo_ = {};
    inline static VkDebugUtilsMessengerEXT debugMessenger_ = {};
 
@@ -165,7 +170,6 @@ class VulkanRenderer
 
    inline static std::vector< VkSemaphore > imageAvailableSemaphores_ = {};
    inline static std::vector< VkSemaphore > renderFinishedSemaphores_ = {};
-   inline static std::vector< VkFence > inFlightFences_ = {};
 
    inline static ApplicationType boundApplication_ = {};
 

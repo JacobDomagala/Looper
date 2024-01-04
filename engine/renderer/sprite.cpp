@@ -93,6 +93,7 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
       {glm::vec3{-0.5f, -0.5f, position.z}, glm::vec3{0.0f, 1.0f, 1.0f}}};
 
    const auto transformMat = ComputeModelMat();
+   ComputeBoundingBox();
 
    textures_ = {TextureLibrary::GetTexture(fileName)->GetID(),
                 TextureLibrary::GetTexture("white.png")->GetID(),
@@ -131,6 +132,7 @@ Sprite::Render()
    if (changed_)
    {
       const auto transformMat = ComputeModelMat();
+      ComputeBoundingBox();
 
       renderer::VulkanRenderer::SubmitMeshData(static_cast< uint32_t >(renderInfo_.idx), textures_,
                                                transformMat, currentState_.color_);
@@ -343,20 +345,24 @@ Sprite::ScaleUniformly(const float scaleValue)
    changed_ = true;
 }
 
-std::array< glm::vec2, 4 >
-Sprite::GetTransformedRectangle() const
+void
+Sprite::ComputeBoundingBox()
 {
    const auto transformMat =
       glm::translate(glm::mat4(1.0f), glm::vec3{currentState_.translateVal_, 0.0f})
       * glm::rotate(glm::mat4(1.0f), currentState_.angle_, {0.0f, 0.0f, 1.0f})
       * glm::scale(glm::mat4(1.0f), {size_, 1.0f});
 
-   const glm::vec2 topLeft = transformMat * glm::vec4(vertices_[0].m_position, 1.0f);
-   const glm::vec2 bottomLeft = transformMat * glm::vec4(vertices_[3].m_position, 1.0f);
-   const glm::vec2 topRight = transformMat * glm::vec4(vertices_[1].m_position, 1.0f);
-   const glm::vec2 bottomRight = transformMat * glm::vec4(vertices_[2].m_position, 1.0f);
+   boundingBox_.at(1) = transformMat * glm::vec4(vertices_[0].m_position, 1.0f);
+   boundingBox_.at(2) = transformMat * glm::vec4(vertices_[3].m_position, 1.0f);
+   boundingBox_.at(0) = transformMat * glm::vec4(vertices_[1].m_position, 1.0f);
+   boundingBox_.at(3) = transformMat * glm::vec4(vertices_[2].m_position, 1.0f);
+}
 
-   return {topRight, topLeft, bottomLeft, bottomRight};
+std::array< glm::vec2, 4 >
+Sprite::GetTransformedRectangle() const
+{
+   return boundingBox_;
 }
 
 } // namespace looper::renderer

@@ -155,6 +155,9 @@ class Sprite
    static constexpr std::pair< float, float > SCALE_RANGE = {1.0f, 5.0f};
 
  private:
+   void
+   ComputeBoundingBox();
+
    struct State
    {
       // color of sprite (default is white)
@@ -189,6 +192,7 @@ class Sprite
    RenderInfo renderInfo_ = {};
 
    std::vector< renderer::Vertex > vertices_ = {};
+   std::array< glm::vec2, 4 > boundingBox_ = {};
 };
 
 } // namespace looper::renderer

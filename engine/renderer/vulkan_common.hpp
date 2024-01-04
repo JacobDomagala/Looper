@@ -104,15 +104,16 @@ vk_check_error(VkResult vkResult, std::string_view errorMessage)
 }
 
 static constexpr uint32_t VERTICES_PER_SPRITE = 4;
-static constexpr uint32_t MAX_SPRITES_PER_LAYER = 1000;
-static constexpr uint32_t MAX_NUM_VERTICES_PER_LAYER = MAX_SPRITES_PER_LAYER * VERTICES_PER_SPRITE;
+static constexpr uint32_t INDICES_PER_SPRITE = 6;
+static constexpr uint32_t MAX_SPRITES_PER_LAYER = 100000;
+static constexpr size_t MAX_NUM_VERTICES_PER_LAYER = MAX_SPRITES_PER_LAYER * VERTICES_PER_SPRITE;
+static constexpr size_t MAX_NUM_INDICES_PER_LAYER = MAX_SPRITES_PER_LAYER * INDICES_PER_SPRITE;
 inline constexpr uint32_t NUM_LAYERS = 11;
 static constexpr size_t MAX_NUM_SPRITES = MAX_SPRITES_PER_LAYER * NUM_LAYERS;
 static constexpr uint32_t MAX_NUM_TEXTURES = 256;
-static constexpr uint32_t INDICES_PER_SPRITE = 6;
 static constexpr uint32_t INDICES_PER_LINE = 2;
 static constexpr uint32_t VERTICES_PER_LINE = 2;
-inline constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 3;
+inline constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 1;
 inline constexpr uint32_t MAX_NUM_LINES = 100000;
 
 static constexpr bool ENABLE_VALIDATION = true;
@@ -225,6 +226,12 @@ struct Data
 
    inline static uint32_t currentFrame_ = {};
 };
+
+inline uint32_t
+GetNextFrame()
+{
+   return (Data::currentFrame_ + 1) % MAX_FRAMES_IN_FLIGHT;
+}
 
 struct EditorData
 {
