@@ -762,18 +762,20 @@ Level::Update(bool isReverse)
 {
    m_background.Update(isReverse);
 
+   player_.Update(isReverse);
+
    // TODO: Parallelize for larger groups of objects
    // Player and Enemies should be handled by a single thread,
    // since they're dependent of eachother
-   for (auto& obj : objects_)
-   {
-      // We probably should update only objects that are
-      // in some range of camera
-      if (obj.Visible())
-      {
-         obj.Update(isReverse);
-      }
-   }
+   //for (auto& obj : objects_)
+   //{
+   //   // We probably should update only objects that are
+   //   // in some range of camera
+   //   if (obj.Visible())
+   //   {
+   //      obj.Update(isReverse);
+   //   }
+   //}
 
    for (auto& enemy : enemies_)
    {

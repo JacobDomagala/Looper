@@ -72,13 +72,16 @@ class VulkanRenderer
    CreateLinePipeline();
 
    static void
-   SetupData(bool recreatePipeline = true);
+   RecreateQuadPipeline();
 
    static void
    FreeData(renderer::ApplicationType type, bool destroyPipeline);
 
    static void
-   UpdateBuffers();
+   CreateQuadBuffers();
+  
+   static void
+   UpdatePerInstanceBuffer();
 
    static void
    SetupLineData();
@@ -160,7 +163,10 @@ class VulkanRenderer
  private:
    inline static bool initialized_ = false;
    inline static bool updateDescriptors_ = false;
-   inline static bool updateBuffers_ = false;
+   inline static bool updatePerInstanceBuffer_ = false;
+   inline static bool updateVertexBuffer_ = false;
+   inline static std::vector< uint32_t > updatedObjects_ = {};
+   inline static std::vector< int32_t > renderLayersChanged_ = {};
    inline static VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo_ = {};
    inline static VkDebugUtilsMessengerEXT debugMessenger_ = {};
 

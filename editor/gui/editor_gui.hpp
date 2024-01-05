@@ -11,7 +11,6 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
-#include <future>
 
 namespace looper {
 
@@ -115,8 +114,7 @@ class EditorGUI : public InputListener
 
    // EditorObjectWindow m_editorObjectWindow;
    Object::ID currentlySelectedGameObject_ = Object::INVALID_ID;
-   std::shared_ptr< Level > currentLevel_;
-   std::future< void > uiReady_ = {};
+   std::shared_ptr< Level > currentLevel_ = {};
    time::TimeStep uiRenderTime = time::TimeStep{time::microseconds{}};
 
    glm::vec2 windowSize_ = {};
@@ -129,7 +127,7 @@ class EditorGUI : public InputListener
    bool exitPushed_ = false;
 
    // Data needed for loaded objects menu
-   std::unordered_map< Object::ID, std::pair<std::string, bool >> objectsInfo_ = {};
+   std::unordered_map< Object::ID, std::pair< std::string, bool > > objectsInfo_ = {};
    Object::ID setScrollTo_ = Object::INVALID_ID;
 
    inline static VkImage fontImage_ = {};

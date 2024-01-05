@@ -288,6 +288,19 @@ VulkanRenderer::UpdateData()
       }
 
       UpdateUniformBuffer();
+      UpdatePerInstanceBuffer();
+
+      if (updateVertexBuffer_)
+      {
+         std::set< int32_t > layers(renderLayersChanged_.begin(), renderLayersChanged_.end());
+         for (const auto layer : layers)
+         {
+            SetupVertexBuffer(layer);
+         }
+
+         updateVertexBuffer_ = false;
+         renderLayersChanged_.clear();
+      }
    }
 }
 
@@ -320,7 +333,11 @@ VulkanRenderer::MeshDeleted(const RenderInfo& renderInfo)
       vertex = Vertex{};
    }
 
-   updateBuffers_ = true;
+   updatePerInstanceBuffer_ = true;
+   updatedObjects_.push_back(static_cast< uint32_t >(renderInfo.idx));
+
+   updateVertexBuffer_ = true;
+   renderLayersChanged_.push_back(renderInfo.layer);
 }
 
 RenderInfo
@@ -369,6 +386,8 @@ VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const Textu
    ++renderData->totalNumMeshes;
 
    SubmitMeshData(static_cast< uint32_t >(idx), textures_in, modelMat, color);
+   updateVertexBuffer_ = true;
+   renderLayersChanged_.push_back(layer);
 
    return {idx, layer, layerIdx};
 }
@@ -386,7 +405,8 @@ VulkanRenderer::SubmitMeshData(const uint32_t idx, const TextureIDs& ids, const 
    object.texSamples.z = static_cast< float >(ids.at(2));
    object.texSamples.w = static_cast< float >(ids.at(3));
 
-   updateBuffers_ = true;
+   updatePerInstanceBuffer_ = true;
+   updatedObjects_.push_back(idx);
 }
 
 void
@@ -483,21 +503,17 @@ VulkanRenderer::SetupLineData()
 }
 
 void
-VulkanRenderer::UpdateBuffers()
+VulkanRenderer::CreateQuadBuffers()
 {
-   vkDeviceWaitIdle(Data::vk_device);
-
    CreateQuadVertexBuffer();
    CreateQuadIndexBuffer();
    CreatePerInstanceBuffer();
 }
 
 void
-VulkanRenderer::SetupData(bool recreatePipeline)
+VulkanRenderer::RecreateQuadPipeline()
 {
    vkDeviceWaitIdle(Data::vk_device);
-
-   UpdateBuffers();
 
    // Indirect render stuff
    // const auto commandsSize = m_renderCommands.size() * sizeof(VkDrawIndexedIndirectCommand);
@@ -515,16 +531,14 @@ VulkanRenderer::SetupData(bool recreatePipeline)
    // memcpy(data, m_renderCommands.data(), static_cast< size_t >(bufferSize));
    // memcpy(static_cast< uint8_t* >(data) + commandsSize, &m_numMeshes, sizeof(uint32_t));
 
-   if (recreatePipeline)
-   {
-      DestroyPipeline();
 
-      CreateRenderPipeline();
-      QuadShader::CreateDescriptorPool();
-      QuadShader::CreateDescriptorSets();
-      QuadShader::UpdateDescriptorSets();
-   }
+   DestroyPipeline();
 
+   CreateRenderPipeline();
+   CreateQuadBuffers();
+   QuadShader::CreateDescriptorPool();
+   QuadShader::CreateDescriptorSets();
+   QuadShader::UpdateDescriptorSets();
 
    isLoaded_ = true;
 }
@@ -662,23 +676,19 @@ void
 VulkanRenderer::CreateUniformBuffer()
 {
    auto& renderData = Data::renderData_[boundApplication_];
-   const VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+   constexpr VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
-   // We always (for now) create buffers for all frames in flight, so we only have to check the
-   // first one
-   if (renderData.uniformBuffers[0].buffer_ != VK_NULL_HANDLE)
+   for (size_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; frame++)
    {
-      for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+      auto& ubo = renderData.uniformBuffers.at(frame);
+      if (ubo.buffer_ != VK_NULL_HANDLE)
       {
-         renderData.uniformBuffers[i].Destroy();
+         ubo.Destroy();
       }
-   }
 
-   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-   {
-      renderData.uniformBuffers[i] = Buffer::CreateBuffer(
-         bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+      ubo = Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
    }
 }
 
@@ -686,24 +696,19 @@ void
 VulkanRenderer::CreatePerInstanceBuffer()
 {
    auto& renderData = Data::renderData_[boundApplication_];
-   // const VkDeviceSize SSBObufferSize = renderData.perInstance.size() * sizeof(PerInstanceBuffer);
-   const VkDeviceSize SSBObufferSize = MAX_NUM_SPRITES * sizeof(PerInstanceBuffer);
-
-   // We always (for now) create buffers for all frames in flight, so we only have to check the
-   // first one
-   if (renderData.ssbo[0].buffer_ != VK_NULL_HANDLE)
-   {
-      for (size_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; frame++)
-      {
-         renderData.ssbo.at(frame).Destroy();
-      }
-   }
+   constexpr VkDeviceSize SSBObufferSize = MAX_NUM_SPRITES * sizeof(PerInstanceBuffer);
 
    for (size_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; frame++)
    {
-      renderData.ssbo.at(frame) = Buffer::CreateBuffer(
-         SSBObufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+      auto& sbo = renderData.ssbo.at(frame);
+      if (sbo.buffer_ != VK_NULL_HANDLE)
+      {
+         sbo.Destroy();
+      }
+
+      sbo = Buffer::CreateBuffer(SSBObufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
    }
 }
 
@@ -788,33 +793,49 @@ VulkanRenderer::UpdateUniformBuffer()
       vkWaitForFences(Data::vk_device, 1, &VulkanRenderer::inFlightFences_[frame], VK_TRUE,
                       UINT64_MAX);
 
+      UniformBufferObject tmpUBO = {};
+
+      tmpUBO.view = renderData.viewMat;
+      tmpUBO.proj = renderData.projMat;
+
+      auto& ubo = renderData.uniformBuffers.at(frame);
+
+      void* data = nullptr;
+      vmaMapMemory(Data::vk_hAllocator, ubo.allocation_, &data);
+      memcpy(data, &tmpUBO, sizeof(tmpUBO));
+      vmaUnmapMemory(Data::vk_hAllocator, ubo.allocation_);
+   }
+}
+
+void
+VulkanRenderer::UpdatePerInstanceBuffer()
+{
+   if (updatePerInstanceBuffer_ and not updatedObjects_.empty())
+   {
+      auto& renderData = Data::renderData_.at(boundApplication_);
+
+      for (uint32_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; ++frame)
       {
-         UniformBufferObject tmpUBO = {};
+         vkWaitForFences(Data::vk_device, 1, &VulkanRenderer::inFlightFences_[frame], VK_TRUE,
+                         UINT64_MAX);
 
-         tmpUBO.view = renderData.viewMat;
-         tmpUBO.proj = renderData.projMat;
-
-         auto& ubo = renderData.uniformBuffers.at(frame);
-
-         void* data = nullptr;
-         vmaMapMemory(Data::vk_hAllocator, ubo.allocation_, &data);
-         memcpy(data, &tmpUBO, sizeof(tmpUBO));
-         vmaUnmapMemory(Data::vk_hAllocator, ubo.allocation_);
-      }
-
-      if (updateBuffers_)
-      {
          auto& ssbo = renderData.ssbo.at(frame);
 
          void* data = nullptr;
          vmaMapMemory(Data::vk_hAllocator, ssbo.allocation_, &data);
-         memcpy(data, renderData.perInstance.data(),
-                renderData.perInstance.size() * sizeof(PerInstanceBuffer));
+
+         for (const auto object : updatedObjects_)
+         {
+            PerInstanceBuffer* offset = reinterpret_cast< PerInstanceBuffer* >(data) + object;
+            memcpy(offset, renderData.perInstance.data() + object, sizeof(PerInstanceBuffer));
+         }
+
          vmaUnmapMemory(Data::vk_hAllocator, ssbo.allocation_);
       }
-   }
 
-   updateBuffers_ = false;
+      updatedObjects_.clear();
+      updatePerInstanceBuffer_ = false;
+   }
 }
 
 void

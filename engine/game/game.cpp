@@ -1,13 +1,10 @@
 #include "game.hpp"
 #include "enemy.hpp"
-#include "utils/file_manager.hpp"
-// #include "RenderCommand.hpp"
 #include "renderer.hpp"
 #include "renderer/vulkan_common.hpp"
 #include "renderer/window/window.hpp"
+#include "utils/file_manager.hpp"
 
-#include <GLFW/glfw3.h>
-#include <fstream>
 #include <string>
 
 namespace looper {
@@ -34,6 +31,7 @@ Game::MainLoop()
             workQueue_.RunWorkUnits();
             if (windowInFocus_)
             {
+               renderer::VulkanRenderer::UpdateData();
                renderer::VulkanRenderer::Render(this);
             }
 
@@ -55,7 +53,7 @@ Game::MainLoop()
          }
       }
    }
-   InputManager::UnregisterFromInput(window_->GetWindowHandle(), this);
+   InputManager::UnregisterFromInput(window_.GetWindowHandle(), this);
 }
 
 
@@ -64,42 +62,16 @@ Game::Init(const std::string& configFile, bool loadLevel)
 {
    isGame_ = true;
 
-   std::ifstream initFile((ASSETS_DIR / configFile).string());
+   const auto configData = FileManager::LoadJsonFile((ASSETS_DIR / configFile).string());
 
-   if (!initFile)
-   {
-      Logger::Fatal("Game: Can't open {}", (ASSETS_DIR / configFile).string());
-   }
+   window_.Init({configData["WindowSize"]["Width"], configData["WindowSize"]["Height"]},
+                "WindowTitle", true);
+   window_.MakeFocus();
 
-   window_ = std::make_unique< renderer::Window >(USE_DEFAULT_SIZE, "WindowTitle", true);
-   window_->MakeFocus();
+   renderer::VulkanRenderer::Initialize(window_.GetWindowHandle(), renderer::ApplicationType::GAME);
 
-   renderer::VulkanRenderer::Initialize(window_->GetWindowHandle(),
-                                        renderer::ApplicationType::GAME);
-
-   while (!initFile.eof())
-   {
-      std::string tmp = {};
-      initFile >> tmp;
-      if (tmp == "Levels:")
-      {
-         while (initFile.peek() != '\n' && initFile.peek() != EOF)
-         {
-            initFile >> tmp;
-            m_levels.push_back(tmp);
-         }
-      }
-      else if (tmp == "Font:")
-      {
-         initFile >> tmp;
-         // m_font.SetFont(tmp);
-      }
-   }
-
-   initFile.close();
-
-   InputManager::Init(window_->GetWindowHandle());
-   InputManager::RegisterForInput(window_->GetWindowHandle(), this);
+   InputManager::Init(window_.GetWindowHandle());
+   InputManager::RegisterForInput(window_.GetWindowHandle(), this);
 
    if (loadLevel)
    {
@@ -161,11 +133,11 @@ Game::KeyEvents() // NOLINT
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_1))
       {
-         window_->ShowCursor(true);
+         window_.ShowCursor(true);
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_2))
       {
-         window_->ShowCursor(false);
+         window_.ShowCursor(false);
       }
       if (InputManager::CheckKeyPressed(GLFW_KEY_P))
       {
@@ -232,7 +204,7 @@ Game::MouseEvents()
 
       const auto cameraMovement = modifier * floorf(static_cast< float >(deltaTime_.count()));
       auto cameraMoveBy = glm::vec2();
-      const auto cursor = window_->GetCursorNormalized();
+      const auto cursor = window_.GetCursorNormalized();
 
       if (cursor.x > borderValue)
       {
@@ -296,17 +268,17 @@ Game::LoadLevel(const std::string& pathToLevel)
    currentLevel_->Load(this, pathToLevel);
 
    camera_.Create(glm::vec3(currentLevel_->GetPlayer().GetCenteredPosition(), 0.0f),
-                  window_->GetSize());
+                  window_.GetSize());
    camera_.SetLevelSize(currentLevel_->GetSize());
 
    workQueue_.PushWorkUnit([this] { return windowInFocus_; },
-                           [] { renderer::VulkanRenderer::SetupData(); });
+                           [] { renderer::VulkanRenderer::RecreateQuadPipeline(); });
 }
 
 glm::vec2
 Game::GetWindowSize() const
 {
-   return window_->GetSize();
+   return window_.GetSize();
 }
 
 const glm::mat4&
@@ -330,19 +302,19 @@ Game::GetZoomLevel() const
 glm::vec2
 Game::GetCursor()
 {
-   return window_->GetCursor();
+   return window_.GetCursor();
 }
 
 glm::vec2
 Game::GetCursorScreenPosition()
 {
-   return window_->GetCursorScreenPosition(camera_.GetProjectionMatrix());
+   return window_.GetCursorScreenPosition(camera_.GetProjectionMatrix());
 }
 
 bool
 Game::IsRunning() const
 {
-   return window_->IsRunning();
+   return window_.IsRunning();
 }
 
 void
@@ -367,7 +339,7 @@ Game::KeyCallback(KeyEvent& event)
    if ((event.key_ == GLFW_KEY_ESCAPE) and (event.action_ == GLFW_PRESS))
    {
       currentLevel_->Quit();
-      window_->ShutDown();
+      window_.ShutDown();
 
       event.handled_ = true;
    }
@@ -435,9 +407,11 @@ Game::Render(VkCommandBuffer cmdBuffer)
          continue;
       }
 
-      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer.at(idx).buffer_, offsets.data());
+      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer.at(idx).buffer_,
+                             offsets.data());
 
-      vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer.at(idx).buffer_, 0, VK_INDEX_TYPE_UINT32);
+      vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer.at(idx).buffer_, 0,
+                           VK_INDEX_TYPE_UINT32);
 
       // const auto numObjects =
       // renderer::VulkanRenderer::GetNumMeshes(renderer::ApplicationType::GAME); numObjects_ =

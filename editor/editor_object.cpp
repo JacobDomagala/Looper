@@ -203,7 +203,7 @@ EditorObject::Move(const glm::vec2& moveBy)
             auto& animationPoint =
                dynamic_cast< AnimationPoint& >(editor_->GetLevel().GetObjectRef(objectID_));
             animationPoint.m_end += moveBy;
-            editor_->UpdateAnimationData();
+            editor_->UpdateAnimationData(objectID_);
          }
          break;
 
@@ -233,7 +233,7 @@ EditorObject::Rotate(float angle, bool cumulative)
             auto& animationPoint =
                dynamic_cast< AnimationPoint& >(editor_->GetLevel().GetObjectRef(objectID_));
             animationPoint.m_rotation = rotate;
-            editor_->UpdateAnimationData();
+            editor_->UpdateAnimationData(objectID_);
          }
          default: {
          }

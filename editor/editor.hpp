@@ -2,7 +2,6 @@
 
 #include "application.hpp"
 #include "editor_object.hpp"
-#include "game.hpp"
 #include "gui/editor_gui.hpp"
 #include "level.hpp"
 #include "logger.hpp"
@@ -113,7 +112,7 @@ class Editor : public Application
    Update();
 
    void
-   UpdateAnimationData();
+   UpdateAnimationData(Object::ID object);
 
    [[nodiscard]] bool
    GetRenderNodes() const;
@@ -244,8 +243,6 @@ class Editor : public Application
    void
    FreeLevelData();
 
-   std::unique_ptr< Game > game_ = {};
-
    std::string m_levelFileName = {};
 
    bool isRunning_ = true;
@@ -290,7 +287,6 @@ class Editor : public Application
 
    // constructed in initializer list
    EditorGUI gui_;
-   std::future< void > uiReady_ = {};
 
    bool playGame_ = false;
    time::TimeStep timeLastFrame_ = time::TimeStep{time::microseconds{}};
