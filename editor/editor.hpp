@@ -2,7 +2,6 @@
 
 #include "application.hpp"
 #include "editor_object.hpp"
-#include "game.hpp"
 #include "gui/editor_gui.hpp"
 #include "level.hpp"
 #include "logger.hpp"
@@ -113,7 +112,7 @@ class Editor : public Application
    Update();
 
    void
-   UpdateAnimationData();
+   UpdateAnimationData(Object::ID object);
 
    [[nodiscard]] bool
    GetRenderNodes() const;
@@ -167,6 +166,13 @@ class Editor : public Application
    void
    AddToWorkQueue(
       const WorkQueue::WorkUnit& work, const WorkQueue::Precondition& prec = [] { return true; });
+
+   template < class F, class... Args >
+   auto
+   AddToThreadPool(F&& f, Args&&... args)
+   {
+      return threadPool_.enqueue(std::forward< F >(f), std::forward< Args >(args)...);
+   }
 
    void
    Shutdown();
@@ -237,12 +243,11 @@ class Editor : public Application
    void
    FreeLevelData();
 
-   std::unique_ptr< Game > game_ = {};
-
    std::string m_levelFileName = {};
 
    bool isRunning_ = true;
    bool levelLoaded_ = false;
+   bool shouldUpdateRenderer_ = false;
 
    // Left and right mouse buttons
    bool LMBPressedLastUpdate_ = false;

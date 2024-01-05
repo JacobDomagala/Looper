@@ -23,20 +23,20 @@ namespace looper {
 
 Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
 {
-   window_ = std::make_unique< renderer::Window >(screenSize, "Editor", true);
+   window_.Init(screenSize, "Editor", true);
 
-   InputManager::Init(window_->GetWindowHandle());
+   InputManager::Init(window_.GetWindowHandle());
 
-   renderer::VulkanRenderer::Initialize(window_->GetWindowHandle(),
+   renderer::VulkanRenderer::Initialize(window_.GetWindowHandle(),
                                         renderer::ApplicationType::EDITOR);
    gui_.Init();
-   InputManager::RegisterForInput(window_->GetWindowHandle(), this);
+   InputManager::RegisterForInput(window_.GetWindowHandle(), this);
 }
 
 void
 Editor::ShowCursor(bool choice)
 {
-   window_->ShowCursor(choice);
+   window_.ShowCursor(choice);
 }
 
 void
@@ -160,7 +160,7 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
             ShowCursor(true);
             SetMouseOnObject();
          }
-         
+
          movementOnEditorObject_ = false;
          movementOnGameObject_ = false;
 
@@ -294,7 +294,7 @@ Editor::MoveLogic(const glm::vec2& axis)
             if (animatable)
             {
                animatable->SetAnimationStartLocation(gameObject.GetPosition());
-               UpdateAnimationData();
+               UpdateAnimationData(object);
             }
          }
       }
@@ -662,7 +662,7 @@ Editor::SetRenderLayerToDraw(int32_t layer)
 void
 Editor::SetupRendererData() const
 {
-   renderer::VulkanRenderer::SetupData();
+   renderer::VulkanRenderer::RecreateQuadPipeline();
 
    DrawGrid();
    renderer::VulkanRenderer::CreateLinePipeline();
@@ -793,7 +793,8 @@ Editor::Render(VkCommandBuffer cmdBuffer)
             continue;
          }
 
-         vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer.at(idx).buffer_, offsets.data());
+         vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer.at(idx).buffer_,
+                                offsets.data());
 
          vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer.at(idx).buffer_, 0,
                               VK_INDEX_TYPE_UINT32);
@@ -833,7 +834,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
                        renderer::EditorData::numGridLines * renderer::INDICES_PER_LINE, 0, 0);
    }
 
-   EditorGUI::Render(cmdBuffer);
+   gui_.Render(cmdBuffer);
 }
 
 void
@@ -996,7 +997,7 @@ Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
    currentLevel_ = std::make_shared< Level >();
    currentLevel_->Create(this, name, size);
 
-   camera_.Create(glm::vec3(0.0f, 0.0f, 0.0f), window_->GetSize());
+   camera_.Create(glm::vec3(0.0f, 0.0f, 0.0f), window_.GetSize());
    camera_.SetLevelSize(currentLevel_->GetSize());
 
    levelLoaded_ = true;
@@ -1046,7 +1047,7 @@ Editor::LoadLevel(const std::string& levelPath)
          }
       }
 
-      camera_.Create(glm::vec3(currentLevel_->GetPlayer().GetPosition(), 0.0f), window_->GetSize());
+      camera_.Create(glm::vec3(currentLevel_->GetPlayer().GetPosition(), 0.0f), window_.GetSize());
       camera_.SetLevelSize(currentLevel_->GetSize());
 
       levelLoaded_ = true;
@@ -1055,7 +1056,7 @@ Editor::LoadLevel(const std::string& levelPath)
 
       currentLevel_->GenerateTextureForCollision();
 
-      window_->MakeFocus();
+      window_.MakeFocus();
    }
 
    SetupRendererData();
@@ -1072,6 +1073,8 @@ void
 Editor::AddGameObject(ObjectType objectType, const glm::vec2& position)
 {
    HandleGameObjectSelected(currentLevel_->AddGameObject(objectType, position), false, false);
+
+   shouldUpdateRenderer_ = true;
 }
 
 void
@@ -1107,6 +1110,8 @@ Editor::CopyGameObjects(const std::vector< Object::ID >& objectsToCopy)
 
       gui_.ObjectUpdated(newObjectID);
       newObjects.push_back(newObjectID);
+
+      shouldUpdateRenderer_ = true;
    }
 }
 
@@ -1132,9 +1137,7 @@ Editor::AddObject(ObjectType objectType)
                                                    "NodeSprite.png", newNode.GetID());
    animatable.ResetAnimation();
 
-   renderer::VulkanRenderer::UpdateBuffers();
-   renderer::VulkanRenderer::CreateLinePipeline();
-
+   shouldUpdateRenderer_ = true;
 
    HandleEditorObjectSelected(newObject);
 }
@@ -1174,19 +1177,19 @@ void
 Editor::LaunchGameLoop()
 {
    renderer::VulkanRenderer::isLoaded_ = false;
-   game_ = std::make_unique< Game >();
-   game_->Init("GameInit.txt", false);
-   game_->LoadLevel(m_levelFileName);
+   {
+      Game game;
+      game.Init("GameInit.json", false);
+      game.LoadLevel(m_levelFileName);
 
-   // TODO: Create game-thread and run it inside
-   game_->MainLoop();
-   game_.reset();
+      // TODO: Create game-thread and run it inside
+      game.MainLoop();
+   }
 
    renderer::VulkanRenderer::FreeData(renderer::ApplicationType::GAME, true);
    playGame_ = false;
 
    renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::EDITOR);
-   // renderer::VulkanRenderer::SetupData();
 }
 
 void
@@ -1250,10 +1253,6 @@ Editor::Update()
       }
    }
 
-   auto& renderData = renderer::VulkanRenderer::GetRenderData();
-   renderData.viewMat = camera_.GetViewMatrix();
-   renderData.projMat = camera_.GetProjectionMatrix();
-
    DrawBoundingBoxes();
 
    if (mouseDrag_ and selectRect_ != std::array< glm::vec2, 4 >{})
@@ -1268,19 +1267,24 @@ Editor::Update()
       const time::ScopedTimer uiTImer(&uiTime_);
       gui_.UpdateUI();
    }
+
+   auto& renderData = renderer::VulkanRenderer::GetRenderData();
+   renderData.viewMat = camera_.GetViewMatrix();
+   renderData.projMat = camera_.GetProjectionMatrix();
+
+   renderer::VulkanRenderer::UpdateData();
 }
 
 void
-Editor::UpdateAnimationData()
+Editor::UpdateAnimationData(Object::ID object)
 {
-   dynamic_cast< Animatable& >(currentLevel_->GetObjectRef(currentSelectedGameObject_))
-      .UpdateAnimationData();
+   dynamic_cast< Animatable& >(currentLevel_->GetObjectRef(object)).UpdateAnimationData();
 }
 
 glm::vec2
 Editor::GetWindowSize() const
 {
-   return window_->GetSize();
+   return window_.GetSize();
 }
 
 const glm::mat4&
@@ -1331,14 +1335,13 @@ Editor::MainLoop()
          deltaTime_ = timer_.GetMsDeltaTime();
          InputManager::PollEvents();
 
-         // Run all deffered work units
-         workQueue_.RunWorkUnits();
-
-         HandleCamera();
-         Update();
-
          if (windowInFocus_)
          {
+            // Run all deffered work units
+            workQueue_.RunWorkUnits();
+
+            Update();
+
             const time::ScopedTimer renderTimer(&renderTime_);
             renderer::VulkanRenderer::Render(this);
          }

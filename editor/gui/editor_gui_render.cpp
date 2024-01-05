@@ -1,6 +1,6 @@
-#include "editor_gui.hpp"
 #include "animatable.hpp"
 #include "editor.hpp"
+#include "editor_gui.hpp"
 #include "game_object.hpp"
 #include "helpers.hpp"
 #include "icons.hpp"
@@ -11,6 +11,7 @@
 #include "renderer/vulkan_common.hpp"
 #include "types.hpp"
 #include "utils/file_manager.hpp"
+#include "time/scoped_timer.hpp"
 
 #include <GLFW/glfw3.h>
 #include <fmt/format.h>
@@ -42,40 +43,42 @@ EditorGUI::UpdateBuffers()
    const auto currentFrame = renderer::Data::currentFrame_;
 
    // Vertex buffer
-   if ((vertexBuffer_[currentFrame].buffer_ == VK_NULL_HANDLE)
-       || (vertexCount_[currentFrame] < imDrawData->TotalVtxCount))
+   auto& vertexBuffer = vertexBuffer_[currentFrame];
+   auto& vertexCount = vertexCount_[currentFrame];
+   if ((vertexBuffer.buffer_ == VK_NULL_HANDLE) || (vertexCount < imDrawData->TotalVtxCount))
    {
-      if (vertexBuffer_[currentFrame].buffer_ != VK_NULL_HANDLE)
+      if (vertexBuffer.buffer_ != VK_NULL_HANDLE)
       {
-         vertexBuffer_[currentFrame].Unmap();
-         vertexBuffer_[currentFrame].Destroy();
+         vertexBuffer.Unmap();
+         vertexBuffer.Destroy();
       }
 
-      vertexBuffer_[currentFrame] = renderer::Buffer::CreateBuffer(
+      vertexBuffer = renderer::Buffer::CreateBuffer(
          vertexBufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-      vertexCount_[currentFrame] = imDrawData->TotalVtxCount;
-      vertexBuffer_[currentFrame].Map();
+      vertexCount = imDrawData->TotalVtxCount;
+      vertexBuffer.Map();
    }
 
    // Index buffer
-   if ((indexBuffer_[currentFrame].buffer_ == VK_NULL_HANDLE)
-       || (indexCount_[currentFrame] < imDrawData->TotalIdxCount))
+   auto& indexBuffer = indexBuffer_[currentFrame];
+   auto& indexCount = indexCount_[currentFrame];
+   if ((indexBuffer.buffer_ == VK_NULL_HANDLE) || (indexCount < imDrawData->TotalIdxCount))
    {
-      if (indexBuffer_[currentFrame].buffer_ != VK_NULL_HANDLE)
+      if (indexBuffer.buffer_ != VK_NULL_HANDLE)
       {
-         indexBuffer_[currentFrame].Unmap();
-         indexBuffer_[currentFrame].Destroy();
+         indexBuffer.Unmap();
+         indexBuffer.Destroy();
       }
 
-      indexBuffer_[currentFrame] = renderer::Buffer::CreateBuffer(
+      indexBuffer = renderer::Buffer::CreateBuffer(
          indexBufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-      indexCount_[currentFrame] = imDrawData->TotalIdxCount;
-      indexBuffer_[currentFrame].Map();
+      indexCount = imDrawData->TotalIdxCount;
+      indexBuffer.Map();
    }
 
    // Upload data
-   auto* vtxDst = static_cast< ImDrawVert* >(vertexBuffer_[currentFrame].mappedMemory_);
-   auto* idxDst = static_cast< ImDrawIdx* >(indexBuffer_[currentFrame].mappedMemory_);
+   auto* vtxDst = static_cast< ImDrawVert* >(vertexBuffer.mappedMemory_);
+   auto* idxDst = static_cast< ImDrawIdx* >(indexBuffer.mappedMemory_);
 
    for (int n = 0; n < imDrawData->CmdListsCount; n++)
    {
@@ -89,13 +92,15 @@ EditorGUI::UpdateBuffers()
    }
 
    // Flush to make writes visible to GPU
-   vertexBuffer_[currentFrame].Flush();
-   indexBuffer_[currentFrame].Flush();
+   vertexBuffer.Flush();
+   indexBuffer.Flush();
 }
 
 void
 EditorGUI::Render(VkCommandBuffer commandBuffer)
 {
+   time::ScopedTimer guiRender(&uiRenderTime);
+
    ImDrawData* imDrawData = ImGui::GetDrawData();
    int32_t vertexOffset = 0;
    uint32_t indexOffset = 0;
@@ -120,8 +125,7 @@ EditorGUI::Render(VkCommandBuffer commandBuffer)
    std::array< VkDeviceSize, 1 > offsets = {0};
    vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer_[currentFrame].buffer_,
                           offsets.data());
-   vkCmdBindIndexBuffer(commandBuffer, indexBuffer_[currentFrame].buffer_, 0,
-                        VK_INDEX_TYPE_UINT16);
+   vkCmdBindIndexBuffer(commandBuffer, indexBuffer_[currentFrame].buffer_, 0, VK_INDEX_TYPE_UINT16);
 
    for (int32_t i = 0; i < imDrawData->CmdListsCount; i++)
    {

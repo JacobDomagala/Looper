@@ -11,6 +11,7 @@
 #include "renderer/vulkan_common.hpp"
 #include "types.hpp"
 #include "utils/file_manager.hpp"
+#include "input/input_manager.hpp"
 
 #include <GLFW/glfw3.h>
 #include <fmt/format.h>
@@ -145,7 +146,7 @@ EditorGUI::UpdateUI()
    }
 
    ImGui::Render();
-
+   
    setScrollTo_ = {};
 }
 

@@ -4,9 +4,11 @@
 #include "level.hpp"
 #include "logger.hpp"
 #include "renderer/camera/camera.hpp"
+#include "window/window.hpp"
 #include "utils/time/timer.hpp"
 #include "work_queue.hpp"
 
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <memory>
@@ -95,7 +97,7 @@ class Application : public InputListener
 
    std::shared_ptr< Level > currentLevel_ = nullptr;
 
-   std::unique_ptr< renderer::Window > window_ = {};
+   renderer::Window window_ = {};
    renderer::Camera camera_ = {};
    time::Timer timer_ = {};
    time::milliseconds deltaTime_ = {};

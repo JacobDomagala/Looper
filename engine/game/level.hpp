@@ -187,6 +187,9 @@ class Level
    [[nodiscard]] uint32_t
    GetTileSize() const;
 
+   [[nodiscard]] size_t
+   GetNumOfObjects() const;
+
  private:
    Application* m_contextPointer = nullptr;
    renderer::Sprite m_background = {};

@@ -3,6 +3,7 @@
 #include "input/input_listener.hpp"
 #include "object.hpp"
 #include "renderer/buffer.hpp"
+#include "time/time_step.hpp"
 
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.h>
@@ -74,10 +75,10 @@ class EditorGUI : public InputListener
    static bool
    IsBlockingEvents();
 
-   static void
+   void
    UpdateBuffers();
 
-   static void
+   void
    Render(VkCommandBuffer commandBuffer);
 
  private:
@@ -113,7 +114,8 @@ class EditorGUI : public InputListener
 
    // EditorObjectWindow m_editorObjectWindow;
    Object::ID currentlySelectedGameObject_ = Object::INVALID_ID;
-   std::shared_ptr< Level > currentLevel_;
+   std::shared_ptr< Level > currentLevel_ = {};
+   time::TimeStep uiRenderTime = time::TimeStep{time::microseconds{}};
 
    glm::vec2 windowSize_ = {};
    float windowWidth_ = 0.0f;
@@ -125,7 +127,7 @@ class EditorGUI : public InputListener
    bool exitPushed_ = false;
 
    // Data needed for loaded objects menu
-   std::unordered_map< Object::ID, std::pair<std::string, bool >> objectsInfo_ = {};
+   std::unordered_map< Object::ID, std::pair< std::string, bool > > objectsInfo_ = {};
    Object::ID setScrollTo_ = Object::INVALID_ID;
 
    inline static VkImage fontImage_ = {};

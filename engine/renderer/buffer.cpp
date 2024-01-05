@@ -220,6 +220,8 @@ Buffer::Flush(VkDeviceSize size, VkDeviceSize offset) const
 void
 Buffer::Destroy()
 {
+   Unmap();
+
    vmaDestroyBuffer(Data::vk_hAllocator, buffer_, allocation_);
    buffer_ = VK_NULL_HANDLE;
    bufferMemory_ = VK_NULL_HANDLE;

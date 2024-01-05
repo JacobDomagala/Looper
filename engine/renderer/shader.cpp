@@ -136,10 +136,7 @@ QuadShader::CreateDescriptorSets()
 void
 QuadShader::UpdateDescriptorSets()
 {
-   vkDeviceWaitIdle(Data::vk_device);
    auto& renderData = renderer::Data::renderData_.at(VulkanRenderer::GetCurrentlyBoundType());
-
-   const auto size = MAX_FRAMES_IN_FLIGHT;
 
    // Explicit copy
    auto viewAndSamplers = TextureLibrary::GetViewSamplerPairs();
@@ -163,8 +160,11 @@ QuadShader::UpdateDescriptorSets()
                      return descriptoInfo;
                   });
 
-   for (size_t i = 0; i < size; i++)
+   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
    {
+      vkWaitForFences(Data::vk_device, 1, &VulkanRenderer::inFlightFences_[i], VK_TRUE,
+                      UINT64_MAX);
+
       VkDescriptorBufferInfo bufferInfo{};
       bufferInfo.buffer = renderData.uniformBuffers[i].buffer_;
       bufferInfo.offset = 0;
@@ -174,7 +174,7 @@ QuadShader::UpdateDescriptorSets()
       VkDescriptorBufferInfo instanceBufferInfo = {};
       instanceBufferInfo.buffer = renderData.ssbo.at(i).buffer_;
       instanceBufferInfo.offset = 0;
-      instanceBufferInfo.range = renderData.perInstance.size() * sizeof(PerInstanceBuffer);
+      instanceBufferInfo.range = renderData.ssbo.at(i).bufferSize_;
 
       std::array< VkWriteDescriptorSet, 3 > descriptorWrites = {};
 

@@ -15,7 +15,7 @@ Application::GetPlayer() const
 renderer::Window&
 Application::GetWindow()
 {
-   return *window_;
+   return window_;
 }
 
 Level&

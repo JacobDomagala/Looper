@@ -1,3 +1,0 @@
-Levels: TestLevel
-Font: segoeui
-TopKek:
