@@ -130,8 +130,8 @@ EditorGUI::RenderGameObjectContent()
                         const auto oldLayer = gameObject.GetSprite().GetRenderInfo().layer;
                         gameObject.GetSprite().ChangeRenderLayer(layer);
 
-                        renderer::VulkanRenderer::SetupVertexBuffer(oldLayer);
-                        renderer::VulkanRenderer::SetupVertexBuffer(layer);
+                        renderer::SetupVertexBuffer(oldLayer);
+                        renderer::SetupVertexBuffer(layer);
                      });
                   }
                }
@@ -198,7 +198,8 @@ EditorGUI::RenderGameObjectContent()
       ImGui::SetCursorScreenPos(ImVec2(currentPos.x + sectionSize.x / 4.0f, currentPos.y));
       ImGui::Image(
          static_cast< ImTextureID >(GetDescriptor(gameObject.GetSprite().GetTexture()->GetID(),
-                                                  descriptorPool_, descriptorSetLayout_)),
+                                                  renderer::EditorData::descriptorPool_,
+                                                  renderer::EditorData::descriptorSetLayout_)),
          {glm::min(sectionSize.x, 128.0f), glm::min(sectionSize.x, 128.0f)});
 
       if (ImGui::BeginTable("TextureInfoTable", 3))

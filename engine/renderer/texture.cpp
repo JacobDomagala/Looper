@@ -529,7 +529,7 @@ TextureLibrary::LoadTexture(TextureType type, std::string_view textureName,
    const auto& tex = s_loadedTextures[std::string{textureName}];
    viewSamplerPairs_.push_back(tex.GetImageViewAndSampler());
 
-   VulkanRenderer::UpdateDescriptors();
+   UpdateDescriptors();
 }
 
 void
@@ -540,7 +540,7 @@ TextureLibrary::LoadTexture(TextureType type, std::string_view textureName,
    const auto& tex = s_loadedTextures[std::string{textureName}];
    viewSamplerPairs_.push_back(tex.GetImageViewAndSampler());
 
-   VulkanRenderer::UpdateDescriptors();
+   UpdateDescriptors();
 }
 
 const std::vector< std::pair< VkImageView, VkSampler > >&

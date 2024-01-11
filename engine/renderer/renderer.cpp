@@ -23,11 +23,31 @@
 
 namespace looper::renderer {
 
+namespace {
+bool initialized_ = false;
+bool updateDescriptors_ = false;
+bool updatePerInstanceBuffer_ = false;
+bool updateVertexBuffer_ = false;
+std::vector< uint32_t > updatedObjects_ = {};
+std::vector< int32_t > renderLayersChanged_ = {};
+VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo_ = {};
+
+VkQueue presentQueue_ = {};
+
+std::vector< VkSemaphore > imageAvailableSemaphores_ = {};
+std::vector< VkSemaphore > renderFinishedSemaphores_ = {};
+
+ApplicationType boundApplication_ = {};
+
+std::vector< VkFence > inFlightFences_ = {};
+
+} // namespace
+
 template < typename ShaderType, typename VertexType >
 void
 CreatePipeline(std::string_view vertexShader, std::string_view fragmentShader, PrimitiveType type)
 {
-   auto& renderData = Data::renderData_.at(VulkanRenderer::GetCurrentlyBoundType());
+   auto& renderData = Data::renderData_.at(GetCurrentlyBoundType());
 
    // Create switch in future if we support more types
    auto& pipeLineLayout =
@@ -270,692 +290,9 @@ CreateIndexBuffer(std::vector< IndexType >& indices, const size_t numObjects)
    return indexBuffer;
 }
 
-void
-VulkanRenderer::UpdateDescriptors()
-{
-   updateDescriptors_ = true;
-}
 
 void
-VulkanRenderer::UpdateData()
-{
-   if (isLoaded_)
-   {
-      if (updateDescriptors_)
-      {
-         QuadShader::UpdateDescriptorSets();
-         updateDescriptors_ = false;
-      }
-
-      UpdateUniformBuffer();
-      UpdatePerInstanceBuffer();
-
-      if (updateVertexBuffer_)
-      {
-         std::set< int32_t > layers(renderLayersChanged_.begin(), renderLayersChanged_.end());
-         for (const auto layer : layers)
-         {
-            SetupVertexBuffer(layer);
-         }
-
-         updateVertexBuffer_ = false;
-         renderLayersChanged_.clear();
-      }
-   }
-}
-
-void
-VulkanRenderer::SetupVertexBuffer(const int32_t layer)
-{
-   const auto layerCasted = static_cast< size_t >(layer);
-   auto* renderData = &Data::renderData_[boundApplication_];
-   const auto bufferSize = sizeof(Vertex) * MAX_NUM_VERTICES_PER_LAYER;
-
-   renderData->vertexBuffer.at(layerCasted) =
-      CreateVertexBuffer(bufferSize, renderData->vertices.at(layerCasted));
-}
-
-void
-VulkanRenderer::MeshDeleted(const RenderInfo& renderInfo)
-{
-   auto* renderData = &Data::renderData_[boundApplication_];
-
-   renderData->verticesAvail.at(static_cast< size_t >(renderInfo.layer))
-      .reset(static_cast< size_t >(renderInfo.layerIdx));
-
-
-   for (uint32_t vertexIdx = 0; vertexIdx < VERTICES_PER_SPRITE; ++vertexIdx)
-   {
-      const auto offset = static_cast< uint32_t >(renderInfo.layerIdx) * VERTICES_PER_SPRITE;
-
-      auto& vertex =
-         renderData->vertices.at(static_cast< uint32_t >(renderInfo.layer)).at(offset + vertexIdx);
-      vertex = Vertex{};
-   }
-
-   updatePerInstanceBuffer_ = true;
-   updatedObjects_.push_back(static_cast< uint32_t >(renderInfo.idx));
-
-   updateVertexBuffer_ = true;
-   renderLayersChanged_.push_back(renderInfo.layer);
-}
-
-RenderInfo
-VulkanRenderer::MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureIDs& textures_in,
-                           const glm::mat4& modelMat, const glm::vec4& color)
-{
-   auto* renderData = &Data::renderData_[boundApplication_];
-   // convert from depth value to render layer
-   const auto layer = static_cast< int32_t >(vertices_in.front().m_position.z * 20.0f);
-   int32_t idx = 0;
-
-   auto& vertices = renderData->vertices.at(static_cast< size_t >(layer));
-   auto& verticesAvail = renderData->verticesAvail.at(static_cast< size_t >(layer));
-   int32_t layerIdx = {};
-
-   for (uint32_t i = 0; i < MAX_SPRITES_PER_LAYER; ++i)
-   {
-      if (!verticesAvail.test(i))
-      {
-         layerIdx = static_cast< int32_t >(i);
-         verticesAvail.set(i);
-         break;
-      }
-   }
-
-   auto& numObjects = renderData->numMeshes.at(static_cast< size_t >(layer));
-
-   idx = layerIdx + static_cast< int32_t >(MAX_SPRITES_PER_LAYER) * layer;
-   for (uint32_t vertexIdx = 0; vertexIdx < VERTICES_PER_SPRITE; ++vertexIdx)
-   {
-      const auto offset = static_cast< uint32_t >(layerIdx) * VERTICES_PER_SPRITE;
-
-      auto& vertex = vertices.at(offset + vertexIdx);
-      vertex = vertices_in.at(vertexIdx);
-      vertex.m_texCoordsDraw.z = static_cast< float >(idx);
-   }
-
-   UpdateDescriptors();
-
-   // Only increase the counter if we're not reusing the slot
-   if (numObjects == static_cast< uint32_t >(layerIdx))
-   {
-      numObjects++;
-   }
-
-   ++renderData->totalNumMeshes;
-
-   SubmitMeshData(static_cast< uint32_t >(idx), textures_in, modelMat, color);
-   updateVertexBuffer_ = true;
-   renderLayersChanged_.push_back(layer);
-
-   return {idx, layer, layerIdx};
-}
-
-void
-VulkanRenderer::SubmitMeshData(const uint32_t idx, const TextureIDs& ids, const glm::mat4& modelMat,
-                               const glm::vec4& color)
-{
-   auto& object = Data::renderData_[boundApplication_].perInstance.at(idx);
-
-   object.model = modelMat;
-   object.color = color;
-   object.texSamples.x = static_cast< float >(ids.at(0));
-   object.texSamples.y = static_cast< float >(ids.at(1));
-   object.texSamples.z = static_cast< float >(ids.at(2));
-   object.texSamples.w = static_cast< float >(ids.at(3));
-
-   updatePerInstanceBuffer_ = true;
-   updatedObjects_.push_back(idx);
-}
-
-void
-VulkanRenderer::CreateQuadVertexBuffer()
-{
-   auto& renderData = Data::renderData_.at(boundApplication_);
-   auto& vertices = renderData.vertices;
-
-   for (size_t layer = 0; layer < static_cast< size_t >(NUM_LAYERS); layer++)
-   {
-      auto& vertexBuffer = renderData.vertexBuffer.at(layer);
-      if (vertexBuffer.buffer_ != VK_NULL_HANDLE)
-      {
-         vertexBuffer.Destroy();
-      }
-
-      vertices.at(layer).resize(MAX_NUM_VERTICES_PER_LAYER);
-      // const auto bufferSize = sizeof(Vertex) * vertices.at(layer).size();
-      const auto bufferSize = sizeof(Vertex) * MAX_NUM_VERTICES_PER_LAYER;
-      vertexBuffer = CreateVertexBuffer(bufferSize, vertices.at(layer));
-   }
-}
-
-void
-VulkanRenderer::CreateLinePipeline()
-{
-   LineShader::CreateDescriptorSetLayout();
-   LineShader::CreateDescriptorPool();
-   LineShader::CreateDescriptorSets();
-
-   CreatePipeline< LineShader, LineVertex >("line.vert.spv", "line.frag.spv", PrimitiveType::LINE);
-}
-
-void
-VulkanRenderer::DrawLine(const glm::vec2& start, const glm::vec2& end)
-{
-   EditorData::lineVertices_.push_back(LineVertex{glm::vec3{start, 0.0f}});
-   EditorData::lineVertices_.push_back(LineVertex{glm::vec3{end, 0.0f}});
-
-   ++EditorData::numLines;
-}
-
-void
-VulkanRenderer::DrawDynamicLine(const glm::vec2& start, const glm::vec2& end)
-{
-   const auto totalNumVtx = EditorData::numGridLines * VERTICES_PER_LINE;
-   if (EditorData::lineVertices_.size()
-       < (totalNumVtx + EditorData::curDynLineIdx + VERTICES_PER_LINE))
-   {
-      EditorData::lineVertices_.push_back(LineVertex{glm::vec3{start, 0.0f}});
-      EditorData::lineVertices_.push_back(LineVertex{glm::vec3{end, 0.0f}});
-   }
-   else
-   {
-      EditorData::lineVertices_[totalNumVtx + EditorData::curDynLineIdx++] =
-         LineVertex{glm::vec3{start, 0.0f}};
-      EditorData::lineVertices_[totalNumVtx + EditorData::curDynLineIdx++] =
-         LineVertex{glm::vec3{end, 0.0f}};
-   }
-}
-
-void
-VulkanRenderer::UpdateLineData(uint32_t startingLine)
-{
-   const auto lastLine = (EditorData::curDynLineIdx / VERTICES_PER_LINE) + EditorData::numGridLines;
-   const auto numLines = lastLine - startingLine;
-
-   if (numLines)
-   {
-      const auto bufferSize = numLines * sizeof(LineVertex) * VERTICES_PER_LINE;
-      const auto offset = startingLine * sizeof(LineVertex) * VERTICES_PER_LINE;
-
-      void* data = nullptr;
-      vmaMapMemory(Data::vk_hAllocator, EditorData::lineVertexBuffer.allocation_, &data);
-      char* dest = static_cast< char* >(data) + offset;
-      memcpy(dest,
-             EditorData::lineVertices_.data()
-                + static_cast< size_t >(startingLine) * VERTICES_PER_LINE,
-             bufferSize);
-      vmaUnmapMemory(Data::vk_hAllocator, EditorData::lineVertexBuffer.allocation_);
-   }
-}
-
-void
-VulkanRenderer::SetupLineData()
-{
-   EditorData::lineVertexBuffer = Buffer::CreateBuffer(
-      sizeof(LineVertex) * MAX_NUM_LINES * 2,
-      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-   EditorData::lineIndexBuffer =
-      CreateIndexBuffer< INDICES_PER_LINE >(EditorData::lineIndices_, MAX_NUM_LINES);
-}
-
-void
-VulkanRenderer::CreateQuadBuffers()
-{
-   CreateQuadVertexBuffer();
-   CreateQuadIndexBuffer();
-   CreatePerInstanceBuffer();
-}
-
-void
-VulkanRenderer::RecreateQuadPipeline()
-{
-   vkDeviceWaitIdle(Data::vk_device);
-
-   // Indirect render stuff
-   // const auto commandsSize = m_renderCommands.size() * sizeof(VkDrawIndexedIndirectCommand);
-
-   //////  Commands + draw count
-   // const VkDeviceSize bufferSize = commandsSize + sizeof(uint32_t);
-
-   // Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
-   //                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-   //                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_indirectDrawsBuffer,
-   //                      m_indirectDrawsBufferMemory);
-
-   // void* data = nullptr;
-   // vkMapMemory(Data::vk_device, m_indirectDrawsBufferMemory, 0, bufferSize, 0, &data);
-   // memcpy(data, m_renderCommands.data(), static_cast< size_t >(bufferSize));
-   // memcpy(static_cast< uint8_t* >(data) + commandsSize, &m_numMeshes, sizeof(uint32_t));
-
-
-   DestroyPipeline();
-
-   CreateRenderPipeline();
-   CreateQuadBuffers();
-   QuadShader::CreateDescriptorPool();
-   QuadShader::CreateDescriptorSets();
-   QuadShader::UpdateDescriptorSets();
-
-   isLoaded_ = true;
-}
-
-void
-VulkanRenderer::DestroyPipeline()
-{
-   vkDeviceWaitIdle(Data::vk_device);
-
-   auto& renderData = Data::renderData_.at(boundApplication_);
-
-   for (size_t i = 0; i < renderData.swapChainImages.size(); ++i)
-   {
-      vkDestroyFramebuffer(Data::vk_device, renderData.swapChainFramebuffers[i], nullptr);
-      vkDestroyImageView(Data::vk_device, renderData.swapChainImageViews[i], nullptr);
-   }
-
-   vkDestroySwapchainKHR(Data::vk_device, renderData.swapChain, nullptr);
-   vkDestroySurfaceKHR(Data::vk_instance, renderData.surface, nullptr);
-
-   if (renderData.descriptorPool != VK_NULL_HANDLE)
-   {
-      vkDestroyDescriptorPool(Data::vk_device, renderData.descriptorPool, nullptr);
-      vkDestroyDescriptorSetLayout(Data::vk_device, renderData.descriptorSetLayout, nullptr);
-
-      renderData.descriptorPool = VK_NULL_HANDLE;
-   }
-
-   renderData.swapChainImages.clear();
-   renderData.swapChainImageViews.clear();
-   renderData.swapChainFramebuffers.clear();
-   renderData.descriptorSets.clear();
-   renderData.swapChainImageFormat = VK_FORMAT_UNDEFINED;
-
-   vkDestroyImage(Data::vk_device, renderData.colorImage, nullptr);
-   vkDestroyImageView(Data::vk_device, renderData.colorImageView, nullptr);
-   vkFreeMemory(Data::vk_device, renderData.colorImageMemory, nullptr);
-
-   vkDestroyImage(Data::vk_device, renderData.depthImage, nullptr);
-   vkDestroyImageView(Data::vk_device, renderData.depthImageView, nullptr);
-   vkFreeMemory(Data::vk_device, renderData.depthImageMemory, nullptr);
-
-   vkDestroyPipeline(Data::vk_device, renderData.pipeline, nullptr);
-   vkDestroyPipelineLayout(Data::vk_device, renderData.pipelineLayout, nullptr);
-   vkDestroyPipelineCache(Data::vk_device, renderData.pipelineCache, nullptr);
-   vkDestroyRenderPass(Data::vk_device, renderData.renderPass, nullptr);
-}
-
-void
-VulkanRenderer::FreeData(renderer::ApplicationType type, bool destroyPipeline)
-{
-   vkDeviceWaitIdle(Data::vk_device);
-
-   if (Data::renderData_.find(type) != Data::renderData_.end())
-   {
-      auto& renderData = Data::renderData_.at(type);
-
-      for (size_t layer = 0; layer < static_cast< size_t >(NUM_LAYERS); ++layer)
-      {
-         renderData.indexBuffer.at(layer).Destroy();
-         renderData.indices.at(layer).clear();
-
-         renderData.vertexBuffer.at(layer).Destroy();
-         renderData.vertices.at(layer).clear();
-      }
-
-      for (size_t i = 0; i < renderData.uniformBuffers.size(); ++i)
-      {
-         renderData.uniformBuffers.at(i).Destroy();
-         renderData.ssbo.at(i).Destroy();
-      }
-
-      if (type == ApplicationType::EDITOR)
-      {
-         // Lines
-         EditorData::lineVertexBuffer.Destroy();
-         EditorData::lineIndexBuffer.Destroy();
-         EditorData::lineVertices_.clear();
-         EditorData::lineIndices_.clear();
-         for (auto& buffer : EditorData::lineUniformBuffers_)
-         {
-            buffer.Destroy();
-         }
-
-         EditorData::lineIndices_.clear();
-
-         if (EditorData::lineDescriptorPool != VK_NULL_HANDLE)
-         {
-            vkDestroyDescriptorPool(Data::vk_device, EditorData::lineDescriptorPool, nullptr);
-            vkDestroyDescriptorSetLayout(Data::vk_device, EditorData::lineDescriptorSetLayout_,
-                                         nullptr);
-
-            EditorData::lineDescriptorPool = VK_NULL_HANDLE;
-         }
-
-         vkDestroyPipeline(Data::vk_device, EditorData::linePipeline_, nullptr);
-         vkDestroyPipelineLayout(Data::vk_device, EditorData::linePipelineLayout_, nullptr);
-
-         EditorData::numGridLines = 0;
-         EditorData::numLines = 0;
-         EditorData::curDynLineIdx = 0;
-      }
-
-      if (destroyPipeline)
-      {
-         renderData.perInstance.clear();
-
-         DestroyPipeline();
-         Data::renderData_.erase(type);
-      }
-
-      isLoaded_ = false;
-   }
-}
-
-void
-VulkanRenderer::CreateQuadIndexBuffer()
-{
-   auto& renderData = Data::renderData_.at(boundApplication_);
-
-   for (size_t layer = 0; layer < static_cast< size_t >(NUM_LAYERS); ++layer)
-   {
-      auto& indexBuffer = renderData.indexBuffer.at(layer);
-      if (indexBuffer.buffer_ != VK_NULL_HANDLE)
-      {
-         indexBuffer.Destroy();
-      }
-
-      indexBuffer = CreateIndexBuffer< INDICES_PER_SPRITE >(renderData.indices.at(layer),
-                                                            MAX_SPRITES_PER_LAYER);
-   }
-}
-
-void
-VulkanRenderer::CreateUniformBuffer()
-{
-   auto& renderData = Data::renderData_[boundApplication_];
-   constexpr VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-
-   for (size_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; frame++)
-   {
-      auto& ubo = renderData.uniformBuffers.at(frame);
-      if (ubo.buffer_ != VK_NULL_HANDLE)
-      {
-         ubo.Destroy();
-      }
-
-      ubo = Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-   }
-}
-
-void
-VulkanRenderer::CreatePerInstanceBuffer()
-{
-   auto& renderData = Data::renderData_[boundApplication_];
-   constexpr VkDeviceSize SSBObufferSize = MAX_NUM_SPRITES * sizeof(PerInstanceBuffer);
-
-   for (size_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; frame++)
-   {
-      auto& sbo = renderData.ssbo.at(frame);
-      if (sbo.buffer_ != VK_NULL_HANDLE)
-      {
-         sbo.Destroy();
-      }
-
-      sbo = Buffer::CreateBuffer(SSBObufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-   }
-}
-
-void
-VulkanRenderer::Initialize(GLFWwindow* windowHandle, ApplicationType type)
-{
-   SetAppMarker(type);
-   auto& renderData = Data::renderData_[boundApplication_];
-   renderData.windowHandle = windowHandle;
-
-   int32_t width = {};
-   int32_t height = {};
-   glfwGetFramebufferSize(windowHandle, &width, &height);
-
-   renderData.windowSize_ = glm::ivec2(width, height);
-
-   if (not initialized_)
-   {
-      CreateInstance();
-   }
-
-   vk_check_error(glfwCreateWindowSurface(Data::vk_instance, renderData.windowHandle, nullptr,
-                                          &renderData.surface),
-                  "failed to create window surface!");
-
-   if (not initialized_)
-   {
-      CreateDevice();
-      VmaAllocatorCreateInfo allocatorInfo = {};
-      allocatorInfo.physicalDevice = Data::vk_physicalDevice;
-      allocatorInfo.device = Data::vk_device;
-      allocatorInfo.instance = Data::vk_instance;
-      allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_3;
-
-
-      vmaCreateAllocator(&allocatorInfo, &Data::vk_hAllocator);
-   }
-
-   for (uint32_t layer = 0; layer < NUM_LAYERS; ++layer)
-   {
-      renderData.vertices.at(layer).resize(MAX_NUM_VERTICES_PER_LAYER);
-      renderData.indices.at(layer).resize(MAX_NUM_INDICES_PER_LAYER);
-   }
-
-   renderData.perInstance.resize(MAX_NUM_SPRITES);
-
-   CreateRenderPipeline();
-   CreateUniformBuffer();
-
-   initialized_ = true;
-}
-
-void
-VulkanRenderer::CreateRenderPipeline()
-{
-   auto& renderData = Data::renderData_[boundApplication_];
-
-   vk_check_error(glfwCreateWindowSurface(Data::vk_instance, renderData.windowHandle, nullptr,
-                                          &renderData.surface),
-                  "failed to create window surface!");
-
-   CreateSwapchain();
-   CreateImageViews();
-   CreateCommandPool();
-   CreateRenderPass();
-   QuadShader::CreateDescriptorSetLayout();
-   CreatePipeline< QuadShader, Vertex >("vert.spv", "frag.spv", PrimitiveType::TRIANGLE);
-   CreateColorResources();
-   CreateDepthResources();
-   CreateFramebuffers();
-   CreatePipelineCache();
-   CreateSyncObjects();
-}
-
-void
-VulkanRenderer::UpdateUniformBuffer()
-{
-   auto& renderData = Data::renderData_.at(boundApplication_);
-
-   for (uint32_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; ++frame)
-   {
-      vkWaitForFences(Data::vk_device, 1, &VulkanRenderer::inFlightFences_[frame], VK_TRUE,
-                      UINT64_MAX);
-
-      UniformBufferObject tmpUBO = {};
-
-      tmpUBO.view = renderData.viewMat;
-      tmpUBO.proj = renderData.projMat;
-
-      auto& ubo = renderData.uniformBuffers.at(frame);
-
-      void* data = nullptr;
-      vmaMapMemory(Data::vk_hAllocator, ubo.allocation_, &data);
-      memcpy(data, &tmpUBO, sizeof(tmpUBO));
-      vmaUnmapMemory(Data::vk_hAllocator, ubo.allocation_);
-   }
-}
-
-void
-VulkanRenderer::UpdatePerInstanceBuffer()
-{
-   if (updatePerInstanceBuffer_ and not updatedObjects_.empty())
-   {
-      auto& renderData = Data::renderData_.at(boundApplication_);
-
-      for (uint32_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; ++frame)
-      {
-         vkWaitForFences(Data::vk_device, 1, &VulkanRenderer::inFlightFences_[frame], VK_TRUE,
-                         UINT64_MAX);
-
-         auto& ssbo = renderData.ssbo.at(frame);
-
-         void* data = nullptr;
-         vmaMapMemory(Data::vk_hAllocator, ssbo.allocation_, &data);
-
-         for (const auto object : updatedObjects_)
-         {
-            PerInstanceBuffer* offset = reinterpret_cast< PerInstanceBuffer* >(data) + object;
-            memcpy(offset, renderData.perInstance.data() + object, sizeof(PerInstanceBuffer));
-         }
-
-         vmaUnmapMemory(Data::vk_hAllocator, ssbo.allocation_);
-      }
-
-      updatedObjects_.clear();
-      updatePerInstanceBuffer_ = false;
-   }
-}
-
-void
-VulkanRenderer::CreateColorResources()
-{
-   auto& renderData = Data::renderData_.at(boundApplication_);
-
-   auto image = Texture::CreateImage(
-      renderData.swapChainExtent.width, renderData.swapChainExtent.height, 1,
-      renderer::Data::msaaSamples, renderData.swapChainImageFormat, VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-   renderData.colorImage = image.textureImage_;
-   renderData.colorImageMemory = image.textureImageMemory_;
-   renderData.colorImageView = Texture::CreateImageView(
-      renderData.colorImage, renderData.swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-}
-
-void
-VulkanRenderer::CreateDepthResources()
-{
-   const auto depthFormat = FindDepthFormat();
-   auto& renderData = Data::renderData_.at(boundApplication_);
-
-   const auto image = Texture::CreateImage(
-      renderData.swapChainExtent.width, renderData.swapChainExtent.height, 1,
-      renderer::Data::msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-   renderData.depthImage = image.textureImage_;
-   renderData.depthImageMemory = image.textureImageMemory_;
-   renderData.depthImageView =
-      Texture::CreateImageView(renderData.depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
-}
-
-VkFormat
-VulkanRenderer::FindSupportedFormat(const std::vector< VkFormat >& candidates, VkImageTiling tiling,
-                                    VkFormatFeatureFlags features)
-{
-   for (const auto format : candidates)
-   {
-      VkFormatProperties props = {};
-      vkGetPhysicalDeviceFormatProperties(Data::vk_physicalDevice, format, &props);
-      const auto tiling_linear =
-         tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features;
-      const auto tiling_optimal =
-         tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features;
-
-      if (tiling_linear or tiling_optimal)
-      {
-         return format;
-      }
-   }
-
-   utils::Assert(false, "failed to find supported format!");
-   return {};
-}
-
-VkFormat
-VulkanRenderer::FindDepthFormat()
-{
-   return FindSupportedFormat({VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
-                              VK_IMAGE_TILING_OPTIMAL,
-                              VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-}
-
-void
-VulkanRenderer::Render(Application* app)
-{
-   auto& renderData = Data::renderData_.at(boundApplication_);
-
-   vkWaitForFences(Data::vk_device, 1, &inFlightFences_[Data::currentFrame_], VK_TRUE, UINT64_MAX);
-
-   uint32_t imageIndex = {};
-   vkAcquireNextImageKHR(Data::vk_device, renderData.swapChain, UINT64_MAX,
-                         imageAvailableSemaphores_[Data::currentFrame_], VK_NULL_HANDLE,
-                         &imageIndex);
-
-   CreateCommandBuffers(app, imageIndex);
-
-   VkSubmitInfo submitInfo = {};
-   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-   auto waitStages =
-      std::to_array< const VkPipelineStageFlags >({VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT});
-   submitInfo.waitSemaphoreCount = 1;
-   submitInfo.pWaitSemaphores = &imageAvailableSemaphores_[Data::currentFrame_];
-   submitInfo.pWaitDstStageMask = waitStages.data();
-
-   submitInfo.commandBufferCount = 1;
-   submitInfo.pCommandBuffers = &Data::commandBuffers[Data::currentFrame_];
-
-   submitInfo.signalSemaphoreCount = 1;
-   submitInfo.pSignalSemaphores = &renderFinishedSemaphores_[Data::currentFrame_];
-
-   vkResetFences(Data::vk_device, 1, &inFlightFences_[Data::currentFrame_]);
-
-   vk_check_error(
-      vkQueueSubmit(Data::vk_graphicsQueue, 1, &submitInfo, inFlightFences_[Data::currentFrame_]),
-      "failed to submit draw command buffer!");
-
-   VkPresentInfoKHR presentInfo = {};
-   presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
-   presentInfo.waitSemaphoreCount = 1;
-   presentInfo.pWaitSemaphores = &renderFinishedSemaphores_[Data::currentFrame_];
-
-   presentInfo.swapchainCount = 1;
-   presentInfo.pSwapchains = &renderData.swapChain;
-
-   presentInfo.pImageIndices = &imageIndex;
-
-   vkQueuePresentKHR(presentQueue_, &presentInfo);
-
-   Data::currentFrame_ = GetNextFrame();
-}
-
-void
-VulkanRenderer::CreateInstance()
+CreateInstance()
 {
    if (ENABLE_VALIDATION && !CheckValidationLayerSupport())
    {
@@ -990,7 +327,7 @@ VulkanRenderer::CreateInstance()
 }
 
 void
-VulkanRenderer::CreateDevice()
+CreateDevice()
 {
    uint32_t deviceCount = 0;
    vkEnumeratePhysicalDevices(Data::vk_instance, &deviceCount, nullptr);
@@ -1076,7 +413,7 @@ VulkanRenderer::CreateDevice()
 }
 
 void
-VulkanRenderer::CreateSwapchain()
+CreateSwapchain()
 {
    auto& renderData = Data::renderData_.at(boundApplication_);
 
@@ -1139,7 +476,41 @@ VulkanRenderer::CreateSwapchain()
 }
 
 void
-VulkanRenderer::CreateImageViews()
+CreateColorResources()
+{
+   auto& renderData = Data::renderData_.at(boundApplication_);
+
+   auto image = Texture::CreateImage(
+      renderData.swapChainExtent.width, renderData.swapChainExtent.height, 1,
+      renderer::Data::msaaSamples, renderData.swapChainImageFormat, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+   renderData.colorImage = image.textureImage_;
+   renderData.colorImageMemory = image.textureImageMemory_;
+   renderData.colorImageView = Texture::CreateImageView(
+      renderData.colorImage, renderData.swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+}
+
+void
+CreateDepthResources()
+{
+   const auto depthFormat = FindDepthFormat();
+   auto& renderData = Data::renderData_.at(boundApplication_);
+
+   const auto image = Texture::CreateImage(
+      renderData.swapChainExtent.width, renderData.swapChainExtent.height, 1,
+      renderer::Data::msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+   renderData.depthImage = image.textureImage_;
+   renderData.depthImageMemory = image.textureImageMemory_;
+   renderData.depthImageView =
+      Texture::CreateImageView(renderData.depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
+}
+
+void
+CreateImageViews()
 {
    auto& renderData = Data::renderData_.at(boundApplication_);
 
@@ -1154,7 +525,7 @@ VulkanRenderer::CreateImageViews()
 }
 
 void
-VulkanRenderer::CreateRenderPass()
+CreateRenderPass()
 {
    auto& renderData = Data::renderData_.at(boundApplication_);
 
@@ -1233,7 +604,7 @@ VulkanRenderer::CreateRenderPass()
 }
 
 void
-VulkanRenderer::CreateFramebuffers()
+CreateFramebuffers()
 {
    auto& renderData = Data::renderData_.at(boundApplication_);
 
@@ -1260,7 +631,7 @@ VulkanRenderer::CreateFramebuffers()
 }
 
 void
-VulkanRenderer::CreateCommandPool()
+CreateCommandPool()
 {
    auto queueFamilyIndicesTwo =
       FindQueueFamilies(Data::vk_physicalDevice, Data::renderData_[boundApplication_].surface);
@@ -1275,7 +646,7 @@ VulkanRenderer::CreateCommandPool()
 }
 
 void
-VulkanRenderer::CreateCommandBuffers(Application* app, uint32_t imageIndex)
+CreateCommandBuffers(Application* app, uint32_t imageIndex)
 {
    auto& renderData = Data::renderData_.at(boundApplication_);
 
@@ -1338,8 +709,48 @@ VulkanRenderer::CreateCommandBuffers(Application* app, uint32_t imageIndex)
    vk_check_error(vkEndCommandBuffer(Data::commandBuffers[Data::currentFrame_]), "");
 }
 
+
 void
-VulkanRenderer::CreateSyncObjects()
+CreateQuadIndexBuffer()
+{
+   auto& renderData = Data::renderData_.at(boundApplication_);
+
+   for (size_t layer = 0; layer < static_cast< size_t >(NUM_LAYERS); ++layer)
+   {
+      auto& indexBuffer = renderData.indexBuffer.at(layer);
+      if (indexBuffer.buffer_ != VK_NULL_HANDLE)
+      {
+         indexBuffer.Destroy();
+      }
+
+      indexBuffer = CreateIndexBuffer< INDICES_PER_SPRITE >(renderData.indices.at(layer),
+                                                            MAX_SPRITES_PER_LAYER);
+   }
+}
+
+void
+CreateQuadVertexBuffer()
+{
+   auto& renderData = Data::renderData_.at(boundApplication_);
+   auto& vertices = renderData.vertices;
+
+   for (size_t layer = 0; layer < static_cast< size_t >(NUM_LAYERS); layer++)
+   {
+      auto& vertexBuffer = renderData.vertexBuffer.at(layer);
+      if (vertexBuffer.buffer_ != VK_NULL_HANDLE)
+      {
+         vertexBuffer.Destroy();
+      }
+
+      vertices.at(layer).resize(MAX_NUM_VERTICES_PER_LAYER);
+      // const auto bufferSize = sizeof(Vertex) * vertices.at(layer).size();
+      const auto bufferSize = sizeof(Vertex) * MAX_NUM_VERTICES_PER_LAYER;
+      vertexBuffer = CreateVertexBuffer(bufferSize, vertices.at(layer));
+   }
+}
+
+void
+CreateSyncObjects()
 {
    imageAvailableSemaphores_.resize(MAX_FRAMES_IN_FLIGHT);
    renderFinishedSemaphores_.resize(MAX_FRAMES_IN_FLIGHT);
@@ -1366,13 +777,610 @@ VulkanRenderer::CreateSyncObjects()
 }
 
 void
-VulkanRenderer::CreatePipelineCache()
+WaitForFence(uint32_t frame)
+{
+   vkWaitForFences(Data::vk_device, 1, &inFlightFences_[frame], VK_TRUE, UINT64_MAX);
+}
+
+void
+CreatePipelineCache()
 {
    VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
    pipelineCacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
    vk_check_error(vkCreatePipelineCache(Data::vk_device, &pipelineCacheCreateInfo, nullptr,
                                         &Data::renderData_.at(boundApplication_).pipelineCache),
                   "");
+}
+
+void
+SetAppMarker(ApplicationType type)
+{
+   boundApplication_ = type;
+}
+
+RenderData&
+GetRenderData()
+{
+   return Data::renderData_.at(GetCurrentlyBoundType());
+}
+
+[[nodiscard]] ApplicationType
+GetCurrentlyBoundType()
+{
+   return boundApplication_;
+}
+
+void
+UpdateDescriptors()
+{
+   updateDescriptors_ = true;
+}
+
+void
+CreateUniformBuffer()
+{
+   auto& renderData = Data::renderData_[boundApplication_];
+   constexpr VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+
+   for (size_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; frame++)
+   {
+      auto& ubo = renderData.uniformBuffers.at(frame);
+      if (ubo.buffer_ != VK_NULL_HANDLE)
+      {
+         ubo.Destroy();
+      }
+
+      ubo = Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+   }
+}
+
+void
+CreatePerInstanceBuffer()
+{
+   auto& renderData = Data::renderData_[boundApplication_];
+   constexpr VkDeviceSize SSBObufferSize = MAX_NUM_SPRITES * sizeof(PerInstanceBuffer);
+
+   for (size_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; frame++)
+   {
+      auto& sbo = renderData.ssbo.at(frame);
+      if (sbo.buffer_ != VK_NULL_HANDLE)
+      {
+         sbo.Destroy();
+      }
+
+      sbo = Buffer::CreateBuffer(SSBObufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+   }
+}
+
+void
+UpdateUniformBuffer()
+{
+   auto& renderData = Data::renderData_.at(boundApplication_);
+
+   for (uint32_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; ++frame)
+   {
+      vkWaitForFences(Data::vk_device, 1, &inFlightFences_[frame], VK_TRUE, UINT64_MAX);
+
+      UniformBufferObject tmpUBO = {};
+
+      tmpUBO.view = renderData.viewMat;
+      tmpUBO.proj = renderData.projMat;
+
+      auto& ubo = renderData.uniformBuffers.at(frame);
+
+      void* data = nullptr;
+      vmaMapMemory(Data::vk_hAllocator, ubo.allocation_, &data);
+      memcpy(data, &tmpUBO, sizeof(tmpUBO));
+      vmaUnmapMemory(Data::vk_hAllocator, ubo.allocation_);
+   }
+}
+
+void
+UpdatePerInstanceBuffer()
+{
+   if (updatePerInstanceBuffer_ and not updatedObjects_.empty())
+   {
+      auto& renderData = Data::renderData_.at(boundApplication_);
+
+      for (uint32_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; ++frame)
+      {
+         vkWaitForFences(Data::vk_device, 1, &inFlightFences_[frame], VK_TRUE, UINT64_MAX);
+
+         auto& ssbo = renderData.ssbo.at(frame);
+
+         void* data = nullptr;
+         vmaMapMemory(Data::vk_hAllocator, ssbo.allocation_, &data);
+
+         for (const auto object : updatedObjects_)
+         {
+            PerInstanceBuffer* offset = reinterpret_cast< PerInstanceBuffer* >(data) + object;
+            memcpy(offset, renderData.perInstance.data() + object, sizeof(PerInstanceBuffer));
+         }
+
+         vmaUnmapMemory(Data::vk_hAllocator, ssbo.allocation_);
+      }
+
+      updatedObjects_.clear();
+      updatePerInstanceBuffer_ = false;
+   }
+}
+
+void
+DestroyPipeline()
+{
+   vkDeviceWaitIdle(Data::vk_device);
+
+   auto& renderData = Data::renderData_.at(boundApplication_);
+
+   for (size_t i = 0; i < renderData.swapChainImages.size(); ++i)
+   {
+      vkDestroyFramebuffer(Data::vk_device, renderData.swapChainFramebuffers[i], nullptr);
+      vkDestroyImageView(Data::vk_device, renderData.swapChainImageViews[i], nullptr);
+   }
+
+   vkDestroySwapchainKHR(Data::vk_device, renderData.swapChain, nullptr);
+   vkDestroySurfaceKHR(Data::vk_instance, renderData.surface, nullptr);
+
+   if (renderData.descriptorPool != VK_NULL_HANDLE)
+   {
+      vkDestroyDescriptorPool(Data::vk_device, renderData.descriptorPool, nullptr);
+      vkDestroyDescriptorSetLayout(Data::vk_device, renderData.descriptorSetLayout, nullptr);
+
+      renderData.descriptorPool = VK_NULL_HANDLE;
+   }
+
+   renderData.swapChainImages.clear();
+   renderData.swapChainImageViews.clear();
+   renderData.swapChainFramebuffers.clear();
+   renderData.descriptorSets.clear();
+   renderData.swapChainImageFormat = VK_FORMAT_UNDEFINED;
+
+   vkDestroyImage(Data::vk_device, renderData.colorImage, nullptr);
+   vkDestroyImageView(Data::vk_device, renderData.colorImageView, nullptr);
+   vkFreeMemory(Data::vk_device, renderData.colorImageMemory, nullptr);
+
+   vkDestroyImage(Data::vk_device, renderData.depthImage, nullptr);
+   vkDestroyImageView(Data::vk_device, renderData.depthImageView, nullptr);
+   vkFreeMemory(Data::vk_device, renderData.depthImageMemory, nullptr);
+
+   vkDestroyPipeline(Data::vk_device, renderData.pipeline, nullptr);
+   vkDestroyPipelineLayout(Data::vk_device, renderData.pipelineLayout, nullptr);
+   vkDestroyPipelineCache(Data::vk_device, renderData.pipelineCache, nullptr);
+   vkDestroyRenderPass(Data::vk_device, renderData.renderPass, nullptr);
+}
+
+void
+UpdateData()
+{
+   if (updateDescriptors_)
+   {
+      QuadShader::UpdateDescriptorSets();
+      updateDescriptors_ = false;
+   }
+
+   UpdateUniformBuffer();
+   UpdatePerInstanceBuffer();
+
+   if (updateVertexBuffer_)
+   {
+      std::set< int32_t > layers(renderLayersChanged_.begin(), renderLayersChanged_.end());
+      for (const auto layer : layers)
+      {
+         SetupVertexBuffer(layer);
+      }
+
+      updateVertexBuffer_ = false;
+      renderLayersChanged_.clear();
+   }
+}
+
+void
+SetupVertexBuffer(const int32_t layer)
+{
+   const auto layerCasted = static_cast< size_t >(layer);
+   auto* renderData = &Data::renderData_[boundApplication_];
+   const auto bufferSize = sizeof(Vertex) * MAX_NUM_VERTICES_PER_LAYER;
+
+   renderData->vertexBuffer.at(layerCasted) =
+      CreateVertexBuffer(bufferSize, renderData->vertices.at(layerCasted));
+}
+
+void
+MeshDeleted(const RenderInfo& renderInfo)
+{
+   auto* renderData = &Data::renderData_[boundApplication_];
+
+   renderData->verticesAvail.at(static_cast< size_t >(renderInfo.layer))
+      .reset(static_cast< size_t >(renderInfo.layerIdx));
+
+
+   for (uint32_t vertexIdx = 0; vertexIdx < VERTICES_PER_SPRITE; ++vertexIdx)
+   {
+      const auto offset = static_cast< uint32_t >(renderInfo.layerIdx) * VERTICES_PER_SPRITE;
+
+      auto& vertex =
+         renderData->vertices.at(static_cast< uint32_t >(renderInfo.layer)).at(offset + vertexIdx);
+      vertex = Vertex{};
+   }
+
+   updatePerInstanceBuffer_ = true;
+   updatedObjects_.push_back(static_cast< uint32_t >(renderInfo.idx));
+
+   updateVertexBuffer_ = true;
+   renderLayersChanged_.push_back(renderInfo.layer);
+}
+
+RenderInfo
+MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureIDs& textures_in,
+           const glm::mat4& modelMat, const glm::vec4& color)
+{
+   auto* renderData = &Data::renderData_[boundApplication_];
+   // convert from depth value to render layer
+   const auto layer = static_cast< int32_t >(vertices_in.front().m_position.z * 20.0f);
+   int32_t idx = 0;
+
+   auto& vertices = renderData->vertices.at(static_cast< size_t >(layer));
+   auto& verticesAvail = renderData->verticesAvail.at(static_cast< size_t >(layer));
+   int32_t layerIdx = {};
+
+   for (uint32_t i = 0; i < MAX_SPRITES_PER_LAYER; ++i)
+   {
+      if (!verticesAvail.test(i))
+      {
+         layerIdx = static_cast< int32_t >(i);
+         verticesAvail.set(i);
+         break;
+      }
+   }
+
+   auto& numObjects = renderData->numMeshes.at(static_cast< size_t >(layer));
+
+   idx = layerIdx + static_cast< int32_t >(MAX_SPRITES_PER_LAYER) * layer;
+   for (uint32_t vertexIdx = 0; vertexIdx < VERTICES_PER_SPRITE; ++vertexIdx)
+   {
+      const auto offset = static_cast< uint32_t >(layerIdx) * VERTICES_PER_SPRITE;
+
+      auto& vertex = vertices.at(offset + vertexIdx);
+      vertex = vertices_in.at(vertexIdx);
+      vertex.m_texCoordsDraw.z = static_cast< float >(idx);
+   }
+
+   UpdateDescriptors();
+
+   // Only increase the counter if we're not reusing the slot
+   if (numObjects == static_cast< uint32_t >(layerIdx))
+   {
+      numObjects++;
+   }
+
+   ++renderData->totalNumMeshes;
+
+   SubmitMeshData(static_cast< uint32_t >(idx), textures_in, modelMat, color);
+   updateVertexBuffer_ = true;
+   renderLayersChanged_.push_back(layer);
+
+   return {idx, layer, layerIdx};
+}
+
+void
+SubmitMeshData(const uint32_t idx, const TextureIDs& ids, const glm::mat4& modelMat,
+               const glm::vec4& color)
+{
+   auto& object = Data::renderData_[boundApplication_].perInstance.at(idx);
+
+   object.model = modelMat;
+   object.color = color;
+   object.texSamples.x = static_cast< float >(ids.at(0));
+   object.texSamples.y = static_cast< float >(ids.at(1));
+   object.texSamples.z = static_cast< float >(ids.at(2));
+   object.texSamples.w = static_cast< float >(ids.at(3));
+
+   updatePerInstanceBuffer_ = true;
+   updatedObjects_.push_back(idx);
+}
+
+
+void
+CreateLinePipeline()
+{
+   LineShader::CreateDescriptorSetLayout();
+   LineShader::CreateDescriptorPool();
+   LineShader::CreateDescriptorSets();
+
+   CreatePipeline< LineShader, LineVertex >("line.vert.spv", "line.frag.spv", PrimitiveType::LINE);
+}
+
+void
+DrawLine(const glm::vec2& start, const glm::vec2& end)
+{
+   EditorData::lineVertices_.push_back(LineVertex{glm::vec3{start, 0.0f}});
+   EditorData::lineVertices_.push_back(LineVertex{glm::vec3{end, 0.0f}});
+
+   ++EditorData::numLines;
+}
+
+void
+DrawDynamicLine(const glm::vec2& start, const glm::vec2& end)
+{
+   const auto totalNumVtx = EditorData::numGridLines * VERTICES_PER_LINE;
+   if (EditorData::lineVertices_.size()
+       < (totalNumVtx + EditorData::curDynLineIdx + VERTICES_PER_LINE))
+   {
+      EditorData::lineVertices_.push_back(LineVertex{glm::vec3{start, 0.0f}});
+      EditorData::lineVertices_.push_back(LineVertex{glm::vec3{end, 0.0f}});
+   }
+   else
+   {
+      EditorData::lineVertices_[totalNumVtx + EditorData::curDynLineIdx++] =
+         LineVertex{glm::vec3{start, 0.0f}};
+      EditorData::lineVertices_[totalNumVtx + EditorData::curDynLineIdx++] =
+         LineVertex{glm::vec3{end, 0.0f}};
+   }
+}
+
+void
+UpdateLineData(uint32_t startingLine)
+{
+   const auto lastLine = (EditorData::curDynLineIdx / VERTICES_PER_LINE) + EditorData::numGridLines;
+   const auto numLines = lastLine - startingLine;
+
+   if (numLines)
+   {
+      const auto bufferSize = numLines * sizeof(LineVertex) * VERTICES_PER_LINE;
+      const auto offset = startingLine * sizeof(LineVertex) * VERTICES_PER_LINE;
+
+      void* data = nullptr;
+      vmaMapMemory(Data::vk_hAllocator, EditorData::lineVertexBuffer.allocation_, &data);
+      char* dest = static_cast< char* >(data) + offset;
+      memcpy(dest,
+             EditorData::lineVertices_.data()
+                + static_cast< size_t >(startingLine) * VERTICES_PER_LINE,
+             bufferSize);
+      vmaUnmapMemory(Data::vk_hAllocator, EditorData::lineVertexBuffer.allocation_);
+   }
+}
+
+void
+SetupLineData()
+{
+   EditorData::lineVertexBuffer = Buffer::CreateBuffer(
+      sizeof(LineVertex) * MAX_NUM_LINES * 2,
+      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+   EditorData::lineIndexBuffer =
+      CreateIndexBuffer< INDICES_PER_LINE >(EditorData::lineIndices_, MAX_NUM_LINES);
+}
+
+void
+CreateQuadBuffers()
+{
+   CreateQuadVertexBuffer();
+   CreateQuadIndexBuffer();
+   CreatePerInstanceBuffer();
+}
+
+void
+RecreateQuadPipeline()
+{
+   vkDeviceWaitIdle(Data::vk_device);
+
+   // Indirect render stuff
+   // const auto commandsSize = m_renderCommands.size() * sizeof(VkDrawIndexedIndirectCommand);
+
+   //////  Commands + draw count
+   // const VkDeviceSize bufferSize = commandsSize + sizeof(uint32_t);
+
+   // Buffer::CreateBuffer(bufferSize, VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
+   //                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+   //                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_indirectDrawsBuffer,
+   //                      m_indirectDrawsBufferMemory);
+
+   // void* data = nullptr;
+   // vkMapMemory(Data::vk_device, m_indirectDrawsBufferMemory, 0, bufferSize, 0, &data);
+   // memcpy(data, m_renderCommands.data(), static_cast< size_t >(bufferSize));
+   // memcpy(static_cast< uint8_t* >(data) + commandsSize, &m_numMeshes, sizeof(uint32_t));
+
+
+   DestroyPipeline();
+
+   CreateRenderPipeline();
+   CreateQuadBuffers();
+   QuadShader::CreateDescriptorPool();
+   QuadShader::CreateDescriptorSets();
+   QuadShader::UpdateDescriptorSets();
+}
+
+void
+FreeData(renderer::ApplicationType type, bool destroyPipeline)
+{
+   vkDeviceWaitIdle(Data::vk_device);
+
+   if (Data::renderData_.find(type) != Data::renderData_.end())
+   {
+      auto& renderData = Data::renderData_.at(type);
+
+      for (size_t layer = 0; layer < static_cast< size_t >(NUM_LAYERS); ++layer)
+      {
+         renderData.indexBuffer.at(layer).Destroy();
+         renderData.indices.at(layer).clear();
+
+         renderData.vertexBuffer.at(layer).Destroy();
+         renderData.vertices.at(layer).clear();
+      }
+
+      for (size_t i = 0; i < renderData.uniformBuffers.size(); ++i)
+      {
+         renderData.uniformBuffers.at(i).Destroy();
+         renderData.ssbo.at(i).Destroy();
+      }
+
+      if (type == ApplicationType::EDITOR)
+      {
+         // Lines
+         EditorData::lineVertexBuffer.Destroy();
+         EditorData::lineIndexBuffer.Destroy();
+         EditorData::lineVertices_.clear();
+         EditorData::lineIndices_.clear();
+         for (auto& buffer : EditorData::lineUniformBuffers_)
+         {
+            buffer.Destroy();
+         }
+
+         EditorData::lineIndices_.clear();
+
+         if (EditorData::lineDescriptorPool != VK_NULL_HANDLE)
+         {
+            vkDestroyDescriptorPool(Data::vk_device, EditorData::lineDescriptorPool, nullptr);
+            vkDestroyDescriptorSetLayout(Data::vk_device, EditorData::lineDescriptorSetLayout_,
+                                         nullptr);
+
+            EditorData::lineDescriptorPool = VK_NULL_HANDLE;
+         }
+
+         vkDestroyPipeline(Data::vk_device, EditorData::linePipeline_, nullptr);
+         vkDestroyPipelineLayout(Data::vk_device, EditorData::linePipelineLayout_, nullptr);
+
+         EditorData::numGridLines = 0;
+         EditorData::numLines = 0;
+         EditorData::curDynLineIdx = 0;
+      }
+
+      if (destroyPipeline)
+      {
+         renderData.perInstance.clear();
+
+         DestroyPipeline();
+         Data::renderData_.erase(type);
+      }
+   }
+}
+
+
+void
+Initialize(GLFWwindow* windowHandle, ApplicationType type)
+{
+   SetAppMarker(type);
+   auto& renderData = Data::renderData_[boundApplication_];
+   renderData.windowHandle = windowHandle;
+
+   int32_t width = {};
+   int32_t height = {};
+   glfwGetFramebufferSize(windowHandle, &width, &height);
+
+   renderData.windowSize_ = glm::ivec2(width, height);
+
+   if (not initialized_)
+   {
+      CreateInstance();
+   }
+
+   vk_check_error(glfwCreateWindowSurface(Data::vk_instance, renderData.windowHandle, nullptr,
+                                          &renderData.surface),
+                  "failed to create window surface!");
+
+   if (not initialized_)
+   {
+      CreateDevice();
+      VmaAllocatorCreateInfo allocatorInfo = {};
+      allocatorInfo.physicalDevice = Data::vk_physicalDevice;
+      allocatorInfo.device = Data::vk_device;
+      allocatorInfo.instance = Data::vk_instance;
+      allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_3;
+
+
+      vmaCreateAllocator(&allocatorInfo, &Data::vk_hAllocator);
+   }
+
+   for (uint32_t layer = 0; layer < NUM_LAYERS; ++layer)
+   {
+      renderData.vertices.at(layer).resize(MAX_NUM_VERTICES_PER_LAYER);
+      renderData.indices.at(layer).resize(MAX_NUM_INDICES_PER_LAYER);
+   }
+
+   renderData.perInstance.resize(MAX_NUM_SPRITES);
+
+   CreateRenderPipeline();
+   CreateUniformBuffer();
+
+   initialized_ = true;
+}
+
+void
+CreateRenderPipeline()
+{
+   auto& renderData = Data::renderData_[boundApplication_];
+
+   vk_check_error(glfwCreateWindowSurface(Data::vk_instance, renderData.windowHandle, nullptr,
+                                          &renderData.surface),
+                  "failed to create window surface!");
+
+   CreateSwapchain();
+   CreateImageViews();
+   CreateCommandPool();
+   CreateRenderPass();
+   QuadShader::CreateDescriptorSetLayout();
+   CreatePipeline< QuadShader, Vertex >("vert.spv", "frag.spv", PrimitiveType::TRIANGLE);
+   CreateColorResources();
+   CreateDepthResources();
+   CreateFramebuffers();
+   CreatePipelineCache();
+   CreateSyncObjects();
+}
+
+void
+Render(Application* app)
+{
+   auto& renderData = Data::renderData_.at(boundApplication_);
+
+   vkWaitForFences(Data::vk_device, 1, &inFlightFences_[Data::currentFrame_], VK_TRUE, UINT64_MAX);
+
+   uint32_t imageIndex = {};
+   vkAcquireNextImageKHR(Data::vk_device, renderData.swapChain, UINT64_MAX,
+                         imageAvailableSemaphores_[Data::currentFrame_], VK_NULL_HANDLE,
+                         &imageIndex);
+
+   CreateCommandBuffers(app, imageIndex);
+
+   VkSubmitInfo submitInfo = {};
+   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+   auto waitStages =
+      std::to_array< const VkPipelineStageFlags >({VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT});
+   submitInfo.waitSemaphoreCount = 1;
+   submitInfo.pWaitSemaphores = &imageAvailableSemaphores_[Data::currentFrame_];
+   submitInfo.pWaitDstStageMask = waitStages.data();
+
+   submitInfo.commandBufferCount = 1;
+   submitInfo.pCommandBuffers = &Data::commandBuffers[Data::currentFrame_];
+
+   submitInfo.signalSemaphoreCount = 1;
+   submitInfo.pSignalSemaphores = &renderFinishedSemaphores_[Data::currentFrame_];
+
+   vkResetFences(Data::vk_device, 1, &inFlightFences_[Data::currentFrame_]);
+
+   vk_check_error(
+      vkQueueSubmit(Data::vk_graphicsQueue, 1, &submitInfo, inFlightFences_[Data::currentFrame_]),
+      "failed to submit draw command buffer!");
+
+   VkPresentInfoKHR presentInfo = {};
+   presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+   presentInfo.waitSemaphoreCount = 1;
+   presentInfo.pWaitSemaphores = &renderFinishedSemaphores_[Data::currentFrame_];
+
+   presentInfo.swapchainCount = 1;
+   presentInfo.pSwapchains = &renderData.swapChain;
+
+   presentInfo.pImageIndices = &imageIndex;
+
+   vkQueuePresentKHR(presentQueue_, &presentInfo);
+
+   Data::currentFrame_ = GetNextFrame();
 }
 
 } // namespace looper::renderer

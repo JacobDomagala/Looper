@@ -12,10 +12,10 @@ Sprite::ClearData() const
 {
    const auto transformMat = ComputeModelMat();
 
-   renderer::VulkanRenderer::SubmitMeshData(static_cast< uint32_t >(renderInfo_.idx), textures_,
+   renderer::SubmitMeshData(static_cast< uint32_t >(renderInfo_.idx), textures_,
                                             transformMat, {0.0f, 0.0f, 0.0f, 0.0f});
 
-   renderer::VulkanRenderer::MeshDeleted(renderInfo_);
+   renderer::MeshDeleted(renderInfo_);
 }
 
 
@@ -30,7 +30,7 @@ Sprite::ComputeModelMat() const
 void
 Sprite::ChangeRenderLayer(int32_t newLayer)
 {
-   renderer::VulkanRenderer::MeshDeleted(renderInfo_);
+   renderer::MeshDeleted(renderInfo_);
 
    for (auto& vertex : vertices_)
    {
@@ -40,7 +40,7 @@ Sprite::ChangeRenderLayer(int32_t newLayer)
    const auto transformMat = ComputeModelMat();
 
    renderInfo_ =
-      VulkanRenderer::MeshLoaded(vertices_, textures_, transformMat, currentState_.color_);
+      MeshLoaded(vertices_, textures_, transformMat, currentState_.color_);
    changed_ = true;
 }
 
@@ -101,7 +101,7 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
                 TextureLibrary::GetTexture(fileName)->GetID()};
 
    renderInfo_ =
-      VulkanRenderer::MeshLoaded(vertices_, textures_, transformMat, currentState_.color_);
+      MeshLoaded(vertices_, textures_, transformMat, currentState_.color_);
 }
 
 void
@@ -134,7 +134,7 @@ Sprite::Render()
       const auto transformMat = ComputeModelMat();
       ComputeBoundingBox();
 
-      renderer::VulkanRenderer::SubmitMeshData(static_cast< uint32_t >(renderInfo_.idx), textures_,
+      renderer::SubmitMeshData(static_cast< uint32_t >(renderInfo_.idx), textures_,
                                                transformMat, currentState_.color_);
 
       changed_ = false;

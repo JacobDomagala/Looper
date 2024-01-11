@@ -55,7 +55,7 @@ VulkanShader::CreateShader(VkDevice device, std::string_view vertex, std::string
 void
 QuadShader::CreateDescriptorPool()
 {
-   auto& renderData = Data::renderData_.at(VulkanRenderer::GetCurrentlyBoundType());
+   auto& renderData = Data::renderData_.at(GetCurrentlyBoundType());
 
    std::array< VkDescriptorPoolSize, 2 > poolSizes{};
    poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -106,7 +106,7 @@ QuadShader::CreateDescriptorSetLayout()
    layoutInfo.bindingCount = static_cast< uint32_t >(bindings.size());
    layoutInfo.pBindings = bindings.data();
 
-   auto& renderData = Data::renderData_.at(VulkanRenderer::GetCurrentlyBoundType());
+   auto& renderData = Data::renderData_.at(GetCurrentlyBoundType());
 
    vk_check_error(vkCreateDescriptorSetLayout(Data::vk_device, &layoutInfo, nullptr,
                                               &renderData.descriptorSetLayout),
@@ -116,7 +116,7 @@ QuadShader::CreateDescriptorSetLayout()
 void
 QuadShader::CreateDescriptorSets()
 {
-   auto& renderData = Data::renderData_.at(VulkanRenderer::GetCurrentlyBoundType());
+   auto& renderData = Data::renderData_.at(GetCurrentlyBoundType());
    const auto size = MAX_FRAMES_IN_FLIGHT;
    std::vector< VkDescriptorSetLayout > layouts(size, renderData.descriptorSetLayout);
 
@@ -136,7 +136,7 @@ QuadShader::CreateDescriptorSets()
 void
 QuadShader::UpdateDescriptorSets()
 {
-   auto& renderData = renderer::Data::renderData_.at(VulkanRenderer::GetCurrentlyBoundType());
+   auto& renderData = renderer::Data::renderData_.at(GetCurrentlyBoundType());
 
    // Explicit copy
    auto viewAndSamplers = TextureLibrary::GetViewSamplerPairs();
@@ -160,26 +160,25 @@ QuadShader::UpdateDescriptorSets()
                      return descriptoInfo;
                   });
 
-   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+   for (uint32_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; frame++)
    {
-      vkWaitForFences(Data::vk_device, 1, &VulkanRenderer::inFlightFences_[i], VK_TRUE,
-                      UINT64_MAX);
+      WaitForFence(frame);
 
       VkDescriptorBufferInfo bufferInfo{};
-      bufferInfo.buffer = renderData.uniformBuffers[i].buffer_;
+      bufferInfo.buffer = renderData.uniformBuffers.at(frame).buffer_;
       bufferInfo.offset = 0;
       bufferInfo.range = sizeof(UniformBufferObject);
 
 
       VkDescriptorBufferInfo instanceBufferInfo = {};
-      instanceBufferInfo.buffer = renderData.ssbo.at(i).buffer_;
+      instanceBufferInfo.buffer = renderData.ssbo.at(frame).buffer_;
       instanceBufferInfo.offset = 0;
-      instanceBufferInfo.range = renderData.ssbo.at(i).bufferSize_;
+      instanceBufferInfo.range = renderData.ssbo.at(frame).bufferSize_;
 
       std::array< VkWriteDescriptorSet, 3 > descriptorWrites = {};
 
       descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      descriptorWrites[0].dstSet = renderData.descriptorSets[i];
+      descriptorWrites[0].dstSet = renderData.descriptorSets.at(frame);
       descriptorWrites[0].dstBinding = 0;
       descriptorWrites[0].dstArrayElement = 0;
       descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -187,7 +186,7 @@ QuadShader::UpdateDescriptorSets()
       descriptorWrites[0].pBufferInfo = &bufferInfo;
 
       descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      descriptorWrites[1].dstSet = renderData.descriptorSets[i];
+      descriptorWrites[1].dstSet = renderData.descriptorSets.at(frame);
       descriptorWrites[1].dstBinding = 1;
       descriptorWrites[1].dstArrayElement = 0;
       descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -195,7 +194,7 @@ QuadShader::UpdateDescriptorSets()
       descriptorWrites[1].pBufferInfo = &instanceBufferInfo;
 
       descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      descriptorWrites[2].dstSet = renderData.descriptorSets[i];
+      descriptorWrites[2].dstSet = renderData.descriptorSets.at(frame);
       descriptorWrites[2].dstBinding = 2;
       descriptorWrites[2].dstArrayElement = 0;
       descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -214,7 +213,7 @@ QuadShader::UpdateDescriptorSets()
 void
 LineShader::CreateDescriptorPool()
 {
-   auto& renderData = Data::renderData_.at(VulkanRenderer::GetCurrentlyBoundType());
+   auto& renderData = Data::renderData_.at(GetCurrentlyBoundType());
    std::array< VkDescriptorPoolSize, 1 > poolSizes{};
    poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
    poolSizes[0].descriptorCount = static_cast< uint32_t >(renderData.swapChainImages.size());
@@ -255,7 +254,7 @@ LineShader::CreateDescriptorSetLayout()
 void
 LineShader::CreateDescriptorSets()
 {
-   auto& renderData = Data::renderData_.at(VulkanRenderer::GetCurrentlyBoundType());
+   auto& renderData = Data::renderData_.at(GetCurrentlyBoundType());
 
    const auto size = MAX_FRAMES_IN_FLIGHT;
    std::vector< VkDescriptorSetLayout > layouts(size, EditorData::lineDescriptorSetLayout_);

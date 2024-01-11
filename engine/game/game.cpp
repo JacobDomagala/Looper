@@ -31,8 +31,8 @@ Game::MainLoop()
             workQueue_.RunWorkUnits();
             if (windowInFocus_)
             {
-               renderer::VulkanRenderer::UpdateData();
-               renderer::VulkanRenderer::Render(this);
+               renderer::UpdateData();
+               renderer::Render(this);
             }
 
             if (frameTimer_ > 1.0f)
@@ -68,7 +68,7 @@ Game::Init(const std::string& configFile, bool loadLevel)
                 "WindowTitle", true);
    window_.MakeFocus();
 
-   renderer::VulkanRenderer::Initialize(window_.GetWindowHandle(), renderer::ApplicationType::GAME);
+   renderer::Initialize(window_.GetWindowHandle(), renderer::ApplicationType::GAME);
 
    InputManager::Init(window_.GetWindowHandle());
    InputManager::RegisterForInput(window_.GetWindowHandle(), this);
@@ -262,7 +262,7 @@ Game::RenderSecondPass()
 void
 Game::LoadLevel(const std::string& pathToLevel)
 {
-   renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::GAME);
+   renderer::SetAppMarker(renderer::ApplicationType::GAME);
 
    currentLevel_ = std::make_shared< Level >();
    currentLevel_->Load(this, pathToLevel);
@@ -272,7 +272,7 @@ Game::LoadLevel(const std::string& pathToLevel)
    camera_.SetLevelSize(currentLevel_->GetSize());
 
    workQueue_.PushWorkUnit([this] { return windowInFocus_; },
-                           [] { renderer::VulkanRenderer::RecreateQuadPipeline(); });
+                           [] { renderer::RecreateQuadPipeline(); });
 }
 
 glm::vec2
@@ -328,7 +328,7 @@ Game::ProcessInput(time::milliseconds deltaTime)
    UpdateGameState();
 
    auto& renderData =
-      renderer::Data::renderData_.at(renderer::VulkanRenderer::GetCurrentlyBoundType());
+      renderer::Data::renderData_.at(renderer::GetCurrentlyBoundType());
    renderData.viewMat = camera_.GetViewMatrix();
    renderData.projMat = camera_.GetProjectionMatrix();
 }
@@ -386,7 +386,7 @@ Game::Render(VkCommandBuffer cmdBuffer)
    RenderSecondPass();
 
    auto& renderData =
-      renderer::Data::renderData_.at(renderer::VulkanRenderer::GetCurrentlyBoundType());
+      renderer::Data::renderData_.at(renderer::GetCurrentlyBoundType());
 
    vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipeline);
 
@@ -414,7 +414,7 @@ Game::Render(VkCommandBuffer cmdBuffer)
                            VK_INDEX_TYPE_UINT32);
 
       // const auto numObjects =
-      // renderer::VulkanRenderer::GetNumMeshes(renderer::ApplicationType::GAME); numObjects_ =
+      // renderer::GetNumMeshes(renderer::ApplicationType::GAME); numObjects_ =
       // numObjects.second - numObjects.first;
       vkCmdDrawIndexed(cmdBuffer, renderData.numMeshes.at(idx) * renderer::INDICES_PER_SPRITE, 1, 0,
                        0, 0);
