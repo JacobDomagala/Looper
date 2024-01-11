@@ -405,7 +405,7 @@ Level::GetTilesFromRectangle(const std::array< glm::vec2, 4 >& rect) const
       const auto w =
          static_cast< int32_t >(glm::floor(position.x / static_cast< float >(tileWidth)));
       const auto h =
-         static_cast< int32_t >(glm::floor(position.y / static_cast< float >(tileWidth)));
+         static_cast< int32_t >(glm::ceil(position.y / static_cast< float >(tileWidth)));
 
       return {glm::clamp(w, 0, (levelSize.x / static_cast< int32_t >(tileWidth)) - 1),
               glm::clamp(h, 0, (levelSize.y / static_cast< int32_t >(tileWidth))) - 1};

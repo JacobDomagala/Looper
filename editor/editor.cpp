@@ -144,10 +144,11 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
    if (!playGame_ && !EditorGUI::IsBlockingEvents() && levelLoaded_)
    {
       const auto mousePressed = event.action_ == GLFW_PRESS;
+      const auto mouseReleased = event.action_ == GLFW_RELEASE;
       LMBPressedLastUpdate_ = mousePressed and event.button_ == GLFW_MOUSE_BUTTON_1;
       RMBPressedLastUpdate_ = mousePressed and event.button_ == GLFW_MOUSE_BUTTON_2;
 
-      if (mousePressed)
+      if (mouseReleased and not mouseDrag_)
       {
          CheckIfObjectGotSelected(InputManager::GetMousePos(),
                                   InputManager::CheckKeyPressed(GLFW_KEY_LEFT_CONTROL));
