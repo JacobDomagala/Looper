@@ -146,8 +146,7 @@ FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
       }
 
       VkBool32 presentSupport = false;
-      vkGetPhysicalDeviceSurfaceSupportKHR(device, index, surface,
-                                           &presentSupport);
+      vkGetPhysicalDeviceSurfaceSupportKHR(device, index, surface, &presentSupport);
 
       if (presentSupport)
       {
@@ -324,6 +323,37 @@ ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* windo
                                     capabilities.minImageExtent.height);
 
    return actualExtent;
+}
+
+VkFormat
+FindSupportedFormat(const std::vector< VkFormat >& candidates, VkImageTiling tiling,
+                    VkFormatFeatureFlags features)
+{
+   for (const auto format : candidates)
+   {
+      VkFormatProperties props = {};
+      vkGetPhysicalDeviceFormatProperties(Data::vk_physicalDevice, format, &props);
+      const auto tiling_linear =
+         tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features;
+      const auto tiling_optimal =
+         tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features;
+
+      if (tiling_linear or tiling_optimal)
+      {
+         return format;
+      }
+   }
+
+   utils::Assert(false, "failed to find supported format!");
+   return {};
+}
+
+VkFormat
+FindDepthFormat()
+{
+   return FindSupportedFormat({VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+                              VK_IMAGE_TILING_OPTIMAL,
+                              VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
 } // namespace looper::renderer

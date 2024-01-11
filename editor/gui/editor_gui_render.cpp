@@ -286,7 +286,7 @@ void
 EditorGUI::PreparePipeline()
 {
    const auto& renderData =
-      renderer::Data::renderData_.at(renderer::VulkanRenderer::GetCurrentlyBoundType());
+      renderer::Data::renderData_.at(renderer::GetCurrentlyBoundType());
    // Pipeline layout
    // Push constants for UI rendering parameters
    VkPushConstantRange pushConstantRange{};

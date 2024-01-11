@@ -130,8 +130,8 @@ EditorGUI::RenderGameObjectContent()
                         const auto oldLayer = gameObject.GetSprite().GetRenderInfo().layer;
                         gameObject.GetSprite().ChangeRenderLayer(layer);
 
-                        renderer::VulkanRenderer::SetupVertexBuffer(oldLayer);
-                        renderer::VulkanRenderer::SetupVertexBuffer(layer);
+                        renderer::SetupVertexBuffer(oldLayer);
+                        renderer::SetupVertexBuffer(layer);
                      });
                   }
                }

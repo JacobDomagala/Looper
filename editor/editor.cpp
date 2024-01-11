@@ -27,7 +27,7 @@ Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
 
    InputManager::Init(window_.GetWindowHandle());
 
-   renderer::VulkanRenderer::Initialize(window_.GetWindowHandle(),
+   renderer::Initialize(window_.GetWindowHandle(),
                                         renderer::ApplicationType::EDITOR);
    gui_.Init();
    InputManager::RegisterForInput(window_.GetWindowHandle(), this);
@@ -662,12 +662,12 @@ Editor::SetRenderLayerToDraw(int32_t layer)
 void
 Editor::SetupRendererData() const
 {
-   renderer::VulkanRenderer::RecreateQuadPipeline();
+   renderer::RecreateQuadPipeline();
 
    DrawGrid();
-   renderer::VulkanRenderer::CreateLinePipeline();
-   renderer::VulkanRenderer::SetupLineData();
-   renderer::VulkanRenderer::UpdateLineData();
+   renderer::CreateLinePipeline();
+   renderer::SetupLineData();
+   renderer::UpdateLineData();
 }
 
 
@@ -755,7 +755,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
    if (levelLoaded_)
    {
       auto& renderData =
-         renderer::Data::renderData_[renderer::VulkanRenderer::GetCurrentlyBoundType()];
+         renderer::Data::renderData_[renderer::GetCurrentlyBoundType()];
 
       currentLevel_->GetSprite().Render();
 
@@ -871,13 +871,13 @@ Editor::DrawAnimationPoints()
          if (std::ranges::find(animaltionPointIDs, point.GetLinkedObjectID())
              != animaltionPointIDs.end())
          {
-            renderer::VulkanRenderer::DrawDynamicLine(lineStart, point.GetPosition());
+            renderer::DrawDynamicLine(lineStart, point.GetPosition());
             lineStart = point.GetCenteredPosition();
          }
       }
    }
 
-   renderer::VulkanRenderer::UpdateLineData(renderer::EditorData::numGridLines);
+   renderer::UpdateLineData(renderer::EditorData::numGridLines);
 }
 
 void
@@ -885,10 +885,10 @@ Editor::DrawBoundingBoxes()
 {
    auto drawBoundingBox = [](const renderer::Sprite& sprite) {
       const auto rect = sprite.GetTransformedRectangle();
-      renderer::VulkanRenderer::DrawDynamicLine(rect[0], rect[1]);
-      renderer::VulkanRenderer::DrawDynamicLine(rect[1], rect[2]);
-      renderer::VulkanRenderer::DrawDynamicLine(rect[2], rect[3]);
-      renderer::VulkanRenderer::DrawDynamicLine(rect[3], rect[0]);
+      renderer::DrawDynamicLine(rect[0], rect[1]);
+      renderer::DrawDynamicLine(rect[1], rect[2]);
+      renderer::DrawDynamicLine(rect[2], rect[3]);
+      renderer::DrawDynamicLine(rect[3], rect[0]);
    };
 
    for (const auto object : selectedObjects_)
@@ -919,12 +919,12 @@ Editor::DrawGrid() const
 
    for (int i = 0; i <= h; ++i)
    {
-      renderer::VulkanRenderer::DrawLine(glm::vec2(0, i * grad), glm::vec2(levelSize.x, i * grad));
+      renderer::DrawLine(glm::vec2(0, i * grad), glm::vec2(levelSize.x, i * grad));
    }
 
    for (int i = 0; i <= w; ++i)
    {
-      renderer::VulkanRenderer::DrawLine(glm::vec2(i * grad, 0), glm::vec2(i * grad, levelSize.y));
+      renderer::DrawLine(glm::vec2(i * grad, 0), glm::vec2(i * grad, levelSize.y));
    }
 
    renderer::EditorData::numGridLines = renderer::EditorData::numLines;
@@ -985,7 +985,7 @@ Editor::FreeLevelData()
       pathfinderNodes_.clear();
       animationPoints_.clear();
 
-      renderer::VulkanRenderer::FreeData(renderer::ApplicationType::EDITOR, false);
+      renderer::FreeData(renderer::ApplicationType::EDITOR, false);
    }
 }
 
@@ -1014,7 +1014,7 @@ Editor::LoadLevel(const std::string& levelPath)
 {
    FreeLevelData();
 
-   renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::EDITOR);
+   renderer::SetAppMarker(renderer::ApplicationType::EDITOR);
 
    {
       SCOPED_TIMER("Total level load");
@@ -1176,7 +1176,6 @@ Editor::PlayLevel()
 void
 Editor::LaunchGameLoop()
 {
-   renderer::VulkanRenderer::isLoaded_ = false;
    {
       Game game;
       game.Init("GameInit.json", false);
@@ -1186,10 +1185,10 @@ Editor::LaunchGameLoop()
       game.MainLoop();
    }
 
-   renderer::VulkanRenderer::FreeData(renderer::ApplicationType::GAME, true);
+   renderer::FreeData(renderer::ApplicationType::GAME, true);
    playGame_ = false;
 
-   renderer::VulkanRenderer::SetAppMarker(renderer::ApplicationType::EDITOR);
+   renderer::SetAppMarker(renderer::ApplicationType::EDITOR);
 }
 
 void
@@ -1257,10 +1256,10 @@ Editor::Update()
 
    if (mouseDrag_ and selectRect_ != std::array< glm::vec2, 4 >{})
    {
-      renderer::VulkanRenderer::DrawDynamicLine(selectRect_[0], selectRect_[1]);
-      renderer::VulkanRenderer::DrawDynamicLine(selectRect_[1], selectRect_[2]);
-      renderer::VulkanRenderer::DrawDynamicLine(selectRect_[2], selectRect_[3]);
-      renderer::VulkanRenderer::DrawDynamicLine(selectRect_[3], selectRect_[0]);
+      renderer::DrawDynamicLine(selectRect_[0], selectRect_[1]);
+      renderer::DrawDynamicLine(selectRect_[1], selectRect_[2]);
+      renderer::DrawDynamicLine(selectRect_[2], selectRect_[3]);
+      renderer::DrawDynamicLine(selectRect_[3], selectRect_[0]);
    }
 
    {
@@ -1268,11 +1267,11 @@ Editor::Update()
       gui_.UpdateUI();
    }
 
-   auto& renderData = renderer::VulkanRenderer::GetRenderData();
+   auto& renderData = renderer::GetRenderData();
    renderData.viewMat = camera_.GetViewMatrix();
    renderData.projMat = camera_.GetProjectionMatrix();
 
-   renderer::VulkanRenderer::UpdateData();
+   renderer::UpdateData();
 }
 
 void
@@ -1343,7 +1342,7 @@ Editor::MainLoop()
             Update();
 
             const time::ScopedTimer renderTimer(&renderTime_);
-            renderer::VulkanRenderer::Render(this);
+            renderer::Render(this);
          }
 
          timeLastFrame_ = watch.Stop();
