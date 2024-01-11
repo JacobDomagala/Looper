@@ -4,6 +4,7 @@
 #include "game_object.hpp"
 #include "helpers.hpp"
 #include "icons.hpp"
+#include "input/input_manager.hpp"
 #include "renderer/renderer.hpp"
 #include "renderer/shader.hpp"
 #include "renderer/texture.hpp"
@@ -11,7 +12,6 @@
 #include "renderer/vulkan_common.hpp"
 #include "types.hpp"
 #include "utils/file_manager.hpp"
-#include "input/input_manager.hpp"
 
 #include <GLFW/glfw3.h>
 #include <fmt/format.h>
@@ -238,8 +238,6 @@ EditorGUI::RenderLevelMenu() // NOLINT
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Objects"))
    {
-      const auto& gameObjects = currentLevel_->GetObjects();
-
       const auto filterObjects = std::to_array< std::string >({"All", "Enemy", "Player", "Object"});
 
       // NOLINTBEGIN
@@ -267,46 +265,54 @@ EditorGUI::RenderLevelMenu() // NOLINT
 
       ImGui::BeginChild("Loaded Objects", {0, 200}, true);
 
-      auto DisplayObjects = [this](const auto& objects) {
-         for (const auto& object : objects)
+      auto DisplayObject = [this](const auto& object) {
+         const auto& objectInfo = objectsInfo_.at(object.GetID());
+
+         if (ImGui::Selectable(objectInfo.first.c_str(), objectInfo.second))
          {
-            const auto& objectInfo = objectsInfo_.at(object.GetID());
-            auto label = objectInfo.first;
+            parent_.GetCamera().SetCameraAtPosition(object.GetPosition());
+            parent_.HandleGameObjectSelected(object.GetID(), false, true);
 
-            if (ImGui::Selectable(label.c_str(), objectInfo.second))
-            {
-               parent_.GetCamera().SetCameraAtPosition(object.GetPosition());
-               parent_.HandleGameObjectSelected(object.GetID(), false, true);
+            // Don't make the UI jump
+            setScrollTo_ = {};
+         }
 
-               // Don't make the UI jump
-               setScrollTo_ = {};
-            }
-
-            if (setScrollTo_ == object.GetID())
-            {
-               // Scroll to make this widget visible
-               ImGui::SetScrollHereY();
-            }
+         if (setScrollTo_ == object.GetID())
+         {
+            // Scroll to make this widget visible
+            ImGui::SetScrollHereY();
          }
       };
 
       if (selectedFilter == "Object")
       {
-         DisplayObjects(gameObjects);
+         for (const auto& object : currentLevel_->GetObjects())
+         {
+            DisplayObject(object);
+         }
       }
       else if (selectedFilter == "Enemy")
       {
-         DisplayObjects(parent_.GetLevel().GetEnemies());
+         for (const auto& object : parent_.GetLevel().GetEnemies())
+         {
+            DisplayObject(object);
+         }
       }
       else if (selectedFilter == "Player")
       {
-         DisplayObjects(std::vector< GameObject >{parent_.GetPlayer()});
+         DisplayObject(parent_.GetPlayer());
       }
       else if (selectedFilter == "All")
       {
-         DisplayObjects(std::vector< GameObject >{parent_.GetPlayer()});
-         DisplayObjects(parent_.GetLevel().GetEnemies());
-         DisplayObjects(gameObjects);
+         DisplayObject(parent_.GetPlayer());
+         for (const auto& object : parent_.GetLevel().GetEnemies())
+         {
+            DisplayObject(object);
+         }
+         for (const auto& object : currentLevel_->GetObjects())
+         {
+            DisplayObject(object);
+         }
       }
 
       ImGui::EndChild();

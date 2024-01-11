@@ -64,11 +64,10 @@ EditorGUI::RenderSelectedObjectsMenu()
    {
       const auto& objectInfo = objectsInfo_.at(object);
 
-      auto label = objectInfo.first;
-
-      if (ImGui::Selectable(label.c_str(), currentlySelectedGameObject_ != Object::INVALID_ID
-                                              ? currentlySelectedGameObject_ == object
-                                              : false))
+      if (ImGui::Selectable(objectInfo.first.c_str(),
+                            currentlySelectedGameObject_ != Object::INVALID_ID
+                               ? currentlySelectedGameObject_ == object
+                               : false))
       {
          const auto& gameObject = currentLevel_->GetGameObjectRef(object);
          parent_.GetCamera().SetCameraAtPosition(gameObject.GetPosition());
