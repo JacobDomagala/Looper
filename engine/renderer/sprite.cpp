@@ -154,9 +154,9 @@ Sprite::GetSize() const
 }
 
 void
-Sprite::SetSize(glm::vec2 size)
+Sprite::SetSize(const glm::vec2& newSize)
 {
-   size_ = size;
+   size_ = newSize;
    changed_ = true;
 }
 
@@ -232,6 +232,10 @@ void
 Sprite::SetInitialPosition(const glm::vec3& globalPosition)
 {
    initialPosition_ = globalPosition;
+   currentState_.currentPosition_ = globalPosition;
+   currentState_.translateVal_ = globalPosition;
+
+   changed_ = true;
 }
 
 void

@@ -27,8 +27,7 @@ Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
 
    InputManager::Init(window_.GetWindowHandle());
 
-   renderer::Initialize(window_.GetWindowHandle(),
-                                        renderer::ApplicationType::EDITOR);
+   renderer::Initialize(window_.GetWindowHandle(), renderer::ApplicationType::EDITOR);
    gui_.Init();
    InputManager::RegisterForInput(window_.GetWindowHandle(), this);
 }
@@ -191,11 +190,10 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
             selectStartPos_ = glm::vec2{};
             selectRect_ = std::array< glm::vec2, 4 >{};
          }
-
-         mouseDrag_ = false;
          selectingObjects_ = false;
       }
 
+      mouseDrag_ = false;
       event.handled_ = true;
    }
 }
@@ -409,9 +407,28 @@ Editor::HandleGameObjectSelected(Object::ID newSelectedGameObject, bool groupSel
       currentSelectedGameObject_ = newSelectedGameObject;
 
 
+      auto& gameObject =
+         dynamic_cast< GameObject& >(currentLevel_->GetObjectRef(currentSelectedGameObject_));
+      gizmoCenter_.SetInitialPosition(
+         glm::vec3{gameObject.GetCenteredPosition(), 0.0f});
+      gizmoCenter_.SetSize(gameObject.GetSize() / 7);
+      gizmoCenter_.SetColor({0.3f, 0.3f, 0.3f, 1.0f});
+
+      gizmoUp_.SetSize({gizmoCenter_.GetSize().x * 2.0f, gameObject.GetSize().y / 3});
+      gizmoUp_.SetInitialPosition(
+         gizmoCenter_.GetPosition()
+         + glm::vec3{0.0f, gizmoCenter_.GetSize().y / 2.0f + gizmoUp_.GetSize().y / 2, 0.0f});
+      gizmoUp_.SetColor({0.0f, 0.3f, 0.0f, 1.0f});
+
+      gizmoSide_.SetSize({gameObject.GetSize().x / 3, gizmoCenter_.GetSize().y * 2.0f});
+      gizmoSide_.SetInitialPosition(gizmoCenter_.GetPosition() + 
+         glm::vec3{glm::vec2(gizmoCenter_.GetSize().x / 2 + gizmoSide_.GetSize().x / 2, 0.0f),
+                     0.0f});
+      gizmoSide_.SetColor({0.3f, 0.0f, 0.0f, 1.0f});
+
+
       // Make sure to render animation points if needed
-      const auto* animatable =
-         dynamic_cast< Animatable* >(&currentLevel_->GetObjectRef(currentSelectedGameObject_));
+      const auto* animatable = dynamic_cast< Animatable* >(&gameObject);
 
 
       if (animatable and animatable->GetRenderAnimationSteps())
@@ -755,10 +772,13 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 {
    if (levelLoaded_)
    {
-      auto& renderData =
-         renderer::Data::renderData_[renderer::GetCurrentlyBoundType()];
+      auto& renderData = renderer::Data::renderData_[renderer::GetCurrentlyBoundType()];
 
       currentLevel_->GetSprite().Render();
+
+      gizmoCenter_.Render();
+      gizmoUp_.Render();
+      gizmoSide_.Render();
 
       DrawAnimationPoints();
 
@@ -1002,7 +1022,7 @@ Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
    camera_.SetLevelSize(currentLevel_->GetSize());
 
    levelLoaded_ = true;
-   m_levelFileName = (LEVELS_DIR / (name + ".dgl")).string();
+   levelFileName_ = (LEVELS_DIR / (name + ".dgl")).string();
    gui_.LevelLoaded(currentLevel_);
 
    currentLevel_->GenerateTextureForCollision();
@@ -1020,7 +1040,7 @@ Editor::LoadLevel(const std::string& levelPath)
    {
       SCOPED_TIMER("Total level load");
 
-      m_levelFileName = levelPath;
+      levelFileName_ = levelPath;
 
       // Should we actually compute total num points?
       animationPoints_.reserve(1000);
@@ -1058,6 +1078,10 @@ Editor::LoadLevel(const std::string& levelPath)
       currentLevel_->GenerateTextureForCollision();
 
       window_.MakeFocus();
+
+      gizmoCenter_.SetSpriteTextured(glm::vec3{}, {}, "rounded_square.png");
+      gizmoUp_.SetSpriteTextured(glm::vec3{}, {}, "arrow_up.png");
+      gizmoSide_.SetSpriteTextured(glm::vec3{}, {}, "arrow_right.png");
    }
 
    SetupRendererData();
@@ -1066,8 +1090,8 @@ Editor::LoadLevel(const std::string& levelPath)
 void
 Editor::SaveLevel(const std::string& levelPath)
 {
-   m_levelFileName = levelPath;
-   currentLevel_->Save(m_levelFileName);
+   levelFileName_ = levelPath;
+   currentLevel_->Save(levelFileName_);
 }
 
 void
@@ -1170,7 +1194,7 @@ Editor::PlayLevel()
 {
    // TODO: For future we'd want to check if anything got changed,
    //       so we don't always save (this can get costly later!)
-   currentLevel_->Save(m_levelFileName);
+   currentLevel_->Save(levelFileName_);
    playGame_ = true;
 }
 
@@ -1180,7 +1204,7 @@ Editor::LaunchGameLoop()
    {
       Game game;
       game.Init("GameInit.json", false);
-      game.LoadLevel(m_levelFileName);
+      game.LoadLevel(levelFileName_);
 
       // TODO: Create game-thread and run it inside
       game.MainLoop();

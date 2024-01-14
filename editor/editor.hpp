@@ -243,7 +243,7 @@ class Editor : public Application
    void
    FreeLevelData();
 
-   std::string m_levelFileName = {};
+   std::string levelFileName_ = {};
 
    bool isRunning_ = true;
    bool levelLoaded_ = false;
@@ -296,6 +296,10 @@ class Editor : public Application
    ThreadPool threadPool_ = ThreadPool{std::thread::hardware_concurrency()};
    std::future< void > updateReady_;
    std::future< void > renderReady_;
+
+   renderer::Sprite gizmoCenter_ = {};
+   renderer::Sprite gizmoUp_ = {};
+   renderer::Sprite gizmoSide_ = {};
 };
 
 } // namespace looper

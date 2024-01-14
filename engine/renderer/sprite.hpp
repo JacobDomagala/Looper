@@ -32,17 +32,17 @@ class Sprite
    // Create sprite without texture
    void
    SetSprite(const glm::vec3& position = glm::vec3(0.0f, 0.0f, 0.0f),
-             const glm::vec2& size = glm::vec2(10, 10));
+             const glm::vec2& size = glm::vec2(128, 128));
 
    // Create sprite with texture
    void
    SetSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
-                     const glm::vec2& size = glm::vec2(10, 10),
+                     const glm::vec2& size = glm::vec2(128, 128),
                      const std::string& fileName = "Default128.png");
 
    void
    SetSpriteTextured(const glm::vec3& position = glm::vec3(0.0f, 0.0f, 0.0f),
-                     const glm::vec2& size = glm::vec2(10, 10),
+                     const glm::vec2& size = glm::vec2(128, 128),
                      const std::string& fileName = "Default128.png");
 
    void
@@ -63,7 +63,7 @@ class Sprite
    [[nodiscard]] glm::vec2
    GetSize() const;
 
-   void SetSize(glm::vec2);
+   void SetSize(const glm::vec2& newSize);
 
    [[nodiscard]] glm::vec2
    GetOriginalSize() const;
