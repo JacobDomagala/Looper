@@ -218,7 +218,7 @@ class Editor : public Application
    MoveLogic(const glm::vec2& axis);
 
    void
-   ScaleLogic(const glm::vec2& axis);
+   ScaleLogic(const glm::vec2& currentCursorPos);
 
    void
    CheckIfObjectGotSelected(const glm::vec2& cursorPosition, bool groupSelect);

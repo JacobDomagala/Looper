@@ -503,13 +503,12 @@ Level::GetTilesAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos) co
 {
    std::set< Tile > tiles;
 
-   // NOLINTNEXTLINE
-   const auto numSteps = static_cast< int32_t >(glm::length(toPos - fromPos)
-                                                / static_cast< float >(tileWidth_ / uint32_t{2}));
+   const auto numSteps =
+      static_cast< uint32_t >(glm::length(toPos - fromPos)) / (tileWidth_ / uint32_t{2});
 
    const auto stepSize = (toPos - fromPos) / static_cast< float >(numSteps);
 
-   for (int32_t i = 0; i < numSteps; ++i)
+   for (uint32_t i = 0; i < numSteps; ++i)
    {
       tiles.insert(GetTileFromPosition(fromPos + (stepSize * static_cast< float >(i))));
    }

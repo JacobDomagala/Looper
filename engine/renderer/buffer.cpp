@@ -92,6 +92,7 @@ Buffer::CopyDataToImageWithStaging(VkImage image, const void* data, const size_t
 
    void* mapped_data = {};
    vmaMapMemory(Data::vk_hAllocator, stagingBuffer.allocation_, &mapped_data);
+   // NOLINTNEXTLINE
    memcpy(mapped_data, data, dataSize);
    vmaUnmapMemory(Data::vk_hAllocator, stagingBuffer.allocation_);
 

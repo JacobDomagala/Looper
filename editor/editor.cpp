@@ -309,7 +309,7 @@ Editor::ScaleLogic(const glm::vec2& currentCursorPos)
                                ? movementVector.x
                                : movementVector.y;
 
-   constexpr auto maxVal = 0.02f;
+   constexpr auto maxVal = 1.0f;
 
    const auto value = glm::clamp(movementVal, -maxVal, maxVal);
 

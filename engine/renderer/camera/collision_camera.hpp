@@ -8,7 +8,7 @@ class Sprite;
 class CollisionCamera
 {
  public:
-   CollisionCamera(const glm::vec3& position, const Sprite* obj);
+   CollisionCamera(const glm::vec3& position, const Sprite* sprite);
 
    [[nodiscard]] bool
    CheckCollision(const glm::vec2& globalVec) const;
