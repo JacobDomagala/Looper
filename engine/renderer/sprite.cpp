@@ -307,14 +307,8 @@ Sprite::RotateCumulative(float angle, RotationType type)
 void
 Sprite::Scale(const glm::vec2& scaleValue)
 {
-   currentState_.scaleVal_ = scaleValue;
-   currentState_.scaleVal_.x =
-      glm::clamp(currentState_.scaleVal_.x, SCALE_RANGE.first, SCALE_RANGE.second);
-   currentState_.scaleVal_.y =
-      glm::clamp(currentState_.scaleVal_.y, SCALE_RANGE.first, SCALE_RANGE.second);
-
-   size_ = static_cast< glm::vec2 >(size_)
-           * (currentState_.scaleVal_ + currentState_.uniformScaleValue_);
+   size_ = scaleValue;
+   size_ = glm::clamp(size_, SCALE_RANGE.first, SCALE_RANGE.second);
 
    changed_ = true;
 }
@@ -322,14 +316,8 @@ Sprite::Scale(const glm::vec2& scaleValue)
 void
 Sprite::ScaleCumulative(const glm::vec2& scaleValue)
 {
-   currentState_.scaleVal_ += scaleValue;
-   currentState_.scaleVal_.x =
-      glm::clamp(currentState_.scaleVal_.x, SCALE_RANGE.first, SCALE_RANGE.second);
-   currentState_.scaleVal_.y =
-      glm::clamp(currentState_.scaleVal_.y, SCALE_RANGE.first, SCALE_RANGE.second);
-
-   size_ = static_cast< glm::vec2 >(size_)
-           * (currentState_.scaleVal_ + currentState_.uniformScaleValue_);
+   size_ += scaleValue;
+   size_ = glm::clamp(size_, SCALE_RANGE.first, SCALE_RANGE.second);
 
    changed_ = true;
 }

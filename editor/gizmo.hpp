@@ -4,10 +4,19 @@ namespace looper {
 
 enum class GizmoState
 {
-	rotate,
-	translate,
-	scale
+   rotate,
+   translate,
+   scale
 };
+
+enum class GizmoPart
+{
+   center,
+   vertical,
+   hotizontal,
+   none
+};
+
 
 class Gizmo
 {
@@ -21,10 +30,11 @@ class Gizmo
    void
    Render();
    void
-   NewObjectSelected(const glm::vec2& centeredPos, float rotation);
+   Update(const glm::vec2& centeredPos, float rotation);
 
    void
    CheckHovered(const glm::vec3& cameraPos, const glm::vec2& globalPosition);
+
    void
    SwitchToScale();
    void
@@ -32,7 +42,12 @@ class Gizmo
    void
    SwitchToTranslate();
 
-   private:
+ public:
+   GizmoState currentState_ = GizmoState::translate;
+   GizmoPart selectedPart_ = GizmoPart::none;
+   bool mouseOnGizmo_ = false;
+
+ private:
    renderer::Sprite gizmoCenter_ = {};
    renderer::Sprite gizmoUp_ = {};
    renderer::Sprite gizmoSide_ = {};
@@ -42,7 +57,5 @@ class Gizmo
    std::pair< glm::vec2, glm::vec2 > centerInitialSize_ = {};
    glm::vec2 upInitialSize_ = {};
    glm::vec2 sideInitialSize_ = {};
-
-   GizmoState currentState_ = GizmoState::translate;
 };
 } // namespace looper

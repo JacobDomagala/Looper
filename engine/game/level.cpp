@@ -66,8 +66,6 @@ Level::Load(Application* context, const std::string& pathToLevel)
 
       player_.Setup(context, glm::vec3(position[0], position[1], 0.0f),
                     glm::ivec2(size[0], size[1]), texture, name);
-
-      player_.Scale(glm::vec2(player["scale"][0], player["scale"][1]));
       player_.Rotate(player["rotation"]);
       player_.GetSprite().ChangeRenderLayer(player["render_layer"]);
    }
@@ -92,7 +90,6 @@ Level::Load(Application* context, const std::string& pathToLevel)
          object.Setup(context, glm::vec3(position[0], position[1], 0.0f),
                       glm::ivec2(size[0], size[1]), texture, std::vector< AnimationPoint >{});
          object.SetName(name);
-         object.Scale(glm::vec2(enemy["scale"][0], enemy["scale"][1]));
          object.Rotate(enemy["rotation"]);
          object.GetSprite().ChangeRenderLayer(enemy["render_layer"]);
 
@@ -134,7 +131,6 @@ Level::Load(Application* context, const std::string& pathToLevel)
                           glm::ivec2(size[0], size[1]), texture, ObjectType::OBJECT);
          objectToIdx_[gameObject.GetID()] = i;
          gameObject.SetName(name);
-         gameObject.Scale(glm::vec2(object["scale"][0], object["scale"][1]));
          gameObject.Rotate(object["rotation"]);
          gameObject.GetSprite().ChangeRenderLayer(object["render_layer"]);
          gameObject.SetHasCollision(object["has collision"]);
@@ -154,7 +150,6 @@ Level::Save(const std::string& pathToLevel)
    // PLAYER
    json["PLAYER"]["name"] = player_.GetName();
    json["PLAYER"]["position"] = {player_.GetPosition().x, player_.GetPosition().y};
-   json["PLAYER"]["scale"] = {player_.GetSprite().GetScale().x, player_.GetSprite().GetScale().y};
    json["PLAYER"]["rotation"] = player_.GetSprite().GetRotation();
    json["PLAYER"]["size"] = {player_.GetSprite().GetOriginalSize().x,
                              player_.GetSprite().GetOriginalSize().y};
@@ -171,7 +166,6 @@ Level::Save(const std::string& pathToLevel)
       enemyJson["position"] = {enemy.GetPosition().x, enemy.GetPosition().y};
       enemyJson["size"] = {enemy.GetSprite().GetOriginalSize().x,
                            enemy.GetSprite().GetOriginalSize().y};
-      enemyJson["scale"] = {enemy.GetSprite().GetScale().x, enemy.GetSprite().GetScale().y};
       enemyJson["rotation"] = enemy.GetSprite().GetRotation();
       enemyJson["texture"] = enemy.GetSprite().GetTextureName();
       enemyJson["render_layer"] = enemy.GetSprite().GetRenderInfo().layer;
@@ -203,7 +197,6 @@ Level::Save(const std::string& pathToLevel)
       objectJson["position"] = {object.GetPosition().x, object.GetPosition().y};
       objectJson["size"] = {object.GetSprite().GetOriginalSize().x,
                             object.GetSprite().GetOriginalSize().y};
-      objectJson["scale"] = {object.GetSprite().GetScale().x, object.GetSprite().GetScale().y};
       objectJson["rotation"] = object.GetSprite().GetRotation();
       objectJson["texture"] = object.GetSprite().GetTextureName();
       objectJson["render_layer"] = object.GetSprite().GetRenderInfo().layer;
@@ -314,7 +307,7 @@ Level::AddGameObject(ObjectType objectType, const glm::vec2& position)
 
       default: {
       }
-   }   
+   }
 
    return newObject;
 }
@@ -767,7 +760,7 @@ Level::Update(bool isReverse)
    // TODO: Parallelize for larger groups of objects
    // Player and Enemies should be handled by a single thread,
    // since they're dependent of eachother
-   //for (auto& obj : objects_)
+   // for (auto& obj : objects_)
    //{
    //   // We probably should update only objects that are
    //   // in some range of camera

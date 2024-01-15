@@ -46,7 +46,7 @@ Gizmo::Render()
    gizmoUp_.Render();
 }
 void
-Gizmo::NewObjectSelected(const glm::vec2& centeredPos, float rotation)
+Gizmo::Update(const glm::vec2& centeredPos, float rotation)
 {
    currentRotation_ = rotation;
 
@@ -54,7 +54,7 @@ Gizmo::NewObjectSelected(const glm::vec2& centeredPos, float rotation)
    {
       gizmoCenter_.Rotate(currentRotation_);
    }
-   
+
    gizmoCenter_.SetInitialPosition(glm::vec3{centeredPos, 0.0f});
 
    gizmoUp_.SetInitialPosition(
@@ -72,12 +72,15 @@ void
 Gizmo::CheckHovered(const glm::vec3& cameraPos, const glm::vec2& globalPosition)
 {
    bool gizmoTouched = false;
-   auto checkGizmo = [&gizmoTouched, cameraPos, globalPosition](auto& gizmo,
-                                                                const glm::vec2& defaultSize) {
+   selectedPart_ = GizmoPart::none;
+
+   auto checkGizmo = [this, &gizmoTouched, cameraPos,
+                      globalPosition](auto& gizmo, const glm::vec2& defaultSize, GizmoPart part) {
       if (not gizmoTouched and gizmo.CheckIfCollidedScreenPosion(cameraPos, globalPosition))
       {
          gizmo.SetSize(defaultSize * 1.1f);
          gizmoTouched = true;
+         selectedPart_ = part;
       }
       else
       {
@@ -85,11 +88,16 @@ Gizmo::CheckHovered(const glm::vec3& cameraPos, const glm::vec2& globalPosition)
       }
    };
 
-   checkGizmo(gizmoCenter_, currentState_ == GizmoState::rotate ? centerInitialSize_.second
-                                                                : centerInitialSize_.first);
-   checkGizmo(gizmoSide_, sideInitialSize_);
-   checkGizmo(gizmoUp_, upInitialSize_);
+   checkGizmo(gizmoCenter_,
+              currentState_ == GizmoState::rotate ? centerInitialSize_.second
+                                                  : centerInitialSize_.first,
+              GizmoPart::center);
+   checkGizmo(gizmoSide_, sideInitialSize_, GizmoPart::hotizontal);
+   checkGizmo(gizmoUp_, upInitialSize_, GizmoPart::vertical);
+
+   mouseOnGizmo_ = gizmoTouched;
 }
+
 void
 Gizmo::SwitchToScale()
 {

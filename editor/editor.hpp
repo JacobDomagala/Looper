@@ -218,6 +218,9 @@ class Editor : public Application
    MoveLogic(const glm::vec2& axis);
 
    void
+   ScaleLogic(const glm::vec2& axis);
+
+   void
    CheckIfObjectGotSelected(const glm::vec2& cursorPosition, bool groupSelect);
 
    std::vector< Object::ID >
@@ -296,6 +299,7 @@ class Editor : public Application
    std::future< void > renderReady_;
 
    Gizmo gizmo_ = {};
+   bool gizmoActive_ = false;
 };
 
 } // namespace looper
