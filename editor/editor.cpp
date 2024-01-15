@@ -397,7 +397,7 @@ Editor::HandleGameObjectSelected(Object::ID newSelectedGameObject, bool groupSel
       auto& gameObject =
          dynamic_cast< GameObject& >(currentLevel_->GetObjectRef(currentSelectedGameObject_));
 
-      gizmo_.NewObjectSelected(gameObject.GetCenteredPosition());
+      gizmo_.NewObjectSelected(gameObject.GetCenteredPosition(), gameObject.GetSprite().GetRotation());
 
 
       // Make sure to render animation points if needed
