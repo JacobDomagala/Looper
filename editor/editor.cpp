@@ -39,42 +39,27 @@ Editor::ShowCursor(bool choice)
 }
 
 void
-Editor::HandleCamera()
-{
-   auto cameraMoveBy = glm::vec2();
-
-   if (!EditorGUI::IsBlockingEvents() && levelLoaded_)
-   {
-      if (InputManager::CheckKeyPressed(GLFW_KEY_W))
-      {
-         cameraMoveBy += glm::vec2(0.0f, -1.0f);
-      }
-      if (InputManager::CheckKeyPressed(GLFW_KEY_S))
-      {
-         cameraMoveBy += glm::vec2(0.0f, 1.0f);
-      }
-      if (InputManager::CheckKeyPressed(GLFW_KEY_A))
-      {
-         cameraMoveBy += glm::vec2(-1.0f, 0.0f);
-      }
-      if (InputManager::CheckKeyPressed(GLFW_KEY_D))
-      {
-         cameraMoveBy += glm::vec2(1.0f, 0);
-      }
-      if (InputManager::CheckKeyPressed(GLFW_KEY_SPACE))
-      {
-         camera_.SetCameraAtPosition({0.0f, 0.0f, 0.0f});
-      }
-
-      camera_.Move(glm::vec3(cameraMoveBy, 0.0f));
-   }
-}
-
-void
 Editor::KeyCallback(KeyEvent& event)
 {
    if (event.action_ == GLFW_PRESS)
    {
+      if (currentEditorObjectSelected_ != Object::INVALID_ID
+          or currentSelectedGameObject_ != Object::INVALID_ID)
+      {
+         if (event.key_ == GLFW_KEY_T)
+         {
+            gizmo_.SwitchToTranslate();
+         }
+         if (event.key_ == GLFW_KEY_R)
+         {
+            gizmo_.SwitchToRotate();
+         }
+         if (event.key_ == GLFW_KEY_S)
+         {
+            gizmo_.SwitchToScale();
+         }
+      }
+
       if (IsAnyObjectSelected())
       {
          ACTION action = ACTION::NONE;
@@ -211,6 +196,8 @@ Editor::CursorPositionCallback(CursorPositionEvent& event)
       }
       else
       {
+         gizmo_.CheckHovered(camera_.GetPosition(), ScreenToGlobal(currentCursorPosition));
+
          ShowCursor(true);
       }
 
@@ -409,22 +396,8 @@ Editor::HandleGameObjectSelected(Object::ID newSelectedGameObject, bool groupSel
 
       auto& gameObject =
          dynamic_cast< GameObject& >(currentLevel_->GetObjectRef(currentSelectedGameObject_));
-      gizmoCenter_.SetInitialPosition(
-         glm::vec3{gameObject.GetCenteredPosition(), 0.0f});
-      gizmoCenter_.SetSize(gameObject.GetSize() / 7);
-      gizmoCenter_.SetColor({0.3f, 0.3f, 0.3f, 1.0f});
 
-      gizmoUp_.SetSize({gizmoCenter_.GetSize().x * 2.0f, gameObject.GetSize().y / 3});
-      gizmoUp_.SetInitialPosition(
-         gizmoCenter_.GetPosition()
-         + glm::vec3{0.0f, gizmoCenter_.GetSize().y / 2.0f + gizmoUp_.GetSize().y / 2, 0.0f});
-      gizmoUp_.SetColor({0.0f, 0.3f, 0.0f, 1.0f});
-
-      gizmoSide_.SetSize({gameObject.GetSize().x / 3, gizmoCenter_.GetSize().y * 2.0f});
-      gizmoSide_.SetInitialPosition(gizmoCenter_.GetPosition() + 
-         glm::vec3{glm::vec2(gizmoCenter_.GetSize().x / 2 + gizmoSide_.GetSize().x / 2, 0.0f),
-                     0.0f});
-      gizmoSide_.SetColor({0.3f, 0.0f, 0.0f, 1.0f});
+      gizmo_.NewObjectSelected(gameObject.GetCenteredPosition());
 
 
       // Make sure to render animation points if needed
@@ -446,6 +419,7 @@ Editor::HandleGameObjectSelected(Object::ID newSelectedGameObject, bool groupSel
       }
 
       gui_.ObjectSelected(currentSelectedGameObject_);
+      gizmo_.Show();
    }
 
    movementOnGameObject_ = !fromGUI;
@@ -563,6 +537,8 @@ Editor::UnselectGameObject(Object::ID object, bool groupSelect)
          selectedObjects_.erase(it);
       }
    }
+
+   gizmo_.Hide();
 }
 
 void
@@ -578,6 +554,8 @@ Editor::HandleEditorObjectSelected(EditorObject& newSelectedEditorObject, bool f
    movementOnEditorObject_ = !fromGUI;
 
    newSelectedEditorObject.SetObjectSelected();
+
+   gizmo_.Show();
 }
 
 EditorObject&
@@ -605,6 +583,8 @@ Editor::UnselectEditorObject(Object::ID object)
    auto& editorObject = GetEditorObjectRef(object);
    editorObject.SetObjectUnselected();
    currentEditorObjectSelected_ = Object::INVALID_ID;
+
+   gizmo_.Hide();
 }
 
 void
@@ -776,10 +756,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 
       currentLevel_->GetSprite().Render();
 
-      gizmoCenter_.Render();
-      gizmoUp_.Render();
-      gizmoSide_.Render();
-
+      gizmo_.Render();
       DrawAnimationPoints();
 
       currentLevel_->RenderGameObjects();
@@ -1079,9 +1056,7 @@ Editor::LoadLevel(const std::string& levelPath)
 
       window_.MakeFocus();
 
-      gizmoCenter_.SetSpriteTextured(glm::vec3{}, {}, "rounded_square.png");
-      gizmoUp_.SetSpriteTextured(glm::vec3{}, {}, "arrow_up.png");
-      gizmoSide_.SetSpriteTextured(glm::vec3{}, {}, "arrow_right.png");
+      gizmo_.Initialize();
    }
 
    SetupRendererData();
@@ -1252,8 +1227,6 @@ Editor::SetLockAnimationPoints(bool lock)
 void
 Editor::Update()
 {
-   HandleCamera();
-
    if (animateGameObject_ && currentSelectedGameObject_ != Object::INVALID_ID)
    {
       auto& objectBase = currentLevel_->GetObjectRef(currentSelectedGameObject_);

@@ -1,19 +1,19 @@
 #include "collision_camera.hpp"
 #include "camera.hpp"
-#include "game_object.hpp"
+#include "sprite.hpp"
 
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/transform.hpp>
 
 namespace looper::renderer {
 
-CollisionCamera::CollisionCamera(const glm::vec3& position, const GameObject* obj)
+CollisionCamera::CollisionCamera(const glm::vec3& position, const Sprite* sprite)
    : position_(position),
      upVector_(Camera::originalUpVec),
      lookAtDirection_(Camera::originalLookAt),
-     object_(obj)
+     sprite_(sprite)
 {
-   Rotate(object_->GetSprite().GetRotation());
+   Rotate(sprite_->GetRotation());
 }
 
 bool
@@ -21,7 +21,7 @@ CollisionCamera::CheckCollision(const glm::vec2& globalVec) const
 {
    bool collided = false;
 
-   const auto boundingRectangle = object_->GetSprite().GetTransformedRectangle();
+   const auto boundingRectangle = sprite_->GetTransformedRectangle();
 
    const auto transformed0 = viewMatrix_ * glm::vec4(boundingRectangle[0], 0.0f, 1.0f);
    const auto transformed1 = viewMatrix_ * glm::vec4(boundingRectangle[1], 0.0f, 1.0f);

@@ -2,6 +2,7 @@
 
 #include "application.hpp"
 #include "editor_object.hpp"
+#include "gizmo.hpp"
 #include "gui/editor_gui.hpp"
 #include "level.hpp"
 #include "logger.hpp"
@@ -208,9 +209,6 @@ class Editor : public Application
    IsRunning() const override;
 
    void
-   HandleCamera();
-
-   void
    HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis);
 
    void
@@ -297,9 +295,7 @@ class Editor : public Application
    std::future< void > updateReady_;
    std::future< void > renderReady_;
 
-   renderer::Sprite gizmoCenter_ = {};
-   renderer::Sprite gizmoUp_ = {};
-   renderer::Sprite gizmoSide_ = {};
+   Gizmo gizmo_ = {};
 };
 
 } // namespace looper

@@ -2,16 +2,13 @@
 
 #include <glm/glm.hpp>
 
-namespace looper {
-class GameObject;
-}
-
 namespace looper::renderer {
+class Sprite;
 
 class CollisionCamera
 {
  public:
-   CollisionCamera(const glm::vec3& position, const GameObject* obj);
+   CollisionCamera(const glm::vec3& position, const Sprite* obj);
 
    [[nodiscard]] bool
    CheckCollision(const glm::vec2& globalVec) const;
@@ -28,7 +25,7 @@ class CollisionCamera
    glm::vec3 lookAtDirection_ = {};
 
    glm::mat4 viewMatrix_ = {};
-   const GameObject* object_ = nullptr;
+   const Sprite* sprite_ = nullptr;
 };
 
 } // namespace looper::renderer

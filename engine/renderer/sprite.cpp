@@ -1,6 +1,7 @@
 #include "sprite.hpp"
 #include "application.hpp"
 #include "renderer.hpp"
+#include "renderer/camera/collision_camera.hpp"
 #include "texture.hpp"
 
 #include <glm/gtx/transform.hpp>
@@ -12,8 +13,8 @@ Sprite::ClearData() const
 {
    const auto transformMat = ComputeModelMat();
 
-   renderer::SubmitMeshData(static_cast< uint32_t >(renderInfo_.idx), textures_,
-                                            transformMat, {0.0f, 0.0f, 0.0f, 0.0f});
+   renderer::SubmitMeshData(static_cast< uint32_t >(renderInfo_.idx), textures_, transformMat,
+                            {0.0f, 0.0f, 0.0f, 0.0f});
 
    renderer::MeshDeleted(renderInfo_);
 }
@@ -39,8 +40,7 @@ Sprite::ChangeRenderLayer(int32_t newLayer)
 
    const auto transformMat = ComputeModelMat();
 
-   renderInfo_ =
-      MeshLoaded(vertices_, textures_, transformMat, currentState_.color_);
+   renderInfo_ = MeshLoaded(vertices_, textures_, transformMat, currentState_.color_);
    changed_ = true;
 }
 
@@ -68,6 +68,7 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
    initialPosition_ = position;
    currentState_.currentPosition_ = position;
    size_ = size;
+   initialSize_ = size;
 
    currentState_.translateVal_ = position;
    currentState_.angle_ = 0.0f;
@@ -100,8 +101,7 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
                 TextureLibrary::GetTexture(fileName)->GetID(),
                 TextureLibrary::GetTexture(fileName)->GetID()};
 
-   renderInfo_ =
-      MeshLoaded(vertices_, textures_, transformMat, currentState_.color_);
+   renderInfo_ = MeshLoaded(vertices_, textures_, transformMat, currentState_.color_);
 }
 
 void
@@ -127,6 +127,18 @@ Sprite::Update(bool isReverse)
 }
 
 void
+Sprite::Show()
+{
+   SetColor({currentState_.color_.x, currentState_.color_.y, currentState_.color_.z, 1.0f});
+}
+
+void
+Sprite::Hide()
+{
+   SetColor({currentState_.color_.x, currentState_.color_.y, currentState_.color_.z, 0.0f});
+}
+
+void
 Sprite::Render()
 {
    if (changed_)
@@ -134,8 +146,8 @@ Sprite::Render()
       const auto transformMat = ComputeModelMat();
       ComputeBoundingBox();
 
-      renderer::SubmitMeshData(static_cast< uint32_t >(renderInfo_.idx), textures_,
-                                               transformMat, currentState_.color_);
+      renderer::SubmitMeshData(static_cast< uint32_t >(renderInfo_.idx), textures_, transformMat,
+                               currentState_.color_);
 
       changed_ = false;
    }
@@ -275,7 +287,7 @@ Sprite::GetTexture() const
 void
 Sprite::Rotate(float angle, RotationType type)
 {
-   currentState_.angle_ = type == RotationType::DEGREES ? glm::degrees(angle) : angle;
+   currentState_.angle_ = type == RotationType::DEGREES ? glm::radians(angle) : angle;
    currentState_.angle_ =
       glm::clamp(currentState_.angle_, glm::radians(-360.0f), glm::radians(360.0f));
 
@@ -285,7 +297,7 @@ Sprite::Rotate(float angle, RotationType type)
 void
 Sprite::RotateCumulative(float angle, RotationType type)
 {
-   currentState_.angle_ += type == RotationType::DEGREES ? glm::degrees(angle) : angle;
+   currentState_.angle_ += type == RotationType::DEGREES ? glm::radians(angle) : angle;
    currentState_.angle_ =
       glm::clamp(currentState_.angle_, glm::radians(-360.0f), glm::radians(360.0f));
 
@@ -367,6 +379,14 @@ std::array< glm::vec2, 4 >
 Sprite::GetTransformedRectangle() const
 {
    return boundingBox_;
+}
+
+bool
+Sprite::CheckIfCollidedScreenPosion(const glm::vec3& cameraPosition,
+                                    const glm::vec2& globalPosition) const
+{
+   const renderer::CollisionCamera camera(cameraPosition, this);
+   return camera.CheckCollision(globalPosition);
 }
 
 } // namespace looper::renderer
