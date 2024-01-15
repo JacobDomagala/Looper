@@ -392,9 +392,8 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
    }
    else if (RMBPressedLastUpdate_)
    {
-   }
-   else
-   {
+      ShowCursor(false);
+      camera_.Move(glm::vec3{currentCursorPos - lastCursorPosition_, 0.0f});
    }
 
    mouseDrag_ = true;

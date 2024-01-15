@@ -70,9 +70,6 @@ class Level
    LoadPremade(const std::string& fileName, const glm::ivec2& size);
 
    void
-   LoadShaders(const std::string& shaderName);
-
-   void
    DeleteObject(Object::ID deletedObject);
 
    Object&
@@ -191,23 +188,20 @@ class Level
    GetNumOfObjects() const;
 
  private:
-   Application* m_contextPointer = nullptr;
-   renderer::Sprite m_background = {};
-   PathFinder m_pathFinder = {};
+   Application* contextPointer_ = nullptr;
+   renderer::Sprite background_ = {};
+   PathFinder pathFinder_ = {};
 
    // Base texture and collision texture
    renderer::TextureID baseTexture_ = {};
    renderer::TextureID collisionTexture_ = {};
    FileManager::ImageData collisionTextureData_ = {};
 
-   std::string m_shaderName = "DefaultShader";
+   bool locked_ = false;
 
-
-   bool m_locked = false;
-
-   std::string m_name = "DummyName";
-   glm::ivec2 m_levelSize = {0, 0};
-   uint32_t m_tileWidth = 128;
+   std::string name_ = "DummyName";
+   glm::ivec2 levelSize_ = {0, 0};
+   uint32_t tileWidth_ = 128;
 
    Player player_ = {};
    std::vector< Enemy > enemies_ = {};
