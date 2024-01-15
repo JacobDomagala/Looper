@@ -162,7 +162,7 @@ class Sprite
 
    static constexpr std::pair< float, float > ROTATION_RANGE = {glm::radians(-360.0f),
                                                                 glm::radians(360.0f)};
-   static constexpr std::pair< float, float > SCALE_RANGE = {64.0f, 1024.0f};
+   static constexpr std::pair< float, float > SCALE_RANGE = {16.0f, 1024.0f};
 
    glm::vec3 initialPosition_ = {};
    glm::vec2 initialSize_ = {};

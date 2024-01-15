@@ -897,6 +897,7 @@ UpdatePerInstanceBuffer()
 
          for (const auto object : updatedObjects_)
          {
+            // NOLINTNEXTLINE
             PerInstanceBuffer* offset = reinterpret_cast< PerInstanceBuffer* >(data) + object;
             memcpy(offset, renderData.perInstance.data() + object, sizeof(PerInstanceBuffer));
          }
@@ -967,7 +968,7 @@ UpdateData()
 
    if (updateVertexBuffer_)
    {
-      std::set< int32_t > layers(renderLayersChanged_.begin(), renderLayersChanged_.end());
+      const std::set< int32_t > layers(renderLayersChanged_.begin(), renderLayersChanged_.end());
       for (const auto layer : layers)
       {
          SetupVertexBuffer(layer);

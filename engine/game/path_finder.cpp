@@ -121,8 +121,8 @@ PathFinder::GetNodeIDFromTile(const Tile& tile)
 Node&
 PathFinder::GetNodeFromTile(const Tile& tile)
 {
-   return nodes_.at(static_cast< size_t >(
-      tile.first + tile.second * static_cast< int32_t >(levelHandle_->GetTileSize())));
+   return nodes_.at(static_cast< uint32_t >(tile.first)
+                    + static_cast< uint32_t >(tile.second) * levelHandle_->GetTileSize());
 }
 
 std::vector< NodeID >

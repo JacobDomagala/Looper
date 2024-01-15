@@ -168,7 +168,7 @@ Sprite::GetSize() const
 void
 Sprite::SetSize(const glm::vec2& newSize)
 {
-   size_ = newSize;
+   Scale(newSize);
    changed_ = true;
 }
 
