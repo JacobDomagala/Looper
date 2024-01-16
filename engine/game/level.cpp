@@ -20,15 +20,15 @@ namespace looper {
 void
 Level::Create(Application* context, const std::string& name, const glm::ivec2& size)
 {
-   m_name = name;
-   m_levelSize = size;
+   name_ = name;
+   levelSize_ = size;
 
-   m_background.SetSpriteTextured(glm::vec3(static_cast< float >(m_levelSize.x) / 2.0f,
-                                            static_cast< float >(m_levelSize.y) / 2.0f, 0.3f),
-                                  size, "white.png");
+   background_.SetSpriteTextured(glm::vec3(static_cast< float >(levelSize_.x) / 2.0f,
+                                           static_cast< float >(levelSize_.y) / 2.0f, 0.3f),
+                                 size, "white.png");
 
-   m_contextPointer = context;
-   m_pathFinder.Initialize(this);
+   contextPointer_ = context;
+   pathFinder_.Initialize(this);
 }
 
 void
@@ -44,13 +44,13 @@ Level::Load(Application* context, const std::string& pathToLevel)
 
       LoadPremade(backgroundTex, glm::ivec2(size[0], size[1]));
 
-      m_contextPointer = context;
+      contextPointer_ = context;
    }
 
    // PATHFINDER
    {
       SCOPED_TIMER(fmt::format("Loading Pathfinder"));
-      m_pathFinder.Initialize(this);
+      pathFinder_.Initialize(this);
    }
 
    // PLAYER
@@ -66,8 +66,6 @@ Level::Load(Application* context, const std::string& pathToLevel)
 
       player_.Setup(context, glm::vec3(position[0], position[1], 0.0f),
                     glm::ivec2(size[0], size[1]), texture, name);
-
-      player_.Scale(glm::vec2(player["scale"][0], player["scale"][1]));
       player_.Rotate(player["rotation"]);
       player_.GetSprite().ChangeRenderLayer(player["render_layer"]);
    }
@@ -92,7 +90,6 @@ Level::Load(Application* context, const std::string& pathToLevel)
          object.Setup(context, glm::vec3(position[0], position[1], 0.0f),
                       glm::ivec2(size[0], size[1]), texture, std::vector< AnimationPoint >{});
          object.SetName(name);
-         object.Scale(glm::vec2(enemy["scale"][0], enemy["scale"][1]));
          object.Rotate(enemy["rotation"]);
          object.GetSprite().ChangeRenderLayer(enemy["render_layer"]);
 
@@ -134,7 +131,6 @@ Level::Load(Application* context, const std::string& pathToLevel)
                           glm::ivec2(size[0], size[1]), texture, ObjectType::OBJECT);
          objectToIdx_[gameObject.GetID()] = i;
          gameObject.SetName(name);
-         gameObject.Scale(glm::vec2(object["scale"][0], object["scale"][1]));
          gameObject.Rotate(object["rotation"]);
          gameObject.GetSprite().ChangeRenderLayer(object["render_layer"]);
          gameObject.SetHasCollision(object["has collision"]);
@@ -148,13 +144,12 @@ Level::Save(const std::string& pathToLevel)
    nlohmann::json json;
 
    // Serialize background
-   json["BACKGROUND"]["texture"] = m_background.GetTextureName();
-   json["BACKGROUND"]["size"] = {m_background.GetSize().x, m_background.GetSize().y};
+   json["BACKGROUND"]["texture"] = background_.GetTextureName();
+   json["BACKGROUND"]["size"] = {background_.GetSize().x, background_.GetSize().y};
 
    // PLAYER
    json["PLAYER"]["name"] = player_.GetName();
    json["PLAYER"]["position"] = {player_.GetPosition().x, player_.GetPosition().y};
-   json["PLAYER"]["scale"] = {player_.GetSprite().GetScale().x, player_.GetSprite().GetScale().y};
    json["PLAYER"]["rotation"] = player_.GetSprite().GetRotation();
    json["PLAYER"]["size"] = {player_.GetSprite().GetOriginalSize().x,
                              player_.GetSprite().GetOriginalSize().y};
@@ -171,7 +166,6 @@ Level::Save(const std::string& pathToLevel)
       enemyJson["position"] = {enemy.GetPosition().x, enemy.GetPosition().y};
       enemyJson["size"] = {enemy.GetSprite().GetOriginalSize().x,
                            enemy.GetSprite().GetOriginalSize().y};
-      enemyJson["scale"] = {enemy.GetSprite().GetScale().x, enemy.GetSprite().GetScale().y};
       enemyJson["rotation"] = enemy.GetSprite().GetRotation();
       enemyJson["texture"] = enemy.GetSprite().GetTextureName();
       enemyJson["render_layer"] = enemy.GetSprite().GetRenderInfo().layer;
@@ -203,7 +197,6 @@ Level::Save(const std::string& pathToLevel)
       objectJson["position"] = {object.GetPosition().x, object.GetPosition().y};
       objectJson["size"] = {object.GetSprite().GetOriginalSize().x,
                             object.GetSprite().GetOriginalSize().y};
-      objectJson["scale"] = {object.GetSprite().GetScale().x, object.GetSprite().GetScale().y};
       objectJson["rotation"] = object.GetSprite().GetRotation();
       objectJson["texture"] = object.GetSprite().GetTextureName();
       objectJson["render_layer"] = object.GetSprite().GetRenderInfo().layer;
@@ -224,38 +217,38 @@ Level::Quit()
 void
 Level::LockCamera()
 {
-   m_locked = true;
+   locked_ = true;
 }
 
 
 void
 Level::UnlockCamera()
 {
-   m_locked = false;
+   locked_ = false;
 }
 
 bool
 Level::IsCameraLocked() const
 {
-   return m_locked;
+   return locked_;
 }
 
 glm::vec2
 Level::GetLevelPosition() const
 {
-   return m_background.GetPosition();
+   return background_.GetPosition();
 }
 
 glm::ivec2
 Level::GetSize() const
 {
-   return m_levelSize;
+   return levelSize_;
 }
 
 uint32_t
 Level::GetTileSize() const
 {
-   return m_tileWidth;
+   return tileWidth_;
 }
 
 size_t
@@ -267,7 +260,7 @@ Level::GetNumOfObjects() const
 PathFinder&
 Level::GetPathfinder()
 {
-   return m_pathFinder;
+   return pathFinder_;
 }
 
 const Player&
@@ -288,7 +281,7 @@ Level::AddGameObject(ObjectType objectType, const glm::vec2& position)
    {
       case ObjectType::ENEMY: {
          const auto& newEnemy =
-            enemies_.emplace_back(m_contextPointer, position, defaultSize, defaultTexture,
+            enemies_.emplace_back(contextPointer_, position, defaultSize, defaultTexture,
                                   std::vector< AnimationPoint >{});
 
          newObject = newEnemy.GetID();
@@ -298,14 +291,14 @@ Level::AddGameObject(ObjectType objectType, const glm::vec2& position)
       case ObjectType::PLAYER: {
          if (player_.GetID() == Object::INVALID_ID)
          {
-            player_.Setup(m_contextPointer, glm::vec3{position, 0.0f}, defaultSize, defaultTexture);
+            player_.Setup(contextPointer_, glm::vec3{position, 0.0f}, defaultSize, defaultTexture);
          }
          newObject = player_.GetID();
       }
       break;
 
       case ObjectType::OBJECT: {
-         const auto& newObj = objects_.emplace_back(m_contextPointer, position, defaultSize,
+         const auto& newObj = objects_.emplace_back(contextPointer_, position, defaultSize,
                                                     defaultTexture, ObjectType::OBJECT);
          newObject = newObj.GetID();
          objectToIdx_[newObject] = objects_.size() - 1;
@@ -314,7 +307,7 @@ Level::AddGameObject(ObjectType objectType, const glm::vec2& position)
 
       default: {
       }
-   }   
+   }
 
    return newObject;
 }
@@ -326,7 +319,7 @@ Level::GameObjectMoved(const std::array< glm::vec2, 4 >& box,
 {
    auto newTiles = GetTilesFromBoundingBox(box);
 
-   if (m_pathFinder.IsInitialized())
+   if (pathFinder_.IsInitialized())
    {
       // TODO: Discard common tiles and only free/occupy unique ones
       FreeNodes(objectID, currentTiles, hasCollision);
@@ -339,16 +332,16 @@ Level::GameObjectMoved(const std::array< glm::vec2, 4 >& box,
 void
 Level::FreeNodes(Object::ID object, const std::vector< Tile >& nodes, bool hasCollision)
 {
-   if (m_pathFinder.IsInitialized())
+   if (pathFinder_.IsInitialized())
    {
       for (auto tileID : nodes)
       {
          if (hasCollision)
          {
-            m_pathFinder.SetNodeFreed(tileID, object);
+            pathFinder_.SetNodeFreed(tileID, object);
          }
 
-         m_pathFinder.SetObjectOffNode(tileID, object);
+         pathFinder_.SetObjectOffNode(tileID, object);
       }
    }
 }
@@ -356,16 +349,16 @@ Level::FreeNodes(Object::ID object, const std::vector< Tile >& nodes, bool hasCo
 void
 Level::OccupyNodes(Object::ID object, const std::vector< Tile >& nodes, bool hasCollision)
 {
-   if (m_pathFinder.IsInitialized())
+   if (pathFinder_.IsInitialized())
    {
       for (auto tileID : nodes)
       {
          if (hasCollision)
          {
-            m_pathFinder.SetNodeOccupied(tileID, object);
+            pathFinder_.SetNodeOccupied(tileID, object);
          }
 
-         m_pathFinder.SetObjectOnNode(tileID, object);
+         pathFinder_.SetObjectOnNode(tileID, object);
       }
    }
 }
@@ -413,10 +406,10 @@ Level::GetTilesFromRectangle(const std::array< glm::vec2, 4 >& rect) const
 
    // 'rect' is not rotated so we can assume left/right top/down boundaries
    const std::array< Tile, 4 > tileRect = {
-      CustomGetTileFromPosition(m_levelSize, m_tileWidth, rect.at(0)),
-      CustomGetTileFromPosition(m_levelSize, m_tileWidth, rect.at(1)),
-      CustomGetTileFromPosition(m_levelSize, m_tileWidth, rect.at(2)),
-      CustomGetTileFromPosition(m_levelSize, m_tileWidth, rect.at(3))};
+      CustomGetTileFromPosition(levelSize_, tileWidth_, rect.at(0)),
+      CustomGetTileFromPosition(levelSize_, tileWidth_, rect.at(1)),
+      CustomGetTileFromPosition(levelSize_, tileWidth_, rect.at(2)),
+      CustomGetTileFromPosition(levelSize_, tileWidth_, rect.at(3))};
 
    // 'y' tiles go bottom to top
    for (auto y = tileRect.at(2).second; y <= tileRect.at(0).second; ++y)
@@ -441,8 +434,8 @@ Level::GetTileFromPosition(const glm::vec2& local) const
       return INVALID_TILE;
    }
 
-   const auto w = static_cast< int32_t >(glm::floor(local.x / static_cast< float >(m_tileWidth)));
-   const auto h = static_cast< int32_t >(glm::floor(local.y / static_cast< float >(m_tileWidth)));
+   const auto w = static_cast< int32_t >(glm::floor(local.x / static_cast< float >(tileWidth_)));
+   const auto h = static_cast< int32_t >(glm::floor(local.y / static_cast< float >(tileWidth_)));
 
    return {w, h};
 }
@@ -450,8 +443,8 @@ Level::GetTileFromPosition(const glm::vec2& local) const
 bool
 Level::IsInLevelBoundaries(const glm::vec2& position) const
 {
-   return position.x >= 0 && position.x < static_cast< float >(m_levelSize.x) && position.y >= 0
-          && position.y < static_cast< float >(m_levelSize.y);
+   return position.x >= 0 && position.x < static_cast< float >(levelSize_.x) && position.y >= 0
+          && position.y < static_cast< float >(levelSize_.y);
 }
 
 glm::vec2
@@ -469,7 +462,7 @@ Level::GetCollidedPosition(const glm::vec2& fromPos, const glm::vec2& toPos)
    {
       auto curPos = fromPos + (stepSize * static_cast< float >(i));
 
-      if (!IsInLevelBoundaries(curPos) or m_pathFinder.GetNodeFromPosition(curPos).occupied_)
+      if (!IsInLevelBoundaries(curPos) or pathFinder_.GetNodeFromPosition(curPos).occupied_)
       {
          break;
       }
@@ -478,7 +471,7 @@ Level::GetCollidedPosition(const glm::vec2& fromPos, const glm::vec2& toPos)
    }
 
    return glm::clamp(returnPosition, glm::vec2{0.0f, 0.0f},
-                     static_cast< glm::vec2 >(m_levelSize - 1));
+                     static_cast< glm::vec2 >(levelSize_ - 1));
 }
 
 bool
@@ -495,7 +488,7 @@ Level::CheckCollisionAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toP
    for (int i = 0; i < numSteps; ++i)
    {
       const auto curPos = fromPos + (stepSize * static_cast< float >(i));
-      if (!IsInLevelBoundaries(curPos) or m_pathFinder.GetNodeFromPosition(curPos).occupied_)
+      if (!IsInLevelBoundaries(curPos) or pathFinder_.GetNodeFromPosition(curPos).occupied_)
       {
          noCollision = false;
          break;
@@ -510,13 +503,12 @@ Level::GetTilesAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos) co
 {
    std::set< Tile > tiles;
 
-   // NOLINTNEXTLINE
-   const auto numSteps = static_cast< int32_t >(glm::length(toPos - fromPos)
-                                                / static_cast< float >(m_tileWidth / uint32_t{2}));
+   const auto numSteps =
+      static_cast< uint32_t >(glm::length(toPos - fromPos)) / (tileWidth_ / uint32_t{2});
 
    const auto stepSize = (toPos - fromPos) / static_cast< float >(numSteps);
 
-   for (int32_t i = 0; i < numSteps; ++i)
+   for (uint32_t i = 0; i < numSteps; ++i)
    {
       tiles.insert(GetTileFromPosition(fromPos + (stepSize * static_cast< float >(i))));
    }
@@ -527,14 +519,14 @@ Level::GetTilesAlongTheLine(const glm::vec2& fromPos, const glm::vec2& toPos) co
 void
 Level::GenerateTextureForCollision()
 {
-   const auto width = static_cast< size_t >(m_levelSize.x) / static_cast< size_t >(m_tileWidth);
-   const auto height = static_cast< size_t >(m_levelSize.y) / static_cast< size_t >(m_tileWidth);
+   const auto width = static_cast< size_t >(levelSize_.x) / static_cast< size_t >(tileWidth_);
+   const auto height = static_cast< size_t >(levelSize_.y) / static_cast< size_t >(tileWidth_);
    const size_t numChannels = 4;
    const auto size = static_cast< size_t >(width * height * numChannels);
 
    auto data = FileManager::ImageHandleType{new unsigned char[size],
                                             [](const uint8_t* ptr) { delete[] ptr; }};
-   const auto& nodes = m_pathFinder.GetAllNodes();
+   const auto& nodes = pathFinder_.GetAllNodes();
 
    for (size_t h = 0; h < height; ++h)
    {
@@ -568,20 +560,14 @@ Level::GenerateTextureForCollision()
 void
 Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
 {
-   m_locked = false;
-   m_levelSize = size;
+   locked_ = false;
+   levelSize_ = size;
 
-   m_background.SetSpriteTextured(glm::vec3(static_cast< float >(m_levelSize.x) / 2.0f,
-                                            static_cast< float >(m_levelSize.y) / 2.0f, 0.5f),
-                                  size, fileName);
+   background_.SetSpriteTextured(glm::vec3(static_cast< float >(levelSize_.x) / 2.0f,
+                                           static_cast< float >(levelSize_.y) / 2.0f, 0.5f),
+                                 size, fileName);
 
-   baseTexture_ = m_background.GetTexture()->GetID();
-}
-
-void
-Level::LoadShaders(const std::string& /*shaderName*/)
-{
-   // m_shaders.LoadShaders(shaderName);
+   baseTexture_ = background_.GetTexture()->GetID();
 }
 
 void
@@ -685,7 +671,7 @@ Level::GetObjectRef(Object::ID objectID)
       break;
 
       case ObjectType::PATHFINDER_NODE: {
-         auto& nodes = m_pathFinder.GetAllNodes();
+         auto& nodes = pathFinder_.GetAllNodes();
          auto it =
             stl::find_if(nodes, [objectID](const auto& node) { return node.GetID() == objectID; });
 
@@ -760,14 +746,14 @@ Level::GetGameObjectRef(Object::ID gameObjectID)
 void
 Level::Update(bool isReverse)
 {
-   m_background.Update(isReverse);
+   background_.Update(isReverse);
 
    player_.Update(isReverse);
 
    // TODO: Parallelize for larger groups of objects
    // Player and Enemies should be handled by a single thread,
    // since they're dependent of eachother
-   //for (auto& obj : objects_)
+   // for (auto& obj : objects_)
    //{
    //   // We probably should update only objects that are
    //   // in some range of camera
@@ -789,7 +775,7 @@ Level::Update(bool isReverse)
 void
 Level::Render()
 {
-   m_background.Render();
+   background_.Render();
    RenderGameObjects();
 }
 
@@ -854,11 +840,11 @@ Object::ID
 Level::GetGameObjectOnLocation(const glm::vec2& screenPosition)
 {
    Object::ID object = Object::INVALID_ID;
-   const auto globalPos = m_contextPointer->ScreenToGlobal(screenPosition);
+   const auto globalPos = contextPointer_->ScreenToGlobal(screenPosition);
 
    if (IsInLevelBoundaries(globalPos))
    {
-      const auto& node = m_pathFinder.GetNodeFromPosition(globalPos);
+      const auto& node = pathFinder_.GetNodeFromPosition(globalPos);
 
       // Try luck with Tile at mouse pos
       auto objectOnLocation =
@@ -885,7 +871,7 @@ Level::GetGameObjectOnLocation(const glm::vec2& screenPosition)
          {
             for (int32_t x = xLower; x < xUpper; ++x)
             {
-               const auto& neighbour = m_pathFinder.GetNodeFromTile({x, y});
+               const auto& neighbour = pathFinder_.GetNodeFromTile({x, y});
                auto objectFound = stl::find_if(
                   neighbour.objectsOnThisNode_, [this, screenPosition](const auto& objectID) {
                      const auto& object = GetGameObjectRef(objectID);
@@ -909,13 +895,13 @@ Object::ID
 Level::GetGameObjectOnLocationAndLayer(const glm::vec2& screenPosition, int32_t renderLayer)
 {
    Object::ID object = Object::INVALID_ID;
-   const auto globalPos = m_contextPointer->ScreenToGlobal(screenPosition);
+   const auto globalPos = contextPointer_->ScreenToGlobal(screenPosition);
 
    if (IsInLevelBoundaries(globalPos))
    {
       if (renderLayer != -1)
       {
-         const auto& node = m_pathFinder.GetNodeFromPosition(globalPos);
+         const auto& node = pathFinder_.GetNodeFromPosition(globalPos);
 
          auto objectOnLocation = stl::find_if(
             node.objectsOnThisNode_, [this, screenPosition, renderLayer](const auto& objectID) {
@@ -941,23 +927,23 @@ Level::GetGameObjectOnLocationAndLayer(const glm::vec2& screenPosition, int32_t 
 void
 Level::RenderPathfinder(bool render)
 {
-   render ? m_background.SetTextureID(renderer::TextureType::MASK_MAP, collisionTexture_)
-          : m_background.SetTextureID(renderer::TextureType::MASK_MAP, baseTexture_);
+   render ? background_.SetTextureID(renderer::TextureType::MASK_MAP, collisionTexture_)
+          : background_.SetTextureID(renderer::TextureType::MASK_MAP, baseTexture_);
 }
 
 void
 Level::UpdateCollisionTexture()
 {
-   const auto& tilesChanged = m_pathFinder.GetNodesModifiedLastFrame();
+   const auto& tilesChanged = pathFinder_.GetNodesModifiedLastFrame();
    auto* data = collisionTextureData_.m_bytes.get();
-   const auto tileWidth = static_cast< int32_t >(m_tileWidth);
-   const auto width = m_levelSize.x / tileWidth;
+   const auto tileWidth = static_cast< int32_t >(tileWidth_);
+   const auto width = levelSize_.x / tileWidth;
 
    if (!tilesChanged.empty())
    {
       for (const auto& tile : tilesChanged)
       {
-         const auto& node = m_pathFinder.GetNodeFromTile(tile);
+         const auto& node = pathFinder_.GetNodeFromTile(tile);
          const auto x = tile.first;
          const auto y = tile.second;
          const auto offset = tileWidth - 1 - (y % tileWidth);
@@ -977,19 +963,19 @@ Level::UpdateCollisionTexture()
 renderer::Sprite&
 Level::GetSprite()
 {
-   return m_background;
+   return background_;
 }
 
 void
 Level::SetSize(const glm::ivec2& newSize)
 {
-   const auto oldSize = static_cast< glm::vec2 >(m_levelSize);
-   m_levelSize = newSize;
-   m_background.SetSize(newSize);
+   const auto oldSize = static_cast< glm::vec2 >(levelSize_);
+   levelSize_ = newSize;
+   background_.SetSize(newSize);
    // Make sure top left is always 0,0
    const auto diff = oldSize / 2.0f - static_cast< glm::vec2 >(newSize) / 2.0f;
 
-   m_background.Translate(glm::vec3(-diff, 0.0f));
+   background_.Translate(glm::vec3(-diff, 0.0f));
 }
 
 } // namespace looper

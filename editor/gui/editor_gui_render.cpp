@@ -99,7 +99,7 @@ EditorGUI::UpdateBuffers()
 void
 EditorGUI::Render(VkCommandBuffer commandBuffer)
 {
-   time::ScopedTimer guiRender(&uiRenderTime);
+   const time::ScopedTimer guiRender(&uiRenderTime);
 
    ImDrawData* imDrawData = ImGui::GetDrawData();
    int32_t vertexOffset = 0;

@@ -166,7 +166,7 @@ EditorGUI::RenderGameObjectContent()
 
       DrawWidget("Size", [this, &gameObject]() {
          auto sprite_size = gameObject.GetSprite().GetSize();
-         if (ImGui::SliderFloat2("##Size", &sprite_size.x, 10, 1000))
+         if (ImGui::InputFloat2("##Size", &sprite_size.x))
          {
             gameObject.SetSize(sprite_size);
             parent_.GetLevel().UpdateCollisionTexture();
@@ -176,7 +176,7 @@ EditorGUI::RenderGameObjectContent()
       DrawWidget("Rotate", [&gameObject]() {
          auto rotation =
             gameObject.GetSprite().GetRotation(renderer::Sprite::RotationType::DEGREES);
-         if (ImGui::SliderFloat("##Rotate", &rotation,
+         if (ImGui::InputFloat("##Rotate", &rotation,
                                 glm::degrees(renderer::Sprite::ROTATION_RANGE.first),
                                 glm::degrees(renderer::Sprite::ROTATION_RANGE.second)))
          {

@@ -2,6 +2,7 @@
 
 #include "application.hpp"
 #include "editor_object.hpp"
+#include "gizmo.hpp"
 #include "gui/editor_gui.hpp"
 #include "level.hpp"
 #include "logger.hpp"
@@ -208,9 +209,6 @@ class Editor : public Application
    IsRunning() const override;
 
    void
-   HandleCamera();
-
-   void
    HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis);
 
    void
@@ -218,6 +216,9 @@ class Editor : public Application
 
    void
    MoveLogic(const glm::vec2& axis);
+
+   void
+   ScaleLogic(const glm::vec2& currentCursorPos);
 
    void
    CheckIfObjectGotSelected(const glm::vec2& cursorPosition, bool groupSelect);
@@ -243,7 +244,7 @@ class Editor : public Application
    void
    FreeLevelData();
 
-   std::string m_levelFileName = {};
+   std::string levelFileName_ = {};
 
    bool isRunning_ = true;
    bool levelLoaded_ = false;
@@ -296,6 +297,9 @@ class Editor : public Application
    ThreadPool threadPool_ = ThreadPool{std::thread::hardware_concurrency()};
    std::future< void > updateReady_;
    std::future< void > renderReady_;
+
+   Gizmo gizmo_ = {};
+   bool gizmoActive_ = false;
 };
 
 } // namespace looper

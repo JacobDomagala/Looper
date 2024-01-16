@@ -32,17 +32,17 @@ class Sprite
    // Create sprite without texture
    void
    SetSprite(const glm::vec3& position = glm::vec3(0.0f, 0.0f, 0.0f),
-             const glm::vec2& size = glm::vec2(10, 10));
+             const glm::vec2& size = glm::vec2(128, 128));
 
    // Create sprite with texture
    void
    SetSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
-                     const glm::vec2& size = glm::vec2(10, 10),
+                     const glm::vec2& size = glm::vec2(128, 128),
                      const std::string& fileName = "Default128.png");
 
    void
    SetSpriteTextured(const glm::vec3& position = glm::vec3(0.0f, 0.0f, 0.0f),
-                     const glm::vec2& size = glm::vec2(10, 10),
+                     const glm::vec2& size = glm::vec2(128, 128),
                      const std::string& fileName = "Default128.png");
 
    void
@@ -63,7 +63,7 @@ class Sprite
    [[nodiscard]] glm::vec2
    GetSize() const;
 
-   void SetSize(glm::vec2);
+   void SetSize(const glm::vec2& newSize);
 
    [[nodiscard]] glm::vec2
    GetOriginalSize() const;
@@ -117,11 +117,21 @@ class Sprite
    [[nodiscard]] std::array< glm::vec2, 4 >
    GetTransformedRectangle() const;
 
+   bool
+   CheckIfCollidedScreenPosion(const glm::vec3& cameraPosition,
+                               const glm::vec2& globalPosition) const;
+
    void
    Translate(const glm::vec2& translateValue);
 
    void
    Update(bool isReverse);
+
+   void
+   Show();
+
+   void
+   Hide();
 
    void
    Render();
@@ -152,7 +162,10 @@ class Sprite
 
    static constexpr std::pair< float, float > ROTATION_RANGE = {glm::radians(-360.0f),
                                                                 glm::radians(360.0f)};
-   static constexpr std::pair< float, float > SCALE_RANGE = {1.0f, 5.0f};
+   static constexpr std::pair< float, float > SCALE_RANGE = {16.0f, 1024.0f};
+
+   glm::vec3 initialPosition_ = {};
+   glm::vec2 initialSize_ = {};
 
  private:
    void
@@ -182,9 +195,7 @@ class Sprite
    State currentState_ = {};
 
    // sprite's texture
-   TextureIDs textures_ = {};
-
-   glm::vec3 initialPosition_ = {};
+   TextureIDs textures_ = {};   
 
    // width and height
    glm::vec2 size_ = {};

@@ -82,7 +82,7 @@ GameObject::Setup(Application* application, const glm::vec3& position, const glm
 bool
 GameObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 {
-   const renderer::CollisionCamera camera(appHandle_->GetCamera().GetPosition(), this);
+   const renderer::CollisionCamera camera(appHandle_->GetCamera().GetPosition(), &sprite_);
    return camera.CheckCollision(appHandle_->ScreenToGlobal(screenPosition));
 }
 

@@ -27,8 +27,7 @@ Editor::Editor(const glm::ivec2& screenSize) : gui_(*this)
 
    InputManager::Init(window_.GetWindowHandle());
 
-   renderer::Initialize(window_.GetWindowHandle(),
-                                        renderer::ApplicationType::EDITOR);
+   renderer::Initialize(window_.GetWindowHandle(), renderer::ApplicationType::EDITOR);
    gui_.Init();
    InputManager::RegisterForInput(window_.GetWindowHandle(), this);
 }
@@ -40,42 +39,27 @@ Editor::ShowCursor(bool choice)
 }
 
 void
-Editor::HandleCamera()
-{
-   auto cameraMoveBy = glm::vec2();
-
-   if (!EditorGUI::IsBlockingEvents() && levelLoaded_)
-   {
-      if (InputManager::CheckKeyPressed(GLFW_KEY_W))
-      {
-         cameraMoveBy += glm::vec2(0.0f, -1.0f);
-      }
-      if (InputManager::CheckKeyPressed(GLFW_KEY_S))
-      {
-         cameraMoveBy += glm::vec2(0.0f, 1.0f);
-      }
-      if (InputManager::CheckKeyPressed(GLFW_KEY_A))
-      {
-         cameraMoveBy += glm::vec2(-1.0f, 0.0f);
-      }
-      if (InputManager::CheckKeyPressed(GLFW_KEY_D))
-      {
-         cameraMoveBy += glm::vec2(1.0f, 0);
-      }
-      if (InputManager::CheckKeyPressed(GLFW_KEY_SPACE))
-      {
-         camera_.SetCameraAtPosition({0.0f, 0.0f, 0.0f});
-      }
-
-      camera_.Move(glm::vec3(cameraMoveBy, 0.0f));
-   }
-}
-
-void
 Editor::KeyCallback(KeyEvent& event)
 {
    if (event.action_ == GLFW_PRESS)
    {
+      if (currentEditorObjectSelected_ != Object::INVALID_ID
+          or currentSelectedGameObject_ != Object::INVALID_ID)
+      {
+         if (event.key_ == GLFW_KEY_T)
+         {
+            gizmo_.SwitchToTranslate();
+         }
+         if (event.key_ == GLFW_KEY_R)
+         {
+            gizmo_.SwitchToRotate();
+         }
+         if (event.key_ == GLFW_KEY_S)
+         {
+            gizmo_.SwitchToScale();
+         }
+      }
+
       if (IsAnyObjectSelected())
       {
          ACTION action = ACTION::NONE;
@@ -141,63 +125,64 @@ Editor::MouseScrollCallback(MouseScrollEvent& event)
 void
 Editor::MouseButtonCallback(MouseButtonEvent& event)
 {
-   if (!playGame_ && !EditorGUI::IsBlockingEvents() && levelLoaded_)
+   if (playGame_ or EditorGUI::IsBlockingEvents() or not levelLoaded_)
    {
-      const auto mousePressed = event.action_ == GLFW_PRESS;
-      const auto mouseReleased = event.action_ == GLFW_RELEASE;
-      LMBPressedLastUpdate_ = mousePressed and event.button_ == GLFW_MOUSE_BUTTON_1;
-      RMBPressedLastUpdate_ = mousePressed and event.button_ == GLFW_MOUSE_BUTTON_2;
-
-      if (mouseReleased and not mouseDrag_)
-      {
-         CheckIfObjectGotSelected(InputManager::GetMousePos(),
-                                  InputManager::CheckKeyPressed(GLFW_KEY_LEFT_CONTROL));
-      }
-      else if (movementOnEditorObject_ or movementOnGameObject_ or selectingObjects_)
-      {
-         if (movementOnGameObject_ or movementOnEditorObject_)
-         {
-            // Object movement finished
-            ShowCursor(true);
-            SetMouseOnObject();
-         }
-
-         movementOnEditorObject_ = false;
-         movementOnGameObject_ = false;
-
-         if (selectingObjects_)
-         {
-            const auto selectedObjects = GetObjectsInArea(selectRect_);
-
-            if (not selectedObjects.empty())
-            {
-               if (currentSelectedGameObject_ != Object::INVALID_ID)
-               {
-                  ActionOnObject(ACTION::UNSELECT, currentSelectedGameObject_);
-               }
-
-               for (const auto object : selectedObjects)
-               {
-                  gui_.ObjectSelected(object);
-               }
-
-               for (const auto& object : selectedObjects_)
-               {
-                  gui_.ObjectUnselected(object);
-               }
-
-               selectedObjects_ = selectedObjects;
-            }
-            selectStartPos_ = glm::vec2{};
-            selectRect_ = std::array< glm::vec2, 4 >{};
-         }
-
-         mouseDrag_ = false;
-         selectingObjects_ = false;
-      }
-
-      event.handled_ = true;
+      return;
    }
+
+   const auto mousePressed = event.action_ == GLFW_PRESS;
+   const auto mouseReleased = event.action_ == GLFW_RELEASE;
+   LMBPressedLastUpdate_ = mousePressed and event.button_ == GLFW_MOUSE_BUTTON_1;
+   RMBPressedLastUpdate_ = mousePressed and event.button_ == GLFW_MOUSE_BUTTON_2;
+
+   if (mouseReleased and not mouseDrag_)
+   {
+      CheckIfObjectGotSelected(InputManager::GetMousePos(),
+                               InputManager::CheckKeyPressed(GLFW_KEY_LEFT_CONTROL));
+   }
+   else if (movementOnEditorObject_ or movementOnGameObject_ or selectingObjects_)
+   {
+      if (movementOnGameObject_ or movementOnEditorObject_)
+      {
+         // Object movement finished
+         ShowCursor(true);
+         SetMouseOnObject();
+      }
+
+      movementOnEditorObject_ = false;
+      movementOnGameObject_ = false;
+
+      if (selectingObjects_)
+      {
+         const auto selectedObjects = GetObjectsInArea(selectRect_);
+
+         if (not selectedObjects.empty())
+         {
+            if (currentSelectedGameObject_ != Object::INVALID_ID)
+            {
+               ActionOnObject(ACTION::UNSELECT, currentSelectedGameObject_);
+            }
+
+            for (const auto object : selectedObjects)
+            {
+               gui_.ObjectSelected(object);
+            }
+
+            for (const auto& object : selectedObjects_)
+            {
+               gui_.ObjectUnselected(object);
+            }
+
+            selectedObjects_ = selectedObjects;
+         }
+         selectStartPos_ = glm::vec2{};
+         selectRect_ = std::array< glm::vec2, 4 >{};
+      }
+      selectingObjects_ = false;
+   }
+
+   mouseDrag_ = false;
+   event.handled_ = true;
 }
 
 void
@@ -213,6 +198,11 @@ Editor::CursorPositionCallback(CursorPositionEvent& event)
       }
       else
       {
+         if (gizmoActive_)
+         {
+            gizmo_.CheckHovered(camera_.GetPosition(), ScreenToGlobal(currentCursorPosition));
+         }
+
          ShowCursor(true);
       }
 
@@ -241,68 +231,116 @@ Editor::RotateLogic(const glm::vec2& currentCursorPos)
 
    const auto angle = glm::clamp(movementVal, -maxRotationAngle, maxRotationAngle);
 
-   if (movementOnEditorObject_ || movementOnGameObject_)
+
+   // Editor objects selected have higher priority of movement
+   // for example when animation point is selected and it's placed on top of game object
+   if (currentEditorObjectSelected_ != Object::INVALID_ID)
    {
-      // Editor objects selected have higher priority of movement
-      // for example when animation point is selected and it's placed on top of game object
-      if (movementOnEditorObject_)
-      {
-         auto& selectedEditorObject = GetEditorObjectRef(currentEditorObjectSelected_);
-         selectedEditorObject.Rotate(-angle, true);
-         gui_.ObjectUpdated(selectedEditorObject.GetLinkedObjectID());
-      }
-      else
-      {
-         currentLevel_->GetGameObjectRef(currentSelectedGameObject_).Rotate(-angle, true);
-         gui_.ObjectUpdated(currentSelectedGameObject_);
-      }
+      auto& selectedEditorObject = GetEditorObjectRef(currentEditorObjectSelected_);
+      selectedEditorObject.Rotate(-angle, true);
+      gui_.ObjectUpdated(selectedEditorObject.GetLinkedObjectID());
    }
-   else
+   else if (currentSelectedGameObject_ != Object::INVALID_ID)
    {
-      camera_.Rotate(angle);
+      currentLevel_->GetGameObjectRef(currentSelectedGameObject_).Rotate(-angle, true);
+      gui_.ObjectUpdated(currentSelectedGameObject_);
    }
 }
 
 void
 Editor::MoveLogic(const glm::vec2& axis)
 {
-   const auto moveBy = glm::vec3(axis, 0.0f);
+   auto moveBy = glm::vec3(axis, 0.0f);
 
-   if (movementOnEditorObject_ || movementOnGameObject_)
+   // By default we apply movement on both axis
+   if (gizmo_.selectedPart_ == GizmoPart::vertical)
    {
-      // Editor objects selected have higher priority of movement
-      // for example when animation point is selected and it's placed on top of game object
-      if (movementOnEditorObject_)
-      {
-         auto& selectedEditorObject = GetEditorObjectRef(currentEditorObjectSelected_);
+      moveBy.x = 0.0f;
+   }
+   else if (gizmo_.selectedPart_ == GizmoPart::hotizontal)
+   {
+      moveBy.y = 0.0f;
+   }
 
-         selectedEditorObject.Move(camera_.ConvertToCameraVector(moveBy));
-         gui_.ObjectUpdated(selectedEditorObject.GetLinkedObjectID());
-      }
-      else
-      {
-         for (const auto object : selectedObjects_)
-         {
-            auto& baseObject = currentLevel_->GetObjectRef(object);
-            auto& gameObject = dynamic_cast< GameObject& >(baseObject);
+   // Editor objects selected have higher priority of movement
+   // for example when animation point is selected and it's placed on top of game object
+   if (currentEditorObjectSelected_ != Object::INVALID_ID)
+   {
+      auto& selectedEditorObject = GetEditorObjectRef(currentEditorObjectSelected_);
 
-            gameObject.Move(camera_.ConvertToCameraVector(moveBy));
-            gameObject.GetSprite().SetInitialPosition(gameObject.GetSprite().GetPosition());
-
-            gui_.ObjectUpdated(object);
-
-            auto* animatable = dynamic_cast< Animatable* >(&baseObject);
-            if (animatable)
-            {
-               animatable->SetAnimationStartLocation(gameObject.GetPosition());
-               UpdateAnimationData(object);
-            }
-         }
-      }
+      selectedEditorObject.Move(camera_.ConvertToCameraVector(moveBy));
+      gui_.ObjectUpdated(selectedEditorObject.GetLinkedObjectID());
    }
    else
    {
-      camera_.Move(moveBy);
+      for (const auto object : selectedObjects_)
+      {
+         auto& baseObject = currentLevel_->GetObjectRef(object);
+         auto& gameObject = dynamic_cast< GameObject& >(baseObject);
+
+         gameObject.Move(camera_.ConvertToCameraVector(moveBy));
+         gameObject.GetSprite().SetInitialPosition(gameObject.GetSprite().GetPosition());
+
+         gui_.ObjectUpdated(object);
+
+         auto* animatable = dynamic_cast< Animatable* >(&baseObject);
+         if (animatable)
+         {
+            animatable->SetAnimationStartLocation(gameObject.GetPosition());
+            UpdateAnimationData(object);
+         }
+      }
+   }
+}
+
+void
+Editor::ScaleLogic(const glm::vec2& currentCursorPos)
+{
+   // Calculate the value of cursor movement
+   // For example:
+   // - cursor was moved to the right then movementVector.x is positive, negative otherwise
+   // - cursor was moved to the top of window then movementVector.y is positive, negative
+   // otherwise
+   const auto movementVector = currentCursorPos - lastCursorPosition_;
+
+   // Compute the bigger factor (magnitute hence abs())
+   // Go with `-movementVector.x` because it feels right
+   const auto movementVal = std::abs(movementVector.x) > std::abs(movementVector.y)
+                               ? movementVector.x
+                               : movementVector.y;
+
+   constexpr auto maxVal = 1.0f;
+
+   const auto value = glm::clamp(movementVal, -maxVal, maxVal);
+
+   constexpr auto scaleFactor = 15.0f;
+   auto scaleBy = glm::vec2{value, value} * scaleFactor;
+   // By default we apply scaling on both axis
+   if (gizmo_.selectedPart_ == GizmoPart::vertical)
+   {
+      scaleBy.x = 0.0f;
+   }
+   else if (gizmo_.selectedPart_ == GizmoPart::hotizontal)
+   {
+      scaleBy.y = 0.0f;
+   }
+
+   // Editor objects selected have higher priority
+   // for example when animation point is selected and it's placed on top of game object
+   if (currentEditorObjectSelected_ != Object::INVALID_ID)
+   {
+      auto& selectedEditorObject = GetEditorObjectRef(currentEditorObjectSelected_);
+
+      selectedEditorObject.Scale(scaleBy, true);
+   }
+   else
+   {
+      for (const auto object : selectedObjects_)
+      {
+         auto& gameObject = dynamic_cast< GameObject& >(currentLevel_->GetObjectRef(object));
+
+         gameObject.Scale(scaleBy, true);
+      }
    }
 }
 
@@ -311,42 +349,51 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
 {
    if (LMBPressedLastUpdate_)
    {
-      const auto globalPos = ScreenToGlobal(currentCursorPos);
-
-      // Initial mouse drag on selection
-      if (selectStartPos_ == glm::vec2{})
+      if (gizmo_.mouseOnGizmo_)
       {
-         selectingObjects_ = true;
-         selectStartPos_ = globalPos;
+         ShowCursor(false);
+
+         // Rotate camera (or currently selected Object)
+         if (gizmo_.currentState_ == GizmoState::rotate)
+         {
+            RotateLogic(currentCursorPos);
+         }
+         // Move camera (or currently selected Object)
+         else if (gizmo_.currentState_ == GizmoState::translate)
+         {
+            MoveLogic(axis);
+         }
+         else
+         {
+            ScaleLogic(currentCursorPos);
+         }
       }
+      else
+      {
+         const auto globalPos = ScreenToGlobal(currentCursorPos);
 
-      const auto minVal = glm::vec2(glm::min(selectStartPos_.x, globalPos.x),
-                                    glm::min(selectStartPos_.y, globalPos.y));
-      const auto maxVal = glm::vec2(glm::max(selectStartPos_.x, globalPos.x),
-                                    glm::max(selectStartPos_.y, globalPos.y));
+         // Initial mouse drag on selection
+         if (selectStartPos_ == glm::vec2{})
+         {
+            selectingObjects_ = true;
+            selectStartPos_ = globalPos;
+         }
 
-      selectRect_[0] = glm::vec2{minVal.x, maxVal.y};
-      selectRect_[1] = maxVal;
-      selectRect_[2] = glm::vec2{maxVal.x, minVal.y};
-      selectRect_[3] = minVal;
+         const auto minVal = glm::vec2(glm::min(selectStartPos_.x, globalPos.x),
+                                       glm::min(selectStartPos_.y, globalPos.y));
+         const auto maxVal = glm::vec2(glm::max(selectStartPos_.x, globalPos.x),
+                                       glm::max(selectStartPos_.y, globalPos.y));
+
+         selectRect_[0] = glm::vec2{minVal.x, maxVal.y};
+         selectRect_[1] = maxVal;
+         selectRect_[2] = glm::vec2{maxVal.x, minVal.y};
+         selectRect_[3] = minVal;
+      }
    }
    else if (RMBPressedLastUpdate_)
    {
       ShowCursor(false);
-
-      // Rotate camera (or currently selected Object)
-      if (InputManager::CheckKeyPressed(GLFW_KEY_LEFT_SHIFT))
-      {
-         RotateLogic(currentCursorPos);
-      }
-      // Move camera (or currently selected Object)
-      else
-      {
-         MoveLogic(axis);
-      }
-   }
-   else
-   {
+      camera_.Move(glm::vec3{currentCursorPos - lastCursorPosition_, 0.0f});
    }
 
    mouseDrag_ = true;
@@ -409,9 +456,14 @@ Editor::HandleGameObjectSelected(Object::ID newSelectedGameObject, bool groupSel
       currentSelectedGameObject_ = newSelectedGameObject;
 
 
+      auto& gameObject =
+         dynamic_cast< GameObject& >(currentLevel_->GetObjectRef(currentSelectedGameObject_));
+
+      gizmo_.Update(gameObject.GetCenteredPosition(), gameObject.GetSprite().GetRotation());
+
+
       // Make sure to render animation points if needed
-      const auto* animatable =
-         dynamic_cast< Animatable* >(&currentLevel_->GetObjectRef(currentSelectedGameObject_));
+      const auto* animatable = dynamic_cast< Animatable* >(&gameObject);
 
 
       if (animatable and animatable->GetRenderAnimationSteps())
@@ -429,6 +481,8 @@ Editor::HandleGameObjectSelected(Object::ID newSelectedGameObject, bool groupSel
       }
 
       gui_.ObjectSelected(currentSelectedGameObject_);
+      gizmo_.Show();
+      gizmoActive_ = true;
    }
 
    movementOnGameObject_ = !fromGUI;
@@ -546,6 +600,9 @@ Editor::UnselectGameObject(Object::ID object, bool groupSelect)
          selectedObjects_.erase(it);
       }
    }
+
+   gizmo_.Hide();
+   gizmoActive_ = false;
 }
 
 void
@@ -561,6 +618,9 @@ Editor::HandleEditorObjectSelected(EditorObject& newSelectedEditorObject, bool f
    movementOnEditorObject_ = !fromGUI;
 
    newSelectedEditorObject.SetObjectSelected();
+
+   gizmo_.Show();
+   gizmoActive_ = true;
 }
 
 EditorObject&
@@ -588,6 +648,9 @@ Editor::UnselectEditorObject(Object::ID object)
    auto& editorObject = GetEditorObjectRef(object);
    editorObject.SetObjectUnselected();
    currentEditorObjectSelected_ = Object::INVALID_ID;
+
+   gizmo_.Hide();
+   gizmoActive_ = false;
 }
 
 void
@@ -755,11 +818,11 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 {
    if (levelLoaded_)
    {
-      auto& renderData =
-         renderer::Data::renderData_[renderer::GetCurrentlyBoundType()];
+      auto& renderData = renderer::Data::renderData_[renderer::GetCurrentlyBoundType()];
 
       currentLevel_->GetSprite().Render();
 
+      gizmo_.Render();
       DrawAnimationPoints();
 
       currentLevel_->RenderGameObjects();
@@ -1002,7 +1065,7 @@ Editor::CreateLevel(const std::string& name, const glm::ivec2& size)
    camera_.SetLevelSize(currentLevel_->GetSize());
 
    levelLoaded_ = true;
-   m_levelFileName = (LEVELS_DIR / (name + ".dgl")).string();
+   levelFileName_ = (LEVELS_DIR / (name + ".dgl")).string();
    gui_.LevelLoaded(currentLevel_);
 
    currentLevel_->GenerateTextureForCollision();
@@ -1020,7 +1083,7 @@ Editor::LoadLevel(const std::string& levelPath)
    {
       SCOPED_TIMER("Total level load");
 
-      m_levelFileName = levelPath;
+      levelFileName_ = levelPath;
 
       // Should we actually compute total num points?
       animationPoints_.reserve(1000);
@@ -1058,6 +1121,8 @@ Editor::LoadLevel(const std::string& levelPath)
       currentLevel_->GenerateTextureForCollision();
 
       window_.MakeFocus();
+
+      gizmo_.Initialize();
    }
 
    SetupRendererData();
@@ -1066,8 +1131,8 @@ Editor::LoadLevel(const std::string& levelPath)
 void
 Editor::SaveLevel(const std::string& levelPath)
 {
-   m_levelFileName = levelPath;
-   currentLevel_->Save(m_levelFileName);
+   levelFileName_ = levelPath;
+   currentLevel_->Save(levelFileName_);
 }
 
 void
@@ -1170,7 +1235,7 @@ Editor::PlayLevel()
 {
    // TODO: For future we'd want to check if anything got changed,
    //       so we don't always save (this can get costly later!)
-   currentLevel_->Save(m_levelFileName);
+   currentLevel_->Save(levelFileName_);
    playGame_ = true;
 }
 
@@ -1180,7 +1245,7 @@ Editor::LaunchGameLoop()
    {
       Game game;
       game.Init("GameInit.json", false);
-      game.LoadLevel(m_levelFileName);
+      game.LoadLevel(levelFileName_);
 
       // TODO: Create game-thread and run it inside
       game.MainLoop();
@@ -1228,8 +1293,6 @@ Editor::SetLockAnimationPoints(bool lock)
 void
 Editor::Update()
 {
-   HandleCamera();
-
    if (animateGameObject_ && currentSelectedGameObject_ != Object::INVALID_ID)
    {
       auto& objectBase = currentLevel_->GetObjectRef(currentSelectedGameObject_);
@@ -1266,6 +1329,21 @@ Editor::Update()
    {
       const time::ScopedTimer uiTImer(&uiTime_);
       gui_.UpdateUI();
+   }
+
+   if (gizmoActive_)
+   {
+      if (currentEditorObjectSelected_ != Object::INVALID_ID)
+      {
+         const auto& objectRef = GetEditorObjectRef(currentEditorObjectSelected_);
+         gizmo_.Update(objectRef.GetCenteredPosition(), objectRef.GetSprite().GetRotation());
+      }
+      else if (currentSelectedGameObject_ != Object::INVALID_ID)
+      {
+         const auto& objectRef = dynamic_cast< GameObject& >(
+            currentLevel_->GetGameObjectRef(currentSelectedGameObject_));
+         gizmo_.Update(objectRef.GetCenteredPosition(), objectRef.GetSprite().GetRotation());
+      }
    }
 
    auto& renderData = renderer::GetRenderData();
