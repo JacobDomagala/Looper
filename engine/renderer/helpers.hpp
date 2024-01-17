@@ -237,7 +237,8 @@ IsDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface)
    auto isDiscrete = physicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
 
    return extensionsSupported && swapChainAdequate && isDiscrete
-          && supportedFeatures.samplerAnisotropy && supportedFeatures.multiDrawIndirect;
+          && supportedFeatures.samplerAnisotropy && supportedFeatures.multiDrawIndirect
+          && supportedFeatures.wideLines;
 }
 
 inline VkSampleCountFlagBits
