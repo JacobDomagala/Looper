@@ -143,7 +143,7 @@ class Editor : public Application
    GetRenderOffsets() const;
 
    void
-   HandleGameObjectSelected(Object::ID newSelectedGameObject, bool groupSelect, bool fromGUI = false);
+   HandleGameObjectClicked(Object::ID newSelectedGameObject, bool groupSelect, bool fromGUI = false);
 
    void
    HandleObjectSelected(Object::ID objectID, bool fromGUI);
@@ -230,10 +230,13 @@ class Editor : public Application
    UnselectEditorObject(Object::ID object);
 
    void
-   SelectGameObject();
+   SelectGameObject(Object::ID newSelectedGameObject);
 
    void
    UnselectGameObject(Object::ID object, bool groupSelect);
+
+   void
+   UnselectAll();
 
    void
    ShowCursor(bool choice);
@@ -243,6 +246,9 @@ class Editor : public Application
 
    void
    FreeLevelData();
+
+   void
+   RecalculateGizmoPos();
 
    std::string levelFileName_ = {};
 
@@ -266,7 +272,6 @@ class Editor : public Application
    // Handling game objects (which are visible in game)
    bool animateGameObject_ = false;
    bool movementOnGameObject_ = false;
-   bool gameObjectSelected_ = false;
    Object::ID currentSelectedGameObject_ = Object::INVALID_ID;
 
    std::vector< Object::ID > copiedGameObjects_ = {};
@@ -276,7 +281,7 @@ class Editor : public Application
    bool editorObjectSelected_ = false;
    std::vector< EditorObject > pathfinderNodes_ = {};
    std::vector< EditorObject > animationPoints_ = {};
-   Object::ID currentEditorObjectSelected_ = Object::INVALID_ID;
+   Object::ID currentSelectedEditorObject_ = Object::INVALID_ID;
 
    bool renderPathfinderNodes_ = false;
 

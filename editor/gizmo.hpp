@@ -31,6 +31,8 @@ class Gizmo
    Render();
    void
    Update(const glm::vec2& centeredPos, float rotation);
+   void
+   Move(const glm::vec2& moveBy);
 
    void
    CheckHovered(const glm::vec3& cameraPos, const glm::vec2& globalPosition);

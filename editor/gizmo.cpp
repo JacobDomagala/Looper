@@ -71,6 +71,14 @@ Gizmo::Update(const glm::vec2& centeredPos, float rotation)
 }
 
 void
+Gizmo::Move(const glm::vec2& moveBy)
+{
+   gizmoCenter_.Translate(moveBy);
+   gizmoUp_.Translate(moveBy);
+   gizmoSide_.Translate(moveBy);
+}
+
+void
 Gizmo::CheckHovered(const glm::vec3& cameraPos, const glm::vec2& globalPosition)
 {
    bool gizmoTouched = false;

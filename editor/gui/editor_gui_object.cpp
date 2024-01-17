@@ -71,7 +71,7 @@ EditorGUI::RenderSelectedObjectsMenu()
       {
          const auto& gameObject = currentLevel_->GetGameObjectRef(object);
          parent_.GetCamera().SetCameraAtPosition(gameObject.GetPosition());
-         parent_.HandleGameObjectSelected(object, true, true);
+         parent_.HandleGameObjectClicked(object, true, true);
 
          // Don't make the UI jump
          setScrollTo_ = {};
