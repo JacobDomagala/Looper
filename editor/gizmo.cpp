@@ -18,6 +18,8 @@ Gizmo::Initialize()
    centerInitialSize_ = {{16, 16}, {96, 96}};
    upInitialSize_ = {96, 32};
    sideInitialSize_ = {96, 32};
+
+   Hide();
 }
 
 void
