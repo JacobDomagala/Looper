@@ -189,9 +189,11 @@ Enemy::EnemyMove(const glm::vec2& moveBy)
 
       const auto direction = currentGameObjectState_.position_ - prevPosition;
 
-      currentState_.viewAngle_ = glm::atan(direction.y, direction.x);
-
-      sprite_.Rotate(currentState_.viewAngle_);
+      if (glm::length(direction) > 0.0f)
+      {
+         currentState_.viewAngle_ = glm::atan(direction.y, direction.x);
+         sprite_.Rotate(currentState_.viewAngle_);
+      }
    }
 
    Move(moveBy);
