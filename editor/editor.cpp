@@ -170,20 +170,33 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
 
             auto& firstObject = currentLevel_->GetGameObjectRef(selectedObjects.front());
             auto gizmoPos = firstObject.GetCenteredPosition();
+            glm::vec2 min = gizmoPos;
+            glm::vec2 max = gizmoPos;
+
             for (const auto object : selectedObjects)
             {
                gui_.ObjectSelected(object);
-               auto& gameObject = currentLevel_->GetGameObjectRef(object);
-               gizmoPos = (gameObject.GetCenteredPosition() + gizmoPos) / 2.0f;
+               const auto& objectPos =
+                  currentLevel_->GetGameObjectRef(object).GetCenteredPosition();
+
+               min = glm::vec2{
+                  glm::min(min.x, objectPos.x),
+                  glm::min(min.y, objectPos.y),
+               };
+
+               max = glm::vec2{
+                  glm::max(max.x, objectPos.x),
+                  glm::max(max.y, objectPos.y),
+               };
             }
 
             selectedObjects_ = selectedObjects;
 
             gizmoActive_ = true;
             gizmo_.Show();
-            gizmo_.Update(gizmoPos, selectedObjects_.size() == 1
-                                       ? firstObject.GetSprite().GetRotation()
-                                       : 0.0f);
+            gizmo_.Update((min + max) / 2.0f, selectedObjects_.size() == 1
+                                                 ? firstObject.GetSprite().GetRotation()
+                                                 : 0.0f);
          }
          selectStartPos_ = glm::vec2{};
          selectRect_ = std::array< glm::vec2, 4 >{};
@@ -582,14 +595,26 @@ Editor::RecalculateGizmoPos()
    }
 
    auto& firstObject = currentLevel_->GetGameObjectRef(selectedObjects_.front());
+
    auto gizmoPos = firstObject.GetCenteredPosition();
+   glm::vec2 min = gizmoPos;
+   glm::vec2 max = gizmoPos;
+
    for (const auto object : selectedObjects_)
    {
-      auto& gameObject = currentLevel_->GetGameObjectRef(object);
-      gizmoPos = (gameObject.GetCenteredPosition() + gizmoPos) / 2.0f;
+      const auto& objectPos = currentLevel_->GetGameObjectRef(object).GetCenteredPosition();
+      min = glm::vec2{
+         glm::min(min.x, objectPos.x),
+         glm::min(min.y, objectPos.y),
+      };
+
+      max = glm::vec2{
+         glm::max(max.x, objectPos.x),
+         glm::max(max.y, objectPos.y),
+      };
    }
 
-   gizmo_.Update(gizmoPos,
+   gizmo_.Update((min + max) / 2.0f,
                  selectedObjects_.size() == 1 ? firstObject.GetSprite().GetRotation() : 0.0f);
 }
 
@@ -1381,21 +1406,6 @@ Editor::Update()
       const time::ScopedTimer uiTImer(&uiTime_);
       gui_.UpdateUI();
    }
-
-   // if (gizmoActive_)
-   //{
-   //    if (currentSelectedEditorObject_ != Object::INVALID_ID)
-   //    {
-   //       const auto& objectRef = GetEditorObjectRef(currentSelectedEditorObject_);
-   //       gizmo_.Update(objectRef.GetCenteredPosition(), objectRef.GetSprite().GetRotation());
-   //    }
-   //    else if (currentSelectedGameObject_ != Object::INVALID_ID)
-   //    {
-   //       const auto& objectRef = dynamic_cast< GameObject& >(
-   //          currentLevel_->GetGameObjectRef(currentSelectedGameObject_));
-   //       gizmo_.Update(objectRef.GetCenteredPosition(), objectRef.GetSprite().GetRotation());
-   //    }
-   // }
 
    auto& renderData = renderer::GetRenderData();
    renderData.viewMat = camera_.GetViewMatrix();
