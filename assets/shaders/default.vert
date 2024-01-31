@@ -52,15 +52,8 @@ main(void)
    vs_out.fDiffSampl = int(curInstanceData.texSamples.x);
    vs_out.fExtraSampl = int(curInstanceData.texSamples.y);
 
-   mat4 scaleMat = mat4(
-       vec4(1.1f, 0.0f, 0.0f, 0.0f),
-       vec4(0.0f, 1.1f, 0.0f, 0.0f),
-       vec4(0.0f, 0.0f, 1.0f, 0.0f),
-       vec4(0.0f, 0.0f, 0.0f, 1.0f)
-   );
-
    mat4 modelMat = curInstanceData.modelMat;
-   vec3 position = pushConstants.selectedIdx != drawID ? a_position : vec3(scaleMat * vec4(a_position.xyz, 1.0f));
+   vec3 position = a_position;
 
    gl_Position = ubo.u_projectionMat * ubo.u_viewMat * modelMat * vec4(position.xyz, 1.0f);
 }

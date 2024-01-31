@@ -89,19 +89,21 @@ Camera::Rotate(float angle, bool cumulative)
 void
 Camera::Zoom(float value)
 {
-   m_zoomScale += value * m_zoomSpeed;
+   const auto oldZoom = m_zoomScale; 
+   m_zoomScale = glm::clamp(m_zoomScale + (value * m_zoomSpeed), m_maxZoomOut, m_maxZoomIn);
 
-   m_zoomScale = glm::clamp(m_zoomScale, m_maxZoomOut, m_maxZoomIn);
+   if (oldZoom != m_zoomScale)
+   {
+      const auto left = -m_windowSize.x / (2.0f + m_zoomScale);
+      const auto right = m_windowSize.x / (2.0f + m_zoomScale);
+      const auto top = m_windowSize.y / (2.0f + m_zoomScale);
+      const auto bottom = -m_windowSize.y / (2.0f + m_zoomScale);
 
-   const auto left = -m_windowSize.x / (2.0f + m_zoomScale);
-   const auto right = m_windowSize.x / (2.0f + m_zoomScale);
-   const auto top = m_windowSize.y / (2.0f + m_zoomScale);
-   const auto bottom = -m_windowSize.y / (2.0f + m_zoomScale);
+      // NOLINTNEXTLINE top and bottom swapped intentionally
+      m_projectionMatrix = glm::ortho(left, right, top, bottom, nearPlane_, farPlane_);
 
-   // NOLINTNEXTLINE top and bottom swapped intentionally
-   m_projectionMatrix = glm::ortho(left, right, top, bottom, nearPlane_, farPlane_);
-
-   m_viewProjectionMatrix = m_projectionMatrix * m_viewMatrix;
+      m_viewProjectionMatrix = m_projectionMatrix * m_viewMatrix;
+   }
 }
 
 float

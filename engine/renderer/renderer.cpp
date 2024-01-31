@@ -178,10 +178,20 @@ CreatePipeline(std::string_view vertexShader, std::string_view fragmentShader, P
       vkCreatePipelineLayout(Data::vk_device, &pipelineLayoutInfo, nullptr, &pipeLineLayout),
       "failed to create pipeline layout!");
 
+   std::vector< VkDynamicState > dynamicStateEnables = {VK_DYNAMIC_STATE_LINE_WIDTH};
+
+   VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo{};
+   pipelineDynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+   pipelineDynamicStateCreateInfo.pDynamicStates = dynamicStateEnables.data();
+   pipelineDynamicStateCreateInfo.dynamicStateCount =
+      static_cast< uint32_t >(dynamicStateEnables.size());
+   pipelineDynamicStateCreateInfo.flags = 0;
+
    VkGraphicsPipelineCreateInfo pipelineInfo{};
    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
    pipelineInfo.stageCount = 2;
    pipelineInfo.pStages = shaderStages.data();
+   pipelineInfo.pDynamicState = &pipelineDynamicStateCreateInfo;
    pipelineInfo.pVertexInputState = &vertexInputInfo;
    pipelineInfo.pInputAssemblyState = &inputAssembly;
    pipelineInfo.pViewportState = &viewportState;
@@ -386,6 +396,7 @@ CreateDevice()
    VkPhysicalDeviceFeatures deviceFeatures = {};
    deviceFeatures.samplerAnisotropy = VK_TRUE;
    deviceFeatures.multiDrawIndirect = VK_TRUE;
+   deviceFeatures.wideLines = VK_TRUE;
 
    VkDeviceCreateInfo createInfo = {};
    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -684,6 +695,7 @@ CreateCommandBuffers(Application* app, uint32_t imageIndex)
 
    vk_check_error(vkBeginCommandBuffer(Data::commandBuffers[Data::currentFrame_], &beginInfo), "");
 
+   vkCmdSetLineWidth(Data::commandBuffers[Data::currentFrame_], 2.0f);
    vkCmdBeginRenderPass(Data::commandBuffers[Data::currentFrame_], &renderPassInfo,
                         VK_SUBPASS_CONTENTS_INLINE);
 
