@@ -748,7 +748,8 @@ Editor::GetObjectsInArea(const std::array< glm::vec2, 4 >& area) const
 {
    std::set< Object::ID > objectsList = {};
 
-   if (glm::length(area.at(1) - area.at(3)) < currentLevel_->GetTileSize() / 2)
+   if (glm::length(area.at(1) - area.at(3))
+       < static_cast< float >(currentLevel_->GetTileSize()) / 2.0f)
    {
       return {};
    }
