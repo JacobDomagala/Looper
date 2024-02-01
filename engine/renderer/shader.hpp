@@ -35,15 +35,6 @@ struct VulkanShader
 
    static std::pair< VertexShaderInfo, FragmentShaderInfo >
    CreateShader(VkDevice device, std::string_view vertex, std::string_view fragment);
-
-   static void
-   CreateDescriptorPool();
-
-   static void
-   CreateDescriptorSetLayout();
-
-   static void
-   CreateDescriptorSets();
 };
 
 struct QuadShader
@@ -55,6 +46,7 @@ struct QuadShader
    struct PushConstants
    {
       float selectedIdx = {};
+      float meshType = {};
    };
 
    static void

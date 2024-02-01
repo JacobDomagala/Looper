@@ -24,7 +24,7 @@ Player::Player(Application* game, const glm::vec3& position, const glm::ivec2& s
 
 Player::Player(Application* game, const glm::vec2& position, const glm::ivec2& size,
                const std::string& sprite, const std::string& name)
-   : Player(game, glm::vec3{position, 0.0f}, size, sprite, name)
+   : Player(game, glm::vec3{position, 0.01f}, size, sprite, name)
 {
 }
 

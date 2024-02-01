@@ -26,10 +26,12 @@ namespace looper::renderer {
 namespace {
 bool initialized_ = false;
 bool updateDescriptors_ = false;
-bool updatePerInstanceBuffer_ = false;
+
 bool updateVertexBuffer_ = false;
 std::vector< uint32_t > updatedObjects_ = {};
 std::vector< int32_t > renderLayersChanged_ = {};
+bool updatePerInstanceBuffer_ = false;
+
 VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo_ = {};
 
 VkQueue presentQueue_ = {};
@@ -856,15 +858,16 @@ CreatePerInstanceBuffer()
 
    for (size_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; frame++)
    {
-      auto& sbo = renderData.ssbo.at(frame);
-      if (sbo.buffer_ != VK_NULL_HANDLE)
-      {
-         sbo.Destroy();
-      }
+         auto& sbo = renderData.ssbo.at(frame);
+         if (sbo.buffer_ != VK_NULL_HANDLE)
+         {
+            sbo.Destroy();
+         }
 
-      sbo = Buffer::CreateBuffer(SSBObufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+         sbo = Buffer::CreateBuffer(SSBObufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                                       | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+      
    }
 }
 
@@ -881,6 +884,7 @@ UpdateUniformBuffer()
 
       tmpUBO.view = renderData.viewMat;
       tmpUBO.proj = renderData.projMat;
+      tmpUBO.projNoZoom = renderData.projNoZoomMat;
 
       auto& ubo = renderData.uniformBuffers.at(frame);
 
@@ -1033,7 +1037,7 @@ MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureIDs& textures_
 {
    auto* renderData = &Data::renderData_[boundApplication_];
    // convert from depth value to render layer
-   const auto layer = static_cast< int32_t >(vertices_in.front().m_position.z * 20.0f);
+   const auto layer = static_cast< int32_t >(vertices_in.front().position_.z * 20.0f);
    int32_t idx = 0;
 
    auto& vertices = renderData->vertices.at(static_cast< size_t >(layer));
@@ -1059,7 +1063,7 @@ MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureIDs& textures_
 
       auto& vertex = vertices.at(offset + vertexIdx);
       vertex = vertices_in.at(vertexIdx);
-      vertex.m_texCoordsDraw.z = static_cast< float >(idx);
+      vertex.texCoordsDraw_.z = static_cast< float >(idx);
    }
 
    UpdateDescriptors();
@@ -1083,19 +1087,17 @@ void
 SubmitMeshData(const uint32_t idx, const TextureIDs& ids, const glm::mat4& modelMat,
                const glm::vec4& color)
 {
-   auto& object = Data::renderData_[boundApplication_].perInstance.at(idx);
+      auto& object = Data::renderData_[boundApplication_].perInstance.at(idx);
+      object.model = modelMat;
+      object.color = color;
+      object.texSamples.x = static_cast< float >(ids.at(0));
+      object.texSamples.y = static_cast< float >(ids.at(1));
+      object.texSamples.z = static_cast< float >(ids.at(2));
+      object.texSamples.w = static_cast< float >(ids.at(3));
 
-   object.model = modelMat;
-   object.color = color;
-   object.texSamples.x = static_cast< float >(ids.at(0));
-   object.texSamples.y = static_cast< float >(ids.at(1));
-   object.texSamples.z = static_cast< float >(ids.at(2));
-   object.texSamples.w = static_cast< float >(ids.at(3));
-
-   updatePerInstanceBuffer_ = true;
-   updatedObjects_.push_back(idx);
+      updatePerInstanceBuffer_ = true;
+      updatedObjects_.push_back(idx);
 }
-
 
 void
 CreateLinePipeline()
@@ -1203,6 +1205,7 @@ RecreateQuadPipeline()
 
    CreateRenderPipeline();
    CreateQuadBuffers();
+
    QuadShader::CreateDescriptorPool();
    QuadShader::CreateDescriptorSets();
    QuadShader::UpdateDescriptorSets();

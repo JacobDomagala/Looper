@@ -1,18 +1,22 @@
 #include "gizmo.hpp"
+#include "types.hpp"
 
 namespace looper {
 
 void
 Gizmo::Initialize()
 {
-   gizmoCenter_.SetSpriteTextured(glm::vec3{}, {16, 16}, "centered_move.png");
+   gizmoCenter_.SetSpriteTextured(glm::vec3{}, {16, 16}, "centered_move.png",
+                                  renderer::SpriteType::alwaysOnTop);
    gizmoCenter_.SetColor({1.0f, 1.0f, 1.0f, 1.0f});
 
-   gizmoUp_.SetSpriteTextured(glm::vec3{}, {96, 32}, "arrow.png");
-   gizmoUp_.Rotate(90.0f, renderer::Sprite::RotationType::DEGREES);
+   gizmoUp_.SetSpriteTextured(glm::vec3{}, {96, 32}, "arrow.png",
+                              renderer::SpriteType::alwaysOnTop);
+   gizmoUp_.Rotate(90.0f, renderer::RotationType::degrees);
    gizmoUp_.SetColor({0.0f, 1.0f, 0.0f, 1.0f});
 
-   gizmoSide_.SetSpriteTextured(glm::vec3{}, {96, 32}, "arrow.png");
+   gizmoSide_.SetSpriteTextured(glm::vec3{}, {96, 32}, "arrow.png",
+                                renderer::SpriteType::alwaysOnTop);
    gizmoSide_.SetColor({1.0f, 0.0f, 0.0f, 1.0f});
 
    centerInitialSize_ = {{16, 16}, {96, 96}};
@@ -57,7 +61,7 @@ Gizmo::Update(const glm::vec2& centeredPos, float rotation)
       gizmoCenter_.Rotate(currentRotation_);
    }
 
-   gizmoCenter_.SetInitialPosition(glm::vec3{centeredPos, 0.0f});
+   gizmoCenter_.SetInitialPosition(glm::vec3{centeredPos, renderer::LAYER_0});
 
    gizmoUp_.SetInitialPosition(
       gizmoCenter_.GetPosition()

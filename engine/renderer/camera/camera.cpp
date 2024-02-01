@@ -10,42 +10,41 @@ void
 Camera::Create(const glm::vec3& position, const glm::ivec2& windowSize, const glm::vec3& lookAt,
                const glm::vec3& upVec, float cameraSpeed)
 {
-   m_position = position;
-   m_lookAtDirection = lookAt;
-   m_upVector = upVec;
-   m_cameraSpeed = cameraSpeed;
-   m_windowSize = windowSize;
+   position_ = position;
+   lookAtDirection_ = lookAt;
+   upVector_ = upVec;
+   cameraSpeed_ = cameraSpeed;
+   windowSize_ = windowSize;
 
-   const auto left = -m_windowSize.x / 2.0f;
-   const auto right = m_windowSize.x / 2.0f;
-   const auto top = m_windowSize.y / 2.0f;
-   const auto bottom = -m_windowSize.y / 2.0f;
+   const auto left = -windowSize_.x / 2.0f;
+   const auto right = windowSize_.x / 2.0f;
+   const auto top = windowSize_.y / 2.0f;
+   const auto bottom = -windowSize_.y / 2.0f;
 
-   m_viewMatrix = glm::lookAt(m_position, m_position + m_lookAtDirection, m_upVector);
+   viewMatrix_ = glm::lookAt(position_, position_ + lookAtDirection_, upVector_);
 
    // NOLINTNEXTLINE top and bottom swapped intentionally
-   m_projectionMatrix = glm::ortho(left, right, top, bottom, nearPlane_, farPlane_);
-
-   m_viewProjectionMatrix = m_projectionMatrix * m_viewMatrix;
+   projectionMatrix_ = glm::ortho(left, right, top, bottom, nearPlane_, farPlane_);
+   projectionWithoutZoom_ = projectionMatrix_;
 }
 
 void
 Camera::SetLevelSize(const glm::vec2& size)
 {
-   m_levelSize = size;
+   levelSize_ = size;
 }
 
 void
 Camera::SetProjection(float left, float right, float top, float bottom)
 {
    // NOLINTNEXTLINE top and bottom swapped intentionally
-   m_projectionMatrix = glm::ortho(left, right, top, bottom, nearPlane_, farPlane_);
+   projectionMatrix_ = glm::ortho(left, right, top, bottom, nearPlane_, farPlane_);
 }
 
 void
 Camera::SetCameraAtPosition(const glm::vec3& globalPosition)
 {
-   m_position = globalPosition;
+   position_ = globalPosition;
    UpdateViewMatrix();
 }
 
@@ -58,10 +57,10 @@ Camera::SetCameraAtPosition(const glm::vec2& globalPosition)
 void
 Camera::Move(const glm::vec3& conventionalVector)
 {
-   m_position += ConvertToCameraVector(conventionalVector) * m_cameraSpeed;
+   position_ += ConvertToCameraVector(conventionalVector) * cameraSpeed_;
 
-   m_position = glm::vec3(glm::clamp(m_position.x, -m_levelSize.x, m_levelSize.x),
-                          glm::clamp(m_position.y, -m_levelSize.y, m_levelSize.y), 0.0f);
+   position_ = glm::vec3(glm::clamp(position_.x, -levelSize_.x, levelSize_.x),
+                         glm::clamp(position_.y, -levelSize_.y, levelSize_.y), 0.0f);
 
    UpdateViewMatrix();
 }
@@ -71,17 +70,17 @@ Camera::Rotate(float angle, bool cumulative)
 {
    if (cumulative)
    {
-      m_rotationValue += angle;
+      rotationValue_ += angle;
    }
    else
    {
-      m_upVector = glm::rotateZ(m_upVector, -m_rotationValue);
+      upVector_ = glm::rotateZ(upVector_, -rotationValue_);
       UpdateViewMatrix();
 
-      m_rotationValue = angle;
+      rotationValue_ = angle;
    }
-   
-   m_upVector = glm::rotateZ(m_upVector, angle);
+
+   upVector_ = glm::rotateZ(upVector_, angle);
 
    UpdateViewMatrix();
 }
@@ -89,64 +88,56 @@ Camera::Rotate(float angle, bool cumulative)
 void
 Camera::Zoom(float value)
 {
-   const auto oldZoom = m_zoomScale; 
-   m_zoomScale = glm::clamp(m_zoomScale + (value * m_zoomSpeed), m_maxZoomOut, m_maxZoomIn);
+   const auto oldZoom = zoomScale_;
+   zoomScale_ = glm::clamp(zoomScale_ + (value * zoomSpeed_), maxZoomOut_, maxZoomIn_);
 
-   if (oldZoom != m_zoomScale)
+   if (oldZoom != zoomScale_)
    {
-      const auto left = -m_windowSize.x / (2.0f + m_zoomScale);
-      const auto right = m_windowSize.x / (2.0f + m_zoomScale);
-      const auto top = m_windowSize.y / (2.0f + m_zoomScale);
-      const auto bottom = -m_windowSize.y / (2.0f + m_zoomScale);
+      const auto left = -windowSize_.x / (2.0f + zoomScale_);
+      const auto right = windowSize_.x / (2.0f + zoomScale_);
+      const auto top = windowSize_.y / (2.0f + zoomScale_);
+      const auto bottom = -windowSize_.y / (2.0f + zoomScale_);
 
       // NOLINTNEXTLINE top and bottom swapped intentionally
-      m_projectionMatrix = glm::ortho(left, right, top, bottom, nearPlane_, farPlane_);
-
-      m_viewProjectionMatrix = m_projectionMatrix * m_viewMatrix;
+      projectionMatrix_ = glm::ortho(left, right, top, bottom, nearPlane_, farPlane_);
    }
 }
 
 float
 Camera::GetZoomLevel() const
 {
-   return m_zoomScale;
+   return zoomScale_;
 }
 
 const glm::mat4&
 Camera::GetViewMatrix() const
 {
-   return m_viewMatrix;
+   return viewMatrix_;
 }
 
 const glm::mat4&
 Camera::GetProjectionMatrix() const
 {
-   return m_projectionMatrix;
-}
-
-const glm::mat4&
-Camera::GetViewProjectionMatrix() const
-{
-   return m_viewProjectionMatrix;
+   return projectionMatrix_;
 }
 
 const glm::vec3&
 Camera::GetPosition() const
 {
-   return m_position;
+   return position_;
 }
 
 float
 Camera::GetRotation() const
 {
-   return m_rotationValue;
+   return rotationValue_;
 }
 
 glm::vec3
 Camera::ConvertToCameraVector(const glm::vec3& conventionalVector) const
 {
-   const auto xAxesVector = glm::cross(m_lookAtDirection, m_upVector);
-   const auto yAxesVector = m_upVector;
+   const auto xAxesVector = glm::cross(lookAtDirection_, upVector_);
+   const auto yAxesVector = upVector_;
 
    return conventionalVector.x * xAxesVector + conventionalVector.y * -yAxesVector;
 }
@@ -154,8 +145,7 @@ Camera::ConvertToCameraVector(const glm::vec3& conventionalVector) const
 void
 Camera::UpdateViewMatrix()
 {
-   m_viewMatrix = glm::lookAt(m_position, m_position + m_lookAtDirection, m_upVector);
-   m_viewProjectionMatrix = m_projectionMatrix * m_viewMatrix;
+   viewMatrix_ = glm::lookAt(position_, position_ + lookAtDirection_, upVector_);
 }
 
 } // namespace looper::renderer

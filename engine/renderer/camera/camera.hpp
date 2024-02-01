@@ -68,30 +68,31 @@ class Camera
    [[nodiscard]] glm::vec3
    ConvertToCameraVector(const glm::vec3& conventionalVector) const;
 
+ public:
+   glm::mat4 viewMatrix_ = {};
+   glm::mat4 projectionMatrix_ = {};
+   glm::mat4 projectionWithoutZoom_ = {};
+
  private:
    void
    UpdateViewMatrix();
 
-   float m_cameraSpeed = 0.0f;
-   float m_rotationValue = 0.0f;
-   float m_zoomSpeed = 0.10f;
-   float m_zoomScale = 0.0f;
-   float m_maxZoomIn = 2.5f;
-   float m_maxZoomOut = -1.9f;
+   float cameraSpeed_ = 0.0f;
+   float rotationValue_ = 0.0f;
+   float zoomSpeed_ = 0.10f;
+   float zoomScale_ = 0.0f;
+   float maxZoomIn_ = 2.5f;
+   float maxZoomOut_ = -1.9f;
 
    const float nearPlane_ = 1.0f;
    const float farPlane_ = -1.0f;
 
-   glm::vec2 m_levelSize = {};
-   glm::vec2 m_windowSize = {};
+   glm::vec2 levelSize_ = {};
+   glm::vec2 windowSize_ = {};
 
-   glm::vec3 m_position = {};
-   glm::vec3 m_upVector = {};
-   glm::vec3 m_lookAtDirection = {};
-
-   glm::mat4 m_viewMatrix = {};
-   glm::mat4 m_projectionMatrix = {};
-   glm::mat4 m_viewProjectionMatrix = {};
+   glm::vec3 position_ = {};
+   glm::vec3 upVector_ = {};
+   glm::vec3 lookAtDirection_ = {};
 };
 
 } // namespace looper::renderer

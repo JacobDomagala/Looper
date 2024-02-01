@@ -11,6 +11,7 @@
 
 namespace looper::renderer {
 namespace {
+
 VkShaderModule
 CreateShaderModule(VkDevice device, std::vector< char >&& shaderByteCode)
 {
@@ -52,6 +53,9 @@ VulkanShader::CreateShader(VkDevice device, std::string_view vertex, std::string
    return {{device, vertShaderStageInfo}, {device, fragShaderStageInfo}};
 }
 
+///////////////////////////////////////////////////////////////////
+///////////////////////    QUAD SHADER      ///////////////////////
+///////////////////////////////////////////////////////////////////
 void
 QuadShader::CreateDescriptorPool()
 {

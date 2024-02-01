@@ -35,7 +35,7 @@ Sprite::ChangeRenderLayer(int32_t newLayer)
 
    for (auto& vertex : vertices_)
    {
-      vertex.m_position.z = static_cast< float >(newLayer) / 20.0f;
+      vertex.position_.z = LAYERS.at(newLayer);
    }
 
    const auto transformMat = ComputeModelMat();
@@ -45,11 +45,12 @@ Sprite::ChangeRenderLayer(int32_t newLayer)
 }
 
 void
-Sprite::SetSprite(const glm::vec3& position, const glm::vec2& size)
+Sprite::SetSprite(const glm::vec3& position, const glm::vec2& size, SpriteType t)
 {
    // m_texture = std::make_shared< Texture >();
    // m_texture->CreateColorTexture(size, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
+   type_ = t;
    currentState_.currentPosition_ = position;
    initialPosition_ = position;
    currentState_.translateVal_ = position;
@@ -61,9 +62,10 @@ Sprite::SetSprite(const glm::vec3& position, const glm::vec2& size)
 
 void
 Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
-                          const std::string& fileName)
+                          const std::string& fileName, SpriteType t)
 {
    changed_ = true;
+   type_ = t;
 
    initialPosition_ = position;
    currentState_.currentPosition_ = position;
@@ -101,14 +103,15 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
                 TextureLibrary::GetTexture(fileName)->GetID(),
                 TextureLibrary::GetTexture(fileName)->GetID()};
 
+
    renderInfo_ = MeshLoaded(vertices_, textures_, transformMat, currentState_.color_);
 }
 
 void
 Sprite::SetSpriteTextured(const glm::vec2& position, const glm::vec2& size,
-                          const std::string& fileName)
+                          const std::string& fileName, SpriteType t)
 {
-   SetSpriteTextured(glm::vec3{position, 0.0f}, size, fileName);
+   SetSpriteTextured(glm::vec3{position, 0.0f}, size, fileName, t);
 }
 
 void
@@ -193,7 +196,7 @@ Sprite::GetTranslation() const
 float
 Sprite::GetRotation(RotationType type) const
 {
-   return type == RotationType::DEGREES ? glm::degrees(currentState_.angle_) : currentState_.angle_;
+   return type == RotationType::degrees ? glm::degrees(currentState_.angle_) : currentState_.angle_;
 }
 
 glm::vec2&
@@ -287,7 +290,7 @@ Sprite::GetTexture() const
 void
 Sprite::Rotate(float angle, RotationType type)
 {
-   currentState_.angle_ = type == RotationType::DEGREES ? glm::radians(angle) : angle;
+   currentState_.angle_ = type == RotationType::degrees ? glm::radians(angle) : angle;
    currentState_.angle_ =
       glm::clamp(currentState_.angle_, glm::radians(-360.0f), glm::radians(360.0f));
 
@@ -297,7 +300,7 @@ Sprite::Rotate(float angle, RotationType type)
 void
 Sprite::RotateCumulative(float angle, RotationType type)
 {
-   currentState_.angle_ += type == RotationType::DEGREES ? glm::radians(angle) : angle;
+   currentState_.angle_ += type == RotationType::degrees ? glm::radians(angle) : angle;
    currentState_.angle_ =
       glm::clamp(currentState_.angle_, glm::radians(-360.0f), glm::radians(360.0f));
 
@@ -357,10 +360,10 @@ Sprite::ComputeBoundingBox()
       * glm::rotate(glm::mat4(1.0f), currentState_.angle_, {0.0f, 0.0f, 1.0f})
       * glm::scale(glm::mat4(1.0f), {size_, 1.0f});
 
-   boundingBox_.at(1) = transformMat * glm::vec4(vertices_[0].m_position, 1.0f);
-   boundingBox_.at(2) = transformMat * glm::vec4(vertices_[3].m_position, 1.0f);
-   boundingBox_.at(0) = transformMat * glm::vec4(vertices_[1].m_position, 1.0f);
-   boundingBox_.at(3) = transformMat * glm::vec4(vertices_[2].m_position, 1.0f);
+   boundingBox_.at(1) = transformMat * glm::vec4(vertices_[0].position_, 1.0f);
+   boundingBox_.at(2) = transformMat * glm::vec4(vertices_[3].position_, 1.0f);
+   boundingBox_.at(0) = transformMat * glm::vec4(vertices_[1].position_, 1.0f);
+   boundingBox_.at(3) = transformMat * glm::vec4(vertices_[2].position_, 1.0f);
 }
 
 std::array< glm::vec2, 4 >

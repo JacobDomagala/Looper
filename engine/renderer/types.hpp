@@ -39,6 +39,18 @@ enum class PrimitiveType
    LINE
 };
 
+enum class RotationType
+{
+   degrees,
+   radians
+};
+
+enum class SpriteType
+{
+   regular,
+   alwaysOnTop
+};
+
 enum class ApplicationType
 {
    EDITOR,
@@ -61,6 +73,7 @@ using TextureIDs = std::array< TextureID, 4 >;
 struct UniformBufferObject
 {
    alignas(16) glm::mat4 proj = {};
+   alignas(16) glm::mat4 projNoZoom = {};
    alignas(16) glm::mat4 view = {};
    glm::vec4 cameraPos = {};
 };

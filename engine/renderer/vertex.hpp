@@ -8,7 +8,7 @@ namespace looper::renderer {
 
 struct LineVertex
 {
-   glm::vec3 m_position;
+   glm::vec3 position_;
 
    static VkVertexInputBindingDescription
    getBindingDescription();
@@ -19,8 +19,8 @@ struct LineVertex
 
 struct Vertex
 {
-   glm::vec3 m_position;
-   glm::vec3 m_texCoordsDraw; // texcoords and drawID
+   glm::vec3 position_;
+   glm::vec3 texCoordsDraw_; // texcoords and drawID
 
    static VkVertexInputBindingDescription
    getBindingDescription();

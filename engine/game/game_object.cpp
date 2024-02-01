@@ -14,7 +14,7 @@ GameObject::GameObject(Application* application, const glm::vec3& position, cons
    switch (type)
    {
       case looper::ObjectType::OBJECT: {
-         newPosition.z = 0.1f;
+         newPosition.z = renderer::LAYER_2;
       }
       break;
 
@@ -57,7 +57,7 @@ GameObject::Setup(Application* application, const glm::vec3& position, const glm
    switch (type)
    {
       case looper::ObjectType::OBJECT: {
-         newPosition.z = 0.1f;
+         newPosition.z = renderer::LAYER_2;
       }
       break;
 

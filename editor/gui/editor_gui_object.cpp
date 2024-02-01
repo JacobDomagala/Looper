@@ -175,7 +175,7 @@ EditorGUI::RenderGameObjectContent()
 
       DrawWidget("Rotate", [&gameObject]() {
          auto rotation =
-            gameObject.GetSprite().GetRotation(renderer::Sprite::RotationType::DEGREES);
+            gameObject.GetSprite().GetRotation(renderer::RotationType::degrees);
          if (ImGui::InputFloat("##Rotate", &rotation,
                                 glm::degrees(renderer::Sprite::ROTATION_RANGE.first),
                                 glm::degrees(renderer::Sprite::ROTATION_RANGE.second)))

@@ -103,12 +103,28 @@ vk_check_error(VkResult vkResult, std::string_view errorMessage)
    }
 }
 
+
+inline constexpr uint32_t NUM_LAYERS = 11;
+inline constexpr float LAYER_0 = 0.00f;
+inline constexpr float LAYER_1 = 0.05f;
+inline constexpr float LAYER_2 = 0.10f;
+inline constexpr float LAYER_3 = 0.15f;
+inline constexpr float LAYER_4 = 0.20f;
+inline constexpr float LAYER_5 = 0.25f;
+inline constexpr float LAYER_6 = 0.30f;
+inline constexpr float LAYER_7 = 0.35f;
+inline constexpr float LAYER_8 = 0.40f;
+inline constexpr float LAYER_9 = 0.45f;
+inline constexpr float LAYER_10 = 0.50f;
+inline constexpr std::array< float, NUM_LAYERS > LAYERS = {LAYER_0, LAYER_1, LAYER_2, LAYER_3,
+                                                           LAYER_4, LAYER_5, LAYER_6, LAYER_7,
+                                                           LAYER_8, LAYER_9, LAYER_10};
+
 static constexpr uint32_t VERTICES_PER_SPRITE = 4;
 static constexpr uint32_t INDICES_PER_SPRITE = 6;
 static constexpr uint32_t MAX_SPRITES_PER_LAYER = 100000;
 static constexpr size_t MAX_NUM_VERTICES_PER_LAYER = MAX_SPRITES_PER_LAYER * VERTICES_PER_SPRITE;
 static constexpr size_t MAX_NUM_INDICES_PER_LAYER = MAX_SPRITES_PER_LAYER * INDICES_PER_SPRITE;
-inline constexpr uint32_t NUM_LAYERS = 11;
 static constexpr size_t MAX_NUM_SPRITES = MAX_SPRITES_PER_LAYER * NUM_LAYERS;
 static constexpr uint32_t MAX_NUM_TEXTURES = 256;
 static constexpr uint32_t INDICES_PER_LINE = 2;
@@ -148,7 +164,7 @@ struct RenderData
 
    std::array< std::vector< uint32_t >, NUM_LAYERS > deletedObjs_ = {};
    ////////////////////////////////////////////////////////////////////////
-   // RENDER LAYERS (from near to far (values ranging from 0.0 to -0.9))
+   //              RENDER LAYERS (from near 0.0 to far -0.9              //
    ////////////////////////////////////////////////////////////////////////
 
    // Vertex
@@ -164,15 +180,13 @@ struct RenderData
    std::array< uint32_t, NUM_LAYERS > numMeshes = {};
    uint32_t totalNumMeshes = {};
 
-
-   ////////////////////////////////////
-   //                                //
-   ////////////////////////////////////
+   /////////////////////////////////////
+   //           VULKAN DATA           //
+   /////////////////////////////////////
 
    // SSBO (PerInstanceBuffer)
    std::vector< PerInstanceBuffer > perInstance = {};
    std::array< Buffer, MAX_FRAMES_IN_FLIGHT > ssbo = {};
-
 
    // UBO (UniformBufferObject)
    std::vector< Buffer > uniformBuffers{MAX_FRAMES_IN_FLIGHT};
@@ -209,6 +223,7 @@ struct RenderData
 
    glm::mat4 viewMat = {};
    glm::mat4 projMat = {};
+   glm::mat4 projNoZoomMat = {};
 };
 
 /*

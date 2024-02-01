@@ -22,7 +22,7 @@ LineVertex::getAttributeDescriptions()
    attributeDescriptions[0].binding = 0;
    attributeDescriptions[0].location = 0;
    attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-   attributeDescriptions[0].offset = offsetof(LineVertex, m_position);
+   attributeDescriptions[0].offset = offsetof(LineVertex, position_);
 
    return attributeDescriptions;
 }
@@ -46,12 +46,12 @@ Vertex::getAttributeDescriptions()
    attributeDescriptions[0].binding = 0;
    attributeDescriptions[0].location = 0;
    attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-   attributeDescriptions[0].offset = offsetof(Vertex, m_position);
+   attributeDescriptions[0].offset = offsetof(Vertex, position_);
 
    attributeDescriptions[1].binding = 0;
    attributeDescriptions[1].location = 1;
    attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-   attributeDescriptions[1].offset = offsetof(Vertex, m_texCoordsDraw);
+   attributeDescriptions[1].offset = offsetof(Vertex, texCoordsDraw_);
 
    return attributeDescriptions;
 }

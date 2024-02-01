@@ -899,7 +899,6 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 
       currentLevel_->GetSprite().Render();
 
-      gizmo_.Render();
       DrawAnimationPoints();
 
       currentLevel_->RenderGameObjects();
@@ -912,6 +911,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
                               nullptr);
       renderer::QuadShader::PushConstants pushConstants = {};
       pushConstants.selectedIdx = -1.0f;
+      pushConstants.meshType = 0.0f;
 
       if (currentSelectedGameObject_ != Object::INVALID_ID)
       {
@@ -925,6 +925,14 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 
       for (int32_t layer = renderer::NUM_LAYERS - 1; layer >= 0; --layer)
       {
+         // On-top objects
+         if (layer == 0)
+         {
+            pushConstants.meshType = 1.0f;
+            vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                               sizeof(renderer::QuadShader::PushConstants), &pushConstants);
+         }
+
          const auto idx = static_cast< size_t >(layer);
          const auto& numObjects = renderData.numMeshes.at(idx);
          const auto renderThisLayer = renderLayerToDraw_ == -1 ? true : renderLayerToDraw_ == layer;
@@ -967,6 +975,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       vkCmdDrawIndexed(cmdBuffer, renderer::EditorData::numGridLines * renderer::INDICES_PER_LINE,
                        1, 0, 0, 0);
 
+      // DYNAMIC LINES
       linePushConstants.color = glm::vec4(0.5f, 0.0f, 0.0f, 1.0f);
       vkCmdPushConstants(cmdBuffer, renderer::EditorData::linePipelineLayout_,
                          VK_SHADER_STAGE_FRAGMENT_BIT, 0,
@@ -1409,8 +1418,9 @@ Editor::Update()
    }
 
    auto& renderData = renderer::GetRenderData();
-   renderData.viewMat = camera_.GetViewMatrix();
-   renderData.projMat = camera_.GetProjectionMatrix();
+   renderData.viewMat = camera_.viewMatrix_;
+   renderData.projMat = camera_.projectionMatrix_;
+   renderData.projNoZoomMat = camera_.projectionWithoutZoom_;
 
    renderer::UpdateData();
 }
