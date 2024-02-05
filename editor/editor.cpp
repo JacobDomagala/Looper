@@ -479,10 +479,8 @@ Editor::HandleGameObjectClicked(Object::ID newSelectedGameObject, bool groupSele
          UnselectAll();
          SelectGameObject(newSelectedGameObject);
       }
-      else
-      {
-         selectedObjects_.push_back(newSelectedGameObject);
-      }
+
+      selectedObjects_.push_back(newSelectedGameObject);
    }
 
    movementOnGameObject_ = !fromGUI;
@@ -635,6 +633,7 @@ Editor::UnselectGameObject(Object::ID object, bool groupSelect)
    if (currentSelectedGameObject_ == object)
    {
       currentSelectedGameObject_ = Object::INVALID_ID;
+      selectedObjects_.clear();
    }
    else if (groupSelect)
    {
@@ -644,7 +643,6 @@ Editor::UnselectGameObject(Object::ID object, bool groupSelect)
          selectedObjects_.erase(it);
       }
    }
-
 
    if (selectedObjects_.empty())
    {
@@ -902,6 +900,9 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       DrawAnimationPoints();
 
       currentLevel_->RenderGameObjects();
+
+      gizmo_.Render();
+
 
       vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipeline);
 
