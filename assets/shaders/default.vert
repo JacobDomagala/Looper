@@ -6,7 +6,6 @@
 layout(set = 0, binding = 0) uniform UniformBufferObject
 {
    mat4 u_projectionMat;
-   mat4 u_projectionNoZoomMat;
    mat4 u_viewMat;
    vec4 u_cameraPos;
 }
@@ -39,7 +38,6 @@ vs_out;
 
 layout (push_constant) uniform PushConstants {
     float selectedIdx;
-    float meshType;
 } pushConstants;
 
 void
@@ -49,7 +47,7 @@ main(void)
    BufferData curInstanceData = Transforms[int(drawID)];
 
    vs_out.fTexCoord = a_texCoordDrawID.xy;
-   vs_out.fColor = pushConstants.selectedIdx != drawID ? curInstanceData.color : vec4(0.4f, 0.1f, 0.2f, 1.0f);
+   vs_out.fColor = curInstanceData.color;
 
    vs_out.fDiffSampl = int(curInstanceData.texSamples.x);
    vs_out.fExtraSampl = int(curInstanceData.texSamples.y);
@@ -57,5 +55,5 @@ main(void)
    mat4 modelMat = curInstanceData.modelMat;
    vec3 position = a_position;
 
-   gl_Position = (pushConstants.meshType != 1.0f ? ubo.u_projectionMat : ubo.u_projectionNoZoomMat) * ubo.u_viewMat * modelMat * vec4(position.xyz, 1.0f);
+   gl_Position = ubo.u_projectionMat * ubo.u_viewMat * modelMat * vec4(position.xyz, 1.0f);
 }

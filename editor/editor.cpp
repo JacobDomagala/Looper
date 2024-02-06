@@ -117,6 +117,8 @@ Editor::MouseScrollCallback(MouseScrollEvent& event)
    if (!playGame_ && !EditorGUI::IsBlockingEvents() && levelLoaded_)
    {
       camera_.Zoom(static_cast< float >(event.xOffset_ + event.yOffset_));
+      gizmo_.Zoom(static_cast< int32_t >(-event.yOffset_));
+
       event.handled_ = true;
    }
 }
@@ -912,7 +914,6 @@ Editor::Render(VkCommandBuffer cmdBuffer)
                               nullptr);
       renderer::QuadShader::PushConstants pushConstants = {};
       pushConstants.selectedIdx = -1.0f;
-      pushConstants.meshType = 0.0f;
 
       if (currentSelectedGameObject_ != Object::INVALID_ID)
       {
@@ -926,14 +927,6 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 
       for (int32_t layer = renderer::NUM_LAYERS - 1; layer >= 0; --layer)
       {
-         // On-top objects
-         if (layer == 0)
-         {
-            pushConstants.meshType = 1.0f;
-            vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                               sizeof(renderer::QuadShader::PushConstants), &pushConstants);
-         }
-
          const auto idx = static_cast< size_t >(layer);
          const auto& numObjects = renderData.numMeshes.at(idx);
          const auto renderThisLayer = renderLayerToDraw_ == -1 ? true : renderLayerToDraw_ == layer;

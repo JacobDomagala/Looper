@@ -884,7 +884,6 @@ UpdateUniformBuffer()
 
       tmpUBO.view = renderData.viewMat;
       tmpUBO.proj = renderData.projMat;
-      tmpUBO.projNoZoom = renderData.projNoZoomMat;
 
       auto& ubo = renderData.uniformBuffers.at(frame);
 

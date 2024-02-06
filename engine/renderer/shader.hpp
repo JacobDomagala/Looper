@@ -46,7 +46,6 @@ struct QuadShader
    struct PushConstants
    {
       float selectedIdx = {};
-      float meshType = {};
    };
 
    static void
