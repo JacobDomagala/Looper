@@ -88,7 +88,7 @@ Gizmo::AdjustSize()
    float scaleFactor = 1.0f;
    if (zoomLevel_ >= 0)
    {
-      scaleFactor = 20.0f / (20.0f - zoomLevel_);
+      scaleFactor = 20.0f / (20.0f - static_cast< float >(zoomLevel_));
    }
 
    gizmoCenter_.Scale(
@@ -112,13 +112,6 @@ Gizmo::AdjustSize()
       gizmoCenter_.GetPosition()
       + glm::vec3{glm::vec2(gizmoCenter_.GetSize().x / 2.0f + gizmoSide_.GetSize().x / 1.85f, 0.0f),
                   0.0f});
-}
-
-
-glm::vec2
-Gizmo::Position() const
-{
-   return gizmoCenter_.GetPosition();
 }
 
 void

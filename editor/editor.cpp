@@ -551,11 +551,18 @@ Editor::GetSelectedObjects() const
 void
 Editor::SelectGameObject(Object::ID newSelectedGameObject)
 {
+   if (currentSelectedGameObject_ != Object::INVALID_ID)
+   {
+      currentLevel_->GetGameObjectRef(currentSelectedGameObject_)
+         .SetColor({1.0f, 1.0f, 1.0f, 1.0f});
+   }
+
    currentSelectedGameObject_ = newSelectedGameObject;
    gui_.ObjectSelected(currentSelectedGameObject_);
 
    // Make sure to render animation points if needed
    auto& gameObject = currentLevel_->GetGameObjectRef(newSelectedGameObject);
+   gameObject.SetColor({0.4f, 0.0f, 0.0f, 0.8f});
    const auto* animatable = dynamic_cast< Animatable* >(&gameObject);
 
    if (animatable and animatable->GetRenderAnimationSteps())
@@ -634,8 +641,8 @@ Editor::UnselectGameObject(Object::ID object, bool groupSelect)
 
    if (currentSelectedGameObject_ == object)
    {
+      currentLevel_->GetGameObjectRef(object).SetColor({1.0f, 1.0f, 1.0f, 1.0f});
       currentSelectedGameObject_ = Object::INVALID_ID;
-      selectedObjects_.clear();
    }
    else if (groupSelect)
    {
@@ -670,6 +677,13 @@ Editor::UnselectAll()
       gui_.ObjectUnselected(object);
    }
    selectedObjects_.clear();
+
+   if (currentSelectedGameObject_ != Object::INVALID_ID)
+   {
+      currentLevel_->GetGameObjectRef(currentSelectedGameObject_)
+         .SetColor({1.0f, 1.0f, 1.0f, 1.0f});
+      currentSelectedGameObject_ = Object::INVALID_ID;
+   }
 }
 
 void

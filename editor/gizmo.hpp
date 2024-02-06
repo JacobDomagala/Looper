@@ -45,8 +45,6 @@ class Gizmo
    SwitchToRotate();
    void
    SwitchToTranslate();
-   glm::vec2
-   Position() const;
 
  private:
    void

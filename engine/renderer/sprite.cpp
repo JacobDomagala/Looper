@@ -35,7 +35,7 @@ Sprite::ChangeRenderLayer(int32_t newLayer)
 
    for (auto& vertex : vertices_)
    {
-      vertex.position_.z = LAYERS.at(newLayer);
+      vertex.position_.z = LAYERS.at(static_cast< uint32_t >(newLayer));
    }
 
    const auto transformMat = ComputeModelMat();
