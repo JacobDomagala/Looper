@@ -47,7 +47,7 @@ main(void)
    BufferData curInstanceData = Transforms[int(drawID)];
 
    vs_out.fTexCoord = a_texCoordDrawID.xy;
-   vs_out.fColor = pushConstants.selectedIdx != drawID ? curInstanceData.color : vec4(0.4f, 0.1f, 0.2f, 1.0f);
+   vs_out.fColor = curInstanceData.color;
 
    vs_out.fDiffSampl = int(curInstanceData.texSamples.x);
    vs_out.fExtraSampl = int(curInstanceData.texSamples.y);

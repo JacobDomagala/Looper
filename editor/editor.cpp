@@ -117,6 +117,8 @@ Editor::MouseScrollCallback(MouseScrollEvent& event)
    if (!playGame_ && !EditorGUI::IsBlockingEvents() && levelLoaded_)
    {
       camera_.Zoom(static_cast< float >(event.xOffset_ + event.yOffset_));
+      gizmo_.Zoom(static_cast< int32_t >(-event.yOffset_));
+
       event.handled_ = true;
    }
 }
@@ -479,10 +481,8 @@ Editor::HandleGameObjectClicked(Object::ID newSelectedGameObject, bool groupSele
          UnselectAll();
          SelectGameObject(newSelectedGameObject);
       }
-      else
-      {
-         selectedObjects_.push_back(newSelectedGameObject);
-      }
+
+      selectedObjects_.push_back(newSelectedGameObject);
    }
 
    movementOnGameObject_ = !fromGUI;
@@ -551,11 +551,18 @@ Editor::GetSelectedObjects() const
 void
 Editor::SelectGameObject(Object::ID newSelectedGameObject)
 {
+   if (currentSelectedGameObject_ != Object::INVALID_ID)
+   {
+      currentLevel_->GetGameObjectRef(currentSelectedGameObject_)
+         .SetColor({1.0f, 1.0f, 1.0f, 1.0f});
+   }
+
    currentSelectedGameObject_ = newSelectedGameObject;
    gui_.ObjectSelected(currentSelectedGameObject_);
 
    // Make sure to render animation points if needed
    auto& gameObject = currentLevel_->GetGameObjectRef(newSelectedGameObject);
+   gameObject.SetColor({0.4f, 0.0f, 0.0f, 0.8f});
    const auto* animatable = dynamic_cast< Animatable* >(&gameObject);
 
    if (animatable and animatable->GetRenderAnimationSteps())
@@ -634,6 +641,7 @@ Editor::UnselectGameObject(Object::ID object, bool groupSelect)
 
    if (currentSelectedGameObject_ == object)
    {
+      currentLevel_->GetGameObjectRef(object).SetColor({1.0f, 1.0f, 1.0f, 1.0f});
       currentSelectedGameObject_ = Object::INVALID_ID;
    }
    else if (groupSelect)
@@ -644,7 +652,6 @@ Editor::UnselectGameObject(Object::ID object, bool groupSelect)
          selectedObjects_.erase(it);
       }
    }
-
 
    if (selectedObjects_.empty())
    {
@@ -670,6 +677,13 @@ Editor::UnselectAll()
       gui_.ObjectUnselected(object);
    }
    selectedObjects_.clear();
+
+   if (currentSelectedGameObject_ != Object::INVALID_ID)
+   {
+      currentLevel_->GetGameObjectRef(currentSelectedGameObject_)
+         .SetColor({1.0f, 1.0f, 1.0f, 1.0f});
+      currentSelectedGameObject_ = Object::INVALID_ID;
+   }
 }
 
 void
@@ -899,10 +913,12 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 
       currentLevel_->GetSprite().Render();
 
-      gizmo_.Render();
       DrawAnimationPoints();
 
       currentLevel_->RenderGameObjects();
+
+      gizmo_.Render();
+
 
       vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipeline);
 
@@ -967,6 +983,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       vkCmdDrawIndexed(cmdBuffer, renderer::EditorData::numGridLines * renderer::INDICES_PER_LINE,
                        1, 0, 0, 0);
 
+      // DYNAMIC LINES
       linePushConstants.color = glm::vec4(0.5f, 0.0f, 0.0f, 1.0f);
       vkCmdPushConstants(cmdBuffer, renderer::EditorData::linePipelineLayout_,
                          VK_SHADER_STAGE_FRAGMENT_BIT, 0,
@@ -1409,8 +1426,9 @@ Editor::Update()
    }
 
    auto& renderData = renderer::GetRenderData();
-   renderData.viewMat = camera_.GetViewMatrix();
-   renderData.projMat = camera_.GetProjectionMatrix();
+   renderData.viewMat = camera_.viewMatrix_;
+   renderData.projMat = camera_.projectionMatrix_;
+   renderData.projNoZoomMat = camera_.projectionWithoutZoom_;
 
    renderer::UpdateData();
 }

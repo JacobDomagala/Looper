@@ -24,7 +24,7 @@ Level::Create(Application* context, const std::string& name, const glm::ivec2& s
    levelSize_ = size;
 
    background_.SetSpriteTextured(glm::vec3(static_cast< float >(levelSize_.x) / 2.0f,
-                                           static_cast< float >(levelSize_.y) / 2.0f, 0.3f),
+                                           static_cast< float >(levelSize_.y) / 2.0f, renderer::LAYER_10),
                                  size, "white.png");
 
    contextPointer_ = context;
@@ -64,10 +64,9 @@ Level::Load(Application* context, const std::string& pathToLevel)
       // const auto weapons = json[key]["weapons"];
       const auto& name = player["name"];
 
-      player_.Setup(context, glm::vec3(position[0], position[1], 0.0f),
+      player_.Setup(context, glm::vec3(position[0], position[1], renderer::LAYER_1),
                     glm::ivec2(size[0], size[1]), texture, name);
       player_.Rotate(player["rotation"]);
-      player_.GetSprite().ChangeRenderLayer(player["render_layer"]);
    }
 
    // ENEMIES
@@ -87,11 +86,10 @@ Level::Load(Application* context, const std::string& pathToLevel)
          const auto& name = enemy["name"];
 
          auto& object = enemies_.at(i);
-         object.Setup(context, glm::vec3(position[0], position[1], 0.0f),
+         object.Setup(context, glm::vec3(position[0], position[1], renderer::LAYER_1),
                       glm::ivec2(size[0], size[1]), texture, std::vector< AnimationPoint >{});
          object.SetName(name);
          object.Rotate(enemy["rotation"]);
-         object.GetSprite().ChangeRenderLayer(enemy["render_layer"]);
 
          std::vector< AnimationPoint > keypointsPositions = {};
          glm::vec2 beginPoint = glm::vec2(position[0], position[1]);
@@ -127,12 +125,13 @@ Level::Load(Application* context, const std::string& pathToLevel)
          const auto& name = object["name"];
 
          auto& gameObject = objects_.at(i);
-         gameObject.Setup(context, glm::vec3(position[0], position[1], 0.0f),
-                          glm::ivec2(size[0], size[1]), texture, ObjectType::OBJECT);
+         gameObject.Setup(
+            context,
+            glm::vec3(position[0], position[1], renderer::LAYERS.at(object["render_layer"])),
+            glm::ivec2(size[0], size[1]), texture, ObjectType::OBJECT);
          objectToIdx_[gameObject.GetID()] = i;
          gameObject.SetName(name);
          gameObject.Rotate(object["rotation"]);
-         gameObject.GetSprite().ChangeRenderLayer(object["render_layer"]);
          gameObject.SetHasCollision(object["has collision"]);
       }
    }
@@ -564,7 +563,8 @@ Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
    levelSize_ = size;
 
    background_.SetSpriteTextured(glm::vec3(static_cast< float >(levelSize_.x) / 2.0f,
-                                           static_cast< float >(levelSize_.y) / 2.0f, 0.5f),
+                                           static_cast< float >(levelSize_.y) / 2.0f,
+                                           renderer::LAYER_10),
                                  size, fileName);
 
    baseTexture_ = background_.GetTexture()->GetID();

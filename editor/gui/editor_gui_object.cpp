@@ -71,7 +71,7 @@ EditorGUI::RenderSelectedObjectsMenu()
       {
          const auto& gameObject = currentLevel_->GetGameObjectRef(object);
          parent_.GetCamera().SetCameraAtPosition(gameObject.GetPosition());
-         parent_.HandleGameObjectClicked(object, true, true);
+         parent_.HandleGameObjectClicked(object, false, true);
 
          // Don't make the UI jump
          setScrollTo_ = {};
@@ -175,7 +175,7 @@ EditorGUI::RenderGameObjectContent()
 
       DrawWidget("Rotate", [&gameObject]() {
          auto rotation =
-            gameObject.GetSprite().GetRotation(renderer::Sprite::RotationType::DEGREES);
+            gameObject.GetSprite().GetRotation(renderer::RotationType::degrees);
          if (ImGui::InputFloat("##Rotate", &rotation,
                                 glm::degrees(renderer::Sprite::ROTATION_RANGE.first),
                                 glm::degrees(renderer::Sprite::ROTATION_RANGE.second)))

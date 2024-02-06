@@ -15,12 +15,6 @@ namespace looper::renderer {
 class Sprite
 {
  public:
-   enum class RotationType
-   {
-      DEGREES,
-      RADIANS
-   };
-
    struct Modifiers
    {
       glm::vec2 scale = {1.0f, 1.0f};
@@ -32,18 +26,19 @@ class Sprite
    // Create sprite without texture
    void
    SetSprite(const glm::vec3& position = glm::vec3(0.0f, 0.0f, 0.0f),
-             const glm::vec2& size = glm::vec2(128, 128));
+             const glm::vec2& size = glm::vec2(128, 128), SpriteType = SpriteType::regular);
 
    // Create sprite with texture
    void
    SetSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
                      const glm::vec2& size = glm::vec2(128, 128),
-                     const std::string& fileName = "Default128.png");
-
+                     const std::string& fileName = "Default128.png",
+                     SpriteType = SpriteType::regular);
    void
    SetSpriteTextured(const glm::vec3& position = glm::vec3(0.0f, 0.0f, 0.0f),
                      const glm::vec2& size = glm::vec2(128, 128),
-                     const std::string& fileName = "Default128.png");
+                     const std::string& fileName = "Default128.png",
+                     SpriteType = SpriteType::regular);
 
    void
    SetColor(const glm::vec4& color);
@@ -63,7 +58,8 @@ class Sprite
    [[nodiscard]] glm::vec2
    GetSize() const;
 
-   void SetSize(const glm::vec2& newSize);
+   void
+   SetSize(const glm::vec2& newSize);
 
    [[nodiscard]] glm::vec2
    GetOriginalSize() const;
@@ -75,7 +71,7 @@ class Sprite
    GetTranslation() const;
 
    [[nodiscard]] float
-   GetRotation(RotationType type = RotationType::RADIANS) const;
+   GetRotation(RotationType type = RotationType::radians) const;
 
    [[nodiscard]] glm::mat4
    ComputeModelMat() const;
@@ -97,11 +93,11 @@ class Sprite
 
    // Set rotation angle
    void
-   Rotate(float angle, RotationType type = RotationType::RADIANS);
+   Rotate(float angle, RotationType type = RotationType::radians);
 
    // Add 'angle' value to current rotation angle
    void
-   RotateCumulative(float angle, RotationType type = RotationType::RADIANS);
+   RotateCumulative(float angle, RotationType type = RotationType::radians);
 
    void
    Scale(const glm::vec2& scaleValue);
@@ -193,9 +189,10 @@ class Sprite
 
    StateList< State > statesQueue_ = {};
    State currentState_ = {};
+   SpriteType type_ = SpriteType::regular;
 
    // sprite's texture
-   TextureIDs textures_ = {};   
+   TextureIDs textures_ = {};
 
    // width and height
    glm::vec2 size_ = {};

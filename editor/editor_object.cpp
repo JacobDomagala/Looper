@@ -14,7 +14,7 @@ EditorObject::EditorObject(Editor* editor, const glm::vec2& positionOnMap, const
      objectID_(linkedObject),
      hasLinkedObject_(true)
 {
-   auto depth = 0.0f;
+   auto depth = 0.01f;
 
    sprite_.SetSpriteTextured(glm::vec3{position_, depth}, size, sprite);
 }
@@ -224,7 +224,7 @@ EditorObject::Rotate(float angle, bool cumulative)
 {
    cumulative ? sprite_.RotateCumulative(angle) : sprite_.Rotate(angle);
 
-   auto rotate = sprite_.GetRotation(renderer::Sprite::RotationType::DEGREES);
+   auto rotate = sprite_.GetRotation(renderer::RotationType::degrees);
    if (hasLinkedObject_)
    {
       switch (Object::GetTypeFromID(objectID_))

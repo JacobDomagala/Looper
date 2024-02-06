@@ -39,6 +39,18 @@ enum class PrimitiveType
    LINE
 };
 
+enum class RotationType
+{
+   degrees,
+   radians
+};
+
+enum class SpriteType
+{
+   regular,
+   alwaysOnTop
+};
+
 enum class ApplicationType
 {
    EDITOR,

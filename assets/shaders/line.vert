@@ -8,6 +8,7 @@ layout(set = 0, binding = 0) uniform UniformBufferObject
 {
    mat4 u_projectionMat;
    mat4 u_viewMat;
+   vec4 u_cameraPos;
 }
 ubo;
 
