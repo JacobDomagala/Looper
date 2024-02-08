@@ -6,16 +6,16 @@ namespace looper {
 void
 Gizmo::Initialize()
 {
-   gizmoCenter_.SetSpriteTextured(glm::vec3{0.0f, 0.0f, renderer::LAYER_1}, {16, 16},
+   gizmoCenter_.SetSpriteTextured(glm::vec3{0.0f, 0.0f, renderer::LAYER_0}, {16, 16},
                                   "centered_move.png", renderer::SpriteType::alwaysOnTop);
    gizmoCenter_.SetColor({1.0f, 1.0f, 1.0f, 1.0f});
 
-   gizmoUp_.SetSpriteTextured(glm::vec3{0.0f, 0.0f, renderer::LAYER_1}, {96, 32}, "arrow.png",
+   gizmoUp_.SetSpriteTextured(glm::vec3{0.0f, 0.0f, renderer::LAYER_0}, {96, 32}, "arrow.png",
                               renderer::SpriteType::alwaysOnTop);
    gizmoUp_.Rotate(90.0f, renderer::RotationType::degrees);
    gizmoUp_.SetColor({0.0f, 1.0f, 0.0f, 1.0f});
 
-   gizmoSide_.SetSpriteTextured(glm::vec3{0.0f, 0.0f, renderer::LAYER_1}, {96, 32}, "arrow.png",
+   gizmoSide_.SetSpriteTextured(glm::vec3{0.0f, 0.0f, renderer::LAYER_0}, {96, 32}, "arrow.png",
                                 renderer::SpriteType::alwaysOnTop);
    gizmoSide_.SetColor({1.0f, 0.0f, 0.0f, 1.0f});
 

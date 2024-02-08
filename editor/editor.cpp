@@ -1403,6 +1403,8 @@ Editor::Update()
 
          gameObject.Rotate(viewAngle);
          gameObject.Move(moveBy);
+
+         gizmo_.Move(moveBy);
       }
       else if (animatable.AnimationFinished())
       {
