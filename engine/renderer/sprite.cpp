@@ -46,7 +46,7 @@ Sprite::ChangeRenderLayer(int32_t newLayer)
 
 void
 Sprite::SetSpriteTextured(const glm::vec2& position, const glm::vec2& size,
-                          const std::string& fileName, int32_t renderLayer)
+                          const std::string& fileName, uint32_t renderLayer)
 {
    changed_ = true;
 

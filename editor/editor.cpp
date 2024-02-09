@@ -657,7 +657,7 @@ Editor::UnselectGameObject(Object::ID object, bool groupSelect)
       currentLevel_->GetGameObjectRef(object).SetColor({1.0f, 1.0f, 1.0f, 1.0f});
       currentSelectedGameObject_ = Object::INVALID_ID;
 
-      // If main selected object was the only one 
+      // If main selected object was the only one
       if (selectedObjects_.size() == 1)
       {
          selectedObjects_.clear();
@@ -739,6 +739,16 @@ Editor::GetEditorObjectRef(Object::ID object)
    return *animationPointIt;
 }
 
+EditorObject&
+Editor::GetEditorObjectRefByLinkedID(Object::ID linkedObjID)
+{
+   auto animationPointIt = stl::find_if(animationPoints_, [linkedObjID](const auto& editorObject) {
+      return editorObject.GetLinkedObjectID() == linkedObjID;
+   });
+
+   return *animationPointIt;
+}
+
 void
 Editor::UnselectEditorObject(Object::ID object)
 {
@@ -747,6 +757,7 @@ Editor::UnselectEditorObject(Object::ID object)
 
    auto& editorObject = GetEditorObjectRef(object);
    editorObject.SetObjectUnselected();
+
    currentSelectedEditorObject_ = Object::INVALID_ID;
 
    gizmo_.Hide();
@@ -892,23 +903,32 @@ Editor::ActionOnObject(Editor::ACTION action, Object::ID object)
          }
          break;
 
-      case ACTION::REMOVE:
-
-         if (Object::GetTypeFromID(object) == ObjectType::EDITOR_OBJECT)
-         {
+      case ACTION::REMOVE: {
+         auto removeEditorObject = [this](Object::ID object) {
             UnselectEditorObject(object);
-            auto& currentySelectedObj = GetEditorObjectRef(currentSelectedEditorObject_);
+
+            auto& currentySelectedObj = GetEditorObjectRef(object);
             gui_.ObjectDeleted(currentySelectedObj.GetLinkedObjectID());
             currentySelectedObj.DeleteLinkedObject();
 
             if (Object::GetTypeFromID(currentySelectedObj.GetLinkedObjectID())
                 == ObjectType::ANIMATION_POINT)
             {
-               animationPoints_.erase(
-                  stl::find_if(animationPoints_, [this](const auto& animationPoint) {
-                     return animationPoint.GetID() == currentSelectedEditorObject_;
-                  }));
+               auto animationIt =
+                  stl::find_if(animationPoints_, [object](const auto& animationPoint) {
+                     return animationPoint.GetID() == object;
+                  });
+               animationIt->GetSprite().ClearData();
+               animationPoints_.erase(animationIt);
             }
+         };
+         if (Object::GetTypeFromID(object) == ObjectType::EDITOR_OBJECT)
+         {
+            removeEditorObject(object);
+         }
+         else if (Object::GetTypeFromID(object) == ObjectType::ANIMATION_POINT)
+         {
+            removeEditorObject(GetEditorObjectRefByLinkedID(object).GetID());
          }
          else
          {
@@ -917,7 +937,8 @@ Editor::ActionOnObject(Editor::ACTION action, Object::ID object)
 
             currentLevel_->DeleteObject(object);
          }
-         break;
+      }
+      break;
       default: {
       }
    }
@@ -963,7 +984,7 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       {
          const auto idx = static_cast< size_t >(layer);
          const auto& numObjects = renderData.numMeshes.at(idx);
-         
+
          const auto renderThisLayer =
             (renderAllLayers or layer == 0) ? true : renderLayerToDraw_ == layer;
 

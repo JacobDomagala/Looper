@@ -189,6 +189,9 @@ class Editor : public Application
    EditorObject&
    GetEditorObjectRef(Object::ID object);
 
+   EditorObject&
+   GetEditorObjectRefByLinkedID(Object::ID linkedObjID);
+
  private:
    // [[nodiscard]] std::shared_ptr< EditorObject >
    // GetEditorObjectByID(Object::ID ID);

@@ -27,7 +27,7 @@ class Sprite
    void
    SetSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
                      const glm::vec2& size = glm::vec2(128, 128),
-                     const std::string& fileName = "Default128.png", int32_t renderLayer = 2);
+                     const std::string& fileName = "Default128.png", uint32_t renderLayer = 2);
 
    void
    SetColor(const glm::vec4& color);
@@ -178,7 +178,6 @@ class Sprite
 
    StateList< State > statesQueue_ = {};
    State currentState_ = {};
-   SpriteType type_ = SpriteType::regular;
 
    // sprite's texture
    TextureIDs textures_ = {};

@@ -10,7 +10,7 @@ GameObject::GameObject(Application* application, const glm::vec2& position, cons
                        const std::string& sprite, ObjectType type)
    : Object(type), appHandle_(application)
 {
-   int32_t renderLayer = 2;
+   uint32_t renderLayer = 2;
    switch (type)
    {
       case ObjectType::ENEMY:
@@ -44,7 +44,7 @@ GameObject::Setup(Application* application, const glm::vec2& position, const glm
    Object::Setup(type);
 
    appHandle_ = application;
-   int32_t renderLayer = 2;
+   uint32_t renderLayer = 2;
    switch (type)
    {
       case ObjectType::ENEMY:
@@ -58,7 +58,7 @@ GameObject::Setup(Application* application, const glm::vec2& position, const glm
 
    sprite_.SetSpriteTextured(position, size, sprite, renderLayer);
    currentGameObjectState_.visible_ = true;
-   currentGameObjectState_.previousPosition_ = glm::vec2(position);
+   currentGameObjectState_.previousPosition_ = position;
 
 
    currentGameObjectState_.nodes_ =

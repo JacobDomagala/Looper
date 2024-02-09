@@ -9,7 +9,7 @@
 
 namespace looper {
 
-Enemy::Enemy(Application* context, const glm::vec3& pos, const glm::ivec2& size,
+Enemy::Enemy(Application* context, const glm::vec2& pos, const glm::ivec2& size,
              const std::string& textureName, const std::vector< AnimationPoint >& keypoints,
              Animatable::ANIMATION_TYPE animationType)
    : GameObject(context, pos, size, textureName, ObjectType::ENEMY),
@@ -26,13 +26,6 @@ Enemy::Enemy(Application* context, const glm::vec3& pos, const glm::ivec2& size,
 
    animationStartPosition_ = initialPosition_;
    ResetAnimation();
-}
-
-Enemy::Enemy(Application* context, const glm::vec2& pos, const glm::ivec2& size,
-             const std::string& textureName, const std::vector< AnimationPoint >& keypoints,
-             Animatable::ANIMATION_TYPE animationType)
-   : Enemy(context, glm::vec3{pos, renderer::LAYER_1}, size, textureName, keypoints, animationType)
-{
 }
 
 void
