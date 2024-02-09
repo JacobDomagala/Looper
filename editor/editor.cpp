@@ -78,6 +78,10 @@ Editor::KeyCallback(KeyEvent& event)
             {
                ActionOnObject(action, currentSelectedEditorObject_);
             }
+            else if (currentSelectedGameObject_ != Object::INVALID_ID)
+            {
+               ActionOnObject(action, currentSelectedGameObject_);
+            }
             else
             {
                for (auto it = selectedObjects_.begin(); it < selectedObjects_.end();)
@@ -199,6 +203,12 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
             gizmo_.Update((min + max) / 2.0f, selectedObjects_.size() == 1
                                                  ? firstObject.GetSprite().GetRotation()
                                                  : 0.0f);
+
+            // If we only selected single object, make it as main selected one
+            if (selectedObjects_.size() == 1)
+            {
+               SelectGameObject(selectedObjects_.front());
+            }
          }
          selectStartPos_ = glm::vec2{};
          selectRect_ = std::array< glm::vec2, 4 >{};
@@ -304,6 +314,8 @@ Editor::MoveLogic(const glm::vec2& axis)
 
       selectedGameObject.Move(camera_.ConvertToCameraVector(moveBy));
       gui_.ObjectUpdated(currentSelectedGameObject_);
+
+      UpdateAnimationData(currentSelectedGameObject_);
    }
    else
    {
@@ -317,12 +329,7 @@ Editor::MoveLogic(const glm::vec2& axis)
 
          gui_.ObjectUpdated(object);
 
-         auto* animatable = dynamic_cast< Animatable* >(&baseObject);
-         if (animatable)
-         {
-            animatable->SetAnimationStartLocation(gameObject.GetPosition());
-            UpdateAnimationData(object);
-         }
+         UpdateAnimationData(object);
       }
    }
 
@@ -455,6 +462,11 @@ Editor::SetMouseOnObject()
 void
 Editor::HandleGameObjectClicked(Object::ID newSelectedGameObject, bool groupSelect, bool fromGUI)
 {
+   if (currentSelectedEditorObject_ != Object::INVALID_ID)
+   {
+      UnselectEditorObject(currentSelectedEditorObject_);
+   }
+
    const auto objectAlreadySelected =
       stl::find(selectedObjects_, newSelectedGameObject) != selectedObjects_.end();
    const auto mainSelectedObject = currentSelectedGameObject_ == newSelectedGameObject;
@@ -562,7 +574,7 @@ Editor::SelectGameObject(Object::ID newSelectedGameObject)
 
    // Make sure to render animation points if needed
    auto& gameObject = currentLevel_->GetGameObjectRef(newSelectedGameObject);
-   gameObject.SetColor({0.4f, 0.0f, 0.0f, 0.8f});
+   gameObject.SetColor({0.6f, 0.0f, 0.0f, 0.8f});
    const auto* animatable = dynamic_cast< Animatable* >(&gameObject);
 
    if (animatable and animatable->GetRenderAnimationSteps())
@@ -700,6 +712,8 @@ Editor::HandleEditorObjectSelected(EditorObject& newSelectedEditorObject, bool f
 
    newSelectedEditorObject.SetObjectSelected();
 
+   const auto& editorObj = GetEditorObjectRef(currentSelectedEditorObject_);
+   gizmo_.Update(editorObj.GetCenteredPosition(), editorObj.GetSprite().GetRotation());
    gizmo_.Show();
    gizmoActive_ = true;
 }
@@ -1370,11 +1384,8 @@ Editor::SetRenderAnimationPoints(bool render)
    auto& animatable =
       dynamic_cast< Animatable& >(currentLevel_->GetObjectRef(currentSelectedGameObject_));
 
-   if (animatable.GetRenderAnimationSteps() != render)
-   {
-      animatable.RenderAnimationSteps(render);
-      SetVisibleAnimationPoints(animatable, render);
-   }
+   animatable.RenderAnimationSteps(render);
+   SetVisibleAnimationPoints(animatable, render);
 }
 
 void
@@ -1438,7 +1449,15 @@ Editor::Update()
 void
 Editor::UpdateAnimationData(Object::ID object)
 {
-   dynamic_cast< Animatable& >(currentLevel_->GetObjectRef(object)).UpdateAnimationData();
+   auto& baseObject = currentLevel_->GetObjectRef(object);
+   auto& gameObject = dynamic_cast< GameObject& >(baseObject);
+
+   auto* animatable = dynamic_cast< Animatable* >(&baseObject);
+   if (animatable)
+   {
+      animatable->SetAnimationStartLocation(gameObject.GetPosition());
+      animatable->UpdateAnimationData();
+   }
 }
 
 glm::vec2
