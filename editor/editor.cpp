@@ -641,6 +641,7 @@ void
 Editor::UnselectGameObject(Object::ID object, bool groupSelect)
 {
    movementOnGameObject_ = false;
+   animateGameObject_ = false;
 
    gui_.ObjectUnselected(object);
 
@@ -698,9 +699,7 @@ Editor::UnselectAll()
 
    if (currentSelectedGameObject_ != Object::INVALID_ID)
    {
-      currentLevel_->GetGameObjectRef(currentSelectedGameObject_)
-         .SetColor({1.0f, 1.0f, 1.0f, 1.0f});
-      currentSelectedGameObject_ = Object::INVALID_ID;
+      UnselectGameObject(currentSelectedGameObject_, false);
    }
 }
 
@@ -1328,17 +1327,7 @@ Editor::AddObject(ObjectType objectType)
 void
 Editor::ToggleAnimateObject()
 {
-   if (animateGameObject_)
-   {
-      // TODO: This should be changed in future!
-      auto& enemy = dynamic_cast< Enemy& >(currentLevel_->GetObjectRef(currentSelectedGameObject_));
-      enemy.SetPosition(enemy.GetInitialPosition());
-      animateGameObject_ = false;
-   }
-   else
-   {
-      animateGameObject_ = true;
-   }
+   animateGameObject_ = not animateGameObject_;
 }
 
 bool
@@ -1424,7 +1413,10 @@ Editor::Update()
          gameObject.Rotate(viewAngle);
          gameObject.Move(moveBy);
 
-         gizmo_.Move(moveBy);
+         if (currentSelectedEditorObject_ == Object::INVALID_ID)
+         {
+            gizmo_.Move(moveBy);
+         }
       }
       else if (animatable.AnimationFinished())
       {

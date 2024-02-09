@@ -51,7 +51,7 @@ bool
 Player::CheckCollision(const glm::vec2& bulletPosition, Enemy const* /* enemy*/, bool enemyShooting)
 {
    // if the bullet is inside collision zone then player got hit
-   if (glm::length(bulletPosition - glm::vec2(currentGameObjectState_.centeredPosition_))
+   if (glm::length(bulletPosition - glm::vec2(sprite_.GetPosition()))
        < (static_cast< float >(sprite_.GetSize().x)) / 2.5f)
    {
       if (enemyShooting)
@@ -68,8 +68,7 @@ glm::vec2
 Player::GetScreenPosition() const
 {
    const glm::vec4 screenPosition =
-      appHandle_->GetProjection()
-      * glm::vec4(currentGameObjectState_.centeredPosition_, 0.0f, 1.0f);
+      appHandle_->GetProjection() * glm::vec4(sprite_.GetPosition(), 0.0f, 1.0f);
    return {screenPosition.x, screenPosition.y};
 }
 
@@ -86,7 +85,7 @@ Player::UpdateInternal(bool isReverse)
       {
          auto* const gameHandle = ConvertToGameHandle();
          const auto cursorPos = gameHandle->ScreenToGlobal(gameHandle->GetCursor());
-         const auto spritePosition = currentGameObjectState_.position_;
+         const auto spritePosition = sprite_.GetPosition();
 
          currentState_.viewAngle_ =
             glm::atan(cursorPos.y - spritePosition.y, cursorPos.x - spritePosition.x);
@@ -104,14 +103,8 @@ Player::Shoot()
 {
    auto* gameHandle = ConvertToGameHandle();
 
-   const auto direction = gameHandle->GetCursor() - glm::vec2(currentGameObjectState_.position_);
+   const auto direction = gameHandle->GetCursor() - glm::vec2(sprite_.GetPosition());
    currentWeapon_->Shoot(direction);
-}
-
-void
-Player::SetPosition(const glm::vec2& position)
-{
-   currentGameObjectState_.position_ = position;
 }
 
 float

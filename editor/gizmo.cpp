@@ -6,17 +6,14 @@ namespace looper {
 void
 Gizmo::Initialize()
 {
-   gizmoCenter_.SetSpriteTextured(glm::vec3{0.0f, 0.0f, renderer::LAYER_0}, {16, 16},
-                                  "centered_move.png", renderer::SpriteType::alwaysOnTop);
+   gizmoCenter_.SetSpriteTextured(glm::vec2{0.0f, 0.0f}, {16, 16}, "centered_move.png", 0);
    gizmoCenter_.SetColor({1.0f, 1.0f, 1.0f, 1.0f});
 
-   gizmoUp_.SetSpriteTextured(glm::vec3{0.0f, 0.0f, renderer::LAYER_0}, {96, 32}, "arrow.png",
-                              renderer::SpriteType::alwaysOnTop);
+   gizmoUp_.SetSpriteTextured(glm::vec2{0.0f, 0.0f}, {96, 32}, "arrow.png", 0);
    gizmoUp_.Rotate(90.0f, renderer::RotationType::degrees);
    gizmoUp_.SetColor({0.0f, 1.0f, 0.0f, 1.0f});
 
-   gizmoSide_.SetSpriteTextured(glm::vec3{0.0f, 0.0f, renderer::LAYER_0}, {96, 32}, "arrow.png",
-                                renderer::SpriteType::alwaysOnTop);
+   gizmoSide_.SetSpriteTextured(glm::vec2{0.0f, 0.0f}, {96, 32}, "arrow.png", 0);
    gizmoSide_.SetColor({1.0f, 0.0f, 0.0f, 1.0f});
 
    centerInitialSize_ = {{16, 16}, {96, 96}};
@@ -105,13 +102,13 @@ Gizmo::AdjustSize()
 
    gizmoUp_.SetInitialPosition(
       gizmoCenter_.GetPosition()
-      + glm::vec3{0.0f, gizmoCenter_.GetSize().y / 2.0f + gizmoUp_.GetSize().x / 1.85f, 0.0f});
+      + glm::vec2{0.0f, gizmoCenter_.GetSize().y / 2.0f + gizmoUp_.GetSize().x / 1.85f});
 
 
    gizmoSide_.SetInitialPosition(
       gizmoCenter_.GetPosition()
-      + glm::vec3{glm::vec2(gizmoCenter_.GetSize().x / 2.0f + gizmoSide_.GetSize().x / 1.85f, 0.0f),
-                  0.0f});
+      + glm::vec2{
+         glm::vec2(gizmoCenter_.GetSize().x / 2.0f + gizmoSide_.GetSize().x / 1.85f, 0.0f)});
 }
 
 void
