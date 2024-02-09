@@ -655,6 +655,12 @@ Editor::UnselectGameObject(Object::ID object, bool groupSelect)
    {
       currentLevel_->GetGameObjectRef(object).SetColor({1.0f, 1.0f, 1.0f, 1.0f});
       currentSelectedGameObject_ = Object::INVALID_ID;
+
+      // If main selected object was the only one 
+      if (selectedObjects_.size() == 1)
+      {
+         selectedObjects_.clear();
+      }
    }
    else if (groupSelect)
    {
@@ -953,11 +959,14 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                          sizeof(renderer::QuadShader::PushConstants), &pushConstants);
 
+      const auto renderAllLayers = renderLayerToDraw_ == -1;
       for (int32_t layer = renderer::NUM_LAYERS - 1; layer >= 0; --layer)
       {
          const auto idx = static_cast< size_t >(layer);
          const auto& numObjects = renderData.numMeshes.at(idx);
-         const auto renderThisLayer = renderLayerToDraw_ == -1 ? true : renderLayerToDraw_ == layer;
+         
+         const auto renderThisLayer =
+            (renderAllLayers or layer == 0) ? true : renderLayerToDraw_ == layer;
 
          if (numObjects == 0 or !renderThisLayer)
          {
