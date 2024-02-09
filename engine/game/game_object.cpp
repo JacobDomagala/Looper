@@ -6,39 +6,30 @@
 
 namespace looper {
 
-GameObject::GameObject(Application* application, const glm::vec3& position, const glm::vec2& size,
+GameObject::GameObject(Application* application, const glm::vec2& position, const glm::vec2& size,
                        const std::string& sprite, ObjectType type)
    : Object(type), appHandle_(application)
 {
-   auto newPosition = position;
+   uint32_t renderLayer = 2;
    switch (type)
    {
-      case looper::ObjectType::OBJECT: {
-         newPosition.z = renderer::LAYER_2;
+      case ObjectType::ENEMY:
+      case ObjectType::PLAYER: {
+         renderLayer = 1;
       }
       break;
-
-      default:
-         break;
+      default: {
+      }
    }
 
-   sprite_.SetSpriteTextured(newPosition, size, sprite);
-   currentGameObjectState_.position_ = glm::vec2(position);
+   sprite_.SetSpriteTextured(position, size, sprite, renderLayer);
    currentGameObjectState_.visible_ = true;
-   currentGameObjectState_.centeredPosition_ = sprite_.GetPosition();
    currentGameObjectState_.previousPosition_ = glm::vec2(position);
-
 
    currentGameObjectState_.nodes_ =
       appHandle_->GetLevel().GetTilesFromBoundingBox(sprite_.GetTransformedRectangle());
 
    appHandle_->GetLevel().OccupyNodes(id_, currentGameObjectState_.nodes_, hasCollision_);
-}
-
-GameObject::GameObject(Application* application, const glm::vec2& position, const glm::vec2& size,
-                       const std::string& sprite, ObjectType type)
-   : GameObject(application, glm::vec3{position, 0.0f}, size, sprite, type)
-{
 }
 
 GameObject::~GameObject()
@@ -47,29 +38,27 @@ GameObject::~GameObject()
 }
 
 void
-GameObject::Setup(Application* application, const glm::vec3& position, const glm::vec2& size,
+GameObject::Setup(Application* application, const glm::vec2& position, const glm::vec2& size,
                   const std::string& sprite, ObjectType type)
 {
    Object::Setup(type);
 
    appHandle_ = application;
-   auto newPosition = position;
+   uint32_t renderLayer = 2;
    switch (type)
    {
-      case looper::ObjectType::OBJECT: {
-         newPosition.z = renderer::LAYER_2;
+      case ObjectType::ENEMY:
+      case ObjectType::PLAYER: {
+         renderLayer = 1;
       }
       break;
-
-      default:
-         break;
+      default: {
+      }
    }
 
-   sprite_.SetSpriteTextured(newPosition, size, sprite);
-   currentGameObjectState_.position_ = glm::vec2(position);
+   sprite_.SetSpriteTextured(position, size, sprite, renderLayer);
    currentGameObjectState_.visible_ = true;
-   currentGameObjectState_.centeredPosition_ = sprite_.GetPosition();
-   currentGameObjectState_.previousPosition_ = glm::vec2(position);
+   currentGameObjectState_.previousPosition_ = position;
 
 
    currentGameObjectState_.nodes_ =
@@ -89,7 +78,7 @@ GameObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 glm::vec2
 GameObject::GetScreenPositionPixels() const
 {
-   return appHandle_->GlobalToScreen(currentGameObjectState_.centeredPosition_);
+   return appHandle_->GlobalToScreen(sprite_.GetPosition());
 }
 
 bool
@@ -117,16 +106,10 @@ GameObject::GetSize() const
    return sprite_.GetSize();
 }
 
-void
-GameObject::SetPosition(const glm::vec2& position)
-{
-   currentGameObjectState_.position_ = position;
-}
-
 glm::vec2
 GameObject::GetPosition() const
 {
-   return currentGameObjectState_.position_;
+   return sprite_.GetPosition();
 }
 
 glm::vec2
@@ -138,7 +121,7 @@ GameObject::GetPreviousPosition() const
 glm::vec2
 GameObject::GetCenteredPosition() const
 {
-   return currentGameObjectState_.position_;
+   return sprite_.GetPosition();
    // return currentGameObjectState_.centeredPosition_;
 }
 
@@ -155,18 +138,10 @@ GameObject::GetSprite()
 }
 
 void
-GameObject::CreateSprite(const glm::vec3& position, const glm::ivec2& size)
-{
-   sprite_.SetSprite(position, size);
-   currentGameObjectState_.position_ = sprite_.GetPosition();
-}
-
-void
 GameObject::CreateSpriteTextured(const glm::vec3& position, const glm::ivec2& size,
                                  const std::string& fileName)
 {
    sprite_.SetSpriteTextured(position, size, fileName);
-   currentGameObjectState_.position_ = sprite_.GetPosition();
 }
 
 void
@@ -227,10 +202,8 @@ GameObject::GetOccupiedNodes() const
 void
 GameObject::Move(const glm::vec2& moveBy)
 {
-   currentGameObjectState_.previousPosition_ = currentGameObjectState_.position_;
+   currentGameObjectState_.previousPosition_ = sprite_.GetPosition();
    sprite_.Translate(glm::vec3(moveBy, 0.0f));
-   currentGameObjectState_.position_ += moveBy;
-   currentGameObjectState_.centeredPosition_ += moveBy;
 
    updateCollision_ = true;
 }

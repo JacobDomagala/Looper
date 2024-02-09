@@ -214,7 +214,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
 
          CreateActionRowLabel("RenderLayer", [this] {
             const auto items = std::to_array< std::string >(
-               {"All", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
+               {"All", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
             const auto layer = parent_.GetRenderLayerToDraw();
             if (ImGui::BeginCombo(
                    "##combo",

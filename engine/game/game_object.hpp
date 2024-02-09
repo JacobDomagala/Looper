@@ -16,16 +16,13 @@ class Game;
 class GameObject : public Object
 {
  public:
-   GameObject(Application* application, const glm::vec3& position, const glm::vec2& size,
-              const std::string& sprite, ObjectType type);
-
    GameObject(Application* application, const glm::vec2& position, const glm::vec2& size,
               const std::string& sprite, ObjectType type);
    GameObject() = default;
    ~GameObject() override;
 
    void
-   Setup(Application* application, const glm::vec3& position, const glm::vec2& size,
+   Setup(Application* application, const glm::vec2& position, const glm::vec2& size,
          const std::string& sprite, ObjectType type);
 
    virtual void
@@ -39,9 +36,6 @@ class GameObject : public Object
    // SETERS
    virtual void
    SetColor(const glm::vec4& color);
-
-   virtual void
-   SetPosition(const glm::vec2& position);
 
    virtual void
    SetName(const std::string& name);
@@ -81,11 +75,6 @@ class GameObject : public Object
 
    [[nodiscard]] std::string
    GetName() const;
-
-   // Create sprite with default texture
-   virtual void
-   CreateSprite(const glm::vec3& position = glm::vec3{},
-                const glm::ivec2& size = glm::ivec2(10, 10));
 
    // Create sprite with texture from 'fileName'
    virtual void
@@ -136,12 +125,6 @@ class GameObject : public Object
 
    struct State
    {
-      // global position (in OpenGL coords)
-      glm::vec2 position_;
-
-      // center of global's position (in OpenGL coords)
-      glm::vec2 centeredPosition_;
-
       glm::vec2 previousPosition_ = {};
 
       // should this object be visible

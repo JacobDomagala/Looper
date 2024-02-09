@@ -78,6 +78,10 @@ Editor::KeyCallback(KeyEvent& event)
             {
                ActionOnObject(action, currentSelectedEditorObject_);
             }
+            else if (currentSelectedGameObject_ != Object::INVALID_ID)
+            {
+               ActionOnObject(action, currentSelectedGameObject_);
+            }
             else
             {
                for (auto it = selectedObjects_.begin(); it < selectedObjects_.end();)
@@ -199,6 +203,12 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
             gizmo_.Update((min + max) / 2.0f, selectedObjects_.size() == 1
                                                  ? firstObject.GetSprite().GetRotation()
                                                  : 0.0f);
+
+            // If we only selected single object, make it as main selected one
+            if (selectedObjects_.size() == 1)
+            {
+               SelectGameObject(selectedObjects_.front());
+            }
          }
          selectStartPos_ = glm::vec2{};
          selectRect_ = std::array< glm::vec2, 4 >{};
@@ -304,6 +314,8 @@ Editor::MoveLogic(const glm::vec2& axis)
 
       selectedGameObject.Move(camera_.ConvertToCameraVector(moveBy));
       gui_.ObjectUpdated(currentSelectedGameObject_);
+
+      UpdateAnimationData(currentSelectedGameObject_);
    }
    else
    {
@@ -317,12 +329,7 @@ Editor::MoveLogic(const glm::vec2& axis)
 
          gui_.ObjectUpdated(object);
 
-         auto* animatable = dynamic_cast< Animatable* >(&baseObject);
-         if (animatable)
-         {
-            animatable->SetAnimationStartLocation(gameObject.GetPosition());
-            UpdateAnimationData(object);
-         }
+         UpdateAnimationData(object);
       }
    }
 
@@ -455,6 +462,11 @@ Editor::SetMouseOnObject()
 void
 Editor::HandleGameObjectClicked(Object::ID newSelectedGameObject, bool groupSelect, bool fromGUI)
 {
+   if (currentSelectedEditorObject_ != Object::INVALID_ID)
+   {
+      UnselectEditorObject(currentSelectedEditorObject_);
+   }
+
    const auto objectAlreadySelected =
       stl::find(selectedObjects_, newSelectedGameObject) != selectedObjects_.end();
    const auto mainSelectedObject = currentSelectedGameObject_ == newSelectedGameObject;
@@ -562,7 +574,7 @@ Editor::SelectGameObject(Object::ID newSelectedGameObject)
 
    // Make sure to render animation points if needed
    auto& gameObject = currentLevel_->GetGameObjectRef(newSelectedGameObject);
-   gameObject.SetColor({0.4f, 0.0f, 0.0f, 0.8f});
+   gameObject.SetColor({0.6f, 0.0f, 0.0f, 0.8f});
    const auto* animatable = dynamic_cast< Animatable* >(&gameObject);
 
    if (animatable and animatable->GetRenderAnimationSteps())
@@ -629,6 +641,7 @@ void
 Editor::UnselectGameObject(Object::ID object, bool groupSelect)
 {
    movementOnGameObject_ = false;
+   animateGameObject_ = false;
 
    gui_.ObjectUnselected(object);
 
@@ -643,6 +656,12 @@ Editor::UnselectGameObject(Object::ID object, bool groupSelect)
    {
       currentLevel_->GetGameObjectRef(object).SetColor({1.0f, 1.0f, 1.0f, 1.0f});
       currentSelectedGameObject_ = Object::INVALID_ID;
+
+      // If main selected object was the only one
+      if (selectedObjects_.size() == 1)
+      {
+         selectedObjects_.clear();
+      }
    }
    else if (groupSelect)
    {
@@ -680,9 +699,7 @@ Editor::UnselectAll()
 
    if (currentSelectedGameObject_ != Object::INVALID_ID)
    {
-      currentLevel_->GetGameObjectRef(currentSelectedGameObject_)
-         .SetColor({1.0f, 1.0f, 1.0f, 1.0f});
-      currentSelectedGameObject_ = Object::INVALID_ID;
+      UnselectGameObject(currentSelectedGameObject_, false);
    }
 }
 
@@ -700,6 +717,8 @@ Editor::HandleEditorObjectSelected(EditorObject& newSelectedEditorObject, bool f
 
    newSelectedEditorObject.SetObjectSelected();
 
+   const auto& editorObj = GetEditorObjectRef(currentSelectedEditorObject_);
+   gizmo_.Update(editorObj.GetCenteredPosition(), editorObj.GetSprite().GetRotation());
    gizmo_.Show();
    gizmoActive_ = true;
 }
@@ -720,6 +739,16 @@ Editor::GetEditorObjectRef(Object::ID object)
    return *animationPointIt;
 }
 
+EditorObject&
+Editor::GetEditorObjectRefByLinkedID(Object::ID linkedObjID)
+{
+   auto animationPointIt = stl::find_if(animationPoints_, [linkedObjID](const auto& editorObject) {
+      return editorObject.GetLinkedObjectID() == linkedObjID;
+   });
+
+   return *animationPointIt;
+}
+
 void
 Editor::UnselectEditorObject(Object::ID object)
 {
@@ -728,6 +757,7 @@ Editor::UnselectEditorObject(Object::ID object)
 
    auto& editorObject = GetEditorObjectRef(object);
    editorObject.SetObjectUnselected();
+
    currentSelectedEditorObject_ = Object::INVALID_ID;
 
    gizmo_.Hide();
@@ -873,23 +903,32 @@ Editor::ActionOnObject(Editor::ACTION action, Object::ID object)
          }
          break;
 
-      case ACTION::REMOVE:
-
-         if (Object::GetTypeFromID(object) == ObjectType::EDITOR_OBJECT)
-         {
+      case ACTION::REMOVE: {
+         auto removeEditorObject = [this](Object::ID object) {
             UnselectEditorObject(object);
-            auto& currentySelectedObj = GetEditorObjectRef(currentSelectedEditorObject_);
+
+            auto& currentySelectedObj = GetEditorObjectRef(object);
             gui_.ObjectDeleted(currentySelectedObj.GetLinkedObjectID());
             currentySelectedObj.DeleteLinkedObject();
 
             if (Object::GetTypeFromID(currentySelectedObj.GetLinkedObjectID())
                 == ObjectType::ANIMATION_POINT)
             {
-               animationPoints_.erase(
-                  stl::find_if(animationPoints_, [this](const auto& animationPoint) {
-                     return animationPoint.GetID() == currentSelectedEditorObject_;
-                  }));
+               auto animationIt =
+                  stl::find_if(animationPoints_, [object](const auto& animationPoint) {
+                     return animationPoint.GetID() == object;
+                  });
+               animationIt->GetSprite().ClearData();
+               animationPoints_.erase(animationIt);
             }
+         };
+         if (Object::GetTypeFromID(object) == ObjectType::EDITOR_OBJECT)
+         {
+            removeEditorObject(object);
+         }
+         else if (Object::GetTypeFromID(object) == ObjectType::ANIMATION_POINT)
+         {
+            removeEditorObject(GetEditorObjectRefByLinkedID(object).GetID());
          }
          else
          {
@@ -898,7 +937,8 @@ Editor::ActionOnObject(Editor::ACTION action, Object::ID object)
 
             currentLevel_->DeleteObject(object);
          }
-         break;
+      }
+      break;
       default: {
       }
    }
@@ -939,11 +979,14 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                          sizeof(renderer::QuadShader::PushConstants), &pushConstants);
 
+      const auto renderAllLayers = renderLayerToDraw_ == -1;
       for (int32_t layer = renderer::NUM_LAYERS - 1; layer >= 0; --layer)
       {
          const auto idx = static_cast< size_t >(layer);
          const auto& numObjects = renderData.numMeshes.at(idx);
-         const auto renderThisLayer = renderLayerToDraw_ == -1 ? true : renderLayerToDraw_ == layer;
+
+         const auto renderThisLayer =
+            (renderAllLayers or layer == 0) ? true : renderLayerToDraw_ == layer;
 
          if (numObjects == 0 or !renderThisLayer)
          {
@@ -1305,17 +1348,7 @@ Editor::AddObject(ObjectType objectType)
 void
 Editor::ToggleAnimateObject()
 {
-   if (animateGameObject_)
-   {
-      // TODO: This should be changed in future!
-      auto& enemy = dynamic_cast< Enemy& >(currentLevel_->GetObjectRef(currentSelectedGameObject_));
-      enemy.SetPosition(enemy.GetInitialPosition());
-      animateGameObject_ = false;
-   }
-   else
-   {
-      animateGameObject_ = true;
-   }
+   animateGameObject_ = not animateGameObject_;
 }
 
 bool
@@ -1370,11 +1403,8 @@ Editor::SetRenderAnimationPoints(bool render)
    auto& animatable =
       dynamic_cast< Animatable& >(currentLevel_->GetObjectRef(currentSelectedGameObject_));
 
-   if (animatable.GetRenderAnimationSteps() != render)
-   {
-      animatable.RenderAnimationSteps(render);
-      SetVisibleAnimationPoints(animatable, render);
-   }
+   animatable.RenderAnimationSteps(render);
+   SetVisibleAnimationPoints(animatable, render);
 }
 
 void
@@ -1403,6 +1433,11 @@ Editor::Update()
 
          gameObject.Rotate(viewAngle);
          gameObject.Move(moveBy);
+
+         if (currentSelectedEditorObject_ == Object::INVALID_ID)
+         {
+            gizmo_.Move(moveBy);
+         }
       }
       else if (animatable.AnimationFinished())
       {
@@ -1436,7 +1471,15 @@ Editor::Update()
 void
 Editor::UpdateAnimationData(Object::ID object)
 {
-   dynamic_cast< Animatable& >(currentLevel_->GetObjectRef(object)).UpdateAnimationData();
+   auto& baseObject = currentLevel_->GetObjectRef(object);
+   auto& gameObject = dynamic_cast< GameObject& >(baseObject);
+
+   auto* animatable = dynamic_cast< Animatable* >(&baseObject);
+   if (animatable)
+   {
+      animatable->SetAnimationStartLocation(gameObject.GetPosition());
+      animatable->UpdateAnimationData();
+   }
 }
 
 glm::vec2

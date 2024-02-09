@@ -9,12 +9,12 @@
 
 namespace looper {
 
-Enemy::Enemy(Application* context, const glm::vec3& pos, const glm::ivec2& size,
+Enemy::Enemy(Application* context, const glm::vec2& pos, const glm::ivec2& size,
              const std::string& textureName, const std::vector< AnimationPoint >& keypoints,
              Animatable::ANIMATION_TYPE animationType)
    : GameObject(context, pos, size, textureName, ObjectType::ENEMY),
      Animatable(animationType),
-     initialPosition_(currentGameObjectState_.position_)
+     initialPosition_(sprite_.GetPosition())
 {
    currentState_.currentHP_ = maxHP_;
    currentState_.visionRange_ = 1000.0f;
@@ -28,23 +28,15 @@ Enemy::Enemy(Application* context, const glm::vec3& pos, const glm::ivec2& size,
    ResetAnimation();
 }
 
-Enemy::Enemy(Application* context, const glm::vec2& pos, const glm::ivec2& size,
-             const std::string& textureName, const std::vector< AnimationPoint >& keypoints,
-             Animatable::ANIMATION_TYPE animationType)
-   : Enemy(context, glm::vec3{pos, renderer::LAYER_1}, size, textureName, keypoints, animationType)
-{
-}
-
 void
 Enemy::Setup(Application* context, const glm::vec2& pos, const glm::ivec2& size,
              const std::string& textureName, const std::vector< AnimationPoint >& keypoints,
              Animatable::ANIMATION_TYPE animationType)
 {
-   GameObject::Setup(context, glm::vec3{pos, renderer::LAYER_1}, size, textureName,
-                     ObjectType::ENEMY);
+   GameObject::Setup(context, pos, size, textureName, ObjectType::ENEMY);
    SetAnimationType(animationType);
 
-   initialPosition_ = currentGameObjectState_.position_;
+   initialPosition_ = sprite_.GetPosition();
    currentState_.currentHP_ = maxHP_;
    currentState_.visionRange_ = 1000.0f;
 
@@ -63,8 +55,8 @@ Enemy::DealWithPlayer()
    auto* gameHandle = ConvertToGameHandle();
 
    const auto playerPosition = gameHandle->GetPlayer().GetCenteredPosition();
-   const auto playerInVision = gameHandle->GetLevel().CheckCollisionAlongTheLine(
-      currentGameObjectState_.centeredPosition_, playerPosition);
+   const auto playerInVision =
+      gameHandle->GetLevel().CheckCollisionAlongTheLine(sprite_.GetPosition(), playerPosition);
 
    timer_.ToggleTimer();
 
@@ -160,8 +152,7 @@ Enemy::Shoot()
 {
    currentState_.timeSinceLastShot_ += timer_.GetFloatDeltaTime();
 
-   if (glm::length(appHandle_->GetPlayer().GetCenteredPosition()
-                   - currentGameObjectState_.centeredPosition_)
+   if (glm::length(appHandle_->GetPlayer().GetCenteredPosition() - glm::vec2(sprite_.GetPosition()))
        <= (300.0f))
    {
       if (currentState_.timeSinceLastShot_ >= 0.3f)
@@ -188,7 +179,7 @@ Enemy::EnemyMove(const glm::vec2& moveBy)
          prevPosition = GetPreviousPosition();
       }
 
-      const auto direction = currentGameObjectState_.position_ - prevPosition;
+      const auto direction = sprite_.GetPosition() - prevPosition;
 
       if (glm::length(direction) > 0.0f)
       {
@@ -212,7 +203,7 @@ Enemy::MoveToPosition(const glm::vec2& targetPosition, bool exactPosition)
 
    auto& pathFinder = gameHandle->GetLevel().GetPathfinder();
 
-   const auto curPosition = glm::vec2(currentGameObjectState_.centeredPosition_);
+   const auto curPosition = sprite_.GetPosition();
    const auto tiles = pathFinder.GetPath(curPosition, targetPosition);
 
    if (!tiles.empty())
@@ -227,8 +218,7 @@ Enemy::MoveToPosition(const glm::vec2& targetPosition, bool exactPosition)
       EnemyMove(moveVal);
 
       constexpr auto errorTreshold = 3.0f;
-      const auto distanceToDest =
-         targetPosition - glm::vec2(currentGameObjectState_.centeredPosition_);
+      const auto distanceToDest = targetPosition - sprite_.GetPosition();
 
       // If Enemy is really close to target destination, just put it there
       if (glm::length(distanceToDest) < errorTreshold)

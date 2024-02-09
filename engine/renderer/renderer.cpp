@@ -858,16 +858,15 @@ CreatePerInstanceBuffer()
 
    for (size_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; frame++)
    {
-         auto& sbo = renderData.ssbo.at(frame);
-         if (sbo.buffer_ != VK_NULL_HANDLE)
-         {
-            sbo.Destroy();
-         }
+      auto& sbo = renderData.ssbo.at(frame);
+      if (sbo.buffer_ != VK_NULL_HANDLE)
+      {
+         sbo.Destroy();
+      }
 
-         sbo = Buffer::CreateBuffer(SSBObufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-                                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-                                       | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-      
+      sbo = Buffer::CreateBuffer(SSBObufferSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+                                    | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
    }
 }
 
@@ -1086,16 +1085,16 @@ void
 SubmitMeshData(const uint32_t idx, const TextureIDs& ids, const glm::mat4& modelMat,
                const glm::vec4& color)
 {
-      auto& object = Data::renderData_[boundApplication_].perInstance.at(idx);
-      object.model = modelMat;
-      object.color = color;
-      object.texSamples.x = static_cast< float >(ids.at(0));
-      object.texSamples.y = static_cast< float >(ids.at(1));
-      object.texSamples.z = static_cast< float >(ids.at(2));
-      object.texSamples.w = static_cast< float >(ids.at(3));
+   auto& object = Data::renderData_[boundApplication_].perInstance.at(idx);
+   object.model = modelMat;
+   object.color = color;
+   object.texSamples.x = static_cast< float >(ids.at(0));
+   object.texSamples.y = static_cast< float >(ids.at(1));
+   object.texSamples.z = static_cast< float >(ids.at(2));
+   object.texSamples.w = static_cast< float >(ids.at(3));
 
-      updatePerInstanceBuffer_ = true;
-      updatedObjects_.push_back(idx);
+   updatePerInstanceBuffer_ = true;
+   updatedObjects_.push_back(idx);
 }
 
 void

@@ -118,13 +118,6 @@ EditorObject::GetSprite()
 }
 
 void
-EditorObject::CreateSprite(const glm::vec2& globalPosition, const glm::ivec2& size)
-{
-   sprite_.SetSprite(glm::vec3(globalPosition, 0.0f), size);
-   position_ = sprite_.GetPosition();
-}
-
-void
 EditorObject::CreateSpriteTextured(const glm::vec2& /*position*/, const glm::ivec2& /*size*/,
                                    const std::string& /*fileName*/)
 {

@@ -23,22 +23,11 @@ class Sprite
    void
    ClearData() const;
 
-   // Create sprite without texture
-   void
-   SetSprite(const glm::vec3& position = glm::vec3(0.0f, 0.0f, 0.0f),
-             const glm::vec2& size = glm::vec2(128, 128), SpriteType = SpriteType::regular);
-
    // Create sprite with texture
    void
    SetSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
                      const glm::vec2& size = glm::vec2(128, 128),
-                     const std::string& fileName = "Default128.png",
-                     SpriteType = SpriteType::regular);
-   void
-   SetSpriteTextured(const glm::vec3& position = glm::vec3(0.0f, 0.0f, 0.0f),
-                     const glm::vec2& size = glm::vec2(128, 128),
-                     const std::string& fileName = "Default128.png",
-                     SpriteType = SpriteType::regular);
+                     const std::string& fileName = "Default128.png", uint32_t renderLayer = 2);
 
    void
    SetColor(const glm::vec4& color);
@@ -50,9 +39,9 @@ class Sprite
    SetTranslateValue(const glm::vec2& translateBy);
 
    void
-   SetInitialPosition(const glm::vec3& globalPosition);
+   SetInitialPosition(const glm::vec2& globalPosition);
 
-   [[nodiscard]] glm::vec3
+   [[nodiscard]] glm::vec2
    GetPosition() const;
 
    [[nodiscard]] glm::vec2
@@ -160,7 +149,7 @@ class Sprite
                                                                 glm::radians(360.0f)};
    static constexpr std::pair< float, float > SCALE_RANGE = {16.0f, 1024.0f};
 
-   glm::vec3 initialPosition_ = {};
+   glm::vec2 initialPosition_ = {};
    glm::vec2 initialSize_ = {};
 
  private:
@@ -173,7 +162,7 @@ class Sprite
       glm::vec4 color_ = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
       // sprite's position
-      glm::vec3 currentPosition_ = {0.0f, 0.0f, 0.0f};
+      glm::vec2 currentPosition_ = {0.0f, 0.0f};
 
       // transform values
       glm::vec2 translateVal_ = {0.0f, 0.0f};
@@ -189,7 +178,6 @@ class Sprite
 
    StateList< State > statesQueue_ = {};
    State currentState_ = {};
-   SpriteType type_ = SpriteType::regular;
 
    // sprite's texture
    TextureIDs textures_ = {};

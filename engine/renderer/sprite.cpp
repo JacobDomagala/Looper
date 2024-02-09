@@ -45,27 +45,10 @@ Sprite::ChangeRenderLayer(int32_t newLayer)
 }
 
 void
-Sprite::SetSprite(const glm::vec3& position, const glm::vec2& size, SpriteType t)
-{
-   // m_texture = std::make_shared< Texture >();
-   // m_texture->CreateColorTexture(size, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-
-   type_ = t;
-   currentState_.currentPosition_ = position;
-   initialPosition_ = position;
-   currentState_.translateVal_ = position;
-   size_ = size;
-   currentState_.angle_ = 0.0f;
-   currentState_.scaleVal_ = glm::vec2(1.0f, 1.0f);
-   currentState_.color_ = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-}
-
-void
-Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
-                          const std::string& fileName, SpriteType t)
+Sprite::SetSpriteTextured(const glm::vec2& position, const glm::vec2& size,
+                          const std::string& fileName, uint32_t renderLayer)
 {
    changed_ = true;
-   type_ = t;
 
    initialPosition_ = position;
    currentState_.currentPosition_ = position;
@@ -90,10 +73,10 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
 
    */
    vertices_ = std::vector< renderer::Vertex >{
-      {glm::vec3{-0.5f, 0.5f, position.z}, glm::vec3{0.0f, 0.0f, 1.0f}},
-      {glm::vec3{0.5f, 0.5f, position.z}, glm::vec3{1.0f, 0.0f, 1.0f}},
-      {glm::vec3(0.5f, -0.5f, position.z), glm::vec3{1.0f, 1.0f, 1.0f}},
-      {glm::vec3{-0.5f, -0.5f, position.z}, glm::vec3{0.0f, 1.0f, 1.0f}}};
+      {glm::vec3{-0.5f, 0.5f, LAYERS.at(renderLayer)}, glm::vec3{0.0f, 0.0f, 1.0f}},
+      {glm::vec3{0.5f, 0.5f, LAYERS.at(renderLayer)}, glm::vec3{1.0f, 0.0f, 1.0f}},
+      {glm::vec3(0.5f, -0.5f, LAYERS.at(renderLayer)), glm::vec3{1.0f, 1.0f, 1.0f}},
+      {glm::vec3{-0.5f, -0.5f, LAYERS.at(renderLayer)}, glm::vec3{0.0f, 1.0f, 1.0f}}};
 
    const auto transformMat = ComputeModelMat();
    ComputeBoundingBox();
@@ -105,13 +88,6 @@ Sprite::SetSpriteTextured(const glm::vec3& position, const glm::vec2& size,
 
 
    renderInfo_ = MeshLoaded(vertices_, textures_, transformMat, currentState_.color_);
-}
-
-void
-Sprite::SetSpriteTextured(const glm::vec2& position, const glm::vec2& size,
-                          const std::string& fileName, SpriteType t)
-{
-   SetSpriteTextured(glm::vec3{position, 0.0f}, size, fileName, t);
 }
 
 void
@@ -156,7 +132,7 @@ Sprite::Render()
    }
 }
 
-glm::vec3
+glm::vec2
 Sprite::GetPosition() const
 {
    return currentState_.currentPosition_;
@@ -237,14 +213,14 @@ Sprite::SetTextureFromFile(const std::string& filePath)
 void
 Sprite::SetTranslateValue(const glm::vec2& translateBy)
 {
-   currentState_.currentPosition_ = initialPosition_ + glm::vec3{translateBy, 0.0f};
+   currentState_.currentPosition_ = initialPosition_ + translateBy;
    currentState_.translateVal_ = currentState_.currentPosition_;
 
    changed_ = true;
 }
 
 void
-Sprite::SetInitialPosition(const glm::vec3& globalPosition)
+Sprite::SetInitialPosition(const glm::vec2& globalPosition)
 {
    initialPosition_ = globalPosition;
    currentState_.currentPosition_ = globalPosition;
@@ -328,7 +304,7 @@ Sprite::ScaleCumulative(const glm::vec2& scaleValue)
 void
 Sprite::Translate(const glm::vec2& translateValue)
 {
-   currentState_.currentPosition_ += glm::vec3{translateValue, 0.0f};
+   currentState_.currentPosition_ += translateValue;
    currentState_.translateVal_ += translateValue;
 
    changed_ = true;

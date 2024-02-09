@@ -76,11 +76,6 @@ class EditorObject : public Object
    void
    DeleteLinkedObject();
 
-   // Create sprite with default texture
-   void
-   CreateSprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f),
-                const glm::ivec2& size = glm::ivec2(10, 10));
-
    // Create sprite with texture from 'fileName'
    void
    CreateSpriteTextured(const glm::vec2& position = glm::vec2(0.0f, 0.0f),

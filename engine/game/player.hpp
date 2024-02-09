@@ -31,10 +31,6 @@ class Player : public GameObject
    bool
    CheckCollision(const glm::vec2& bulletPosition, Enemy const* enemy, bool enemyShooting = true);
 
-   // set position in OpenGL
-   void
-   SetPosition(const glm::vec2& position) override;
-
    // get centered (center of player's sprite) position on screen
    // using projection matrix from OpenGL
    [[nodiscard]] glm::vec2
