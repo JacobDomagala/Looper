@@ -181,7 +181,7 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
 
             for (const auto object : selectedObjects)
             {
-               gui_.ObjectSelected(object);
+               gui_.ObjectSelected(object, true);
                const auto& objectPos =
                   currentLevel_->GetGameObjectRef(object).GetCenteredPosition();
 
@@ -570,7 +570,7 @@ Editor::SelectGameObject(Object::ID newSelectedGameObject)
    }
 
    currentSelectedGameObject_ = newSelectedGameObject;
-   gui_.ObjectSelected(currentSelectedGameObject_);
+   gui_.ObjectSelected(currentSelectedGameObject_, false);
 
    // Make sure to render animation points if needed
    auto& gameObject = currentLevel_->GetGameObjectRef(newSelectedGameObject);

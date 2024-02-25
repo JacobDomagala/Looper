@@ -54,7 +54,7 @@ class EditorGUI : public InputListener
    LevelLoaded(const std::shared_ptr< Level >& loadedLevel);
 
    void
-   ObjectSelected(Object::ID ID);
+   ObjectSelected(Object::ID ID, bool groupSelect);
 
    void
    ObjectUnselected(Object::ID ID);

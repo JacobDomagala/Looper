@@ -4,6 +4,7 @@
 #include "game_object.hpp"
 #include "helpers.hpp"
 #include "icons.hpp"
+#include "input/input_manager.hpp"
 #include "renderer/renderer.hpp"
 #include "renderer/shader.hpp"
 #include "renderer/texture.hpp"
@@ -11,7 +12,6 @@
 #include "renderer/vulkan_common.hpp"
 #include "types.hpp"
 #include "utils/file_manager.hpp"
-#include "input/input_manager.hpp"
 
 #include <GLFW/glfw3.h>
 #include <fmt/format.h>
@@ -146,7 +146,7 @@ EditorGUI::UpdateUI()
    }
 
    ImGui::Render();
-   
+
    setScrollTo_ = {};
 }
 
@@ -183,12 +183,15 @@ EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
 }
 
 void
-EditorGUI::ObjectSelected(Object::ID ID)
+EditorGUI::ObjectSelected(Object::ID ID, bool groupSelect)
 {
    objectsInfo_[ID].second = true;
    setScrollTo_ = ID;
 
-   currentlySelectedGameObject_ = ID;
+   if (not groupSelect)
+   {
+      currentlySelectedGameObject_ = ID;
+   }
 }
 
 void
