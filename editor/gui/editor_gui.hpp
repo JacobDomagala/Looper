@@ -91,6 +91,9 @@ class EditorGUI : public InputListener
    RenderGameObjectContent();
 
    void
+   RenderGroupSelectModifications();
+
+   void
    RenderCreateNewLevelWindow();
 
    void

@@ -39,9 +39,13 @@ Sprite::ChangeRenderLayer(int32_t newLayer)
    }
 
    const auto transformMat = ComputeModelMat();
+   const auto oldLayer = renderInfo_.layer;
 
    renderInfo_ = MeshLoaded(vertices_, textures_, transformMat, currentState_.color_);
    changed_ = true;
+
+   SetupVertexBuffer(oldLayer);
+   SetupVertexBuffer(newLayer);
 }
 
 void
