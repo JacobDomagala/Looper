@@ -103,9 +103,9 @@ EditorGUI::RenderGroupSelectModifications()
          // NOLINTNEXTLINE
          static int groupLayer = 0;
          CreateActionRowLabel("RenderLayer", [this] {
-            const auto items = std::to_array< std::string >(
-               {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
-            if (ImGui::BeginCombo("##combo", fmt::format("{}", groupLayer).c_str()))
+            const auto items =
+               std::to_array< std::string >({"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
+            if (ImGui::BeginCombo("##GroupSetLayer", fmt::format("{}", groupLayer).c_str()))
             {
                for (const auto& item : items)
                {
@@ -121,6 +121,8 @@ EditorGUI::RenderGroupSelectModifications()
                               .GetSprite()
                               .ChangeRenderLayer(layer);
                         }
+
+                        groupLayer = layer;
                      });
                   }
                }
@@ -173,10 +175,10 @@ EditorGUI::RenderGameObjectContent()
       if (ImGui::BeginTable("ObjectTable", 2))
       {
          CreateActionRowLabel("RenderLayer", [this, &gameObject] {
-            const auto items = std::to_array< std::string >(
-               {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
+            const auto items =
+               std::to_array< std::string >({"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
             if (ImGui::BeginCombo(
-                   "##combo",
+                   "##ObjectSetLayer",
                    fmt::format("{}", gameObject.GetSprite().GetRenderInfo().layer).c_str()))
             {
                for (const auto& item : items)
