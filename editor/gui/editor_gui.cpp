@@ -30,32 +30,25 @@ EditorGUI::EditorGUI(Editor& parent) : parent_(parent)
 void
 EditorGUI::RecalculateCommonRenderLayerAndColision()
 {
-   const auto& objects = parent_.GetSelectedObjects();
-
-   if (objects.empty())
+   if (selectedObjects_.empty())
    {
       return;
    }
 
-   const auto& gameObject = parent_.GetLevel().GetGameObjectRef(objects.front());
-   commonCollision_ = {true, gameObject.GetHasCollision()};
-   commonRenderLayer_ = {true, gameObject.GetSprite().GetRenderInfo().layer};
+   const auto& [idFirst, collisionFirst, layerFirst] = selectedObjects_.front();
+   commonRenderLayer_ = {true, layerFirst};
+   commonCollision_ = {true, collisionFirst};
 
-   if (objects.size() > 1)
+   for (uint32_t idx = 1; idx < selectedObjects_.size(); idx++)
    {
-      for (int32_t idx = 1; idx < objects.size(); ++idx)
+      const auto& [id, collision, layer] = selectedObjects_.at(idx);
+      if (commonRenderLayer_.first and (layer != commonRenderLayer_.second))
       {
-         const auto& gameObject = parent_.GetLevel().GetGameObjectRef(objects.at(idx));
-         if (commonCollision_.first and (gameObject.GetHasCollision() != commonCollision_.second))
-         {
-            commonCollision_.first = false;
-         }
-
-         if (commonRenderLayer_.first
-             and (gameObject.GetSprite().GetRenderInfo().layer != commonRenderLayer_.second))
-         {
-            commonRenderLayer_.first = false;
-         }
+         commonRenderLayer_.first = false;
+      }
+      if (commonCollision_.first and (collision != commonCollision_.second))
+      {
+         commonCollision_.first = false;
       }
    }
 }
@@ -221,6 +214,9 @@ EditorGUI::ObjectSelected(Object::ID ID, bool groupSelect)
    objectsInfo_[ID].second = true;
    setScrollTo_ = ID;
 
+   const auto& gameObject = parent_.GetLevel().GetGameObjectRef(ID);
+   selectedObjects_.emplace_back(
+      ID, gameObject.GetHasCollision(), gameObject.GetSprite().GetRenderInfo().layer);
    RecalculateCommonRenderLayerAndColision();
 
    if (not groupSelect)
@@ -232,15 +228,19 @@ EditorGUI::ObjectSelected(Object::ID ID, bool groupSelect)
 void
 EditorGUI::ObjectUnselected(Object::ID ID)
 {
-   objectsInfo_[currentlySelectedGameObject_].second = false;
-   currentlySelectedGameObject_ = Object::INVALID_ID;
-
-   RecalculateCommonRenderLayerAndColision();
-
-   objectsInfo_[ID].second = false;
    if (currentlySelectedGameObject_ == ID)
    {
       currentlySelectedGameObject_ = Object::INVALID_ID;
+   }
+   else
+   {
+      objectsInfo_[ID].second = false;
+
+      selectedObjects_.erase(stl::find_if(selectedObjects_, [ID](const auto& obj) {
+         const auto [id, collision, layer] = obj;
+         return id == ID;
+      }));
+      RecalculateCommonRenderLayerAndColision();
    }
 }
 

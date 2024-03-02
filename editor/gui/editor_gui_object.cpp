@@ -111,6 +111,7 @@ EditorGUI::RenderGroupSelectModifications()
             [this] {
                const auto items =
                   std::to_array< std::string >({"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
+               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                if (ImGui::BeginCombo("##GroupSetLayer",
                                      fmt::format("{}", commonRenderLayer_.second).c_str()))
                {
@@ -119,17 +120,22 @@ EditorGUI::RenderGroupSelectModifications()
                      if (ImGui::Selectable(item.c_str()))
                      {
                         parent_.AddToWorkQueue([item, this] {
-                           const auto layer = std::stoi(item);
+                           const auto newLayer = std::stoi(item);
                            const auto& gameObjects = parent_.GetSelectedObjects();
                            for (auto object : gameObjects)
                            {
                               parent_.GetLevel()
                                  .GetGameObjectRef(object)
                                  .GetSprite()
-                                 .ChangeRenderLayer(layer);
+                                 .ChangeRenderLayer(newLayer);
                            }
 
-                           commonRenderLayer_.second = layer;
+                           for (auto& [id, collision, layer] : selectedObjects_)
+                           {
+                              layer = newLayer;
+                           }
+
+                           commonRenderLayer_ = {true, newLayer};
                         });
                      }
                   }
@@ -151,6 +157,7 @@ EditorGUI::RenderGroupSelectModifications()
          CreateActionRowLabel(
             "Has Collision",
             [this] {
+               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                if (ImGui::Checkbox("##GroupHasCollision", &commonCollision_.second))
                {
                   parent_.AddToWorkQueue([this] {
@@ -160,6 +167,13 @@ EditorGUI::RenderGroupSelectModifications()
                         parent_.GetLevel().GetGameObjectRef(object).SetHasCollision(
                            commonCollision_.second);
                      }
+
+                     for (auto& [id, collision, layer] : selectedObjects_)
+                     {
+                        collision = commonCollision_.second;
+                     }
+                     commonCollision_.first = true;
+
                      parent_.GetLevel().UpdateCollisionTexture();
                   });
                }
@@ -217,9 +231,19 @@ EditorGUI::RenderGameObjectContent()
                {
                   if (ImGui::Selectable(item.c_str()))
                   {
-                     parent_.AddToWorkQueue([&gameObject, item] {
-                        const auto layer = std::stoi(item);
-                        gameObject.GetSprite().ChangeRenderLayer(layer);
+                     parent_.AddToWorkQueue([&gameObject, item, this] {
+                        const auto newLayer = std::stoi(item);
+                        gameObject.GetSprite().ChangeRenderLayer(newLayer);
+
+                        auto obj =
+                           stl::find_if(selectedObjects_,
+                                        [curID = currentlySelectedGameObject_](const auto& obj) {
+                                           auto [id, collision, layer] = obj;
+                                           return id == curID;
+                                        });
+                        auto& [objID, objCollision, objLayer] = *obj;
+                        objLayer = newLayer;
+                        RecalculateCommonRenderLayerAndColision();
                      });
                   }
                }
@@ -233,6 +257,14 @@ EditorGUI::RenderGameObjectContent()
             if (ImGui::Checkbox("##Has Collision", &collision))
             {
                gameObject.SetHasCollision(collision);
+               auto obj = stl::find_if(selectedObjects_,
+                                       [curID = currentlySelectedGameObject_](const auto& obj) {
+                                          auto [id, hasCollision, layer] = obj;
+                                          return id == curID;
+                                       });
+               auto& [objID, objCollision, objLayer] = *obj;
+               objCollision = collision;
+               RecalculateCommonRenderLayerAndColision();
                parent_.GetLevel().UpdateCollisionTexture();
             }
          });

@@ -496,6 +496,10 @@ Editor::HandleGameObjectClicked(Object::ID newSelectedGameObject, bool groupSele
       }
 
       selectedObjects_.push_back(newSelectedGameObject);
+      if (groupSelect)
+      {
+         gui_.ObjectSelected(newSelectedGameObject, groupSelect);
+      }
    }
 
    movementOnGameObject_ = !fromGUI;

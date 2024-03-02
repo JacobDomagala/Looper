@@ -99,8 +99,7 @@ class EditorGUI : public InputListener
    void
    RenderExitWindow();
 
-   void
-   RecalculateCommonRenderLayerAndColision();
+   void RecalculateCommonRenderLayerAndColision();
 
  private:
    static void
@@ -130,6 +129,7 @@ class EditorGUI : public InputListener
    Object::ID setScrollTo_ = Object::INVALID_ID;
    std::pair< bool, int32_t > commonRenderLayer_ = {false, 0};
    std::pair< bool, bool > commonCollision_ = {false, false};
+   std::vector<std::tuple< Object::ID, bool, int32_t > > selectedObjects_ = {};
 };
 
 } // namespace looper
