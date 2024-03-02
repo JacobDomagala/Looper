@@ -562,10 +562,9 @@ Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
    locked_ = false;
    levelSize_ = size;
 
-   background_.SetSpriteTextured(glm::vec3(static_cast< float >(levelSize_.x) / 2.0f,
-                                           static_cast< float >(levelSize_.y) / 2.0f,
-                                           renderer::LAYER_10),
-                                 size, fileName);
+   background_.SetSpriteTextured(glm::vec2(static_cast< float >(levelSize_.x) / 2.0f,
+                                           static_cast< float >(levelSize_.y) / 2.0f),
+                                 size, fileName, 10);
 
    baseTexture_ = background_.GetTexture()->GetID();
 }

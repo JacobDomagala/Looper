@@ -54,7 +54,7 @@ class EditorGUI : public InputListener
    LevelLoaded(const std::shared_ptr< Level >& loadedLevel);
 
    void
-   ObjectSelected(Object::ID ID);
+   ObjectSelected(Object::ID ID, bool groupSelect);
 
    void
    ObjectUnselected(Object::ID ID);
@@ -91,10 +91,15 @@ class EditorGUI : public InputListener
    RenderGameObjectContent();
 
    void
+   RenderGroupSelectModifications();
+
+   void
    RenderCreateNewLevelWindow();
 
    void
    RenderExitWindow();
+
+   void RecalculateCommonRenderLayerAndColision();
 
  private:
    static void
@@ -122,6 +127,9 @@ class EditorGUI : public InputListener
    // Data needed for loaded objects menu
    std::unordered_map< Object::ID, std::pair< std::string, bool > > objectsInfo_ = {};
    Object::ID setScrollTo_ = Object::INVALID_ID;
+   std::pair< bool, int32_t > commonRenderLayer_ = {false, 0};
+   std::pair< bool, bool > commonCollision_ = {false, false};
+   std::vector<std::tuple< Object::ID, bool, int32_t > > selectedObjects_ = {};
 };
 
 } // namespace looper

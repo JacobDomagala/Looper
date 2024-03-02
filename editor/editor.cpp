@@ -173,15 +173,16 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
                gui_.ObjectUnselected(object);
             }
 
-
-            auto& firstObject = currentLevel_->GetGameObjectRef(selectedObjects.front());
+            
+            selectedObjects_ = selectedObjects;
+            auto& firstObject = currentLevel_->GetGameObjectRef(selectedObjects_.front());
             auto gizmoPos = firstObject.GetCenteredPosition();
             glm::vec2 min = gizmoPos;
             glm::vec2 max = gizmoPos;
 
-            for (const auto object : selectedObjects)
+            for (const auto object : selectedObjects_)
             {
-               gui_.ObjectSelected(object);
+               gui_.ObjectSelected(object, true);
                const auto& objectPos =
                   currentLevel_->GetGameObjectRef(object).GetCenteredPosition();
 
@@ -196,7 +197,7 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
                };
             }
 
-            selectedObjects_ = selectedObjects;
+            
 
             gizmoActive_ = true;
             gizmo_.Show();
@@ -495,6 +496,10 @@ Editor::HandleGameObjectClicked(Object::ID newSelectedGameObject, bool groupSele
       }
 
       selectedObjects_.push_back(newSelectedGameObject);
+      if (groupSelect)
+      {
+         gui_.ObjectSelected(newSelectedGameObject, groupSelect);
+      }
    }
 
    movementOnGameObject_ = !fromGUI;
@@ -570,7 +575,7 @@ Editor::SelectGameObject(Object::ID newSelectedGameObject)
    }
 
    currentSelectedGameObject_ = newSelectedGameObject;
-   gui_.ObjectSelected(currentSelectedGameObject_);
+   gui_.ObjectSelected(currentSelectedGameObject_, false);
 
    // Make sure to render animation points if needed
    auto& gameObject = currentLevel_->GetGameObjectRef(newSelectedGameObject);

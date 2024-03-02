@@ -4,6 +4,7 @@
 #include "game_object.hpp"
 #include "helpers.hpp"
 #include "icons.hpp"
+#include "input/input_manager.hpp"
 #include "renderer/renderer.hpp"
 #include "renderer/shader.hpp"
 #include "renderer/texture.hpp"
@@ -11,7 +12,6 @@
 #include "renderer/vulkan_common.hpp"
 #include "types.hpp"
 #include "utils/file_manager.hpp"
-#include "input/input_manager.hpp"
 
 #include <GLFW/glfw3.h>
 #include <fmt/format.h>
@@ -25,6 +25,32 @@ namespace looper {
 
 EditorGUI::EditorGUI(Editor& parent) : parent_(parent)
 {
+}
+
+void
+EditorGUI::RecalculateCommonRenderLayerAndColision()
+{
+   if (selectedObjects_.empty())
+   {
+      return;
+   }
+
+   const auto& [idFirst, collisionFirst, layerFirst] = selectedObjects_.front();
+   commonRenderLayer_ = {true, layerFirst};
+   commonCollision_ = {true, collisionFirst};
+
+   for (uint32_t idx = 1; idx < selectedObjects_.size(); idx++)
+   {
+      const auto& [id, collision, layer] = selectedObjects_.at(idx);
+      if (commonRenderLayer_.first and (layer != commonRenderLayer_.second))
+      {
+         commonRenderLayer_.first = false;
+      }
+      if (commonCollision_.first and (collision != commonCollision_.second))
+      {
+         commonCollision_.first = false;
+      }
+   }
 }
 
 void
@@ -146,7 +172,7 @@ EditorGUI::UpdateUI()
    }
 
    ImGui::Render();
-   
+
    setScrollTo_ = {};
 }
 
@@ -183,24 +209,38 @@ EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
 }
 
 void
-EditorGUI::ObjectSelected(Object::ID ID)
+EditorGUI::ObjectSelected(Object::ID ID, bool groupSelect)
 {
    objectsInfo_[ID].second = true;
    setScrollTo_ = ID;
 
-   currentlySelectedGameObject_ = ID;
+   const auto& gameObject = parent_.GetLevel().GetGameObjectRef(ID);
+   selectedObjects_.emplace_back(
+      ID, gameObject.GetHasCollision(), gameObject.GetSprite().GetRenderInfo().layer);
+   RecalculateCommonRenderLayerAndColision();
+
+   if (not groupSelect)
+   {
+      currentlySelectedGameObject_ = ID;
+   }
 }
 
 void
 EditorGUI::ObjectUnselected(Object::ID ID)
 {
-   objectsInfo_[currentlySelectedGameObject_].second = false;
-   currentlySelectedGameObject_ = Object::INVALID_ID;
-
-   objectsInfo_[ID].second = false;
    if (currentlySelectedGameObject_ == ID)
    {
       currentlySelectedGameObject_ = Object::INVALID_ID;
+   }
+   else
+   {
+      objectsInfo_[ID].second = false;
+
+      selectedObjects_.erase(stl::find_if(selectedObjects_, [ID](const auto& obj) {
+         const auto [id, collision, layer] = obj;
+         return id == ID;
+      }));
+      RecalculateCommonRenderLayerAndColision();
    }
 }
 
