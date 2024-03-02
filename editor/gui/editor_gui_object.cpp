@@ -98,52 +98,84 @@ EditorGUI::RenderGroupSelectModifications()
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Group Action"))
    {
-      if (ImGui::BeginTable("ObjectsTable", 2))
+      if (ImGui::BeginTable("ObjectsTable", 3))
       {
-         // NOLINTNEXTLINE
-         static int groupLayer = 0;
-         CreateActionRowLabel("RenderLayer", [this] {
-            const auto items =
-               std::to_array< std::string >({"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
-            if (ImGui::BeginCombo("##GroupSetLayer", fmt::format("{}", groupLayer).c_str()))
-            {
-               for (const auto& item : items)
-               {
-                  if (ImGui::Selectable(item.c_str()))
-                  {
-                     parent_.AddToWorkQueue([item, this] {
-                        const auto layer = std::stoi(item);
-                        const auto& gameObjects = parent_.GetSelectedObjects();
-                        for (auto object : gameObjects)
-                        {
-                           parent_.GetLevel()
-                              .GetGameObjectRef(object)
-                              .GetSprite()
-                              .ChangeRenderLayer(layer);
-                        }
+         const auto totalWidth = ImGui::GetContentRegionAvail().x;
 
-                        groupLayer = layer;
-                     });
-                  }
-               }
-               ImGui::EndCombo();
-            }
-         });
-         // NOLINTNEXTLINE
-         static bool groupHasCollision = false;
-         CreateActionRowLabel("Has Collision", [this] {
-            if (ImGui::Checkbox("##GroupHasCollision", &groupHasCollision))
-            {
-               parent_.AddToWorkQueue([this] {
-                  const auto& gameObjects = parent_.GetSelectedObjects();
-                  for (auto object : gameObjects)
+         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthStretch, 0.55f * totalWidth);
+         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch, 0.35f * totalWidth);
+         ImGui::TableSetupColumn("Button", ImGuiTableColumnFlags_WidthStretch, 0.10f * totalWidth);
+
+         CreateActionRowLabel(
+            "RenderLayer",
+            [this] {
+               const auto items =
+                  std::to_array< std::string >({"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
+               if (ImGui::BeginCombo("##GroupSetLayer",
+                                     fmt::format("{}", commonRenderLayer_.second).c_str()))
+               {
+                  for (const auto& item : items)
                   {
-                     parent_.GetLevel().GetGameObjectRef(object).SetHasCollision(groupHasCollision);
+                     if (ImGui::Selectable(item.c_str()))
+                     {
+                        parent_.AddToWorkQueue([item, this] {
+                           const auto layer = std::stoi(item);
+                           const auto& gameObjects = parent_.GetSelectedObjects();
+                           for (auto object : gameObjects)
+                           {
+                              parent_.GetLevel()
+                                 .GetGameObjectRef(object)
+                                 .GetSprite()
+                                 .ChangeRenderLayer(layer);
+                           }
+
+                           commonRenderLayer_.second = layer;
+                        });
+                     }
                   }
-                  parent_.GetLevel().UpdateCollisionTexture();
-               });
-            }
-         });
+                  ImGui::EndCombo();
+               }
+            },
+            [this] {
+               if (not commonRenderLayer_.first)
+               {
+                  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.0f, 0.5f, 0.0f, 1.0f});
+                  ImGui::Button(ICON_FA_CIRCLE_EXCLAMATION "##LayerNotCommon");
+                  if (ImGui::IsItemHovered())
+                  {
+                     ImGui::SetTooltip("Not all selcted Objects have the same layer set!");
+                  }
+                  ImGui::PopStyleColor(1);
+               }
+            });
+         CreateActionRowLabel(
+            "Has Collision",
+            [this] {
+               if (ImGui::Checkbox("##GroupHasCollision", &commonCollision_.second))
+               {
+                  parent_.AddToWorkQueue([this] {
+                     const auto& gameObjects = parent_.GetSelectedObjects();
+                     for (auto object : gameObjects)
+                     {
+                        parent_.GetLevel().GetGameObjectRef(object).SetHasCollision(
+                           commonCollision_.second);
+                     }
+                     parent_.GetLevel().UpdateCollisionTexture();
+                  });
+               }
+            },
+            [this] {
+               if (not commonCollision_.first)
+               {
+                  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.0f, 0.5f, 0.0f, 1.0f});
+                  ImGui::Button(ICON_FA_CIRCLE_EXCLAMATION "##CollisionNotCommon");
+                  if (ImGui::IsItemHovered())
+                  {
+                     ImGui::SetTooltip("Not all selected Objects have the same collision set!");
+                  }
+                  ImGui::PopStyleColor(1);
+               }
+            });
 
          ImGui::EndTable();
       }

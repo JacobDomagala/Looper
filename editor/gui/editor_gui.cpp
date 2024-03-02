@@ -28,6 +28,39 @@ EditorGUI::EditorGUI(Editor& parent) : parent_(parent)
 }
 
 void
+EditorGUI::RecalculateCommonRenderLayerAndColision()
+{
+   const auto& objects = parent_.GetSelectedObjects();
+
+   if (objects.empty())
+   {
+      return;
+   }
+
+   const auto& gameObject = parent_.GetLevel().GetGameObjectRef(objects.front());
+   commonCollision_ = {true, gameObject.GetHasCollision()};
+   commonRenderLayer_ = {true, gameObject.GetSprite().GetRenderInfo().layer};
+
+   if (objects.size() > 1)
+   {
+      for (int32_t idx = 1; idx < objects.size(); ++idx)
+      {
+         const auto& gameObject = parent_.GetLevel().GetGameObjectRef(objects.at(idx));
+         if (commonCollision_.first and (gameObject.GetHasCollision() != commonCollision_.second))
+         {
+            commonCollision_.first = false;
+         }
+
+         if (commonRenderLayer_.first
+             and (gameObject.GetSprite().GetRenderInfo().layer != commonRenderLayer_.second))
+         {
+            commonRenderLayer_.first = false;
+         }
+      }
+   }
+}
+
+void
 EditorGUI::KeyCallback(KeyEvent& event)
 {
    // This HAS to be here as Editor should handle key callbacks first
@@ -188,6 +221,8 @@ EditorGUI::ObjectSelected(Object::ID ID, bool groupSelect)
    objectsInfo_[ID].second = true;
    setScrollTo_ = ID;
 
+   RecalculateCommonRenderLayerAndColision();
+
    if (not groupSelect)
    {
       currentlySelectedGameObject_ = ID;
@@ -199,6 +234,8 @@ EditorGUI::ObjectUnselected(Object::ID ID)
 {
    objectsInfo_[currentlySelectedGameObject_].second = false;
    currentlySelectedGameObject_ = Object::INVALID_ID;
+
+   RecalculateCommonRenderLayerAndColision();
 
    objectsInfo_[ID].second = false;
    if (currentlySelectedGameObject_ == ID)

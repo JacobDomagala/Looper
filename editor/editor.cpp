@@ -173,13 +173,14 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
                gui_.ObjectUnselected(object);
             }
 
-
-            auto& firstObject = currentLevel_->GetGameObjectRef(selectedObjects.front());
+            
+            selectedObjects_ = selectedObjects;
+            auto& firstObject = currentLevel_->GetGameObjectRef(selectedObjects_.front());
             auto gizmoPos = firstObject.GetCenteredPosition();
             glm::vec2 min = gizmoPos;
             glm::vec2 max = gizmoPos;
 
-            for (const auto object : selectedObjects)
+            for (const auto object : selectedObjects_)
             {
                gui_.ObjectSelected(object, true);
                const auto& objectPos =
@@ -196,7 +197,7 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
                };
             }
 
-            selectedObjects_ = selectedObjects;
+            
 
             gizmoActive_ = true;
             gizmo_.Show();
