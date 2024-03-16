@@ -28,27 +28,34 @@ EditorGUI::EditorGUI(Editor& parent) : parent_(parent)
 }
 
 void
-EditorGUI::RecalculateCommonRenderLayerAndColision()
+EditorGUI::RecalculateCommonProperties()
 {
    if (selectedObjects_.empty())
    {
       return;
    }
 
-   const auto& [idFirst, collisionFirst, layerFirst] = selectedObjects_.front();
+   const auto& [idFirst, collisionFirst, layerFirst, groupFirst] = selectedObjects_.front();
    commonRenderLayer_ = {true, layerFirst};
    commonCollision_ = {true, collisionFirst};
+   commonGroup_ = {true, groupFirst};
 
    for (uint32_t idx = 1; idx < selectedObjects_.size(); idx++)
    {
-      const auto& [id, collision, layer] = selectedObjects_.at(idx);
+      const auto& [id, collision, layer, group] = selectedObjects_.at(idx);
       if (commonRenderLayer_.first and (layer != commonRenderLayer_.second))
       {
          commonRenderLayer_.first = false;
       }
+
       if (commonCollision_.first and (collision != commonCollision_.second))
       {
          commonCollision_.first = false;
+      }
+
+      if (commonGroup_.first and (group != commonGroup_.second))
+      {
+         commonGroup_.first = false;
       }
    }
 }
@@ -120,6 +127,8 @@ EditorGUI::Init()
 
    PrepareResources();
    PreparePipeline();
+
+   groups_.push_back({"Default", {}});
 }
 
 void
@@ -211,13 +220,14 @@ EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
 void
 EditorGUI::ObjectSelected(Object::ID ID, bool groupSelect)
 {
-   objectsInfo_[ID].second = true;
+   objectsInfo_[ID].selected = true;
    setScrollTo_ = ID;
 
    const auto& gameObject = parent_.GetLevel().GetGameObjectRef(ID);
-   selectedObjects_.emplace_back(
-      ID, gameObject.GetHasCollision(), gameObject.GetSprite().GetRenderInfo().layer);
-   RecalculateCommonRenderLayerAndColision();
+   selectedObjects_.emplace_back(ID, gameObject.GetHasCollision(),
+                                 gameObject.GetSprite().GetRenderInfo().layer,
+                                 objectsInfo_.at(ID).groupName);
+   RecalculateCommonProperties();
 
    if (not groupSelect)
    {
@@ -234,13 +244,13 @@ EditorGUI::ObjectUnselected(Object::ID ID)
    }
    else
    {
-      objectsInfo_[ID].second = false;
+      objectsInfo_[ID].selected = false;
 
       selectedObjects_.erase(stl::find_if(selectedObjects_, [ID](const auto& obj) {
-         const auto [id, collision, layer] = obj;
+         const auto& [id, collision, layer, group] = obj;
          return id == ID;
       }));
-      RecalculateCommonRenderLayerAndColision();
+      RecalculateCommonProperties();
    }
 }
 
@@ -256,7 +266,7 @@ EditorGUI::ObjectUpdated(Object::ID ID)
       case ObjectType::OBJECT: {
          const auto& gameObject = static_cast< const GameObject& >(object);
 
-         objectsInfo_[ID].first = fmt::format(
+         objectsInfo_[ID].description = fmt::format(
             "[{}] {} ({:.2f}, {:.2f})", gameObject.GetTypeString().c_str(),
             gameObject.GetName().c_str(), gameObject.GetPosition().x, gameObject.GetPosition().y);
       }
@@ -274,6 +284,20 @@ EditorGUI::ObjectUpdated(Object::ID ID)
 void
 EditorGUI::ObjectDeleted(Object::ID /*ID*/)
 {
+}
+
+void
+EditorGUI::ObjectAdded(Object::ID ID)
+{
+   const auto& object = static_cast< GameObject& >(parent_.GetLevel().GetObjectRef(ID));
+   objectsInfo_[ID] = {fmt::format("[{}] {} ({:.2f}, {:.2f})", object.GetTypeString().c_str(),
+                                   object.GetName().c_str(), object.GetPosition().x,
+                                   object.GetPosition().y),
+                       true};
+
+
+   // Default group is always first one
+   groups_.front().second.push_back(ID);
 }
 
 } // namespace looper

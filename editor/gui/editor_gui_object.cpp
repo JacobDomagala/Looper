@@ -64,7 +64,7 @@ EditorGUI::RenderSelectedObjectsMenu()
    {
       const auto& objectInfo = objectsInfo_.at(object);
 
-      if (ImGui::Selectable(objectInfo.first.c_str(),
+      if (ImGui::Selectable(objectInfo.description.c_str(),
                             currentlySelectedGameObject_ != Object::INVALID_ID
                                ? currentlySelectedGameObject_ == object
                                : false))
@@ -107,13 +107,45 @@ EditorGUI::RenderGroupSelectModifications()
          ImGui::TableSetupColumn("Button", ImGuiTableColumnFlags_WidthStretch, 0.10f * totalWidth);
 
          CreateActionRowLabel(
+            "Group",
+            [this] {
+               FillWidth();
+               if (ImGui::BeginCombo("##GroupGroup",
+                                     fmt::format("{}", commonGroup_.second).c_str()))
+               {
+                  for (const auto& [group, _] : groups_)
+                  {
+                     if (ImGui::Selectable(group.c_str()))
+                     {
+                        commonGroup_ = {true, group};
+                     }
+                  }
+                  ImGui::EndCombo();
+               }
+            },
+            [this] {
+               if (not commonGroup_.first)
+               {
+                  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.0f, 0.5f, 0.0f, 1.0f});
+                  ImGui::Button(ICON_FA_CIRCLE_EXCLAMATION "##GroupNotCommon");
+                  if (ImGui::IsItemHovered())
+                  {
+                     ImGui::SetTooltip("Not all selcted Objects are part of the same group!");
+                  }
+                  ImGui::PopStyleColor(1);
+               }
+            });
+
+         CreateActionRowLabel(
             "RenderLayer",
             [this] {
                const auto items =
                   std::to_array< std::string >({"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
-               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-               if (ImGui::BeginCombo("##GroupSetLayer",
-                                     fmt::format("{}", commonRenderLayer_.second).c_str()))
+               FillWidth();
+               if (ImGui::BeginCombo(
+                      "##GroupSetLayer",
+                      (commonRenderLayer_.first ? fmt::format("{}", commonRenderLayer_.second) : "")
+                         .c_str()))
                {
                   for (const auto& item : items)
                   {
@@ -130,9 +162,9 @@ EditorGUI::RenderGroupSelectModifications()
                                  .ChangeRenderLayer(newLayer);
                            }
 
-                           for (auto& [id, collision, layer] : selectedObjects_)
+                           for (auto& obj : selectedObjects_)
                            {
-                              layer = newLayer;
+                              obj.layer = newLayer;
                            }
 
                            commonRenderLayer_ = {true, newLayer};
@@ -157,7 +189,7 @@ EditorGUI::RenderGroupSelectModifications()
          CreateActionRowLabel(
             "Has Collision",
             [this] {
-               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+               FillWidth();
                if (ImGui::Checkbox("##GroupHasCollision", &commonCollision_.second))
                {
                   parent_.AddToWorkQueue([this] {
@@ -168,9 +200,9 @@ EditorGUI::RenderGroupSelectModifications()
                            commonCollision_.second);
                      }
 
-                     for (auto& [id, collision, layer] : selectedObjects_)
+                     for (auto& object : selectedObjects_)
                      {
-                        collision = commonCollision_.second;
+                        object.collision = commonCollision_.second;
                      }
                      commonCollision_.first = true;
 
@@ -211,7 +243,7 @@ EditorGUI::RenderGameObjectContent()
          if (ImGui::InputText("##Name", name.data(), nameLength))
          {
             gameObject.SetName(name);
-            objectsInfo_[currentlySelectedGameObject_].first =
+            objectsInfo_[currentlySelectedGameObject_].description =
                fmt::format("[{}] {} ({:.2f}, {:.2f})", gameObject.GetTypeString().c_str(),
                            gameObject.GetName().c_str(), gameObject.GetPosition().x,
                            gameObject.GetPosition().y);
@@ -220,9 +252,27 @@ EditorGUI::RenderGameObjectContent()
 
       if (ImGui::BeginTable("ObjectTable", 2))
       {
+         CreateActionRowLabel("Group", [this, &gameObject] {
+            FillWidth();
+            if (ImGui::BeginCombo(
+                   "##ObjectGroup",
+                   fmt::format("{}", objectsInfo_.at(currentlySelectedGameObject_).groupName)
+                      .c_str()))
+            {
+               for (const auto& [group, _] : groups_)
+               {
+                  if (ImGui::Selectable(group.c_str()))
+                  {
+                  }
+               }
+               ImGui::EndCombo();
+            }
+         });
+
          CreateActionRowLabel("RenderLayer", [this, &gameObject] {
             const auto items =
                std::to_array< std::string >({"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
+            FillWidth();
             if (ImGui::BeginCombo(
                    "##ObjectSetLayer",
                    fmt::format("{}", gameObject.GetSprite().GetRenderInfo().layer).c_str()))
@@ -238,12 +288,10 @@ EditorGUI::RenderGameObjectContent()
                         auto obj =
                            stl::find_if(selectedObjects_,
                                         [curID = currentlySelectedGameObject_](const auto& obj) {
-                                           auto [id, collision, layer] = obj;
-                                           return id == curID;
+                                           return obj.ID == curID;
                                         });
-                        auto& [objID, objCollision, objLayer] = *obj;
-                        objLayer = newLayer;
-                        RecalculateCommonRenderLayerAndColision();
+                        obj->layer = newLayer;
+                        RecalculateCommonProperties();
                      });
                   }
                }
@@ -259,12 +307,10 @@ EditorGUI::RenderGameObjectContent()
                gameObject.SetHasCollision(collision);
                auto obj = stl::find_if(selectedObjects_,
                                        [curID = currentlySelectedGameObject_](const auto& obj) {
-                                          auto [id, hasCollision, layer] = obj;
-                                          return id == curID;
+                                          return obj.ID == curID;
                                        });
-               auto& [objID, objCollision, objLayer] = *obj;
-               objCollision = collision;
-               RecalculateCommonRenderLayerAndColision();
+               obj->collision = collision;
+               RecalculateCommonProperties();
                parent_.GetLevel().UpdateCollisionTexture();
             }
          });
@@ -342,7 +388,7 @@ EditorGUI::RenderGameObjectContent()
             [&gameObject]() {
                auto& sprite = gameObject.GetSprite();
 
-               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+               FillWidth();
                ImGui::InputText("##Texture", sprite.GetTextureName().data(),
                                 sprite.GetTextureName().size(), ImGuiInputTextFlags_ReadOnly);
             },

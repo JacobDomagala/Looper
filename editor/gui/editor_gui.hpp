@@ -65,6 +65,9 @@ class EditorGUI : public InputListener
    void
    ObjectDeleted(Object::ID ID);
 
+   void
+   ObjectAdded(Object::ID ID);
+
    static bool
    IsBlockingEvents();
 
@@ -99,7 +102,8 @@ class EditorGUI : public InputListener
    void
    RenderExitWindow();
 
-   void RecalculateCommonRenderLayerAndColision();
+   void
+   RecalculateCommonProperties();
 
  private:
    static void
@@ -124,12 +128,29 @@ class EditorGUI : public InputListener
    bool createPushed_ = false;
    bool exitPushed_ = false;
 
+   struct ObjectInfo
+   {
+      std::string description = {};
+      bool selected = {};
+      std::string groupName = "Default";
+   };
+
+   struct SelectedObjectInfo
+   {
+      Object::ID ID = {};
+      bool collision = {};
+      int32_t layer = {};
+      std::string group = {};
+   };
+
    // Data needed for loaded objects menu
-   std::unordered_map< Object::ID, std::pair< std::string, bool > > objectsInfo_ = {};
+   std::unordered_map< Object::ID, ObjectInfo > objectsInfo_ = {};
    Object::ID setScrollTo_ = Object::INVALID_ID;
    std::pair< bool, int32_t > commonRenderLayer_ = {false, 0};
    std::pair< bool, bool > commonCollision_ = {false, false};
-   std::vector<std::tuple< Object::ID, bool, int32_t > > selectedObjects_ = {};
+   std::pair< bool, std::string > commonGroup_ = {false, "Default"};
+   std::vector< SelectedObjectInfo > selectedObjects_ = {};
+   std::vector< std::pair< std::string, std::vector< Object::ID > > > groups_ = {};
 };
 
 } // namespace looper

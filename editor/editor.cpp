@@ -1280,9 +1280,11 @@ Editor::SaveLevel(const std::string& levelPath)
 void
 Editor::AddGameObject(ObjectType objectType, const glm::vec2& position)
 {
-   HandleGameObjectClicked(currentLevel_->AddGameObject(objectType, position), false, false);
+   const auto ID = currentLevel_->AddGameObject(objectType, position);
+   HandleGameObjectClicked(ID, false, false);
 
    shouldUpdateRenderer_ = true;
+   gui_.ObjectAdded(ID);
 }
 
 void
