@@ -173,7 +173,7 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
                gui_.ObjectUnselected(object);
             }
 
-            
+
             selectedObjects_ = selectedObjects;
             auto& firstObject = currentLevel_->GetGameObjectRef(selectedObjects_.front());
             auto gizmoPos = firstObject.GetCenteredPosition();
@@ -197,7 +197,6 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
                };
             }
 
-            
 
             gizmoActive_ = true;
             gizmo_.Show();
@@ -754,6 +753,12 @@ Editor::GetEditorObjectRefByLinkedID(Object::ID linkedObjID)
    return *animationPointIt;
 }
 
+std::string
+Editor::GetLevelFileName() const
+{
+   return levelFileName_;
+}
+
 void
 Editor::UnselectEditorObject(Object::ID object)
 {
@@ -1258,6 +1263,16 @@ Editor::LoadLevel(const std::string& levelPath)
 
       levelLoaded_ = true;
 
+      //for (const auto obj : currentLevel_->GetObjects())
+      //{
+      //   gui_.ObjectAdded(obj.GetID());
+      //}
+      //for (const auto enemy : currentLevel_->GetEnemies())
+      //{
+      //   gui_.ObjectAdded(enemy.GetID());
+      //}
+      //gui_.ObjectAdded(currentLevel_->GetPlayer().GetID());
+
       gui_.LevelLoaded(currentLevel_);
 
       currentLevel_->GenerateTextureForCollision();
@@ -1275,6 +1290,7 @@ Editor::SaveLevel(const std::string& levelPath)
 {
    levelFileName_ = levelPath;
    currentLevel_->Save(levelFileName_);
+   gui_.SaveConfigFile();
 }
 
 void

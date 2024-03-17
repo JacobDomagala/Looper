@@ -192,6 +192,9 @@ class Editor : public Application
    EditorObject&
    GetEditorObjectRefByLinkedID(Object::ID linkedObjID);
 
+   std::string
+   GetLevelFileName() const;
+
  private:
    // [[nodiscard]] std::shared_ptr< EditorObject >
    // GetEditorObjectByID(Object::ID ID);

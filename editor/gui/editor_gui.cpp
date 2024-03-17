@@ -17,6 +17,7 @@
 #include <fmt/format.h>
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <nlohmann/json.hpp>
 
 #include <cstdint>
 
@@ -58,6 +59,74 @@ EditorGUI::RecalculateCommonProperties()
          commonGroup_.first = false;
       }
    }
+}
+
+void
+EditorGUI::UpdateGroupForSelection(const std::string& groupName)
+{
+   if (currentlySelectedGameObject_ != Object::INVALID_ID)
+   {
+      auto& group = groups_.at(objectsInfo_.at(currentlySelectedGameObject_).groupName);
+      group.erase(stl::find(group, currentlySelectedGameObject_));
+
+      objectsInfo_.at(currentlySelectedGameObject_).groupName = groupName;
+      groups_.at(groupName).push_back(currentlySelectedGameObject_);
+   }
+   else
+   {
+      for (auto& object : selectedObjects_)
+      {
+         auto& objectInfo = objectsInfo_.at(object.ID);
+         auto& group = groups_.at(objectInfo.groupName);
+         group.erase(stl::find(group, object.ID));
+
+         objectInfo.groupName = groupName;
+         groups_.at(groupName).push_back(object.ID);
+      }
+   }
+
+   RecalculateCommonProperties();
+}
+
+void
+EditorGUI::CreateNewGroup()
+{
+   const auto halfSize = windowSize_ / 2.0f;
+
+   static std::string name = "New Group";
+
+   ImGui::SetNextWindowPos({halfSize.x - 160, halfSize.y - 40});
+   ImGui::SetNextWindowSize({300, 140});
+   ImGui::Begin("Create New Group", nullptr, ImGuiWindowFlags_NoResize);
+
+   ImGui::Text("Name:");
+   ImGui::Dummy(ImVec2(2.0f, 0.0f));
+   ImGui::SameLine();
+   ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.6f);
+
+   ImGui::InputText("##NewGroupName", name.data(), name.capacity() + 1);
+
+   ImGui::Dummy(ImVec2(0.0f, 5.0f));
+   ImGui::Dummy(ImVec2(ImGui::GetWindowWidth() / 10.0f, 0.0f));
+   ImGui::SameLine();
+
+   if (ImGui::Button("Create", {ImGui::GetWindowWidth() / 3.0f, 35}))
+   {
+      newGroupPushed_ = false;
+      groupNames_.push_back(name);
+      groups_[name] = {};
+      UpdateGroupForSelection(name);
+   }
+
+   ImGui::SameLine();
+   ImGui::Dummy(ImVec2(2.0f, 0.0f));
+   ImGui::SameLine();
+   if (ImGui::Button("Cancel", {ImGui::GetWindowWidth() / 3.0f, 35}))
+   {
+      newGroupPushed_ = false;
+   }
+
+   ImGui::End();
 }
 
 void
@@ -127,8 +196,6 @@ EditorGUI::Init()
 
    PrepareResources();
    PreparePipeline();
-
-   groups_.push_back({"Default", {}});
 }
 
 void
@@ -215,6 +282,44 @@ EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
                      player.GetName().c_str(), player.GetPosition().x, player.GetPosition().y),
          false};
    }
+
+   LoadConfigFile();
+}
+
+void
+EditorGUI::LoadConfigFile()
+{
+   auto fileName = parent_.GetLevelFileName();
+
+   // Load the editor configuration file
+   auto json = FileManager::LoadJsonFile(
+      fmt::format("{}.editor.dgl", fileName.substr(0, fileName.size() - 4)));
+   const auto& groups = json["GROUPS"];
+
+   // Iterate over each group in "GROUPS"
+   for (auto it = groups.begin(); it != groups.end(); ++it)
+   {
+      std::string groupName = it.key();
+      auto IDs = it.value();
+
+      groupNames_.push_back(groupName);
+      groups_[groupName].insert(groups_[groupName].end(), IDs.begin(), IDs.end());
+   }
+}
+
+void
+EditorGUI::SaveConfigFile()
+{
+   nlohmann::json json;
+
+   for (auto group = groupNames_.begin() + 1; group < groupNames_.end(); ++group)
+   {
+      json["GROUPS"][*group] = groups_.at(*group);
+   }
+
+   auto fileName = parent_.GetLevelFileName();
+   FileManager::SaveJsonFile(fmt::format("{}.editor.dgl", fileName.substr(0, fileName.size() - 4)),
+                             json);
 }
 
 void
@@ -227,6 +332,7 @@ EditorGUI::ObjectSelected(Object::ID ID, bool groupSelect)
    selectedObjects_.emplace_back(ID, gameObject.GetHasCollision(),
                                  gameObject.GetSprite().GetRenderInfo().layer,
                                  objectsInfo_.at(ID).groupName);
+
    RecalculateCommonProperties();
 
    if (not groupSelect)
@@ -295,9 +401,7 @@ EditorGUI::ObjectAdded(Object::ID ID)
                                    object.GetPosition().y),
                        true};
 
-
-   // Default group is always first one
-   groups_.front().second.push_back(ID);
+   groups_["Default"].push_back(ID);
 }
 
 } // namespace looper

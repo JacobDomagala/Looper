@@ -77,6 +77,12 @@ class EditorGUI : public InputListener
    void
    Render(VkCommandBuffer commandBuffer);
 
+   void
+   SaveConfigFile();
+
+   void
+   LoadConfigFile();
+
  private:
    void
    RenderMainPanel();
@@ -104,6 +110,12 @@ class EditorGUI : public InputListener
 
    void
    RecalculateCommonProperties();
+
+   void
+   CreateNewGroup();
+
+   void
+   UpdateGroupForSelection(const std::string& groupName);
 
  private:
    static void
@@ -146,11 +158,18 @@ class EditorGUI : public InputListener
    // Data needed for loaded objects menu
    std::unordered_map< Object::ID, ObjectInfo > objectsInfo_ = {};
    Object::ID setScrollTo_ = Object::INVALID_ID;
+
+   // Common properties
    std::pair< bool, int32_t > commonRenderLayer_ = {false, 0};
    std::pair< bool, bool > commonCollision_ = {false, false};
    std::pair< bool, std::string > commonGroup_ = {false, "Default"};
+
    std::vector< SelectedObjectInfo > selectedObjects_ = {};
-   std::vector< std::pair< std::string, std::vector< Object::ID > > > groups_ = {};
+
+   // Group data
+   bool newGroupPushed_ = false;
+   std::unordered_map< std::string, std::vector< Object::ID > > groups_ = {};
+   std::vector< std::string > groupNames_ = {"Create New"};
 };
 
 } // namespace looper

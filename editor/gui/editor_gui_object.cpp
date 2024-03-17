@@ -95,6 +95,11 @@ EditorGUI::RenderSelectedObjectsMenu()
 void
 EditorGUI::RenderGroupSelectModifications()
 {
+   if (newGroupPushed_)
+   {
+      CreateNewGroup();
+   }
+
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Group Action"))
    {
@@ -113,11 +118,21 @@ EditorGUI::RenderGroupSelectModifications()
                if (ImGui::BeginCombo("##GroupGroup",
                                      fmt::format("{}", commonGroup_.second).c_str()))
                {
-                  for (const auto& [group, _] : groups_)
+                  // First one is "Create New"
+                  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+                  if (ImGui::Selectable(groupNames_.front().c_str()))
                   {
+                     newGroupPushed_ = true;
+                  }
+                  ImGui::PopStyleColor();
+
+                  for (uint32_t idx = 1; idx < groupNames_.size(); ++idx)
+                  {
+                     const auto& group = groupNames_.at(idx);
                      if (ImGui::Selectable(group.c_str()))
                      {
-                        commonGroup_ = {true, group};
+                        UpdateGroupForSelection(group);
+                        break;
                      }
                   }
                   ImGui::EndCombo();
@@ -254,15 +269,20 @@ EditorGUI::RenderGameObjectContent()
       {
          CreateActionRowLabel("Group", [this, &gameObject] {
             FillWidth();
-            if (ImGui::BeginCombo(
-                   "##ObjectGroup",
-                   fmt::format("{}", objectsInfo_.at(currentlySelectedGameObject_).groupName)
-                      .c_str()))
+            if (ImGui::BeginCombo("##ObjectGroup",
+                                  objectsInfo_.at(currentlySelectedGameObject_).groupName.c_str()))
             {
-               for (const auto& [group, _] : groups_)
+               for (const auto& group : groupNames_)
                {
                   if (ImGui::Selectable(group.c_str()))
                   {
+                     if (group == "Create New")
+                     {
+                     }
+                     else
+                     {
+                        objectsInfo_.at(currentlySelectedGameObject_).groupName = group;
+                     }
                   }
                }
                ImGui::EndCombo();
@@ -285,11 +305,9 @@ EditorGUI::RenderGameObjectContent()
                         const auto newLayer = std::stoi(item);
                         gameObject.GetSprite().ChangeRenderLayer(newLayer);
 
-                        auto obj =
-                           stl::find_if(selectedObjects_,
-                                        [curID = currentlySelectedGameObject_](const auto& obj) {
-                                           return obj.ID == curID;
-                                        });
+                        auto obj = stl::find_if(selectedObjects_,
+                                                [curID = currentlySelectedGameObject_](
+                                                   const auto& obj) { return obj.ID == curID; });
                         obj->layer = newLayer;
                         RecalculateCommonProperties();
                      });
@@ -305,10 +323,9 @@ EditorGUI::RenderGameObjectContent()
             if (ImGui::Checkbox("##Has Collision", &collision))
             {
                gameObject.SetHasCollision(collision);
-               auto obj = stl::find_if(selectedObjects_,
-                                       [curID = currentlySelectedGameObject_](const auto& obj) {
-                                          return obj.ID == curID;
-                                       });
+               auto obj =
+                  stl::find_if(selectedObjects_, [curID = currentlySelectedGameObject_](
+                                                    const auto& obj) { return obj.ID == curID; });
                obj->collision = collision;
                RecalculateCommonProperties();
                parent_.GetLevel().UpdateCollisionTexture();

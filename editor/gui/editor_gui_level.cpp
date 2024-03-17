@@ -252,7 +252,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
          // The second parameter is the label previewed before opening the combo.
          if (ImGui::BeginCombo("##renderByGroup", selectedGroup.c_str()))
          {
-            for (const auto& [group, _] : groups_)
+            for (const auto& group : groupNames_)
             {
                if (ImGui::Selectable(group.c_str()))
                {
@@ -304,9 +304,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
       };
       if (selectedGroup != "Default")
       {
-         const auto objects = stl::find_if(groups_, [](const auto& groupsInfo) {
-            return selectedGroup == groupsInfo.first;
-         })->second;
+         const auto& objects = groups_.at(selectedGroup);
 
          for (const auto& object : objects)
          {
@@ -346,7 +344,6 @@ EditorGUI::RenderLevelMenu() // NOLINT
             }
          }
       }
-
 
 
       ImGui::EndChild();
@@ -410,7 +407,6 @@ EditorGUI::RenderLevelMenu() // NOLINT
                   parent_.AddToWorkQueue([this] {
                      parent_.AddGameObject(Object::GetTypeFromString(newObjectType),
                                            parent_.GetCamera().GetPosition());
-
                   });
                }
             });
