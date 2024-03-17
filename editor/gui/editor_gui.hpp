@@ -170,6 +170,7 @@ class EditorGUI : public InputListener
    bool newGroupPushed_ = false;
    std::unordered_map< std::string, std::vector< Object::ID > > groups_ = {};
    std::vector< std::string > groupNames_ = {"Create New"};
+   std::string selectedGroup_ = "";
 };
 
 } // namespace looper

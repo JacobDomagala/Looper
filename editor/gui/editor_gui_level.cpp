@@ -415,6 +415,32 @@ EditorGUI::RenderLevelMenu() // NOLINT
    }
 
    BlankLine();
+   ImGui::SetNextItemOpen(true);
+   if (ImGui::CollapsingHeader("Groups"))
+   {
+      ImGui::BeginChild("Groups", {0, groupNames_.size() * 32.0f}, true);
+      for (uint32_t idx = 1; idx < groupNames_.size(); ++idx)
+      {
+         const auto& groupName = groupNames_.at(idx);
+         bool selected = selectedGroup_ == groupName;
+         if (ImGui::Selectable(groupName.c_str(), selected))
+         {
+            parent_.UnselectAll();
+            selectedGroup_ = groupName;
+
+            const auto& objectsInGroup = groups_.at(groupName);
+            for (const auto obj : objectsInGroup)
+            {
+               ObjectSelected(obj, true);
+            }
+
+            parent_.ChangeSelectedObjects(objectsInGroup);
+            break;
+         }
+      }
+
+      ImGui::EndChild();
+   }
 
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Debug"))

@@ -143,7 +143,8 @@ class Editor : public Application
    GetRenderOffsets() const;
 
    void
-   HandleGameObjectClicked(Object::ID newSelectedGameObject, bool groupSelect, bool fromGUI = false);
+   HandleGameObjectClicked(Object::ID newSelectedGameObject, bool groupSelect,
+                           bool fromGUI = false);
 
    void
    HandleObjectSelected(Object::ID objectID, bool fromGUI);
@@ -158,8 +159,10 @@ class Editor : public Application
    GetSelectedObjects() const;
 
    void
-   HandleEditorObjectSelected(EditorObject& newSelectedEditorObject,
-                              bool fromGUI = false);
+   ChangeSelectedObjects(const std::vector< Object::ID >& newObjects);
+
+   void
+   HandleEditorObjectSelected(EditorObject& newSelectedEditorObject, bool fromGUI = false);
 
    void
    ActionOnObject(ACTION action, Object::ID object);
@@ -194,6 +197,9 @@ class Editor : public Application
 
    std::string
    GetLevelFileName() const;
+
+   void
+   UnselectAll();
 
  private:
    // [[nodiscard]] std::shared_ptr< EditorObject >
@@ -240,9 +246,6 @@ class Editor : public Application
 
    void
    UnselectGameObject(Object::ID object, bool groupSelect);
-
-   void
-   UnselectAll();
 
    void
    ShowCursor(bool choice);

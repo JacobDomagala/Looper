@@ -299,8 +299,8 @@ EditorGUI::LoadConfigFile()
    // Iterate over each group in "GROUPS"
    for (auto it = groups.begin(); it != groups.end(); ++it)
    {
-      std::string groupName = it.key();
-      auto IDs = it.value();
+      const auto& groupName = it.key();
+      const auto& IDs = it.value();
 
       groupNames_.push_back(groupName);
       groups_[groupName].insert(groups_[groupName].end(), IDs.begin(), IDs.end());

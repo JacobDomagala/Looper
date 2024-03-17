@@ -565,6 +565,17 @@ Editor::GetSelectedObjects() const
 }
 
 void
+Editor::ChangeSelectedObjects(const std::vector< Object::ID >& newObjects)
+{
+   selectedObjects_ = newObjects;
+   gizmoActive_ = true;
+   gizmo_.Show();
+   RecalculateGizmoPos();
+
+   camera_.SetCameraAtPosition(gizmo_.Position());
+}
+
+void
 Editor::SelectGameObject(Object::ID newSelectedGameObject)
 {
    if (currentSelectedGameObject_ != Object::INVALID_ID)
@@ -623,9 +634,10 @@ Editor::RecalculateGizmoPos()
    glm::vec2 min = gizmoPos;
    glm::vec2 max = gizmoPos;
 
-   for (const auto object : selectedObjects_)
+   for (uint32_t idx = 1; idx < selectedObjects_.size(); ++idx)
    {
-      const auto& objectPos = currentLevel_->GetGameObjectRef(object).GetCenteredPosition();
+      const auto& objectPos =
+         currentLevel_->GetGameObjectRef(selectedObjects_.at(idx)).GetCenteredPosition();
       min = glm::vec2{
          glm::min(min.x, objectPos.x),
          glm::min(min.y, objectPos.y),
@@ -1263,15 +1275,15 @@ Editor::LoadLevel(const std::string& levelPath)
 
       levelLoaded_ = true;
 
-      //for (const auto obj : currentLevel_->GetObjects())
+      // for (const auto obj : currentLevel_->GetObjects())
       //{
-      //   gui_.ObjectAdded(obj.GetID());
-      //}
-      //for (const auto enemy : currentLevel_->GetEnemies())
+      //    gui_.ObjectAdded(obj.GetID());
+      // }
+      // for (const auto enemy : currentLevel_->GetEnemies())
       //{
-      //   gui_.ObjectAdded(enemy.GetID());
-      //}
-      //gui_.ObjectAdded(currentLevel_->GetPlayer().GetID());
+      //    gui_.ObjectAdded(enemy.GetID());
+      // }
+      // gui_.ObjectAdded(currentLevel_->GetPlayer().GetID());
 
       gui_.LevelLoaded(currentLevel_);
 
