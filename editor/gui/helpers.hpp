@@ -352,6 +352,12 @@ BlankColumn()
    BlankLine();
 }
 
+static inline void 
+FillWidth()
+{
+   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+}
+
 template < typename Action >
 static inline void
 CreateActionColumn(const Action& firstAction)

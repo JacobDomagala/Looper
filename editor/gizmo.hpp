@@ -46,6 +46,9 @@ class Gizmo
    void
    SwitchToTranslate();
 
+   glm::vec2
+   Position() const;
+
  private:
    void
    AdjustSize();

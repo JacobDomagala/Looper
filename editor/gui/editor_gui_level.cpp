@@ -242,11 +242,30 @@ EditorGUI::RenderLevelMenu() // NOLINT
 
       // NOLINTBEGIN
       static std::string selectedFilter = filterObjects.at(0);
+      static std::string selectedGroup = "Default";
       static Object::ID searchID = 0;
       // NOLINTEND
 
+      DrawWidget("Render by Group", [this] {
+         FillWidth();
+
+         // The second parameter is the label previewed before opening the combo.
+         if (ImGui::BeginCombo("##renderByGroup", selectedGroup.c_str()))
+         {
+            for (const auto& group : groupNames_)
+            {
+               if (ImGui::Selectable(group.c_str()))
+               {
+                  selectedGroup = group;
+                  break;
+               }
+            }
+            ImGui::EndCombo();
+         }
+      });
+
       DrawWidget("Render by Type", [&filterObjects] {
-         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+         FillWidth();
 
          // The second parameter is the label previewed before opening the combo.
          if (ImGui::BeginCombo("##renderByType", selectedFilter.c_str()))
@@ -268,7 +287,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
       auto DisplayObject = [this](const auto& object) {
          const auto& objectInfo = objectsInfo_.at(object.GetID());
 
-         if (ImGui::Selectable(objectInfo.first.c_str(), objectInfo.second))
+         if (ImGui::Selectable(objectInfo.description.c_str(), objectInfo.selected))
          {
             parent_.GetCamera().SetCameraAtPosition(object.GetPosition());
             parent_.HandleGameObjectClicked(object.GetID(), false, true);
@@ -283,37 +302,49 @@ EditorGUI::RenderLevelMenu() // NOLINT
             ImGui::SetScrollHereY();
          }
       };
+      if (selectedGroup != "Default")
+      {
+         const auto& objects = groups_.at(selectedGroup);
 
-      if (selectedFilter == "Object")
-      {
-         for (const auto& object : currentLevel_->GetObjects())
+         for (const auto& object : objects)
          {
-            DisplayObject(object);
+            DisplayObject(parent_.GetLevel().GetGameObjectRef(object));
          }
       }
-      else if (selectedFilter == "Enemy")
+      else
       {
-         for (const auto& object : parent_.GetLevel().GetEnemies())
+         if (selectedFilter == "Object")
          {
-            DisplayObject(object);
+            for (const auto& object : currentLevel_->GetObjects())
+            {
+               DisplayObject(object);
+            }
+         }
+         else if (selectedFilter == "Enemy")
+         {
+            for (const auto& object : parent_.GetLevel().GetEnemies())
+            {
+               DisplayObject(object);
+            }
+         }
+         else if (selectedFilter == "Player")
+         {
+            DisplayObject(parent_.GetPlayer());
+         }
+         else if (selectedFilter == "All")
+         {
+            DisplayObject(parent_.GetPlayer());
+            for (const auto& object : parent_.GetLevel().GetEnemies())
+            {
+               DisplayObject(object);
+            }
+            for (const auto& object : currentLevel_->GetObjects())
+            {
+               DisplayObject(object);
+            }
          }
       }
-      else if (selectedFilter == "Player")
-      {
-         DisplayObject(parent_.GetPlayer());
-      }
-      else if (selectedFilter == "All")
-      {
-         DisplayObject(parent_.GetPlayer());
-         for (const auto& object : parent_.GetLevel().GetEnemies())
-         {
-            DisplayObject(object);
-         }
-         for (const auto& object : currentLevel_->GetObjects())
-         {
-            DisplayObject(object);
-         }
-      }
+
 
       ImGui::EndChild();
 
@@ -328,7 +359,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
          CreateActionRowLabel(
             "Search by ID",
             [] {
-               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+               FillWidth();
                ImGui::InputScalar("##searchByID", ImGuiDataType_U64, &searchID, nullptr, nullptr,
                                   nullptr, ImGuiInputTextFlags_EnterReturnsTrue);
             },
@@ -357,7 +388,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
                const auto items = std::to_array< std::string >({"Enemy", "Player", "Object"});
 
                // The second parameter is the label previewed before opening the combo.
-               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+               FillWidth();
                if (ImGui::BeginCombo("##combo2", newObjectType.c_str()))
                {
                   for (const auto& item : items)
@@ -376,14 +407,6 @@ EditorGUI::RenderLevelMenu() // NOLINT
                   parent_.AddToWorkQueue([this] {
                      parent_.AddGameObject(Object::GetTypeFromString(newObjectType),
                                            parent_.GetCamera().GetPosition());
-                     const auto objectID = parent_.GetSelectedGameObject();
-                     const auto& object =
-                        static_cast< GameObject& >(parent_.GetLevel().GetObjectRef(objectID));
-                     objectsInfo_[objectID] = {
-                        fmt::format("[{}] {} ({:.2f}, {:.2f})", object.GetTypeString().c_str(),
-                                    object.GetName().c_str(), object.GetPosition().x,
-                                    object.GetPosition().y),
-                        true};
                   });
                }
             });
@@ -392,6 +415,53 @@ EditorGUI::RenderLevelMenu() // NOLINT
    }
 
    BlankLine();
+   ImGui::SetNextItemOpen(true);
+   if (ImGui::CollapsingHeader("Groups"))
+   {
+      ImGui::BeginTable("GroupsTable", 2);
+
+      const auto totalWidth = ImGui::GetContentRegionAvail().x;
+      ImGui::TableSetupColumn("GroupName", ImGuiTableColumnFlags_WidthStretch, 0.90f * totalWidth);
+      ImGui::TableSetupColumn("EditGroup", ImGuiTableColumnFlags_WidthStretch, 0.10f * totalWidth);
+
+      static std::string groupNameToEdit = "";
+      for (uint32_t idx = 1; idx < groupNames_.size(); ++idx)
+      {
+         CreateActionRow(
+            [this, idx] {
+               const auto& groupName = groupNames_.at(idx);
+               bool selected = selectedGroup_ == groupName;
+
+               if (ImGui::Selectable(groupName.c_str(), selected))
+               {
+                  parent_.UnselectAll();
+                  selectedGroup_ = groupName;
+
+                  const auto& objectsInGroup = groups_.at(groupName);
+                  for (const auto obj : objectsInGroup)
+                  {
+                     ObjectSelected(obj, true);
+                  }
+
+                  parent_.ChangeSelectedObjects(objectsInGroup);
+               }
+            },
+            [this, idx] {
+               if (ImGui::Button(std::format("{} ##ChangeGroupButton{}", ICON_FA_PENCIL, idx).c_str()))
+               {
+                  groupNameToEdit = groupNames_.at(idx);
+                  renameGroupPushed_ = true;
+               }
+            });
+      }
+
+      if (renameGroupPushed_)
+      {
+         EditGroup(groupNameToEdit);
+      }
+
+      ImGui::EndTable();
+   }
 
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Debug"))

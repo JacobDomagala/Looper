@@ -63,6 +63,12 @@ Gizmo::Update(const glm::vec2& centeredPos, float rotation)
    AdjustSize();
 }
 
+glm::vec2
+Gizmo::Position() const
+{
+   return gizmoCenter_.GetPosition();
+}
+
 void
 Gizmo::Move(const glm::vec2& moveBy)
 {
