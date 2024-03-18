@@ -130,6 +130,53 @@ EditorGUI::CreateNewGroup()
 }
 
 void
+EditorGUI::EditGroup(const std::string& oldName)
+{
+   const auto halfSize = windowSize_ / 2.0f;
+
+   ImGui::SetNextWindowPos({halfSize.x - 160, halfSize.y - 40});
+   ImGui::SetNextWindowSize({300, 140});
+   ImGui::Begin("Edit Group", nullptr, ImGuiWindowFlags_NoResize);
+
+   ImGui::Text("Name:");
+   ImGui::Dummy(ImVec2(2.0f, 0.0f));
+   ImGui::SameLine();
+   ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.6f);
+
+   static std::string newName = oldName;
+   ImGui::InputText("##NewGroupName", newName.data(), newName.capacity() + 1);
+
+   ImGui::Dummy(ImVec2(0.0f, 5.0f));
+   ImGui::Dummy(ImVec2(ImGui::GetWindowWidth() / 10.0f, 0.0f));
+   ImGui::SameLine();
+
+   if (ImGui::Button("Rename", {ImGui::GetWindowWidth() / 3.0f, 35}))
+   {
+      renameGroupPushed_ = false;
+      auto& objects = groups_.at(oldName);
+      for (auto obj : objects)
+      {
+         objectsInfo_.at(obj).groupName = newName;
+      }
+
+      *(stl::find(groupNames_, oldName)) = newName;
+
+      groups_[newName] = groups_.at(oldName);
+      groups_.erase(oldName);
+   }
+
+    ImGui::SameLine();
+    ImGui::Dummy(ImVec2(2.0f, 0.0f));
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel", {ImGui::GetWindowWidth() / 3.0f, 35}))
+    {
+       renameGroupPushed_ = false;
+    }
+
+    ImGui::End();
+}
+
+void
 EditorGUI::KeyCallback(KeyEvent& event)
 {
    // This HAS to be here as Editor should handle key callbacks first
@@ -329,9 +376,10 @@ EditorGUI::ObjectSelected(Object::ID ID, bool groupSelect)
    setScrollTo_ = ID;
 
    const auto& gameObject = parent_.GetLevel().GetGameObjectRef(ID);
-   selectedObjects_.emplace_back(ID, gameObject.GetHasCollision(),
-                                 gameObject.GetSprite().GetRenderInfo().layer,
-                                 objectsInfo_.at(ID).groupName);
+   selectedObjects_.emplace_back(SelectedObjectInfo{ID, gameObject.GetHasCollision(),
+                                                    gameObject.GetSprite().GetRenderInfo().layer,
+                                                    objectsInfo_.at(ID).groupName});
+
 
    RecalculateCommonProperties();
 

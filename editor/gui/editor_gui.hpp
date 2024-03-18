@@ -115,6 +115,9 @@ class EditorGUI : public InputListener
    CreateNewGroup();
 
    void
+   EditGroup(const std::string& oldName);
+
+   void
    UpdateGroupForSelection(const std::string& groupName);
 
  private:
@@ -168,6 +171,7 @@ class EditorGUI : public InputListener
 
    // Group data
    bool newGroupPushed_ = false;
+   bool renameGroupPushed_ = false;
    std::unordered_map< std::string, std::vector< Object::ID > > groups_ = {};
    std::vector< std::string > groupNames_ = {"Create New"};
    std::string selectedGroup_ = "";

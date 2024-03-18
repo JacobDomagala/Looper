@@ -418,28 +418,49 @@ EditorGUI::RenderLevelMenu() // NOLINT
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Groups"))
    {
-      ImGui::BeginChild("Groups", {0, groupNames_.size() * 32.0f}, true);
+      ImGui::BeginTable("GroupsTable", 2);
+
+      const auto totalWidth = ImGui::GetContentRegionAvail().x;
+      ImGui::TableSetupColumn("GroupName", ImGuiTableColumnFlags_WidthStretch, 0.90f * totalWidth);
+      ImGui::TableSetupColumn("EditGroup", ImGuiTableColumnFlags_WidthStretch, 0.10f * totalWidth);
+
+      static std::string groupNameToEdit = "";
       for (uint32_t idx = 1; idx < groupNames_.size(); ++idx)
       {
-         const auto& groupName = groupNames_.at(idx);
-         bool selected = selectedGroup_ == groupName;
-         if (ImGui::Selectable(groupName.c_str(), selected))
-         {
-            parent_.UnselectAll();
-            selectedGroup_ = groupName;
+         CreateActionRow(
+            [this, idx] {
+               const auto& groupName = groupNames_.at(idx);
+               bool selected = selectedGroup_ == groupName;
 
-            const auto& objectsInGroup = groups_.at(groupName);
-            for (const auto obj : objectsInGroup)
-            {
-               ObjectSelected(obj, true);
-            }
+               if (ImGui::Selectable(groupName.c_str(), selected))
+               {
+                  parent_.UnselectAll();
+                  selectedGroup_ = groupName;
 
-            parent_.ChangeSelectedObjects(objectsInGroup);
-            break;
-         }
+                  const auto& objectsInGroup = groups_.at(groupName);
+                  for (const auto obj : objectsInGroup)
+                  {
+                     ObjectSelected(obj, true);
+                  }
+
+                  parent_.ChangeSelectedObjects(objectsInGroup);
+               }
+            },
+            [this, idx] {
+               if (ImGui::Button(std::format("{} ##ChangeGroupButton{}", ICON_FA_PENCIL, idx).c_str()))
+               {
+                  groupNameToEdit = groupNames_.at(idx);
+                  renameGroupPushed_ = true;
+               }
+            });
       }
 
-      ImGui::EndChild();
+      if (renameGroupPushed_)
+      {
+         EditGroup(groupNameToEdit);
+      }
+
+      ImGui::EndTable();
    }
 
    ImGui::SetNextItemOpen(true);
