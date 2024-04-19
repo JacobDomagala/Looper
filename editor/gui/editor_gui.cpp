@@ -357,7 +357,8 @@ EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
       uniqueNames.insert(player.editorGroup_);
    }
 
-   groupNames_ = {uniqueNames.begin(), uniqueNames.end()};
+   std::transform(uniqueNames.begin(), uniqueNames.end(), std::back_inserter(groupNames_),
+                  [](const auto& name) { return name; });
    LoadConfigFile();
 }
 

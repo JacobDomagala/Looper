@@ -246,6 +246,11 @@ EditorGUI::RenderGroupSelectModifications()
 void
 EditorGUI::RenderGameObjectContent()
 {
+   if (newGroupPushed_)
+   {
+      CreateNewGroup();
+   }
+
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Selected"))
    {
@@ -267,7 +272,7 @@ EditorGUI::RenderGameObjectContent()
 
       if (ImGui::BeginTable("ObjectTable", 2))
       {
-         CreateActionRowLabel("Group", [this, &gameObject] {
+         CreateActionRowLabel("Group", [this] {
             FillWidth();
             if (ImGui::BeginCombo("##ObjectGroup",
                                   objectsInfo_.at(currentlySelectedGameObject_).groupName.c_str()))
@@ -278,6 +283,7 @@ EditorGUI::RenderGameObjectContent()
                   {
                      if (group == "Create New")
                      {
+                        newGroupPushed_ = true;
                      }
                      else
                      {
