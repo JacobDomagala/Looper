@@ -20,7 +20,7 @@
 #include <nlohmann/json.hpp>
 
 #include <cstdint>
-
+#include <set>
 
 namespace looper {
 
@@ -66,22 +66,38 @@ EditorGUI::UpdateGroupForSelection(const std::string& groupName)
 {
    if (currentlySelectedGameObject_ != Object::INVALID_ID)
    {
-      auto& group = groups_.at(objectsInfo_.at(currentlySelectedGameObject_).groupName);
-      group.erase(stl::find(group, currentlySelectedGameObject_));
+      auto& objRef = parent_.GetLevel().GetGameObjectRef(currentlySelectedGameObject_);
+      if (objRef.editorGroup_ != groupName)
+      {
+         auto& group = groups_.at(objectsInfo_.at(currentlySelectedGameObject_).groupName);
+         group.erase(stl::find(group, currentlySelectedGameObject_));
 
-      objectsInfo_.at(currentlySelectedGameObject_).groupName = groupName;
-      groups_.at(groupName).push_back(currentlySelectedGameObject_);
+         objectsInfo_.at(currentlySelectedGameObject_).groupName = groupName;
+         groups_.at(groupName).push_back(currentlySelectedGameObject_);
+         objRef.editorGroup_ = groupName;
+         stl::find_if(selectedObjects_, [this](const auto& obj) {
+            return obj.ID == currentlySelectedGameObject_;
+         })->group = groupName;
+      }
    }
    else
    {
       for (auto& object : selectedObjects_)
       {
+         auto& objRef = parent_.GetLevel().GetGameObjectRef(object.ID);
+         if (objRef.editorGroup_ == groupName)
+         {
+            continue;
+         }
+
          auto& objectInfo = objectsInfo_.at(object.ID);
          auto& group = groups_.at(objectInfo.groupName);
          group.erase(stl::find(group, object.ID));
 
          objectInfo.groupName = groupName;
          groups_.at(groupName).push_back(object.ID);
+         object.group = groupName;
+         objRef.editorGroup_ = groupName;
       }
    }
 
@@ -157,6 +173,7 @@ EditorGUI::EditGroup(const std::string& oldName)
       for (auto obj : objects)
       {
          objectsInfo_.at(obj).groupName = newName;
+         parent_.GetLevel().GetGameObjectRef(obj).editorGroup_ = newName;
       }
 
       *(stl::find(groupNames_, oldName)) = newName;
@@ -165,15 +182,15 @@ EditorGUI::EditGroup(const std::string& oldName)
       groups_.erase(oldName);
    }
 
-    ImGui::SameLine();
-    ImGui::Dummy(ImVec2(2.0f, 0.0f));
-    ImGui::SameLine();
-    if (ImGui::Button("Cancel", {ImGui::GetWindowWidth() / 3.0f, 35}))
-    {
-       renameGroupPushed_ = false;
-    }
+   ImGui::SameLine();
+   ImGui::Dummy(ImVec2(2.0f, 0.0f));
+   ImGui::SameLine();
+   if (ImGui::Button("Cancel", {ImGui::GetWindowWidth() / 3.0f, 35}))
+   {
+      renameGroupPushed_ = false;
+   }
 
-    ImGui::End();
+   ImGui::End();
 }
 
 void
@@ -304,12 +321,16 @@ EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
 {
    currentLevel_ = loadedLevel;
    const auto& objects = currentLevel_->GetObjects();
+   std::set< std::string > uniqueNames;
    for (const auto& object : objects)
    {
       objectsInfo_[object.GetID()] = {
          fmt::format("[{}] {} ({:.2f}, {:.2f})", object.GetTypeString().c_str(),
                      object.GetName().c_str(), object.GetPosition().x, object.GetPosition().y),
-         false};
+         false, object.editorGroup_};
+
+      groups_[object.editorGroup_].emplace_back(object.GetID());
+      uniqueNames.insert(object.editorGroup_);
    }
 
    const auto& enemies = currentLevel_->GetEnemies();
@@ -318,7 +339,10 @@ EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
       objectsInfo_[enemy.GetID()] = {
          fmt::format("[{}] {} ({:.2f}, {:.2f})", enemy.GetTypeString().c_str(),
                      enemy.GetName().c_str(), enemy.GetPosition().x, enemy.GetPosition().y),
-         false};
+         false, enemy.editorGroup_};
+
+      groups_[enemy.editorGroup_].emplace_back(enemy.GetID());
+      uniqueNames.insert(enemy.editorGroup_);
    }
 
    const auto& player = currentLevel_->GetPlayer();
@@ -327,31 +351,35 @@ EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
       objectsInfo_[player.GetID()] = {
          fmt::format("[{}] {} ({:.2f}, {:.2f})", player.GetTypeString().c_str(),
                      player.GetName().c_str(), player.GetPosition().x, player.GetPosition().y),
-         false};
+         false, player.editorGroup_};
+
+      groups_[player.editorGroup_].emplace_back(player.GetID());
+      uniqueNames.insert(player.editorGroup_);
    }
 
+   groupNames_ = {uniqueNames.begin(), uniqueNames.end()};
    LoadConfigFile();
 }
 
 void
 EditorGUI::LoadConfigFile()
 {
-   auto fileName = parent_.GetLevelFileName();
+   // auto fileName = parent_.GetLevelFileName();
 
-   // Load the editor configuration file
-   auto json = FileManager::LoadJsonFile(
-      fmt::format("{}.editor.dgl", fileName.substr(0, fileName.size() - 4)));
-   const auto& groups = json["GROUPS"];
+   //// Load the editor configuration file
+   // auto json = FileManager::LoadJsonFile(
+   //    fmt::format("{}.editor.dgl", fileName.substr(0, fileName.size() - 4)));
+   // const auto& groups = json["GROUPS"];
 
-   // Iterate over each group in "GROUPS"
-   for (auto it = groups.begin(); it != groups.end(); ++it)
-   {
-      const auto& groupName = it.key();
-      const auto& IDs = it.value();
+   //// Iterate over each group in "GROUPS"
+   // for (auto it = groups.begin(); it != groups.end(); ++it)
+   //{
+   //    const auto& groupName = it.key();
+   //    const auto& IDs = it.value();
 
-      groupNames_.push_back(groupName);
-      groups_[groupName].insert(groups_[groupName].end(), IDs.begin(), IDs.end());
-   }
+   //   groupNames_.push_back(groupName);
+   //   groups_[groupName].insert(groups_[groupName].end(), IDs.begin(), IDs.end());
+   //}
 }
 
 void
@@ -378,7 +406,7 @@ EditorGUI::ObjectSelected(Object::ID ID, bool groupSelect)
    const auto& gameObject = parent_.GetLevel().GetGameObjectRef(ID);
    selectedObjects_.emplace_back(SelectedObjectInfo{ID, gameObject.GetHasCollision(),
                                                     gameObject.GetSprite().GetRenderInfo().layer,
-                                                    objectsInfo_.at(ID).groupName});
+                                                    gameObject.editorGroup_});
 
 
    RecalculateCommonProperties();

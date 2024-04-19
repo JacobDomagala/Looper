@@ -67,6 +67,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
       player_.Setup(context, glm::vec3(position[0], position[1], renderer::LAYER_1),
                     glm::ivec2(size[0], size[1]), texture, name);
       player_.Rotate(player["rotation"]);
+      player_.editorGroup_ = player["editor_group"];
    }
 
    // ENEMIES
@@ -106,6 +107,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
          }
 
          object.SetAnimationKeypoints(std::move(keypointsPositions));
+         object.editorGroup_ = enemy["editor_group"];
       }
    }
 
@@ -133,6 +135,7 @@ Level::Load(Application* context, const std::string& pathToLevel)
          gameObject.SetName(name);
          gameObject.Rotate(object["rotation"]);
          gameObject.SetHasCollision(object["has collision"]);
+         gameObject.editorGroup_ = object["editor_group"];
       }
    }
 }
@@ -155,6 +158,8 @@ Level::Save(const std::string& pathToLevel)
    json["PLAYER"]["texture"] = player_.GetSprite().GetTextureName();
    json["PLAYER"]["weapons"] = player_.GetWeapons();
    json["PLAYER"]["render_layer"] = player_.GetSprite().GetRenderInfo().layer;
+   json["PLAYER"]["editor_group"] = player_.editorGroup_;
+
 
    // ENEMIES
    for (const auto& enemy : enemies_)
@@ -168,6 +173,7 @@ Level::Save(const std::string& pathToLevel)
       enemyJson["rotation"] = enemy.GetSprite().GetRotation();
       enemyJson["texture"] = enemy.GetSprite().GetTextureName();
       enemyJson["render_layer"] = enemy.GetSprite().GetRenderInfo().layer;
+      enemyJson["editor_group"] = enemy.editorGroup_;
 
       enemyJson["animation type"] =
          enemy.GetAnimationType() == Animatable::ANIMATION_TYPE::LOOP ? "Loop" : "Reversable";
@@ -199,6 +205,7 @@ Level::Save(const std::string& pathToLevel)
       objectJson["rotation"] = object.GetSprite().GetRotation();
       objectJson["texture"] = object.GetSprite().GetTextureName();
       objectJson["render_layer"] = object.GetSprite().GetRenderInfo().layer;
+      objectJson["editor_group"] = object.editorGroup_;
 
       json["OBJECTS"].emplace_back(objectJson);
    }

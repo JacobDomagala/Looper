@@ -37,7 +37,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(cmake/util_functions.cmake)
 
 add_subdirectory(engine)
-add_subdirectory(game)
+add_subdirectory(looper)
 add_subdirectory(editor)
 
 include(cmake/compile_shaders.cmake)

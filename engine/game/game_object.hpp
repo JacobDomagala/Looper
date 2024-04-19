@@ -109,6 +109,8 @@ class GameObject : public Object
    [[nodiscard]] std::vector< Tile >
    GetOccupiedNodes() const;
 
+   std::string editorGroup_ = "Default";
+
  protected:
    // should be overriden by derrived class
    // used by GameObject::Update
@@ -151,6 +153,6 @@ class GameObject : public Object
    renderer::Sprite sprite_ = {};
 
    std::string name_ = "DummyName";
-};
+   };
 
 } // namespace looper

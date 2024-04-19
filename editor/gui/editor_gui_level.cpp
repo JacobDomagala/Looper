@@ -246,11 +246,11 @@ EditorGUI::RenderLevelMenu() // NOLINT
       static Object::ID searchID = 0;
       // NOLINTEND
 
-      DrawWidget("Render by Group", [this] {
+      DrawWidget("Filter by Group", [this] {
          FillWidth();
 
          // The second parameter is the label previewed before opening the combo.
-         if (ImGui::BeginCombo("##renderByGroup", selectedGroup.c_str()))
+         if (ImGui::BeginCombo("##filterByGroup", selectedGroup.c_str()))
          {
             for (const auto& group : groupNames_)
             {
@@ -264,11 +264,11 @@ EditorGUI::RenderLevelMenu() // NOLINT
          }
       });
 
-      DrawWidget("Render by Type", [&filterObjects] {
+      DrawWidget("Filter by Type", [&filterObjects] {
          FillWidth();
 
          // The second parameter is the label previewed before opening the combo.
-         if (ImGui::BeginCombo("##renderByType", selectedFilter.c_str()))
+         if (ImGui::BeginCombo("##filterByType", selectedFilter.c_str()))
          {
             for (const auto& item : filterObjects)
             {
@@ -444,6 +444,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
                   }
 
                   parent_.ChangeSelectedObjects(objectsInGroup);
+                  commonGroup_ = {true, groupName};
                }
             },
             [this, idx] {
