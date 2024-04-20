@@ -765,7 +765,7 @@ Editor::GetEditorObjectRefByLinkedID(Object::ID linkedObjID)
    return *animationPointIt;
 }
 
-std::string
+const std::string&
 Editor::GetLevelFileName() const
 {
    return levelFileName_;
@@ -1507,7 +1507,7 @@ void
 Editor::UpdateAnimationData(Object::ID object)
 {
    auto& baseObject = currentLevel_->GetObjectRef(object);
-   auto& gameObject = dynamic_cast< GameObject& >(baseObject);
+   const auto& gameObject = dynamic_cast< GameObject& >(baseObject);
 
    auto* animatable = dynamic_cast< Animatable* >(&baseObject);
    if (animatable)

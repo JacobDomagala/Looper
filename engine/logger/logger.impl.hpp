@@ -2,7 +2,6 @@
 
 #undef GetCurrentTime
 
-#include "logger.hpp"
 #include "time/timer.hpp"
 
 #include <fmt/format.h>

@@ -24,7 +24,8 @@ Level::Create(Application* context, const std::string& name, const glm::ivec2& s
    levelSize_ = size;
 
    background_.SetSpriteTextured(glm::vec3(static_cast< float >(levelSize_.x) / 2.0f,
-                                           static_cast< float >(levelSize_.y) / 2.0f, renderer::LAYER_10),
+                                           static_cast< float >(levelSize_.y) / 2.0f,
+                                           renderer::LAYER_10),
                                  size, "white.png");
 
    contextPointer_ = context;
@@ -539,7 +540,7 @@ Level::GenerateTextureForCollision()
       const auto offset = height - 1 - (h % height);
       for (size_t w = 0; w < width; ++w)
       {
-         const auto occupied = nodes.at(static_cast< size_t >(w + width * h)).occupied_;
+         const auto occupied = nodes.at(w + width * h).occupied_;
          const auto index =
             (w + width * offset) * numChannels; // Calculate the index for the start of this pixel
 

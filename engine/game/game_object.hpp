@@ -73,7 +73,7 @@ class GameObject : public Object
    virtual renderer::Sprite&
    GetSprite();
 
-   [[nodiscard]] std::string
+   [[nodiscard]] const std::string&
    GetName() const;
 
    // Create sprite with texture from 'fileName'

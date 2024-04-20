@@ -252,14 +252,13 @@ EditorGUI::RenderLevelMenu() // NOLINT
          // The second parameter is the label previewed before opening the combo.
          if (ImGui::BeginCombo("##filterByGroup", selectedGroup.c_str()))
          {
-            for (const auto& group : groupNames_)
+            auto selected = std::find_if(groupNames_.begin() + 1, groupNames_.end(),
+                         [](const auto& group) { return ImGui::Selectable(group.c_str()); });
+            if (selected != groupNames_.end())
             {
-               if (ImGui::Selectable(group.c_str()))
-               {
-                  selectedGroup = group;
-                  break;
-               }
+               selectedGroup = *selected;
             }
+            
             ImGui::EndCombo();
          }
       });
@@ -424,15 +423,17 @@ EditorGUI::RenderLevelMenu() // NOLINT
       ImGui::TableSetupColumn("GroupName", ImGuiTableColumnFlags_WidthStretch, 0.90f * totalWidth);
       ImGui::TableSetupColumn("EditGroup", ImGuiTableColumnFlags_WidthStretch, 0.10f * totalWidth);
 
+      // NOLINTNEXTLINE
       static std::string groupNameToEdit = "";
+
+      // NOLINTNEXTLINE
       for (uint32_t idx = 1; idx < groupNames_.size(); ++idx)
       {
          CreateActionRow(
             [this, idx] {
                const auto& groupName = groupNames_.at(idx);
-               bool selected = selectedGroup_ == groupName;
 
-               if (ImGui::Selectable(groupName.c_str(), selected))
+               if (ImGui::Selectable(groupName.c_str(), selectedGroup_ == groupName))
                {
                   parent_.UnselectAll();
                   selectedGroup_ = groupName;
@@ -448,7 +449,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
                }
             },
             [this, idx] {
-               if (ImGui::Button(std::format("{} ##ChangeGroupButton{}", ICON_FA_PENCIL, idx).c_str()))
+               if (ImGui::Button(fmt::format("{} ##ChangeGroupButton{}", ICON_FA_PENCIL, idx).c_str()))
                {
                   groupNameToEdit = groupNames_.at(idx);
                   renameGroupPushed_ = true;

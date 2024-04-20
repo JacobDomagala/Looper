@@ -409,7 +409,7 @@ EditorGUI::RenderGameObjectContent()
          CreateActionRowLabel(
             "File",
             [&gameObject]() {
-               auto& sprite = gameObject.GetSprite();
+               const auto& sprite = gameObject.GetSprite();
 
                FillWidth();
                ImGui::InputText("##Texture", sprite.GetTextureName().data(),

@@ -11,12 +11,12 @@ class Weapon
  public:
    Weapon(float range, int32_t dmg, int32_t ammoNum, bool hasAmmo, std::string&& name,
           float reloadTime)
-      : m_range(range),
-        m_dmg(dmg),
-        m_ammoNum(ammoNum),
-        m_hasAmmo(hasAmmo),
-        m_name(std::move(name)),
-        m_reloadTime(reloadTime)
+      : range_(range),
+        dmg_(dmg),
+        ammoNum_(ammoNum),
+        hasAmmo_(hasAmmo),
+        name_(std::move(name)),
+        reloadTime_(reloadTime)
    {
    }
 
@@ -28,46 +28,46 @@ class Weapon
    Weapon(Weapon&) = default;
    Weapon(Weapon&&) = default;
 
-   [[nodiscard]] std::string
+   [[nodiscard]] const std::string&
    GetName() const
    {
-      return m_name;
+      return name_;
    }
 
    [[nodiscard]] int32_t
    GetAmmoNum() const
    {
-      return m_ammoNum;
+      return ammoNum_;
    }
 
    [[nodiscard]] float
    GetReloadTime() const
    {
-      return m_reloadTime;
+      return reloadTime_;
    }
 
    [[nodiscard]] float
    GetRange() const
    {
-      return m_range;
+      return range_;
    }
 
    [[nodiscard]] int32_t
    GetDamage() const
    {
-      return m_dmg;
+      return dmg_;
    }
 
    virtual void
    Shoot(const glm::vec2& direction) = 0;
 
  protected:
-   float m_range;
-   int32_t m_dmg;
-   int32_t m_ammoNum;
-   bool m_hasAmmo;
-   std::string m_name;
-   float m_reloadTime;
+   float range_;
+   int32_t dmg_;
+   int32_t ammoNum_;
+   bool hasAmmo_;
+   std::string name_;
+   float reloadTime_;
 };
 
 class SniperRifle : public Weapon

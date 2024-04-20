@@ -195,7 +195,7 @@ class Editor : public Application
    EditorObject&
    GetEditorObjectRefByLinkedID(Object::ID linkedObjID);
 
-   std::string
+   const std::string&
    GetLevelFileName() const;
 
    void

@@ -169,7 +169,7 @@ EditorGUI::EditGroup(const std::string& oldName)
    if (ImGui::Button("Rename", {ImGui::GetWindowWidth() / 3.0f, 35}))
    {
       renameGroupPushed_ = false;
-      auto& objects = groups_.at(oldName);
+      const auto& objects = groups_.at(oldName);
       for (auto obj : objects)
       {
          objectsInfo_.at(obj).groupName = newName;

@@ -13,7 +13,7 @@ namespace looper::renderer {
 namespace {
 
 VkShaderModule
-CreateShaderModule(VkDevice device, std::vector< char >&& shaderByteCode)
+CreateShaderModule(VkDevice device, const std::vector< char >& shaderByteCode)
 {
    VkShaderModuleCreateInfo createInfo = {};
    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -258,7 +258,7 @@ LineShader::CreateDescriptorSetLayout()
 void
 LineShader::CreateDescriptorSets()
 {
-   auto& renderData = Data::renderData_.at(GetCurrentlyBoundType());
+   const auto& renderData = Data::renderData_.at(GetCurrentlyBoundType());
 
    const auto size = MAX_FRAMES_IN_FLIGHT;
    std::vector< VkDescriptorSetLayout > layouts(size, EditorData::lineDescriptorSetLayout_);

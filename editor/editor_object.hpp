@@ -67,7 +67,7 @@ class EditorObject : public Object
    renderer::Sprite&
    GetSprite();
 
-   [[nodiscard]] std::string
+   [[nodiscard]] const std::string&
    GetName() const;
 
    [[nodiscard]] Object::ID
