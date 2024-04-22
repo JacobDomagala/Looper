@@ -73,7 +73,7 @@ class GameObject : public Object
    virtual renderer::Sprite&
    GetSprite();
 
-   [[nodiscard]] std::string
+   [[nodiscard]] const std::string&
    GetName() const;
 
    // Create sprite with texture from 'fileName'
@@ -108,6 +108,8 @@ class GameObject : public Object
 
    [[nodiscard]] std::vector< Tile >
    GetOccupiedNodes() const;
+
+   std::string editorGroup_ = "Default";
 
  protected:
    // should be overriden by derrived class
@@ -151,6 +153,6 @@ class GameObject : public Object
    renderer::Sprite sprite_ = {};
 
    std::string name_ = "DummyName";
-};
+   };
 
 } // namespace looper

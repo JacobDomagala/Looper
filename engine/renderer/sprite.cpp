@@ -346,7 +346,7 @@ Sprite::ComputeBoundingBox()
    boundingBox_.at(3) = transformMat * glm::vec4(vertices_[2].position_, 1.0f);
 }
 
-std::array< glm::vec2, 4 >
+const std::array< glm::vec2, 4 >&
 Sprite::GetTransformedRectangle() const
 {
    return boundingBox_;

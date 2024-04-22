@@ -144,7 +144,7 @@ EditorObject::SetName(const std::string& name)
    name_ = name;
 }
 
-std::string
+const std::string&
 EditorObject::GetName() const
 {
    return name_;

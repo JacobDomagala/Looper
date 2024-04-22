@@ -99,7 +99,7 @@ class Sprite
 
    //        0,       1,          2,           3
    // topRight, topLeft, bottomLeft, bottomRight
-   [[nodiscard]] std::array< glm::vec2, 4 >
+   [[nodiscard]] const std::array< glm::vec2, 4 >&
    GetTransformedRectangle() const;
 
    bool

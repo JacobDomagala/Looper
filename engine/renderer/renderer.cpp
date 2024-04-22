@@ -661,7 +661,7 @@ CreateCommandPool()
 void
 CreateCommandBuffers(Application* app, uint32_t imageIndex)
 {
-   auto& renderData = Data::renderData_.at(boundApplication_);
+   const auto& renderData = Data::renderData_.at(boundApplication_);
 
    if (Data::commandBuffers.empty())
    {

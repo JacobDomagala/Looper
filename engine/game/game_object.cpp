@@ -180,7 +180,7 @@ GameObject::SetName(const std::string& name)
    name_ = name;
 }
 
-std::string
+const std::string&
 GameObject::GetName() const
 {
    return name_;

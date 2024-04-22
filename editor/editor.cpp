@@ -173,7 +173,7 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
                gui_.ObjectUnselected(object);
             }
 
-            
+
             selectedObjects_ = selectedObjects;
             auto& firstObject = currentLevel_->GetGameObjectRef(selectedObjects_.front());
             auto gizmoPos = firstObject.GetCenteredPosition();
@@ -197,7 +197,6 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
                };
             }
 
-            
 
             gizmoActive_ = true;
             gizmo_.Show();
@@ -566,6 +565,17 @@ Editor::GetSelectedObjects() const
 }
 
 void
+Editor::ChangeSelectedObjects(const std::vector< Object::ID >& newObjects)
+{
+   selectedObjects_ = newObjects;
+   gizmoActive_ = true;
+   gizmo_.Show();
+   RecalculateGizmoPos();
+
+   camera_.SetCameraAtPosition(gizmo_.Position());
+}
+
+void
 Editor::SelectGameObject(Object::ID newSelectedGameObject)
 {
    if (currentSelectedGameObject_ != Object::INVALID_ID)
@@ -624,9 +634,10 @@ Editor::RecalculateGizmoPos()
    glm::vec2 min = gizmoPos;
    glm::vec2 max = gizmoPos;
 
-   for (const auto object : selectedObjects_)
+   for (uint32_t idx = 1; idx < selectedObjects_.size(); ++idx)
    {
-      const auto& objectPos = currentLevel_->GetGameObjectRef(object).GetCenteredPosition();
+      const auto& objectPos =
+         currentLevel_->GetGameObjectRef(selectedObjects_.at(idx)).GetCenteredPosition();
       min = glm::vec2{
          glm::min(min.x, objectPos.x),
          glm::min(min.y, objectPos.y),
@@ -752,6 +763,12 @@ Editor::GetEditorObjectRefByLinkedID(Object::ID linkedObjID)
    });
 
    return *animationPointIt;
+}
+
+const std::string&
+Editor::GetLevelFileName() const
+{
+   return levelFileName_;
 }
 
 void
@@ -1258,6 +1275,16 @@ Editor::LoadLevel(const std::string& levelPath)
 
       levelLoaded_ = true;
 
+      // for (const auto obj : currentLevel_->GetObjects())
+      //{
+      //    gui_.ObjectAdded(obj.GetID());
+      // }
+      // for (const auto enemy : currentLevel_->GetEnemies())
+      //{
+      //    gui_.ObjectAdded(enemy.GetID());
+      // }
+      // gui_.ObjectAdded(currentLevel_->GetPlayer().GetID());
+
       gui_.LevelLoaded(currentLevel_);
 
       currentLevel_->GenerateTextureForCollision();
@@ -1275,14 +1302,17 @@ Editor::SaveLevel(const std::string& levelPath)
 {
    levelFileName_ = levelPath;
    currentLevel_->Save(levelFileName_);
+   gui_.SaveConfigFile();
 }
 
 void
 Editor::AddGameObject(ObjectType objectType, const glm::vec2& position)
 {
-   HandleGameObjectClicked(currentLevel_->AddGameObject(objectType, position), false, false);
+   const auto ID = currentLevel_->AddGameObject(objectType, position);
+   HandleGameObjectClicked(ID, false, false);
 
    shouldUpdateRenderer_ = true;
+   gui_.ObjectAdded(ID);
 }
 
 void
@@ -1477,7 +1507,7 @@ void
 Editor::UpdateAnimationData(Object::ID object)
 {
    auto& baseObject = currentLevel_->GetObjectRef(object);
-   auto& gameObject = dynamic_cast< GameObject& >(baseObject);
+   const auto& gameObject = dynamic_cast< GameObject& >(baseObject);
 
    auto* animatable = dynamic_cast< Animatable* >(&baseObject);
    if (animatable)
