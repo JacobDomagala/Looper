@@ -435,6 +435,11 @@ EditorGUI::ObjectUnselected(Object::ID ID)
       }));
       RecalculateCommonProperties();
    }
+
+   if (selectedObjects_.empty())
+   {
+      selectedGroup_ = "";
+   }
 }
 
 void

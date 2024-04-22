@@ -126,15 +126,14 @@ EditorGUI::RenderGroupSelectModifications()
                   }
                   ImGui::PopStyleColor();
 
-                  for (uint32_t idx = 1; idx < groupNames_.size(); ++idx)
+                  auto group =
+                     std::find_if(groupNames_.begin() + 1, groupNames_.end(),
+                                  [](const auto& name) { return ImGui::Selectable(name.c_str()); });
+                  if (group != groupNames_.end())
                   {
-                     const auto& group = groupNames_.at(idx);
-                     if (ImGui::Selectable(group.c_str()))
-                     {
-                        UpdateGroupForSelection(group);
-                        break;
-                     }
+                     UpdateGroupForSelection(*group);
                   }
+
                   ImGui::EndCombo();
                }
             },
