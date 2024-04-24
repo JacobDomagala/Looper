@@ -271,10 +271,9 @@ EditorGUI::RenderGameObjectContent()
 
       if (ImGui::BeginTable("ObjectTable", 2))
       {
-         CreateActionRowLabel("Group", [this] {
+         CreateActionRowLabel("Group", [this, &gameObject] {
             FillWidth();
-            if (ImGui::BeginCombo("##ObjectGroup",
-                                  objectsInfo_.at(currentlySelectedGameObject_).groupName.c_str()))
+            if (ImGui::BeginCombo("##ObjectGroup", gameObject.editorGroup_.c_str()))
             {
                for (const auto& group : groupNames_)
                {
@@ -286,7 +285,7 @@ EditorGUI::RenderGameObjectContent()
                      }
                      else
                      {
-                        objectsInfo_.at(currentlySelectedGameObject_).groupName = group;
+                        gameObject.editorGroup_ = group;
                      }
                   }
                }
