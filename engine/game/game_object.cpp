@@ -39,12 +39,12 @@ GameObject::~GameObject()
 
 void
 GameObject::Setup(Application* application, const glm::vec2& position, const glm::vec2& size,
-                  const std::string& sprite, ObjectType type)
+                  const std::string& sprite, ObjectType type, uint32_t renderLayer)
 {
    Object::Setup(type);
 
    appHandle_ = application;
-   uint32_t renderLayer = 2;
+
    switch (type)
    {
       case ObjectType::ENEMY:
