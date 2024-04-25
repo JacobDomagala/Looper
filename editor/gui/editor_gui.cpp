@@ -371,7 +371,7 @@ EditorGUI::LoadConfigFile()
 }
 
 void
-EditorGUI::SaveConfigFile()
+EditorGUI::SaveConfigFile() const
 {
    nlohmann::json json;
 

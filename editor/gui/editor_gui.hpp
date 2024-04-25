@@ -78,7 +78,7 @@ class EditorGUI : public InputListener
    Render(VkCommandBuffer commandBuffer);
 
    void
-   SaveConfigFile();
+   SaveConfigFile() const;
 
    void
    LoadConfigFile();
