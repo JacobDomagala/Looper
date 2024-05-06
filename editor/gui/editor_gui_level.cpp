@@ -242,7 +242,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
 
       // NOLINTBEGIN
       static std::string selectedFilter = filterObjects.at(0);
-      static std::string selectedGroup = "Default";
+      static std::string selectedGroup = "All";
       static Object::ID searchID = 0;
       // NOLINTEND
 
@@ -302,7 +302,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
             ImGui::SetScrollHereY();
          }
       };
-      if (selectedGroup != "Default")
+      if (selectedGroup != "All")
       {
          const auto& objects = groups_.at(selectedGroup);
 
