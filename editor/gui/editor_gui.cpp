@@ -110,10 +110,13 @@ EditorGUI::DeleteGroup(const std::string& groupName)
    {
       auto& objRef = parent_.GetLevel().GetGameObjectRef(obj);
       objRef.editorGroup_ = "Default";
+      groups_.at("Default").push_back(obj);
    }
 
    groups_.erase(groupName);
    groupNames_.erase(stl::find(groupNames_, groupName));
+
+   parent_.UnselectAll();
 }
 
 void

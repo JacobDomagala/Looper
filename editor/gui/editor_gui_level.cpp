@@ -432,7 +432,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
       // NOLINTNEXTLINE
       for (uint32_t idx = 1; idx < groupNames_.size(); ++idx)
       {
-         const auto isDefault = groupNames_.at(idx) == "Default";
+         const auto isDefault = idx == 1;
 
          CreateActionRow(
             [this, idx] {
@@ -454,25 +454,23 @@ EditorGUI::RenderLevelMenu() // NOLINT
                }
             },
             [this, idx, isDefault] {
-               if (!isDefault
-                   and ImGui::Button(
-                      fmt::format("{} ##ChangeGroupButton{}", ICON_FA_PENCIL, idx).c_str()))
+               if (ImGui::Button(
+                      fmt::format("{} ##ChangeGroupButton{}", ICON_FA_PENCIL, idx).c_str())
+                   and !isDefault)
                {
                   groupNameToEdit = groupNames_.at(idx);
                   renameGroupPushed_ = true;
                }
             },
             [this, idx, isDefault] {
-               if (!isDefault)
+               ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.0f, 0.0f, 0.0f, 1.0f});
+               if (ImGui::Button(
+                      fmt::format(" {} ##DeleteGroupButton{}", ICON_FA_XMARK, idx).c_str())
+                   and !isDefault)
                {
-                  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.0f, 0.0f, 0.0f, 1.0f});
-                  if (ImGui::Button(
-                         fmt::format(" {} ##DeleteGroupButton{}", ICON_FA_XMARK, idx).c_str()))
-                  {
-                     DeleteGroup(groupNames_.at(idx));
-                  }
-                  ImGui::PopStyleColor(1);
+                  DeleteGroup(groupNames_.at(idx));
                }
+               ImGui::PopStyleColor(1);
             });
       }
 
