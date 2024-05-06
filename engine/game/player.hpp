@@ -24,7 +24,7 @@ class Player : public GameObject
    Player() = default;
 
    void
-   Setup(Application* game, const glm::vec3& position, const glm::ivec2& size,
+   Setup(Application* game, const glm::vec2& position, const glm::ivec2& size,
          const std::string& sprite, const std::string& name = "Anonymous");
 
    // check if player got git by enemy

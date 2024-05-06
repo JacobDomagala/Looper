@@ -96,6 +96,14 @@ Editor::KeyCallback(KeyEvent& event)
             event.handled_ = true;
          }
       }
+      else
+      {
+         if (event.key_ == GLFW_KEY_ESCAPE)
+         {
+            gui_.exitPushed_ = not gui_.exitPushed_;
+            event.handled_ = true;
+         }
+      }
    }
    else if (event.action_ == GLFW_RELEASE)
    {

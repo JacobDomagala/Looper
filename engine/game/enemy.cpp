@@ -33,7 +33,7 @@ Enemy::Setup(Application* context, const glm::vec2& pos, const glm::ivec2& size,
              const std::string& textureName, const std::vector< AnimationPoint >& keypoints,
              Animatable::ANIMATION_TYPE animationType)
 {
-   GameObject::Setup(context, pos, size, textureName, ObjectType::ENEMY);
+   GameObject::Setup(context, pos, size, textureName, ObjectType::ENEMY, 1);
    SetAnimationType(animationType);
 
    initialPosition_ = sprite_.GetPosition();

@@ -78,7 +78,7 @@ class EditorGUI : public InputListener
    Render(VkCommandBuffer commandBuffer);
 
    void
-   SaveConfigFile();
+   SaveConfigFile() const;
 
    void
    LoadConfigFile();
@@ -120,6 +120,9 @@ class EditorGUI : public InputListener
    void
    UpdateGroupForSelection(const std::string& groupName);
 
+   void
+   DeleteGroup(const std::string& groupName);
+
  private:
    static void
    PrepareResources();
@@ -147,7 +150,6 @@ class EditorGUI : public InputListener
    {
       std::string description = {};
       bool selected = {};
-      std::string groupName = "Default";
    };
 
    struct SelectedObjectInfo
@@ -173,8 +175,10 @@ class EditorGUI : public InputListener
    bool newGroupPushed_ = false;
    bool renameGroupPushed_ = false;
    std::unordered_map< std::string, std::vector< Object::ID > > groups_ = {};
-   std::vector< std::string > groupNames_ = {"Create New"};
+   std::vector< std::string > groupNames_ = {"Create New", "Default"};
    std::string selectedGroup_ = "";
+
+   friend class Editor;
 };
 
 } // namespace looper

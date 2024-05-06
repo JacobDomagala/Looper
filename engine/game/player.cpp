@@ -29,10 +29,10 @@ Player::Player(Application* game, const glm::vec2& position, const glm::ivec2& s
 }
 
 void
-Player::Setup(Application* game, const glm::vec3& position, const glm::ivec2& size,
+Player::Setup(Application* game, const glm::vec2& position, const glm::ivec2& size,
               const std::string& sprite, const std::string& name)
 {
-   GameObject::Setup(game, position, size, sprite, ObjectType::PLAYER);
+   GameObject::Setup(game, position, size, sprite, ObjectType::PLAYER, 1);
 
    name_ = name;
    currentState_.velocity_ = {0.0f, 0.0f};

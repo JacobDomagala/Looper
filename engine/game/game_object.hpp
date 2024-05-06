@@ -23,7 +23,7 @@ class GameObject : public Object
 
    void
    Setup(Application* application, const glm::vec2& position, const glm::vec2& size,
-         const std::string& sprite, ObjectType type);
+         const std::string& sprite, ObjectType type, uint32_t renderLayer);
 
    virtual void
    Hit(int32_t /*dmg*/)

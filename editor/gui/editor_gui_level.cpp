@@ -242,7 +242,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
 
       // NOLINTBEGIN
       static std::string selectedFilter = filterObjects.at(0);
-      static std::string selectedGroup = "Default";
+      static std::string selectedGroup = "All";
       static Object::ID searchID = 0;
       // NOLINTEND
 
@@ -252,13 +252,14 @@ EditorGUI::RenderLevelMenu() // NOLINT
          // The second parameter is the label previewed before opening the combo.
          if (ImGui::BeginCombo("##filterByGroup", selectedGroup.c_str()))
          {
-            auto selected = std::find_if(groupNames_.begin() + 1, groupNames_.end(),
-                         [](const auto& group) { return ImGui::Selectable(group.c_str()); });
+            auto selected =
+               std::find_if(groupNames_.begin() + 1, groupNames_.end(),
+                            [](const auto& group) { return ImGui::Selectable(group.c_str()); });
             if (selected != groupNames_.end())
             {
                selectedGroup = *selected;
             }
-            
+
             ImGui::EndCombo();
          }
       });
@@ -301,7 +302,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
             ImGui::SetScrollHereY();
          }
       };
-      if (selectedGroup != "Default")
+      if (selectedGroup != "All")
       {
          const auto& objects = groups_.at(selectedGroup);
 
@@ -417,11 +418,13 @@ EditorGUI::RenderLevelMenu() // NOLINT
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Groups"))
    {
-      ImGui::BeginTable("GroupsTable", 2);
+      ImGui::BeginTable("GroupsTable", 3);
 
       const auto totalWidth = ImGui::GetContentRegionAvail().x;
-      ImGui::TableSetupColumn("GroupName", ImGuiTableColumnFlags_WidthStretch, 0.90f * totalWidth);
+      ImGui::TableSetupColumn("GroupName", ImGuiTableColumnFlags_WidthStretch, 0.80f * totalWidth);
       ImGui::TableSetupColumn("EditGroup", ImGuiTableColumnFlags_WidthStretch, 0.10f * totalWidth);
+      ImGui::TableSetupColumn("DeleteGroup", ImGuiTableColumnFlags_WidthStretch,
+                              0.10f * totalWidth);
 
       // NOLINTNEXTLINE
       static std::string groupNameToEdit = "";
@@ -429,6 +432,8 @@ EditorGUI::RenderLevelMenu() // NOLINT
       // NOLINTNEXTLINE
       for (uint32_t idx = 1; idx < groupNames_.size(); ++idx)
       {
+         const auto isDefault = idx == 1;
+
          CreateActionRow(
             [this, idx] {
                const auto& groupName = groupNames_.at(idx);
@@ -448,12 +453,24 @@ EditorGUI::RenderLevelMenu() // NOLINT
                   commonGroup_ = {true, groupName};
                }
             },
-            [this, idx] {
-               if (ImGui::Button(fmt::format("{} ##ChangeGroupButton{}", ICON_FA_PENCIL, idx).c_str()))
+            [this, idx, isDefault] {
+               if (ImGui::Button(
+                      fmt::format("{} ##ChangeGroupButton{}", ICON_FA_PENCIL, idx).c_str())
+                   and !isDefault)
                {
                   groupNameToEdit = groupNames_.at(idx);
                   renameGroupPushed_ = true;
                }
+            },
+            [this, idx, isDefault] {
+               ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.0f, 0.0f, 0.0f, 1.0f});
+               if (ImGui::Button(
+                      fmt::format(" {} ##DeleteGroupButton{}", ICON_FA_XMARK, idx).c_str())
+                   and !isDefault)
+               {
+                  DeleteGroup(groupNames_.at(idx));
+               }
+               ImGui::PopStyleColor(1);
             });
       }
 

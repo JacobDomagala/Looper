@@ -69,10 +69,9 @@ EditorGUI::UpdateGroupForSelection(const std::string& groupName)
       auto& objRef = parent_.GetLevel().GetGameObjectRef(currentlySelectedGameObject_);
       if (objRef.editorGroup_ != groupName)
       {
-         auto& group = groups_.at(objectsInfo_.at(currentlySelectedGameObject_).groupName);
+         auto& group = groups_.at(objRef.editorGroup_);
          group.erase(stl::find(group, currentlySelectedGameObject_));
 
-         objectsInfo_.at(currentlySelectedGameObject_).groupName = groupName;
          groups_.at(groupName).push_back(currentlySelectedGameObject_);
          objRef.editorGroup_ = groupName;
          stl::find_if(selectedObjects_, [this](const auto& obj) {
@@ -90,11 +89,9 @@ EditorGUI::UpdateGroupForSelection(const std::string& groupName)
             continue;
          }
 
-         auto& objectInfo = objectsInfo_.at(object.ID);
-         auto& group = groups_.at(objectInfo.groupName);
+         auto& group = groups_.at(object.group);
          group.erase(stl::find(group, object.ID));
 
-         objectInfo.groupName = groupName;
          groups_.at(groupName).push_back(object.ID);
          object.group = groupName;
          objRef.editorGroup_ = groupName;
@@ -102,6 +99,24 @@ EditorGUI::UpdateGroupForSelection(const std::string& groupName)
    }
 
    RecalculateCommonProperties();
+}
+
+void
+EditorGUI::DeleteGroup(const std::string& groupName)
+{
+   auto& objs = groups_.at(groupName);
+
+   for (auto obj : objs)
+   {
+      auto& objRef = parent_.GetLevel().GetGameObjectRef(obj);
+      objRef.editorGroup_ = "Default";
+      groups_.at("Default").push_back(obj);
+   }
+
+   groups_.erase(groupName);
+   groupNames_.erase(stl::find(groupNames_, groupName));
+
+   parent_.UnselectAll();
 }
 
 void
@@ -172,7 +187,6 @@ EditorGUI::EditGroup(const std::string& oldName)
       const auto& objects = groups_.at(oldName);
       for (auto obj : objects)
       {
-         objectsInfo_.at(obj).groupName = newName;
          parent_.GetLevel().GetGameObjectRef(obj).editorGroup_ = newName;
       }
 
@@ -196,28 +210,20 @@ EditorGUI::EditGroup(const std::string& oldName)
 void
 EditorGUI::KeyCallback(KeyEvent& event)
 {
-   // This HAS to be here as Editor should handle key callbacks first
-   parent_.KeyCallback(event);
+   auto& io = ImGui::GetIO();
 
-   if (not event.handled_)
+   if (io.WantCaptureKeyboard)
    {
-      ImGuiIO& io = ImGui::GetIO();
-
       const auto imguiKey = KeyToImGuiKey(event.key_);
       io.AddKeyEvent(imguiKey, (event.action_ == GLFW_PRESS));
-
-      if ((event.key_ == GLFW_KEY_ESCAPE) and (event.action_ == GLFW_PRESS))
-      {
-         exitPushed_ = not exitPushed_;
-         event.handled_ = true;
-      }
+      event.handled_ = true;
    }
 }
 
 void
 EditorGUI::CharCallback(CharEvent& event)
 {
-   ImGuiIO& io = ImGui::GetIO();
+   auto& io = ImGui::GetIO();
    io.AddInputCharacter(event.key_);
 }
 
@@ -253,8 +259,6 @@ EditorGUI::Init()
    // Setup Dear ImGui context
    IMGUI_CHECKVERSION();
    ImGui::CreateContext();
-   ImGuiIO& io = ImGui::GetIO();
-   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls NOLINT
 
    SetStyle();
 
@@ -321,16 +325,15 @@ EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
 {
    currentLevel_ = loadedLevel;
    const auto& objects = currentLevel_->GetObjects();
-   std::set< std::string > uniqueNames;
+
    for (const auto& object : objects)
    {
       objectsInfo_[object.GetID()] = {
          fmt::format("[{}] {} ({:.2f}, {:.2f})", object.GetTypeString().c_str(),
                      object.GetName().c_str(), object.GetPosition().x, object.GetPosition().y),
-         false, object.editorGroup_};
+         false};
 
       groups_[object.editorGroup_].emplace_back(object.GetID());
-      uniqueNames.insert(object.editorGroup_);
    }
 
    const auto& enemies = currentLevel_->GetEnemies();
@@ -339,10 +342,9 @@ EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
       objectsInfo_[enemy.GetID()] = {
          fmt::format("[{}] {} ({:.2f}, {:.2f})", enemy.GetTypeString().c_str(),
                      enemy.GetName().c_str(), enemy.GetPosition().x, enemy.GetPosition().y),
-         false, enemy.editorGroup_};
+         false};
 
       groups_[enemy.editorGroup_].emplace_back(enemy.GetID());
-      uniqueNames.insert(enemy.editorGroup_);
    }
 
    const auto& player = currentLevel_->GetPlayer();
@@ -351,47 +353,32 @@ EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
       objectsInfo_[player.GetID()] = {
          fmt::format("[{}] {} ({:.2f}, {:.2f})", player.GetTypeString().c_str(),
                      player.GetName().c_str(), player.GetPosition().x, player.GetPosition().y),
-         false, player.editorGroup_};
+         false};
 
       groups_[player.editorGroup_].emplace_back(player.GetID());
-      uniqueNames.insert(player.editorGroup_);
    }
 
-   std::transform(uniqueNames.begin(), uniqueNames.end(), std::back_inserter(groupNames_),
-                  [](const auto& name) { return name; });
    LoadConfigFile();
 }
 
 void
 EditorGUI::LoadConfigFile()
 {
-   // auto fileName = parent_.GetLevelFileName();
+   auto fileName = parent_.GetLevelFileName();
 
-   //// Load the editor configuration file
-   // auto json = FileManager::LoadJsonFile(
-   //    fmt::format("{}.editor.dgl", fileName.substr(0, fileName.size() - 4)));
-   // const auto& groups = json["GROUPS"];
+   // Load the editor configuration file
+   auto json = FileManager::LoadJsonFile(
+      fmt::format("{}.editor.dgl", fileName.substr(0, fileName.size() - 4)));
 
-   //// Iterate over each group in "GROUPS"
-   // for (auto it = groups.begin(); it != groups.end(); ++it)
-   //{
-   //    const auto& groupName = it.key();
-   //    const auto& IDs = it.value();
-
-   //   groupNames_.push_back(groupName);
-   //   groups_[groupName].insert(groups_[groupName].end(), IDs.begin(), IDs.end());
-   //}
+   groupNames_ = json["GROUPS"];
 }
 
 void
-EditorGUI::SaveConfigFile()
+EditorGUI::SaveConfigFile() const
 {
    nlohmann::json json;
 
-   for (auto group = groupNames_.begin() + 1; group < groupNames_.end(); ++group)
-   {
-      json["GROUPS"][*group] = groups_.at(*group);
-   }
+   json["GROUPS"] = groupNames_;
 
    auto fileName = parent_.GetLevelFileName();
    FileManager::SaveJsonFile(fmt::format("{}.editor.dgl", fileName.substr(0, fileName.size() - 4)),
