@@ -250,6 +250,9 @@ Editor::CursorPositionCallback(CursorPositionEvent& event)
       }
 
       lastCursorPosition_ = currentCursorPosition;
+      auto& renderData = renderer::Data::renderData_[renderer::GetCurrentlyBoundType()];
+      renderData.light.pos_ = ScreenToGlobal(currentCursorPosition);
+
       event.handled_ = true;
    }
 }

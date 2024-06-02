@@ -28,6 +28,7 @@ layout(location = 1) in vec3 a_texCoordDrawID;
 
 layout(location = 0) out VS_OUT
 {
+   vec4 posPair;
    vec4 fColor;
    vec2 fTexCoord;
 
@@ -55,5 +56,7 @@ main(void)
    mat4 modelMat = curInstanceData.modelMat;
    vec3 position = a_position;
 
-   gl_Position = ubo.u_projectionMat * ubo.u_viewMat * modelMat * vec4(position.xyz, 1.0f);
+   vec4 pos = modelMat * vec4(position.xyz, 1.0f);
+   gl_Position = ubo.u_projectionMat * ubo.u_viewMat * pos;
+   vs_out.posPair = vec4(ubo.u_cameraPos.xy, pos);
 }

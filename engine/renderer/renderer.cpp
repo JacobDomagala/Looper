@@ -881,6 +881,7 @@ UpdateUniformBuffer()
 
       UniformBufferObject tmpUBO = {};
 
+      tmpUBO.cameraPos = glm::vec4{renderData.light.pos_, 0.0f, 0.0f};
       tmpUBO.view = renderData.viewMat;
       tmpUBO.proj = renderData.projMat;
 

@@ -4,6 +4,7 @@
 #include "types.hpp"
 #include "utils/assert.hpp"
 #include "vertex.hpp"
+#include "light.hpp"
 
 #include <array>
 #include <bitset>
@@ -158,6 +159,8 @@ struct PushConstBlock
 
 struct RenderData
 {
+   Light light;
+
    // Store this in case we have window minimized (to prevent extent being 0x0)
    glm::ivec2 windowSize_ = {};
    bool windowFocus_ = true;
