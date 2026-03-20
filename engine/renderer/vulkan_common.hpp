@@ -213,17 +213,35 @@ struct RenderData
    VkPipelineCache pipelineCache = VK_NULL_HANDLE;
    VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
 
+   VkRenderPass shadowRenderPass = VK_NULL_HANDLE;
+   VkPipeline shadowPipeline = VK_NULL_HANDLE;
+   VkPipelineLayout shadowPipelineLayout = VK_NULL_HANDLE;
+   VkSampler shadowSampler = VK_NULL_HANDLE;
+   VkExtent2D shadowMapExtent = {2048, 2048};
+   std::array< VkImage, MAX_FRAMES_IN_FLIGHT > shadowImages = {};
+   std::array< VkDeviceMemory, MAX_FRAMES_IN_FLIGHT > shadowImageMemories = {};
+   std::array< VmaAllocation, MAX_FRAMES_IN_FLIGHT > shadowImageAllocations = {};
+   std::array< VkImageView, MAX_FRAMES_IN_FLIGHT > shadowImageViews = {};
+   std::array< VkFramebuffer, MAX_FRAMES_IN_FLIGHT > shadowFramebuffers = {};
+
    VkImage depthImage = VK_NULL_HANDLE;
    VkDeviceMemory depthImageMemory = VK_NULL_HANDLE;
+   VmaAllocation depthImageAllocation = {};
    VkImageView depthImageView = VK_NULL_HANDLE;
 
    VkImage colorImage = VK_NULL_HANDLE;
    VkDeviceMemory colorImageMemory = VK_NULL_HANDLE;
+   VmaAllocation colorImageAllocation = {};
    VkImageView colorImageView = VK_NULL_HANDLE;
 
    glm::mat4 viewMat = {};
    glm::mat4 projMat = {};
    glm::mat4 projNoZoomMat = {};
+
+   glm::mat4 lightViewProjMat = {};
+   glm::vec4 lightDirection = glm::vec4(glm::normalize(glm::vec3(-0.55f, -0.35f, 1.0f)), 0.0f);
+   glm::vec4 lightColor = glm::vec4(1.0f, 0.96f, 0.88f, 1.0f);
+   glm::vec4 shadowParams = glm::vec4(0.35f, 0.75f, 0.0015f, 0.0f);
 };
 
 /*

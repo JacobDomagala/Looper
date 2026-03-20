@@ -32,18 +32,12 @@ layout(location = 1) in vec3 a_texCoordDrawID;
 
 layout(location = 0) out VS_OUT
 {
-   vec4 fColor;
    vec2 fTexCoord;
-   vec4 fLightSpacePos;
 
    flat int fDiffSampl;
    flat int fExtraSampl;
 }
 vs_out;
-
-layout (push_constant) uniform PushConstants {
-    float selectedIdx;
-} pushConstants;
 
 void
 main(void)
@@ -52,15 +46,8 @@ main(void)
    BufferData curInstanceData = Transforms[int(drawID)];
 
    vs_out.fTexCoord = a_texCoordDrawID.xy;
-   vs_out.fColor = curInstanceData.color;
-
    vs_out.fDiffSampl = int(curInstanceData.texSamples.x);
    vs_out.fExtraSampl = int(curInstanceData.texSamples.y);
 
-   mat4 modelMat = curInstanceData.modelMat;
-   vec3 position = a_position;
-   vec4 worldPosition = modelMat * vec4(position.xyz, 1.0f);
-
-   vs_out.fLightSpacePos = ubo.u_lightViewProj * worldPosition;
-   gl_Position = ubo.u_projectionMat * ubo.u_viewMat * worldPosition;
+   gl_Position = ubo.u_lightViewProj * curInstanceData.modelMat * vec4(a_position.xyz, 1.0f);
 }

@@ -81,6 +81,12 @@ void
 CreateCommandBuffers(Application* app, uint32_t imageIndex);
 
 void
+DrawQuadMeshes(VkCommandBuffer cmdBuffer, VkPipelineLayout pipelineLayout, VkDescriptorSet descriptorSet,
+               int32_t renderLayerToDraw = -1, bool alwaysRenderBaseLayer = false,
+               const void* pushConstants = nullptr, uint32_t pushConstantSize = 0,
+               VkShaderStageFlags pushConstantStages = 0);
+
+void
 UpdateDescriptors();
 
 void

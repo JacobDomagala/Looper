@@ -389,36 +389,8 @@ Game::Render(VkCommandBuffer cmdBuffer)
       renderer::Data::renderData_.at(renderer::GetCurrentlyBoundType());
 
    vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipeline);
-
-
-   auto offsets = std::to_array< const VkDeviceSize >({0});
-
-   vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipelineLayout, 0,
-                           1, &renderData.descriptorSets[renderer::Data::currentFrame_], 0,
-                           nullptr);
-
-   for (int32_t layer = renderer::NUM_LAYERS - 1; layer >= 0; --layer)
-   {
-      const auto idx = static_cast< size_t >(layer);
-
-      const auto& numObjects = renderData.numMeshes.at(idx);
-      if (numObjects == 0)
-      {
-         continue;
-      }
-
-      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer.at(idx).buffer_,
-                             offsets.data());
-
-      vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer.at(idx).buffer_, 0,
-                           VK_INDEX_TYPE_UINT32);
-
-      // const auto numObjects =
-      // renderer::GetNumMeshes(renderer::ApplicationType::GAME); numObjects_ =
-      // numObjects.second - numObjects.first;
-      vkCmdDrawIndexed(cmdBuffer, renderData.numMeshes.at(idx) * renderer::INDICES_PER_SPRITE, 1, 0,
-                       0, 0);
-   }
+   renderer::DrawQuadMeshes(cmdBuffer, renderData.pipelineLayout,
+                            renderData.descriptorSets[renderer::Data::currentFrame_]);
 }
 
 } // namespace looper
