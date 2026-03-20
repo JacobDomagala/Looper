@@ -8,7 +8,6 @@ on:
 
 env:
   BUILD_TYPE: Release
-  SDK_VERSION: 1.3.268.0
   CXX: clang++-15
   CC: clang-15
 
@@ -19,8 +18,15 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Resolve Vulkan SDK version
+      id: vulkan-sdk
+      run: |
+        echo "sdk_version=$(wget -qO- https://vulkan.lunarg.com/sdk/latest/linux.txt)" >> "$GITHUB_OUTPUT"
+
     - name: Setup Environment
       run: |
+        SDK_VERSION="${{ steps.vulkan-sdk.outputs.sdk_version }}"
+
         sudo apt-get update
 
         sudo apt-get install -y xorg-dev llvm-dev iwyu clang++-15 libx11-xcb-dev libxcb-render-util0-dev \
@@ -31,8 +37,8 @@ jobs:
 
         pip install conan
 
-        wget https://sdk.lunarg.com/sdk/download/$SDK_VERSION/linux/vulkansdk-linux-x86_64-$SDK_VERSION.tar.xz
-        tar xf vulkansdk-linux-x86_64-$SDK_VERSION.tar.xz
+        wget "https://sdk.lunarg.com/sdk/download/$SDK_VERSION/linux/vulkan_sdk.tar.xz" -O vulkan_sdk.tar.xz
+        tar xf vulkan_sdk.tar.xz
 
         cmake -E make_directory ${{runner.workspace}}/build
 
@@ -53,7 +59,7 @@ jobs:
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: |
-        source ${{runner.workspace}}/Looper/$SDK_VERSION/setup-env.sh
+        source $GITHUB_WORKSPACE/${{ steps.vulkan-sdk.outputs.sdk_version }}/setup-env.sh
         cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DWARNINGS_AS_ERRORS=ON -DENABLE_INCLUDE_WHAT_YOU_USE=OFF\
            -DENABLE_SANITIZER_ADDRESS=ON -DENABLE_SANITIZER_UNDEFINED_BEHAVIOR=OFF -DENABLE_SANITIZER_LEAK=ON -DUNITY_BUILD=ON\
            -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake
