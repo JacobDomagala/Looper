@@ -12,19 +12,27 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: setup init_script
+    - name: Setup init_script
       shell: bash
       run: |
-        echo "#!/bin/bash
-        root_dir=\${1}
-        build_dir=\${2}
+        cat <<'EOF' > init_script.sh
+        #!/bin/bash
+        set -euo pipefail
+
+        root_dir=${1}
+        build_dir=${2}
+        sdk_version=$(wget -qO- https://vulkan.lunarg.com/sdk/latest/linux.txt)
+
         pip install conan --break-system-packages
         conan profile detect
-        conan install \$root_dir --output-folder=build --build=missing --settings=build_type=Release -c tools.system.package_manager:mode=install
-        wget https://sdk.lunarg.com/sdk/download/1.3.216.0/linux/vulkansdk-linux-x86_64-1.3.216.0.tar.gz
-        mkdir vulkan
-        tar xf vulkansdk-linux-x86_64-1.3.216.0.tar.gz -C \$root_dir/vulkan
-        source \$root_dir/vulkan/1.3.216.0/setup-env.sh" > init_script.sh
+        conan install "$root_dir" --output-folder="$build_dir" --build=missing --settings=build_type=Release -c tools.system.package_manager:mode=install
+        mkdir -p "$root_dir/vulkan"
+        wget "https://sdk.lunarg.com/sdk/download/${sdk_version}/linux/vulkan_sdk.tar.xz" -O vulkan_sdk.tar.xz
+        tar xf vulkan_sdk.tar.xz -C "$root_dir/vulkan"
+        source "$root_dir/vulkan/${sdk_version}/setup-env.sh"
+        EOF
+
+        chmod +x init_script.sh
 
     - name: Run static analysis
       uses: JacobDomagala/StaticAnalysis@master

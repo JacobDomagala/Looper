@@ -8,7 +8,6 @@ on:
 
 env:
   VULKAN_DIR: C:\VulkanSDK
-  SDK_VERSION: 1.3.268.0
   BUILD_TYPE: Release
 
 jobs:
@@ -18,19 +17,27 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Resolve Vulkan SDK version
+      id: vulkan-sdk
+      shell: pwsh
+      run: |
+        $sdkVersion = (Invoke-RestMethod -Uri "https://vulkan.lunarg.com/sdk/latest.json").windows
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "sdk_version=$sdkVersion"
+
     - name: Cache Vulkan SDK
       id: cache-vulkan-sdk
       uses: actions/cache@v3
       with:
-        path: ${{env.VULKAN_DIR}}\${{env.SDK_VERSION}}
-        key: vulkan-sdk-${{ runner.os }}-${{env.SDK_VERSION}}
+        path: ${{env.VULKAN_DIR}}\${{steps.vulkan-sdk.outputs.sdk_version}}
+        key: vulkan-sdk-${{ runner.os }}-${{steps.vulkan-sdk.outputs.sdk_version}}
 
     - name: Download and install Vulkan SDK
       if: steps.cache-vulkan-sdk.outputs.cache-hit != 'true'
       run: |
-        Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/$env:SDK_VERSION/windows/VulkanSDK-$env:SDK_VERSION-Installer.exe" -OutFile VulkanSDK.exe;
-        $installer = Start-Process -FilePath VulkanSDK.exe -Wait -PassThru -ArgumentList @("--accept-licenses --default-answer --confirm-command install");
-        $installer.WaitForExit();
+        $sdkVersion = "${{ steps.vulkan-sdk.outputs.sdk_version }}"
+        Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/$sdkVersion/windows/vulkan_sdk.exe" -OutFile VulkanSDK.exe
+        $installer = Start-Process -FilePath VulkanSDK.exe -Wait -PassThru -ArgumentList @("--accept-licenses --default-answer --confirm-command install")
+        $installer.WaitForExit()
 
     - name: Create Build Environment
       run: |
@@ -56,7 +63,7 @@ jobs:
     - name: Configure CMake and build
       working-directory: ${{runner.workspace}}/build
       run: |
-        $env:VULKAN_SDK="$env:VULKAN_DIR\$env:SDK_VERSION"
+        $env:VULKAN_SDK="$env:VULKAN_DIR\${{ steps.vulkan-sdk.outputs.sdk_version }}"
 
         cmake $env:GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=${{runner.workspace}}\build\build\conan_toolchain.cmake
         cmake --build . --config $env:BUILD_TYPE > output.txt
