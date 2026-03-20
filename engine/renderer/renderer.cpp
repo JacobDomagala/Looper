@@ -16,6 +16,7 @@
 
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
 #include <array>
@@ -180,7 +181,9 @@ CreatePipeline(std::string_view vertexShader, std::string_view fragmentShader, P
       vkCreatePipelineLayout(Data::vk_device, &pipelineLayoutInfo, nullptr, &pipeLineLayout),
       "failed to create pipeline layout!");
 
-   std::vector< VkDynamicState > dynamicStateEnables = {VK_DYNAMIC_STATE_LINE_WIDTH};
+   std::vector< VkDynamicState > dynamicStateEnables = {VK_DYNAMIC_STATE_LINE_WIDTH,
+                                                        VK_DYNAMIC_STATE_VIEWPORT,
+                                                        VK_DYNAMIC_STATE_SCISSOR};
 
    VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo{};
    pipelineDynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
@@ -300,6 +303,320 @@ CreateIndexBuffer(std::vector< IndexType >& indices, const size_t numObjects)
    stagingBuffer.Destroy();
 
    return indexBuffer;
+}
+
+glm::mat4
+CalculateLightViewProj(RenderData& renderData)
+{
+   glm::mat4 view = renderData.viewMat;
+   glm::mat4 proj = renderData.projMat;
+
+   if (view[3][3] == 0.0f)
+   {
+      view = glm::mat4(1.0f);
+   }
+
+   if (proj[0][0] == 0.0f || proj[1][1] == 0.0f)
+   {
+      proj = glm::mat4(1.0f);
+   }
+
+   const glm::mat4 inverseView = glm::inverse(view);
+   const glm::vec3 cameraPosition = glm::vec3(inverseView[3]);
+
+   const auto lightDir = glm::normalize(glm::vec3(renderData.lightDirection));
+   const auto halfWidth = glm::max(1.0f, 1.0f / glm::abs(proj[0][0]));
+   const auto halfHeight = glm::max(1.0f, 1.0f / glm::abs(proj[1][1]));
+   const auto halfExtent = glm::sqrt(halfWidth * halfWidth + halfHeight * halfHeight) + 128.0f;
+   const auto lightDistance = halfExtent * 2.0f + 512.0f;
+
+   auto up = glm::vec3(0.0f, 1.0f, 0.0f);
+   if (glm::abs(glm::dot(lightDir, up)) > 0.99f)
+   {
+      up = glm::vec3(1.0f, 0.0f, 0.0f);
+   }
+
+   const auto lightPosition = cameraPosition - lightDir * lightDistance;
+   const auto lightView = glm::lookAt(lightPosition, cameraPosition, up);
+   const auto lightProj =
+      glm::ortho(-halfExtent, halfExtent, -halfExtent, halfExtent, 0.1f, lightDistance * 3.0f);
+
+   renderData.lightViewProjMat = lightProj * lightView;
+   return renderData.lightViewProjMat;
+}
+
+void
+CreateShadowSampler()
+{
+   auto& renderData = Data::renderData_.at(boundApplication_);
+
+   if (renderData.shadowSampler != VK_NULL_HANDLE)
+   {
+      vkDestroySampler(Data::vk_device, renderData.shadowSampler, nullptr);
+   }
+
+   VkSamplerCreateInfo samplerInfo = {};
+   samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+   samplerInfo.magFilter = VK_FILTER_NEAREST;
+   samplerInfo.minFilter = VK_FILTER_NEAREST;
+   samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+   samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+   samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+   samplerInfo.anisotropyEnable = VK_FALSE;
+   samplerInfo.maxAnisotropy = 1.0f;
+   samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+   samplerInfo.unnormalizedCoordinates = VK_FALSE;
+   samplerInfo.compareEnable = VK_FALSE;
+   samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+   samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+   samplerInfo.minLod = 0.0f;
+   samplerInfo.maxLod = 1.0f;
+   samplerInfo.mipLodBias = 0.0f;
+
+   vk_check_error(vkCreateSampler(Data::vk_device, &samplerInfo, nullptr, &renderData.shadowSampler),
+                  "Failed to create shadow sampler!");
+}
+
+void
+CreateShadowResources()
+{
+   auto& renderData = Data::renderData_.at(boundApplication_);
+   const auto depthFormat = FindShadowDepthFormat();
+
+   CreateShadowSampler();
+
+   for (uint32_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; ++frame)
+   {
+      if (renderData.shadowImageViews.at(frame) != VK_NULL_HANDLE)
+      {
+         vkDestroyImageView(Data::vk_device, renderData.shadowImageViews.at(frame), nullptr);
+         renderData.shadowImageViews.at(frame) = VK_NULL_HANDLE;
+      }
+
+      if (renderData.shadowImages.at(frame) != VK_NULL_HANDLE)
+      {
+         vmaDestroyImage(Data::vk_hAllocator, renderData.shadowImages.at(frame),
+                         renderData.shadowImageAllocations.at(frame));
+         renderData.shadowImages.at(frame) = VK_NULL_HANDLE;
+         renderData.shadowImageMemories.at(frame) = VK_NULL_HANDLE;
+         renderData.shadowImageAllocations.at(frame) = {};
+      }
+
+      const auto image = Texture::CreateImage(
+         renderData.shadowMapExtent.width, renderData.shadowMapExtent.height, 1,
+         VK_SAMPLE_COUNT_1_BIT, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+         VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+      renderData.shadowImages.at(frame) = image.textureImage_;
+      renderData.shadowImageMemories.at(frame) = image.textureImageMemory_;
+      renderData.shadowImageAllocations.at(frame) = image.allocation_;
+      renderData.shadowImageViews.at(frame) =
+         Texture::CreateImageView(renderData.shadowImages.at(frame), depthFormat,
+                                  VK_IMAGE_ASPECT_DEPTH_BIT, 1);
+   }
+}
+
+void
+CreateShadowRenderPass()
+{
+   auto& renderData = Data::renderData_.at(boundApplication_);
+
+   VkAttachmentDescription depthAttachment = {};
+   depthAttachment.format = FindShadowDepthFormat();
+   depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+   depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+   depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+   depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+   depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+   depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+   depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+
+   VkAttachmentReference depthAttachmentRef = {};
+   depthAttachmentRef.attachment = 0;
+   depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+   VkSubpassDescription subpass = {};
+   subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+   subpass.pDepthStencilAttachment = &depthAttachmentRef;
+
+   std::array< VkSubpassDependency, 2 > dependencies = {};
+   dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+   dependencies[0].dstSubpass = 0;
+   dependencies[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+   dependencies[0].srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+   dependencies[0].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+   dependencies[0].dstAccessMask =
+      VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+   dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+   dependencies[1].srcSubpass = 0;
+   dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+   dependencies[1].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+   dependencies[1].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+   dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+   dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+   dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+   VkRenderPassCreateInfo renderPassInfo = {};
+   renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+   renderPassInfo.attachmentCount = 1;
+   renderPassInfo.pAttachments = &depthAttachment;
+   renderPassInfo.subpassCount = 1;
+   renderPassInfo.pSubpasses = &subpass;
+   renderPassInfo.dependencyCount = static_cast< uint32_t >(dependencies.size());
+   renderPassInfo.pDependencies = dependencies.data();
+
+   vk_check_error(vkCreateRenderPass(Data::vk_device, &renderPassInfo, nullptr,
+                                     &renderData.shadowRenderPass),
+                  "failed to create shadow render pass!");
+}
+
+void
+CreateShadowFramebuffers()
+{
+   auto& renderData = Data::renderData_.at(boundApplication_);
+
+   for (auto& framebuffer : renderData.shadowFramebuffers)
+   {
+      if (framebuffer != VK_NULL_HANDLE)
+      {
+         vkDestroyFramebuffer(Data::vk_device, framebuffer, nullptr);
+         framebuffer = VK_NULL_HANDLE;
+      }
+   }
+
+   for (uint32_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; ++frame)
+   {
+      VkFramebufferCreateInfo framebufferInfo = {};
+      framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+      framebufferInfo.renderPass = renderData.shadowRenderPass;
+      framebufferInfo.attachmentCount = 1;
+      framebufferInfo.pAttachments = &renderData.shadowImageViews.at(frame);
+      framebufferInfo.width = renderData.shadowMapExtent.width;
+      framebufferInfo.height = renderData.shadowMapExtent.height;
+      framebufferInfo.layers = 1;
+
+      vk_check_error(vkCreateFramebuffer(Data::vk_device, &framebufferInfo, nullptr,
+                                         &renderData.shadowFramebuffers.at(frame)),
+                     "Failed to create shadow framebuffer!");
+   }
+}
+
+void
+CreateShadowPipeline()
+{
+   auto& renderData = Data::renderData_.at(boundApplication_);
+   auto [vertexInfo, fragmentInfo] =
+      VulkanShader::CreateShader(Data::vk_device, "shadow.vert.spv", "shadow.frag.spv");
+   auto shaderStages = std::to_array({vertexInfo.shaderInfo, fragmentInfo.shaderInfo});
+
+   auto bindingDescription = Vertex::getBindingDescription();
+   auto attributeDescriptions = Vertex::getAttributeDescriptions();
+
+   VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
+   vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+   vertexInputInfo.vertexBindingDescriptionCount = 1;
+   vertexInputInfo.vertexAttributeDescriptionCount =
+      static_cast< uint32_t >(attributeDescriptions.size());
+   vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+   vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+
+   VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
+   inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+   inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+   inputAssembly.primitiveRestartEnable = VK_FALSE;
+
+   VkViewport viewport = {};
+   viewport.x = 0.0f;
+   viewport.y = 0.0f;
+   viewport.width = static_cast< float >(renderData.shadowMapExtent.width);
+   viewport.height = static_cast< float >(renderData.shadowMapExtent.height);
+   viewport.minDepth = 0.0f;
+   viewport.maxDepth = 1.0f;
+
+   VkRect2D scissor = {};
+   scissor.offset = {0, 0};
+   scissor.extent = renderData.shadowMapExtent;
+
+   VkPipelineViewportStateCreateInfo viewportState = {};
+   viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+   viewportState.viewportCount = 1;
+   viewportState.pViewports = &viewport;
+   viewportState.scissorCount = 1;
+   viewportState.pScissors = &scissor;
+
+   VkPipelineRasterizationStateCreateInfo rasterizer = {};
+   rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+   rasterizer.depthClampEnable = VK_FALSE;
+   rasterizer.rasterizerDiscardEnable = VK_FALSE;
+   rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+   rasterizer.lineWidth = 1.0f;
+   rasterizer.cullMode = VK_CULL_MODE_NONE;
+   rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+   rasterizer.depthBiasEnable = VK_TRUE;
+   rasterizer.depthBiasConstantFactor = 1.25f;
+   rasterizer.depthBiasSlopeFactor = 1.75f;
+   rasterizer.depthBiasClamp = 0.0f;
+
+   VkPipelineMultisampleStateCreateInfo multisampling = {};
+   multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+   multisampling.sampleShadingEnable = VK_FALSE;
+   multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+   VkPipelineDepthStencilStateCreateInfo depthStencil = {};
+   depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+   depthStencil.depthTestEnable = VK_TRUE;
+   depthStencil.depthWriteEnable = VK_TRUE;
+   depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+   depthStencil.depthBoundsTestEnable = VK_FALSE;
+   depthStencil.stencilTestEnable = VK_FALSE;
+
+   VkPipelineColorBlendStateCreateInfo colorBlending = {};
+   colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+   colorBlending.logicOpEnable = VK_FALSE;
+   colorBlending.attachmentCount = 0;
+
+   VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+   pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+   pipelineLayoutInfo.setLayoutCount = 1;
+   pipelineLayoutInfo.pSetLayouts = &renderData.descriptorSetLayout;
+
+   vk_check_error(vkCreatePipelineLayout(Data::vk_device, &pipelineLayoutInfo, nullptr,
+                                         &renderData.shadowPipelineLayout),
+                  "failed to create shadow pipeline layout!");
+
+   std::array< VkDynamicState, 3 > dynamicStates = {VK_DYNAMIC_STATE_LINE_WIDTH,
+                                                    VK_DYNAMIC_STATE_VIEWPORT,
+                                                    VK_DYNAMIC_STATE_SCISSOR};
+
+   VkPipelineDynamicStateCreateInfo dynamicStateInfo = {};
+   dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+   dynamicStateInfo.dynamicStateCount = static_cast< uint32_t >(dynamicStates.size());
+   dynamicStateInfo.pDynamicStates = dynamicStates.data();
+
+   VkGraphicsPipelineCreateInfo pipelineInfo = {};
+   pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+   pipelineInfo.stageCount = static_cast< uint32_t >(shaderStages.size());
+   pipelineInfo.pStages = shaderStages.data();
+   pipelineInfo.pDynamicState = &dynamicStateInfo;
+   pipelineInfo.pVertexInputState = &vertexInputInfo;
+   pipelineInfo.pInputAssemblyState = &inputAssembly;
+   pipelineInfo.pViewportState = &viewportState;
+   pipelineInfo.pRasterizationState = &rasterizer;
+   pipelineInfo.pMultisampleState = &multisampling;
+   pipelineInfo.pDepthStencilState = &depthStencil;
+   pipelineInfo.pColorBlendState = &colorBlending;
+   pipelineInfo.layout = renderData.shadowPipelineLayout;
+   pipelineInfo.renderPass = renderData.shadowRenderPass;
+   pipelineInfo.subpass = 0;
+
+   vk_check_error(vkCreateGraphicsPipelines(Data::vk_device, VK_NULL_HANDLE, 1, &pipelineInfo,
+                                            nullptr, &renderData.shadowPipeline),
+                  "failed to create shadow pipeline!");
+
+   vertexInfo.Destroy();
+   fragmentInfo.Destroy();
 }
 
 
@@ -501,6 +818,7 @@ CreateColorResources()
 
    renderData.colorImage = image.textureImage_;
    renderData.colorImageMemory = image.textureImageMemory_;
+   renderData.colorImageAllocation = image.allocation_;
    renderData.colorImageView = Texture::CreateImageView(
       renderData.colorImage, renderData.swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 }
@@ -518,6 +836,7 @@ CreateDepthResources()
 
    renderData.depthImage = image.textureImage_;
    renderData.depthImageMemory = image.textureImageMemory_;
+   renderData.depthImageAllocation = image.allocation_;
    renderData.depthImageView =
       Texture::CreateImageView(renderData.depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 }
@@ -698,6 +1017,40 @@ CreateCommandBuffers(Application* app, uint32_t imageIndex)
    vk_check_error(vkBeginCommandBuffer(Data::commandBuffers[Data::currentFrame_], &beginInfo), "");
 
    vkCmdSetLineWidth(Data::commandBuffers[Data::currentFrame_], 2.0f);
+
+   VkClearValue shadowClearValue = {};
+   shadowClearValue.depthStencil = {1.0f, 0};
+
+   VkRenderPassBeginInfo shadowPassInfo = {};
+   shadowPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+   shadowPassInfo.renderPass = renderData.shadowRenderPass;
+   shadowPassInfo.framebuffer = renderData.shadowFramebuffers.at(Data::currentFrame_);
+   shadowPassInfo.renderArea.offset = {0, 0};
+   shadowPassInfo.renderArea.extent = renderData.shadowMapExtent;
+   shadowPassInfo.clearValueCount = 1;
+   shadowPassInfo.pClearValues = &shadowClearValue;
+
+   vkCmdBeginRenderPass(Data::commandBuffers[Data::currentFrame_], &shadowPassInfo,
+                        VK_SUBPASS_CONTENTS_INLINE);
+
+   VkViewport shadowViewport = {};
+   shadowViewport.width = static_cast< float >(renderData.shadowMapExtent.width);
+   shadowViewport.height = static_cast< float >(renderData.shadowMapExtent.height);
+   shadowViewport.minDepth = 0.0f;
+   shadowViewport.maxDepth = 1.0f;
+
+   VkRect2D shadowScissor = {};
+   shadowScissor.extent = renderData.shadowMapExtent;
+   shadowScissor.offset = {0, 0};
+
+   vkCmdSetViewport(Data::commandBuffers[Data::currentFrame_], 0, 1, &shadowViewport);
+   vkCmdSetScissor(Data::commandBuffers[Data::currentFrame_], 0, 1, &shadowScissor);
+   vkCmdBindPipeline(Data::commandBuffers[Data::currentFrame_], VK_PIPELINE_BIND_POINT_GRAPHICS,
+                     renderData.shadowPipeline);
+   DrawQuadMeshes(Data::commandBuffers[Data::currentFrame_], renderData.shadowPipelineLayout,
+                  renderData.descriptorSets.at(Data::currentFrame_));
+   vkCmdEndRenderPass(Data::commandBuffers[Data::currentFrame_]);
+
    vkCmdBeginRenderPass(Data::commandBuffers[Data::currentFrame_], &renderPassInfo,
                         VK_SUBPASS_CONTENTS_INLINE);
 
@@ -721,6 +1074,46 @@ CreateCommandBuffers(Application* app, uint32_t imageIndex)
 
    vkCmdEndRenderPass(Data::commandBuffers[Data::currentFrame_]);
    vk_check_error(vkEndCommandBuffer(Data::commandBuffers[Data::currentFrame_]), "");
+}
+
+void
+DrawQuadMeshes(VkCommandBuffer cmdBuffer, VkPipelineLayout pipelineLayout, VkDescriptorSet descriptorSet,
+               int32_t renderLayerToDraw, bool alwaysRenderBaseLayer, const void* pushConstants,
+               uint32_t pushConstantSize, VkShaderStageFlags pushConstantStages)
+{
+   auto& renderData = Data::renderData_.at(boundApplication_);
+
+   auto offsets = std::to_array< const VkDeviceSize >({0});
+   vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                           &descriptorSet, 0, nullptr);
+
+   if (pushConstants != nullptr && pushConstantSize > 0)
+   {
+      vkCmdPushConstants(cmdBuffer, pipelineLayout, pushConstantStages, 0, pushConstantSize,
+                         pushConstants);
+   }
+
+   const auto renderAllLayers = renderLayerToDraw == -1;
+
+   for (int32_t layer = NUM_LAYERS - 1; layer >= 0; --layer)
+   {
+      const auto idx = static_cast< size_t >(layer);
+      const auto& numObjects = renderData.numMeshes.at(idx);
+
+      const auto renderThisLayer =
+         renderAllLayers || (alwaysRenderBaseLayer && layer == 0) || renderLayerToDraw == layer;
+
+      if (numObjects == 0 || !renderThisLayer)
+      {
+         continue;
+      }
+
+      vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer.at(idx).buffer_,
+                             offsets.data());
+      vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer.at(idx).buffer_, 0,
+                           VK_INDEX_TYPE_UINT32);
+      vkCmdDrawIndexed(cmdBuffer, numObjects * INDICES_PER_SPRITE, 1, 0, 0, 0);
+   }
 }
 
 
@@ -880,9 +1273,20 @@ UpdateUniformBuffer()
       vkWaitForFences(Data::vk_device, 1, &inFlightFences_[frame], VK_TRUE, UINT64_MAX);
 
       UniformBufferObject tmpUBO = {};
+      const auto viewMat = renderData.viewMat[3][3] == 0.0f ? glm::mat4(1.0f) : renderData.viewMat;
+      const auto projMat =
+         (renderData.projMat[0][0] == 0.0f || renderData.projMat[1][1] == 0.0f)
+            ? glm::mat4(1.0f)
+            : renderData.projMat;
+      const auto inverseView = glm::inverse(viewMat);
 
-      tmpUBO.view = renderData.viewMat;
-      tmpUBO.proj = renderData.projMat;
+      tmpUBO.view = viewMat;
+      tmpUBO.proj = projMat;
+      tmpUBO.cameraPos = glm::vec4(glm::vec3(inverseView[3]), 1.0f);
+      tmpUBO.lightViewProj = CalculateLightViewProj(renderData);
+      tmpUBO.lightDirection = renderData.lightDirection;
+      tmpUBO.lightColor = renderData.lightColor;
+      tmpUBO.shadowParams = renderData.shadowParams;
 
       auto& ubo = renderData.uniformBuffers.at(frame);
 
@@ -931,6 +1335,15 @@ DestroyPipeline()
 
    auto& renderData = Data::renderData_.at(boundApplication_);
 
+   for (auto& framebuffer : renderData.shadowFramebuffers)
+   {
+      if (framebuffer != VK_NULL_HANDLE)
+      {
+         vkDestroyFramebuffer(Data::vk_device, framebuffer, nullptr);
+         framebuffer = VK_NULL_HANDLE;
+      }
+   }
+
    for (size_t i = 0; i < renderData.swapChainImages.size(); ++i)
    {
       vkDestroyFramebuffer(Data::vk_device, renderData.swapChainFramebuffers[i], nullptr);
@@ -946,6 +1359,7 @@ DestroyPipeline()
       vkDestroyDescriptorSetLayout(Data::vk_device, renderData.descriptorSetLayout, nullptr);
 
       renderData.descriptorPool = VK_NULL_HANDLE;
+      renderData.descriptorSetLayout = VK_NULL_HANDLE;
    }
 
    renderData.swapChainImages.clear();
@@ -954,18 +1368,73 @@ DestroyPipeline()
    renderData.descriptorSets.clear();
    renderData.swapChainImageFormat = VK_FORMAT_UNDEFINED;
 
-   vkDestroyImage(Data::vk_device, renderData.colorImage, nullptr);
-   vkDestroyImageView(Data::vk_device, renderData.colorImageView, nullptr);
-   vkFreeMemory(Data::vk_device, renderData.colorImageMemory, nullptr);
+   if (renderData.colorImageView != VK_NULL_HANDLE)
+   {
+      vkDestroyImageView(Data::vk_device, renderData.colorImageView, nullptr);
+      renderData.colorImageView = VK_NULL_HANDLE;
+   }
 
-   vkDestroyImage(Data::vk_device, renderData.depthImage, nullptr);
-   vkDestroyImageView(Data::vk_device, renderData.depthImageView, nullptr);
-   vkFreeMemory(Data::vk_device, renderData.depthImageMemory, nullptr);
+   if (renderData.colorImage != VK_NULL_HANDLE)
+   {
+      vmaDestroyImage(Data::vk_hAllocator, renderData.colorImage, renderData.colorImageAllocation);
+      renderData.colorImage = VK_NULL_HANDLE;
+      renderData.colorImageMemory = VK_NULL_HANDLE;
+      renderData.colorImageAllocation = {};
+   }
+
+   if (renderData.depthImageView != VK_NULL_HANDLE)
+   {
+      vkDestroyImageView(Data::vk_device, renderData.depthImageView, nullptr);
+      renderData.depthImageView = VK_NULL_HANDLE;
+   }
+
+   if (renderData.depthImage != VK_NULL_HANDLE)
+   {
+      vmaDestroyImage(Data::vk_hAllocator, renderData.depthImage, renderData.depthImageAllocation);
+      renderData.depthImage = VK_NULL_HANDLE;
+      renderData.depthImageMemory = VK_NULL_HANDLE;
+      renderData.depthImageAllocation = {};
+   }
+
+   for (uint32_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; ++frame)
+   {
+      if (renderData.shadowImageViews.at(frame) != VK_NULL_HANDLE)
+      {
+         vkDestroyImageView(Data::vk_device, renderData.shadowImageViews.at(frame), nullptr);
+         renderData.shadowImageViews.at(frame) = VK_NULL_HANDLE;
+      }
+
+      if (renderData.shadowImages.at(frame) != VK_NULL_HANDLE)
+      {
+         vmaDestroyImage(Data::vk_hAllocator, renderData.shadowImages.at(frame),
+                         renderData.shadowImageAllocations.at(frame));
+         renderData.shadowImages.at(frame) = VK_NULL_HANDLE;
+         renderData.shadowImageMemories.at(frame) = VK_NULL_HANDLE;
+         renderData.shadowImageAllocations.at(frame) = {};
+      }
+   }
+
+   if (renderData.shadowSampler != VK_NULL_HANDLE)
+   {
+      vkDestroySampler(Data::vk_device, renderData.shadowSampler, nullptr);
+      renderData.shadowSampler = VK_NULL_HANDLE;
+   }
 
    vkDestroyPipeline(Data::vk_device, renderData.pipeline, nullptr);
    vkDestroyPipelineLayout(Data::vk_device, renderData.pipelineLayout, nullptr);
    vkDestroyPipelineCache(Data::vk_device, renderData.pipelineCache, nullptr);
    vkDestroyRenderPass(Data::vk_device, renderData.renderPass, nullptr);
+   vkDestroyPipeline(Data::vk_device, renderData.shadowPipeline, nullptr);
+   vkDestroyPipelineLayout(Data::vk_device, renderData.shadowPipelineLayout, nullptr);
+   vkDestroyRenderPass(Data::vk_device, renderData.shadowRenderPass, nullptr);
+
+   renderData.pipeline = VK_NULL_HANDLE;
+   renderData.pipelineLayout = VK_NULL_HANDLE;
+   renderData.pipelineCache = VK_NULL_HANDLE;
+   renderData.renderPass = VK_NULL_HANDLE;
+   renderData.shadowPipeline = VK_NULL_HANDLE;
+   renderData.shadowPipelineLayout = VK_NULL_HANDLE;
+   renderData.shadowRenderPass = VK_NULL_HANDLE;
 }
 
 void
@@ -1336,12 +1805,16 @@ CreateRenderPipeline()
    CreateSwapchain();
    CreateImageViews();
    CreateCommandPool();
-   CreateRenderPass();
    QuadShader::CreateDescriptorSetLayout();
+   CreateRenderPass();
+   CreateShadowRenderPass();
    CreatePipeline< QuadShader, Vertex >("vert.spv", "frag.spv", PrimitiveType::TRIANGLE);
+   CreateShadowPipeline();
    CreateColorResources();
    CreateDepthResources();
+   CreateShadowResources();
    CreateFramebuffers();
+   CreateShadowFramebuffers();
    CreatePipelineCache();
    CreateSyncObjects();
 }

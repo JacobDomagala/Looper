@@ -992,10 +992,6 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 
       vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipeline);
 
-      auto offsets = std::to_array< const VkDeviceSize >({0});
-      vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipelineLayout,
-                              0, 1, &renderData.descriptorSets[renderer::Data::currentFrame_], 0,
-                              nullptr);
       renderer::QuadShader::PushConstants pushConstants = {};
       pushConstants.selectedIdx = -1.0f;
 
@@ -1006,36 +1002,17 @@ Editor::Render(VkCommandBuffer cmdBuffer)
          pushConstants.selectedIdx = static_cast< float >(tmpIdx);
       }
 
-      vkCmdPushConstants(cmdBuffer, renderData.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                         sizeof(renderer::QuadShader::PushConstants), &pushConstants);
-
-      const auto renderAllLayers = renderLayerToDraw_ == -1;
-      for (int32_t layer = renderer::NUM_LAYERS - 1; layer >= 0; --layer)
-      {
-         const auto idx = static_cast< size_t >(layer);
-         const auto& numObjects = renderData.numMeshes.at(idx);
-
-         const auto renderThisLayer =
-            (renderAllLayers or layer == 0) ? true : renderLayerToDraw_ == layer;
-
-         if (numObjects == 0 or !renderThisLayer)
-         {
-            continue;
-         }
-
-         vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderData.vertexBuffer.at(idx).buffer_,
-                                offsets.data());
-
-         vkCmdBindIndexBuffer(cmdBuffer, renderData.indexBuffer.at(idx).buffer_, 0,
-                              VK_INDEX_TYPE_UINT32);
-
-         vkCmdDrawIndexed(cmdBuffer, numObjects * renderer::INDICES_PER_SPRITE, 1, 0, 0, 0);
-      }
+      renderer::DrawQuadMeshes(cmdBuffer, renderData.pipelineLayout,
+                               renderData.descriptorSets[renderer::Data::currentFrame_],
+                               renderLayerToDraw_, true, &pushConstants,
+                               sizeof(renderer::QuadShader::PushConstants),
+                               VK_SHADER_STAGE_VERTEX_BIT);
 
       // DRAW LINES
       vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                         renderer::EditorData::linePipeline_);
 
+      auto offsets = std::to_array< const VkDeviceSize >({0});
       vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &renderer::EditorData::lineVertexBuffer.buffer_,
                              offsets.data());
 

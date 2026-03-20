@@ -61,17 +61,19 @@ QuadShader::CreateDescriptorPool()
 {
    auto& renderData = Data::renderData_.at(GetCurrentlyBoundType());
 
-   std::array< VkDescriptorPoolSize, 2 > poolSizes{};
+   std::array< VkDescriptorPoolSize, 3 > poolSizes{};
    poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-   poolSizes[0].descriptorCount = static_cast< uint32_t >(renderData.swapChainImages.size());
-   poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-   poolSizes[1].descriptorCount = static_cast< uint32_t >(renderData.swapChainImages.size());
+   poolSizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+   poolSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+   poolSizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+   poolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+   poolSizes[2].descriptorCount = MAX_FRAMES_IN_FLIGHT * (MAX_NUM_TEXTURES + 1);
 
    VkDescriptorPoolCreateInfo poolInfo = {};
    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
    poolInfo.poolSizeCount = static_cast< uint32_t >(poolSizes.size());
    poolInfo.pPoolSizes = poolSizes.data();
-   poolInfo.maxSets = static_cast< uint32_t >(renderData.swapChainImages.size());
+   poolInfo.maxSets = MAX_FRAMES_IN_FLIGHT;
 
    vk_check_error(
       vkCreateDescriptorPool(Data::vk_device, &poolInfo, nullptr, &renderData.descriptorPool),
@@ -86,7 +88,7 @@ QuadShader::CreateDescriptorSetLayout()
    uboLayoutBinding.descriptorCount = 1;
    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
    uboLayoutBinding.pImmutableSamplers = nullptr;
-   uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+   uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 
    VkDescriptorSetLayoutBinding perInstanceBinding = {};
    perInstanceBinding.binding = 1;
@@ -102,8 +104,15 @@ QuadShader::CreateDescriptorSetLayout()
    texturesLayoutBinding.pImmutableSamplers = nullptr;
    texturesLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
+   VkDescriptorSetLayoutBinding shadowMapBinding = {};
+   shadowMapBinding.binding = 3;
+   shadowMapBinding.descriptorCount = 1;
+   shadowMapBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+   shadowMapBinding.pImmutableSamplers = nullptr;
+   shadowMapBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
    auto bindings = std::to_array< VkDescriptorSetLayoutBinding >(
-      {uboLayoutBinding, perInstanceBinding, texturesLayoutBinding});
+      {uboLayoutBinding, perInstanceBinding, texturesLayoutBinding, shadowMapBinding});
 
    VkDescriptorSetLayoutCreateInfo layoutInfo = {};
    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -179,7 +188,12 @@ QuadShader::UpdateDescriptorSets()
       instanceBufferInfo.offset = 0;
       instanceBufferInfo.range = renderData.ssbo.at(frame).bufferSize_;
 
-      std::array< VkWriteDescriptorSet, 3 > descriptorWrites = {};
+      VkDescriptorImageInfo shadowImageInfo = {};
+      shadowImageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+      shadowImageInfo.imageView = renderData.shadowImageViews.at(frame);
+      shadowImageInfo.sampler = renderData.shadowSampler;
+
+      std::array< VkWriteDescriptorSet, 4 > descriptorWrites = {};
 
       descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
       descriptorWrites[0].dstSet = renderData.descriptorSets.at(frame);
@@ -202,8 +216,16 @@ QuadShader::UpdateDescriptorSets()
       descriptorWrites[2].dstBinding = 2;
       descriptorWrites[2].dstArrayElement = 0;
       descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-      descriptorWrites[2].descriptorCount = static_cast< uint32_t >(viewAndSamplers.size());
+      descriptorWrites[2].descriptorCount = MAX_NUM_TEXTURES;
       descriptorWrites[2].pImageInfo = descriptorImageInfos.data();
+
+      descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+      descriptorWrites[3].dstSet = renderData.descriptorSets.at(frame);
+      descriptorWrites[3].dstBinding = 3;
+      descriptorWrites[3].dstArrayElement = 0;
+      descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+      descriptorWrites[3].descriptorCount = 1;
+      descriptorWrites[3].pImageInfo = &shadowImageInfo;
 
       vkUpdateDescriptorSets(Data::vk_device, static_cast< uint32_t >(descriptorWrites.size()),
                              descriptorWrites.data(), 0, nullptr);

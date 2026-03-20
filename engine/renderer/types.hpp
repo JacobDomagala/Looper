@@ -74,7 +74,11 @@ struct UniformBufferObject
 {
    alignas(16) glm::mat4 proj = {};
    alignas(16) glm::mat4 view = {};
-   glm::vec4 cameraPos = {};
+   alignas(16) glm::vec4 cameraPos = {};
+   alignas(16) glm::mat4 lightViewProj = {};
+   alignas(16) glm::vec4 lightDirection = {};
+   alignas(16) glm::vec4 lightColor = {};
+   alignas(16) glm::vec4 shadowParams = {};
 };
 
 struct PerInstanceBuffer

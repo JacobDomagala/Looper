@@ -47,3 +47,5 @@ compile_shader(SOURCE_FILE "${SHADERS_PATH}/ui.vert"  OUTPUT_FILE_NAME "${SHADER
 compile_shader(SOURCE_FILE "${SHADERS_PATH}/ui.frag"  OUTPUT_FILE_NAME "${SHADERS_PATH}/ui.frag.spv")
 compile_shader(SOURCE_FILE "${SHADERS_PATH}/line.vert"  OUTPUT_FILE_NAME "${SHADERS_PATH}/line.vert.spv")
 compile_shader(SOURCE_FILE "${SHADERS_PATH}/line.frag"  OUTPUT_FILE_NAME "${SHADERS_PATH}/line.frag.spv")
+compile_shader(SOURCE_FILE "${SHADERS_PATH}/shadow.vert"  OUTPUT_FILE_NAME "${SHADERS_PATH}/shadow.vert.spv")
+compile_shader(SOURCE_FILE "${SHADERS_PATH}/shadow.frag"  OUTPUT_FILE_NAME "${SHADERS_PATH}/shadow.frag.spv")
