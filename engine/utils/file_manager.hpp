@@ -16,7 +16,11 @@ const auto ROOT_DIR = std::filesystem::path(std::string(CMAKE_ROOT_DIR));
 const auto ASSETS_DIR = ROOT_DIR / "assets" / "";
 const auto LEVELS_DIR = ASSETS_DIR / "levels" / "";
 const auto FONTS_DIR = ASSETS_DIR / "fonts" / "";
+#ifdef LOOPER_SHADER_DIR
+const std::filesystem::path SHADERS_DIR = LOOPER_SHADER_DIR;
+#else
 const auto SHADERS_DIR = ASSETS_DIR / "shaders" / "";
+#endif
 const auto IMAGES_DIR = ASSETS_DIR / "images" / "";
 // NOLINTEND
 class FileManager
