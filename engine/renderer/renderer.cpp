@@ -500,7 +500,7 @@ CreateColorResources()
       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
    renderData.colorImage = image.textureImage_;
-   renderData.colorImageMemory = image.textureImageMemory_;
+   renderData.colorImageAllocation = image.allocation_;
    renderData.colorImageView = Texture::CreateImageView(
       renderData.colorImage, renderData.swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 }
@@ -517,7 +517,7 @@ CreateDepthResources()
       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
    renderData.depthImage = image.textureImage_;
-   renderData.depthImageMemory = image.textureImageMemory_;
+   renderData.depthImageAllocation = image.allocation_;
    renderData.depthImageView =
       Texture::CreateImageView(renderData.depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 }
@@ -954,13 +954,11 @@ DestroyPipeline()
    renderData.descriptorSets.clear();
    renderData.swapChainImageFormat = VK_FORMAT_UNDEFINED;
 
-   vkDestroyImage(Data::vk_device, renderData.colorImage, nullptr);
    vkDestroyImageView(Data::vk_device, renderData.colorImageView, nullptr);
-   vkFreeMemory(Data::vk_device, renderData.colorImageMemory, nullptr);
+   vmaDestroyImage(Data::vk_hAllocator, renderData.colorImage, renderData.colorImageAllocation);
 
-   vkDestroyImage(Data::vk_device, renderData.depthImage, nullptr);
    vkDestroyImageView(Data::vk_device, renderData.depthImageView, nullptr);
-   vkFreeMemory(Data::vk_device, renderData.depthImageMemory, nullptr);
+   vmaDestroyImage(Data::vk_hAllocator, renderData.depthImage, renderData.depthImageAllocation);
 
    vkDestroyPipeline(Data::vk_device, renderData.pipeline, nullptr);
    vkDestroyPipelineLayout(Data::vk_device, renderData.pipelineLayout, nullptr);
