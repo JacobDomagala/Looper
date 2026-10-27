@@ -382,7 +382,7 @@ CreateDevice()
       queueCreateInfos.push_back(queueCreateInfo);
    }
 
-   VkPhysicalDeviceVulkan12Features deviceFeatures_13 = {};
+   VkPhysicalDeviceVulkan13Features deviceFeatures_13 = {};
    deviceFeatures_13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
 
    VkPhysicalDeviceVulkan12Features deviceFeatures_12 = {};
