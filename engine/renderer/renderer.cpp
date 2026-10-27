@@ -646,6 +646,10 @@ CreateFramebuffers()
 void
 CreateCommandPool()
 {
+   if (Data::commandPool != VK_NULL_HANDLE)
+   {
+      return;
+   }
    auto queueFamilyIndicesTwo =
       FindQueueFamilies(Data::vk_physicalDevice, Data::renderData_[boundApplication_].surface);
 
@@ -695,6 +699,8 @@ CreateCommandBuffers(Application* app, uint32_t imageIndex)
 
    renderPassInfo.framebuffer = renderData.swapChainFramebuffers[imageIndex];
 
+   vk_check_error(vkResetCommandBuffer(Data::commandBuffers[Data::currentFrame_], 0),
+                  "Failed to reset frame command buffer");
    vk_check_error(vkBeginCommandBuffer(Data::commandBuffers[Data::currentFrame_], &beginInfo), "");
 
    vkCmdSetLineWidth(Data::commandBuffers[Data::currentFrame_], 2.0f);
@@ -766,6 +772,10 @@ CreateQuadVertexBuffer()
 void
 CreateSyncObjects()
 {
+   if (!inFlightFences_.empty())
+   {
+      return;
+   }
    imageAvailableSemaphores_.resize(MAX_FRAMES_IN_FLIGHT);
    renderFinishedSemaphores_.resize(MAX_FRAMES_IN_FLIGHT);
    inFlightFences_.resize(MAX_FRAMES_IN_FLIGHT);
@@ -939,6 +949,7 @@ DestroyPipeline()
 
    vkDestroySwapchainKHR(Data::vk_device, renderData.swapChain, nullptr);
    vkDestroySurfaceKHR(Data::vk_instance, renderData.surface, nullptr);
+   renderData.surface = VK_NULL_HANDLE;
 
    if (renderData.descriptorPool != VK_NULL_HANDLE)
    {
@@ -1327,9 +1338,12 @@ CreateRenderPipeline()
 {
    auto& renderData = Data::renderData_[boundApplication_];
 
-   vk_check_error(glfwCreateWindowSurface(Data::vk_instance, renderData.windowHandle, nullptr,
-                                          &renderData.surface),
-                  "failed to create window surface!");
+   if (renderData.surface == VK_NULL_HANDLE)
+   {
+      vk_check_error(glfwCreateWindowSurface(Data::vk_instance, renderData.windowHandle, nullptr,
+                                             &renderData.surface),
+                     "failed to create window surface!");
+   }
 
    CreateSwapchain();
    CreateImageViews();
