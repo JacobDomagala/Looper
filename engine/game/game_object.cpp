@@ -22,6 +22,7 @@ GameObject::GameObject(Application* application, const glm::vec2& position, cons
       }
    }
 
+   sprite_.SetLightingMaterial({glm::vec3(1.0f), 0.0f, 1.0f, true});
    sprite_.SetSpriteTextured(position, size, sprite, renderLayer);
    currentGameObjectState_.visible_ = true;
    currentGameObjectState_.previousPosition_ = glm::vec2(position);
@@ -56,6 +57,7 @@ GameObject::Setup(Application* application, const glm::vec2& position, const glm
       }
    }
 
+   sprite_.SetLightingMaterial({glm::vec3(1.0f), 0.0f, 1.0f, true});
    sprite_.SetSpriteTextured(position, size, sprite, renderLayer);
    currentGameObjectState_.visible_ = true;
    currentGameObjectState_.previousPosition_ = position;

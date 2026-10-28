@@ -67,6 +67,9 @@ class Editor : public Application
    MouseScrollCallback(MouseScrollEvent& event) override;
 
    void
+   PrepareRender() override;
+
+   void
    Render(VkCommandBuffer cmdBuffer) override;
 
    // EDITOR SPECIFIC FUNCTIONS

@@ -235,6 +235,19 @@ EditorGUI::RenderLevelMenu() // NOLINT
       }
    }
 
+   if (ImGui::CollapsingHeader("Lighting"))
+   {
+      auto settings = currentLevel_->GetLightingSettings();
+      bool changed = ImGui::Checkbox("Radiance cascades", &settings.enabled);
+      changed |= ImGui::SliderFloat("Ambient light", &settings.ambient, 0.0f, 1.0f);
+      changed |= ImGui::SliderFloat("Light intensity", &settings.intensity, 0.0f, 10.0f);
+      if (changed)
+      {
+         currentLevel_->SetLightingSettings(settings);
+      }
+      ImGui::TextWrapped("Select an object and increase its emission strength to create a light.");
+   }
+
    ImGui::SetNextItemOpen(true);
    if (ImGui::CollapsingHeader("Objects"))
    {

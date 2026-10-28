@@ -975,12 +975,10 @@ Editor::ActionOnObject(Editor::ACTION action, Object::ID object)
 }
 
 void
-Editor::Render(VkCommandBuffer cmdBuffer)
+Editor::PrepareRender()
 {
    if (levelLoaded_)
    {
-      auto& renderData = renderer::Data::renderData_[renderer::GetCurrentlyBoundType()];
-
       currentLevel_->GetSprite().Render();
 
       DrawAnimationPoints();
@@ -988,8 +986,15 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       currentLevel_->RenderGameObjects();
 
       gizmo_.Render();
+   }
+}
 
-
+void
+Editor::Render(VkCommandBuffer cmdBuffer)
+{
+   if (levelLoaded_)
+   {
+      auto& renderData = renderer::GetRenderData();
       vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipeline);
 
       auto offsets = std::to_array< const VkDeviceSize >({0});
@@ -1338,6 +1343,7 @@ Editor::CopyGameObjects(const std::vector< Object::ID >& objectsToCopy)
       const auto hasCollision = object.GetHasCollision();
       const auto& textureName = object.GetSprite().GetTextureName();
       const auto rotation = object.GetSprite().GetRotation();
+      const auto lighting = object.GetSprite().GetLightingMaterial();
 
       auto newObjectID =
          currentLevel_->AddGameObject(Object::GetTypeFromID(objectToCopy), position + offset);
@@ -1352,6 +1358,7 @@ Editor::CopyGameObjects(const std::vector< Object::ID >& objectsToCopy)
       newObject.SetSize(size);
       newObject.SetHasCollision(hasCollision);
       newObject.GetSprite().SetTextureFromFile(textureName);
+      newObject.GetSprite().SetLightingMaterial(lighting);
       newObject.Rotate(rotation);
 
       gui_.ObjectUpdated(newObjectID);
@@ -1507,8 +1514,6 @@ Editor::Update()
    renderData.viewMat = camera_.viewMatrix_;
    renderData.projMat = camera_.projectionMatrix_;
    renderData.projNoZoomMat = camera_.projectionWithoutZoom_;
-
-   renderer::UpdateData();
 }
 
 void

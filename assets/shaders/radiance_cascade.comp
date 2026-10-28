@@ -1,0 +1,76 @@
+#version 460
+#extension GL_GOOGLE_include_directive : require
+#include "radiance_common.glsl"
+
+layout(local_size_x = 8, local_size_y = 8) in;
+layout(set = 0, binding = 0) uniform sampler2D scene;
+layout(set = 0, binding = 1) uniform sampler2D upperCascade;
+layout(rgba16f, set = 0, binding = 2) writeonly uniform image2D currentCascade;
+layout(set = 0, binding = 3) uniform sampler2D nearestSeeds;
+
+// RGB is accumulated radiance, A is remaining transmittance. Walk individual
+// cells near geometry; jump through empty space using the nearest-seed field.
+vec4 traceInterval(vec2 origin, vec2 direction, float start, float end)
+{
+    vec4 result = vec4(0.0, 0.0, 0.0, 1.0);
+    float distanceAlongRay = start + 0.001;
+    while (distanceAlongRay < end && result.a > 0.001)
+    {
+        vec2 position = origin + direction * distanceAlongRay;
+        if (any(lessThan(position, vec2(0.0))) ||
+            any(greaterThanEqual(position, vec2(params.extent))))
+        {
+            // The screen boundary is black; do not clamp rays onto edge emitters.
+            result.a = 0.0;
+            break;
+        }
+        ivec2 pixel = ivec2(position);
+        vec2 seed = texelFetch(nearestSeeds, pixel, 0).xy;
+        if (seed.x < 0.0)
+            break;
+        float safeStep = length(seed - position) * 0.8 - 1.5;
+        if (safeStep > 1.0)
+        {
+            distanceAlongRay += safeStep;
+            continue;
+        }
+        vec4 hit = texelFetch(scene, pixel, 0);
+        result.rgb += result.a * hit.rgb;
+        result.a *= 1.0 - clamp(hit.a, 0.0, 1.0);
+        // Advance to the next cell, attenuating partially transparent cells once.
+        vec2 boundary = vec2(pixel) + step(vec2(0.0), direction);
+        vec2 exitDistance = (boundary - position) / direction;
+        distanceAlongRay += max(min(exitDistance.x, exitDistance.y), 0.0) + 0.001;
+    }
+    return result;
+}
+
+void main()
+{
+    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+    int tiles = 2 << params.cascade;
+    ivec2 probes = probeCount(params.cascade);
+    if (any(greaterThanEqual(pixel, probes * tiles)))
+        return;
+    ivec2 tile = pixel / probes;
+    int ray = tile.y * tiles + tile.x;
+    vec2 origin = min((vec2(pixel % probes) + 0.5) * float(tiles),
+                      vec2(params.extent) - 0.5);
+    float scale = exp2(2.0 * float(params.cascade));
+    float intervalStart = 4.0 * (scale - 1.0) / 3.0;
+    float intervalEnd = intervalStart + 4.0 * scale;
+    float angle = 6.28318530718 * (float(ray) + 0.5) / float(tiles * tiles);
+    vec4 nearInterval = traceInterval(origin, vec2(cos(angle), sin(angle)),
+                                      intervalStart, intervalEnd);
+    if (params.cascade + 1 < params.cascadeCount && nearInterval.a > 0.001)
+    {
+        vec4 farInterval = vec4(0.0);
+        for (int child = 0; child < 4; ++child)
+            farInterval += sampleCascade(upperCascade, origin, ray * 4 + child,
+                                          params.cascade + 1) * 0.25;
+        // Front-to-back interval composition: L = Ln + Tn * Lf, T = Tn * Tf.
+        nearInterval.rgb += nearInterval.a * farInterval.rgb;
+        nearInterval.a *= farInterval.a;
+    }
+    imageStore(currentCascade, pixel, nearInterval);
+}

@@ -430,6 +430,21 @@ EditorGUI::RenderGameObjectContent()
       ImGui::EndTable();
    }
 
+   if (ImGui::CollapsingHeader("Lighting"))
+   {
+      auto& sprite = currentLevel_->GetGameObjectRef(currentlySelectedGameObject_).GetSprite();
+      auto material = sprite.GetLightingMaterial();
+      bool changed = ImGui::ColorEdit3("Emission color", &material.emissionColor.x);
+      changed |= ImGui::DragFloat("Emission strength", &material.emissionStrength, 0.1f, 0.0f,
+                                  100.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+      changed |= ImGui::SliderFloat("Light blocking", &material.opacity, 0.0f, 1.0f);
+      changed |= ImGui::Checkbox("Receives light", &material.receivesLight);
+      if (changed)
+      {
+         sprite.SetLightingMaterial(material);
+      }
+   }
+
    if (Object::GetTypeFromID(currentlySelectedGameObject_) == ObjectType::ENEMY)
    {
       auto& baseObject = currentLevel_->GetObjectRef(currentlySelectedGameObject_);

@@ -35,6 +35,9 @@ class Game : public Application
    KeyCallback(KeyEvent& event) override;
 
    void
+   PrepareRender() override;
+
+   void
    Render(VkCommandBuffer cmdBuffer) override;
 
    [[nodiscard]] glm::vec2

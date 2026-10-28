@@ -2,6 +2,7 @@
 #include "enemy.hpp"
 #include "game.hpp"
 #include "player.hpp"
+#include "renderer/lighting_json.hpp"
 #include "renderer/renderer.hpp"
 #include "renderer/window/window.hpp"
 #include "utils/file_manager.hpp"
@@ -20,9 +21,11 @@ namespace looper {
 void
 Level::Create(Application* context, const std::string& name, const glm::ivec2& size)
 {
+   SetLightingSettings({});
    name_ = name;
    levelSize_ = size;
 
+   background_.SetLightingMaterial({glm::vec3(1.0f), 0.0f, 0.0f, true});
    background_.SetSpriteTextured(glm::vec3(static_cast< float >(levelSize_.x) / 2.0f,
                                            static_cast< float >(levelSize_.y) / 2.0f,
                                            renderer::LAYER_10),
@@ -36,6 +39,8 @@ void
 Level::Load(Application* context, const std::string& pathToLevel)
 {
    const auto json = FileManager::LoadJsonFile(pathToLevel);
+   SetLightingSettings(
+      renderer::ReadLightingSettings(json.value("LIGHTING", nlohmann::json::object())));
 
    // BACKGROUND
    {
@@ -69,6 +74,9 @@ Level::Load(Application* context, const std::string& pathToLevel)
                     texture, name);
       player_.Rotate(player["rotation"]);
       player_.editorGroup_ = player["editor_group"];
+      player_.GetSprite().SetLightingMaterial(
+         renderer::ReadLightingMaterial(player.value("lighting", nlohmann::json::object()),
+                                        player_.GetSprite().GetLightingMaterial()));
    }
 
    // ENEMIES
@@ -109,6 +117,9 @@ Level::Load(Application* context, const std::string& pathToLevel)
 
          object.SetAnimationKeypoints(std::move(keypointsPositions));
          object.editorGroup_ = enemy["editor_group"];
+         object.GetSprite().SetLightingMaterial(
+            renderer::ReadLightingMaterial(enemy.value("lighting", nlohmann::json::object()),
+                                           object.GetSprite().GetLightingMaterial()));
       }
    }
 
@@ -136,6 +147,9 @@ Level::Load(Application* context, const std::string& pathToLevel)
          gameObject.Rotate(object["rotation"]);
          gameObject.SetHasCollision(object["has collision"]);
          gameObject.editorGroup_ = object["editor_group"];
+         gameObject.GetSprite().SetLightingMaterial(
+            renderer::ReadLightingMaterial(object.value("lighting", nlohmann::json::object()),
+                                           gameObject.GetSprite().GetLightingMaterial()));
       }
    }
 }
@@ -144,6 +158,7 @@ void
 Level::Save(const std::string& pathToLevel)
 {
    nlohmann::json json;
+   json["LIGHTING"] = renderer::WriteLightingSettings(lighting_);
 
    // Serialize background
    json["BACKGROUND"]["texture"] = background_.GetTextureName();
@@ -159,6 +174,8 @@ Level::Save(const std::string& pathToLevel)
    json["PLAYER"]["weapons"] = player_.GetWeapons();
    json["PLAYER"]["render_layer"] = player_.GetSprite().GetRenderInfo().layer;
    json["PLAYER"]["editor_group"] = player_.editorGroup_;
+   json["PLAYER"]["lighting"] =
+      renderer::WriteLightingMaterial(player_.GetSprite().GetLightingMaterial());
 
 
    // ENEMIES
@@ -174,6 +191,8 @@ Level::Save(const std::string& pathToLevel)
       enemyJson["texture"] = enemy.GetSprite().GetTextureName();
       enemyJson["render_layer"] = enemy.GetSprite().GetRenderInfo().layer;
       enemyJson["editor_group"] = enemy.editorGroup_;
+      enemyJson["lighting"] =
+         renderer::WriteLightingMaterial(enemy.GetSprite().GetLightingMaterial());
 
       enemyJson["animation type"] =
          enemy.GetAnimationType() == Animatable::ANIMATION_TYPE::LOOP ? "Loop" : "Reversable";
@@ -206,11 +225,26 @@ Level::Save(const std::string& pathToLevel)
       objectJson["texture"] = object.GetSprite().GetTextureName();
       objectJson["render_layer"] = object.GetSprite().GetRenderInfo().layer;
       objectJson["editor_group"] = object.editorGroup_;
+      objectJson["lighting"] =
+         renderer::WriteLightingMaterial(object.GetSprite().GetLightingMaterial());
 
       json["OBJECTS"].emplace_back(objectJson);
    }
 
    FileManager::SaveJsonFile(pathToLevel, json);
+}
+
+const renderer::LightingSettings&
+Level::GetLightingSettings() const
+{
+   return lighting_;
+}
+
+void
+Level::SetLightingSettings(const renderer::LightingSettings& settings)
+{
+   lighting_ = renderer::SanitizeLighting(settings);
+   renderer::GetRenderData().lighting = lighting_;
 }
 
 void
@@ -569,6 +603,7 @@ Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
    locked_ = false;
    levelSize_ = size;
 
+   background_.SetLightingMaterial({glm::vec3(1.0f), 0.0f, 0.0f, true});
    background_.SetSpriteTextured(glm::vec2(static_cast< float >(levelSize_.x) / 2.0f,
                                            static_cast< float >(levelSize_.y) / 2.0f),
                                  size, fileName, 10);

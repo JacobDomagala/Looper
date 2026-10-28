@@ -665,7 +665,7 @@ CreateCommandPool()
 void
 CreateCommandBuffers(Application* app, uint32_t imageIndex)
 {
-   const auto& renderData = Data::renderData_.at(boundApplication_);
+   auto& renderData = Data::renderData_.at(boundApplication_);
 
    if (Data::commandBuffers.empty())
    {
@@ -702,6 +702,9 @@ CreateCommandBuffers(Application* app, uint32_t imageIndex)
    vk_check_error(vkResetCommandBuffer(Data::commandBuffers[Data::currentFrame_], 0),
                   "Failed to reset frame command buffer");
    vk_check_error(vkBeginCommandBuffer(Data::commandBuffers[Data::currentFrame_], &beginInfo), "");
+
+   renderData.radianceCascades.Record(Data::commandBuffers[Data::currentFrame_], renderData,
+                                      Data::currentFrame_);
 
    vkCmdSetLineWidth(Data::commandBuffers[Data::currentFrame_], 2.0f);
    vkCmdBeginRenderPass(Data::commandBuffers[Data::currentFrame_], &renderPassInfo,
@@ -893,6 +896,11 @@ UpdateUniformBuffer()
 
       tmpUBO.view = renderData.viewMat;
       tmpUBO.proj = renderData.projMat;
+      const auto lighting = SanitizeLighting(renderData.lighting);
+      tmpUBO.lighting = {lighting.enabled ? 1.0f : 0.0f, lighting.ambient, lighting.intensity,
+                         0.0f};
+      tmpUBO.viewport = {static_cast< float >(renderData.swapChainExtent.width),
+                         static_cast< float >(renderData.swapChainExtent.height), 0.0f, 0.0f};
 
       auto& ubo = renderData.uniformBuffers.at(frame);
 
@@ -940,6 +948,8 @@ DestroyPipeline()
    vkDeviceWaitIdle(Data::vk_device);
 
    auto& renderData = Data::renderData_.at(boundApplication_);
+
+   renderData.radianceCascades.Destroy();
 
    for (size_t i = 0; i < renderData.swapChainImages.size(); ++i)
    {
@@ -1040,7 +1050,7 @@ MeshDeleted(const RenderInfo& renderInfo)
 
 RenderInfo
 MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureIDs& textures_in,
-           const glm::mat4& modelMat, const glm::vec4& color)
+           const glm::mat4& modelMat, const glm::vec4& color, const LightingMaterial& material)
 {
    auto* renderData = &Data::renderData_[boundApplication_];
    // convert from depth value to render layer
@@ -1083,7 +1093,7 @@ MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureIDs& textures_
 
    ++renderData->totalNumMeshes;
 
-   SubmitMeshData(static_cast< uint32_t >(idx), textures_in, modelMat, color);
+   SubmitMeshData(static_cast< uint32_t >(idx), textures_in, modelMat, color, material);
    updateVertexBuffer_ = true;
    renderLayersChanged_.push_back(layer);
 
@@ -1092,11 +1102,14 @@ MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureIDs& textures_
 
 void
 SubmitMeshData(const uint32_t idx, const TextureIDs& ids, const glm::mat4& modelMat,
-               const glm::vec4& color)
+               const glm::vec4& color, const LightingMaterial& material)
 {
    auto& object = Data::renderData_[boundApplication_].perInstance.at(idx);
    object.model = modelMat;
    object.color = color;
+   const auto lighting = SanitizeLighting(material);
+   object.emissionOpacity = {lighting.emissionColor * lighting.emissionStrength,
+                             lighting.receivesLight ? lighting.opacity : -lighting.opacity - 1.0f};
    object.texSamples.x = static_cast< float >(ids.at(0));
    object.texSamples.y = static_cast< float >(ids.at(1));
    object.texSamples.z = static_cast< float >(ids.at(2));
@@ -1350,6 +1363,7 @@ CreateRenderPipeline()
    CreateCommandPool();
    CreateRenderPass();
    QuadShader::CreateDescriptorSetLayout();
+   renderData.radianceCascades.Create(renderData);
    CreatePipeline< QuadShader, Vertex >("vert.spv", "frag.spv", PrimitiveType::TRIANGLE);
    CreateColorResources();
    CreateDepthResources();
@@ -1361,6 +1375,9 @@ CreateRenderPipeline()
 void
 Render(Application* app)
 {
+   // Submit current transforms/materials before the lighting and main scene passes.
+   app->PrepareRender();
+   UpdateData();
    auto& renderData = Data::renderData_.at(boundApplication_);
 
    vkWaitForFences(Data::vk_device, 1, &inFlightFences_[Data::currentFrame_], VK_TRUE, UINT64_MAX);

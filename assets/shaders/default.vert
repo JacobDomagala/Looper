@@ -16,6 +16,7 @@ struct BufferData
    mat4 modelMat;
    vec4 color;
    vec4 texSamples;
+   vec4 emissionOpacity;
 };
 
 layout(std430, set = 0, binding = 1) readonly buffer Block
@@ -33,6 +34,8 @@ layout(location = 0) out VS_OUT
 
    flat int fDiffSampl;
    flat int fExtraSampl;
+   flat vec4 fEmissionOpacity;
+   flat float fReceivesLight;
 }
 vs_out;
 
@@ -48,6 +51,11 @@ main(void)
 
    vs_out.fTexCoord = a_texCoordDrawID.xy;
    vs_out.fColor = curInstanceData.color;
+   vs_out.fEmissionOpacity = curInstanceData.emissionOpacity;
+   // The sign encodes receiving light without growing the per-instance SSBO stride.
+   vs_out.fReceivesLight = curInstanceData.emissionOpacity.a >= 0.0 ? 1.0 : 0.0;
+   if (vs_out.fReceivesLight < 0.5)
+       vs_out.fEmissionOpacity.a = -curInstanceData.emissionOpacity.a - 1.0;
 
    vs_out.fDiffSampl = int(curInstanceData.texSamples.x);
    vs_out.fExtraSampl = int(curInstanceData.texSamples.y);

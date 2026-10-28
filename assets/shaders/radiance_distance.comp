@@ -1,0 +1,45 @@
+#version 460
+#extension GL_GOOGLE_include_directive : require
+#include "radiance_common.glsl"
+
+layout(local_size_x = 8, local_size_y = 8) in;
+layout(set = 0, binding = 0) uniform sampler2D scene;
+layout(set = 0, binding = 1) uniform sampler2D previousSeeds;
+layout(rgba32f, set = 0, binding = 2) writeonly uniform image2D nextSeeds;
+
+void main()
+{
+    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+    if (any(greaterThanEqual(pixel, params.extent)))
+        return;
+    vec2 center = vec2(pixel) + 0.5;
+    vec2 nearest = vec2(-1.0);
+    if (params.jump == 0)
+    {
+        if (texelFetch(scene, pixel, 0).a > 0.001)
+            nearest = center;
+    }
+    else
+    {
+        float bestDistance = 1e30;
+        for (int y = -1; y <= 1; ++y)
+        for (int x = -1; x <= 1; ++x)
+        {
+            ivec2 candidate = pixel + ivec2(x, y) * params.jump;
+            if (any(lessThan(candidate, ivec2(0))) ||
+                any(greaterThanEqual(candidate, params.extent)))
+                continue;
+            vec2 seed = texelFetch(previousSeeds, candidate, 0).xy;
+            if (seed.x < 0.0)
+                continue;
+            vec2 delta = seed - center;
+            float distanceSquared = dot(delta, delta);
+            if (distanceSquared < bestDistance)
+            {
+                bestDistance = distanceSquared;
+                nearest = seed;
+            }
+        }
+    }
+    imageStore(nextSeeds, pixel, vec4(nearest, 0.0, 0.0));
+}

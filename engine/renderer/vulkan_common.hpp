@@ -1,6 +1,7 @@
 #pragma once
 
 #include "buffer.hpp"
+#include "radiance_cascades.hpp"
 #include "types.hpp"
 #include "utils/assert.hpp"
 #include "vertex.hpp"
@@ -220,6 +221,9 @@ struct RenderData
    VkImage colorImage = VK_NULL_HANDLE;
    VmaAllocation colorImageAllocation = VK_NULL_HANDLE;
    VkImageView colorImageView = VK_NULL_HANDLE;
+
+   LightingSettings lighting = {};
+   RadianceCascades radianceCascades;
 
    glm::mat4 viewMat = {};
    glm::mat4 projMat = {};

@@ -1,0 +1,18 @@
+#version 460
+#extension GL_GOOGLE_include_directive : require
+#include "radiance_common.glsl"
+
+layout(local_size_x = 8, local_size_y = 8) in;
+layout(set = 0, binding = 1) uniform sampler2D cascadeZero;
+layout(rgba16f, set = 0, binding = 2) writeonly uniform image2D irradiance;
+
+void main()
+{
+    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+    if (any(greaterThanEqual(pixel, params.extent)))
+        return;
+    vec3 light = vec3(0.0);
+    for (int direction = 0; direction < 4; ++direction)
+        light += sampleCascade(cascadeZero, vec2(pixel) + 0.5, direction, 0).rgb * 0.25;
+    imageStore(irradiance, pixel, vec4(light, 1.0));
+}

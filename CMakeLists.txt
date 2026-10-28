@@ -50,3 +50,14 @@ compile_shader(SOURCE_FILE "${SHADERS_PATH}/ui.vert"  OUTPUT_FILE_NAME "${SHADER
 compile_shader(SOURCE_FILE "${SHADERS_PATH}/ui.frag"  OUTPUT_FILE_NAME "${SHADERS_OUTPUT_PATH}/ui.frag.spv")
 compile_shader(SOURCE_FILE "${SHADERS_PATH}/line.vert"  OUTPUT_FILE_NAME "${SHADERS_OUTPUT_PATH}/line.vert.spv")
 compile_shader(SOURCE_FILE "${SHADERS_PATH}/line.frag"  OUTPUT_FILE_NAME "${SHADERS_OUTPUT_PATH}/line.frag.spv")
+
+foreach(shader radiance_scene.frag radiance_distance.comp radiance_cascade.comp radiance_resolve.comp)
+    compile_shader(SOURCE_FILE "${SHADERS_PATH}/${shader}"
+                   OUTPUT_FILE_NAME "${SHADERS_OUTPUT_PATH}/${shader}.spv"
+                   DEPENDS "${SHADERS_PATH}/radiance_common.glsl")
+endforeach()
+
+include(CTest)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

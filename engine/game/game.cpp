@@ -31,7 +31,6 @@ Game::MainLoop()
             workQueue_.RunWorkUnits();
             if (windowInFocus_)
             {
-               renderer::UpdateData();
                renderer::Render(this);
             }
 
@@ -380,11 +379,15 @@ Game::HandleReverseLogic()
 }
 
 void
-Game::Render(VkCommandBuffer cmdBuffer)
+Game::PrepareRender()
 {
    RenderFirstPass();
    RenderSecondPass();
+}
 
+void
+Game::Render(VkCommandBuffer cmdBuffer)
+{
    auto& renderData =
       renderer::Data::renderData_.at(renderer::GetCurrentlyBoundType());
 

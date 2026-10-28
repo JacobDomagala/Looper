@@ -41,7 +41,8 @@ Sprite::ChangeRenderLayer(int32_t newLayer)
    const auto transformMat = ComputeModelMat();
    const auto oldLayer = renderInfo_.layer;
 
-   renderInfo_ = MeshLoaded(vertices_, textures_, transformMat, currentState_.color_);
+   renderInfo_ =
+      MeshLoaded(vertices_, textures_, transformMat, currentState_.color_, currentState_.lighting);
    changed_ = true;
 
    SetupVertexBuffer(oldLayer);
@@ -91,7 +92,8 @@ Sprite::SetSpriteTextured(const glm::vec2& position, const glm::vec2& size,
                 TextureLibrary::GetTexture(fileName)->GetID()};
 
 
-   renderInfo_ = MeshLoaded(vertices_, textures_, transformMat, currentState_.color_);
+   renderInfo_ =
+      MeshLoaded(vertices_, textures_, transformMat, currentState_.color_, currentState_.lighting);
 }
 
 void
@@ -130,7 +132,7 @@ Sprite::Render()
       ComputeBoundingBox();
 
       renderer::SubmitMeshData(static_cast< uint32_t >(renderInfo_.idx), textures_, transformMat,
-                               currentState_.color_);
+                               currentState_.color_, currentState_.lighting);
 
       changed_ = false;
    }
@@ -195,6 +197,19 @@ float&
 Sprite::GetUniformScaleValue()
 {
    return currentState_.uniformScaleValue_;
+}
+
+void
+Sprite::SetLightingMaterial(const LightingMaterial& material)
+{
+   currentState_.lighting = SanitizeLighting(material);
+   changed_ = true;
+}
+
+const LightingMaterial&
+Sprite::GetLightingMaterial() const
+{
+   return currentState_.lighting;
 }
 
 void
