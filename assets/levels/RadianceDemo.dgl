@@ -1,0 +1,176 @@
+{
+  "BACKGROUND": {
+    "size": [
+      2048,
+      2048
+    ],
+    "texture": "white.png"
+  },
+  "LIGHTING": {
+    "enabled": true,
+    "ambient": 0.08,
+    "intensity": 1.0
+  },
+  "PLAYER": {
+    "editor_group": "Default",
+    "name": "Player light",
+    "position": [
+      1024,
+      768
+    ],
+    "render_layer": 1,
+    "rotation": 0.0,
+    "size": [
+      64,
+      64
+    ],
+    "texture": "Level1_Char.png",
+    "weapons": [
+      "sniper rifle",
+      "glock"
+    ],
+    "lighting": {
+      "emission_color": [
+        0.4,
+        1.0,
+        0.35
+      ],
+      "emission_strength": 3.0,
+      "opacity": 1.0,
+      "receives_light": true
+    }
+  },
+  "ENEMIES": [],
+  "OBJECTS": [
+    {
+      "editor_group": "Default",
+      "has collision": false,
+      "name": "Warm emitter",
+      "position": [
+        640,
+        1024
+      ],
+      "render_layer": 2,
+      "rotation": 0.0,
+      "size": [
+        64,
+        160
+      ],
+      "texture": "circle.png",
+      "lighting": {
+        "emission_color": [
+          1.0,
+          0.25,
+          0.06
+        ],
+        "emission_strength": 8.0,
+        "opacity": 0.0,
+        "receives_light": true
+      }
+    },
+    {
+      "editor_group": "Default",
+      "has collision": false,
+      "name": "Blue emitter",
+      "position": [
+        1408,
+        1024
+      ],
+      "render_layer": 2,
+      "rotation": 0.0,
+      "size": [
+        64,
+        160
+      ],
+      "texture": "circle.png",
+      "lighting": {
+        "emission_color": [
+          0.08,
+          0.35,
+          1.0
+        ],
+        "emission_strength": 8.0,
+        "opacity": 0.0,
+        "receives_light": true
+      }
+    },
+    {
+      "editor_group": "Default",
+      "has collision": true,
+      "name": "Shadow wall",
+      "position": [
+        1024,
+        1056
+      ],
+      "render_layer": 2,
+      "rotation": 0.0,
+      "size": [
+        48,
+        352
+      ],
+      "texture": "white.png",
+      "lighting": {
+        "emission_color": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "emission_strength": 0.0,
+        "opacity": 1.0,
+        "receives_light": true
+      }
+    },
+    {
+      "editor_group": "Default",
+      "has collision": true,
+      "name": "Low wall",
+      "position": [
+        768,
+        1248
+      ],
+      "render_layer": 2,
+      "rotation": 0.0,
+      "size": [
+        240,
+        40
+      ],
+      "texture": "white.png",
+      "lighting": {
+        "emission_color": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "emission_strength": 0.0,
+        "opacity": 1.0,
+        "receives_light": true
+      }
+    },
+    {
+      "editor_group": "Default",
+      "has collision": false,
+      "name": "Light receiver",
+      "position": [
+        1280,
+        800
+      ],
+      "render_layer": 2,
+      "rotation": 0.0,
+      "size": [
+        160,
+        128
+      ],
+      "texture": "tile_183.png",
+      "lighting": {
+        "emission_color": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "emission_strength": 0.0,
+        "opacity": 0.0,
+        "receives_light": true
+      }
+    }
+  ]
+}
