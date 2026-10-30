@@ -233,8 +233,8 @@ FileManager::FileDialog(const std::filesystem::path& defaultPath,
    std::string buffer(FILE_DIALOG_MAX_BUFFER, 0);
    if (fgets(buffer.data(), FILE_DIALOG_MAX_BUFFER, output))
    {
-      // fgets includes \n character at the end, remove it
-      buffer[strcspn(buffer.c_str(), "\n")] = 0;
+      // Trim both the newline and the unused buffer, so path operations use the filename length.
+      buffer.resize(strcspn(buffer.c_str(), "\n"));
    }
    else
    {
