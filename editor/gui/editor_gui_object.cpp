@@ -17,6 +17,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#include <algorithm>
 #include <cstdint>
 
 
@@ -240,6 +241,63 @@ EditorGUI::RenderGroupSelectModifications()
          ImGui::EndTable();
       }
    }
+
+   RenderLightingControls(parent_.GetSelectedObjects());
+}
+
+void
+EditorGUI::RenderLightingControls(std::span< const Object::ID > objectIDs)
+{
+   if (objectIDs.empty() || !ImGui::CollapsingHeader("Lighting"))
+   {
+      return;
+   }
+
+   if (objectIDs.size() > 1)
+   {
+      ImGui::TextWrapped(
+         "Changes apply to all selected objects. Mixed fields have different values.");
+   }
+
+   const auto renderProperty = [this, objectIDs](const char* name, auto member, auto widget) {
+      auto value =
+         currentLevel_->GetGameObjectRef(objectIDs.front()).GetSprite().GetLightingMaterial()
+         .*member;
+      const bool mixed = std::any_of(objectIDs.begin(), objectIDs.end(), [&](Object::ID id) {
+         return currentLevel_->GetGameObjectRef(id).GetSprite().GetLightingMaterial().*member
+                != value;
+      });
+      // Keep the widget ID stable when a mixed field becomes uniform during editing.
+      const auto label = fmt::format("{}{}###{}", name, mixed ? " (mixed)" : "", name);
+      ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, mixed);
+      const bool changed = widget(label.c_str(), value);
+      ImGui::PopItemFlag();
+      if (changed)
+      {
+         for (const auto id : objectIDs)
+         {
+            auto& sprite = currentLevel_->GetGameObjectRef(id).GetSprite();
+            auto material = sprite.GetLightingMaterial();
+            material.*member = value;
+            sprite.SetLightingMaterial(material);
+         }
+      }
+   };
+
+   renderProperty(
+      "Emission color", &renderer::LightingMaterial::emissionColor,
+      [](const char* label, glm::vec3& value) { return ImGui::ColorEdit3(label, &value.x); });
+   renderProperty("Emission strength", &renderer::LightingMaterial::emissionStrength,
+                  [](const char* label, float& value) {
+                     return ImGui::DragFloat(label, &value, 0.1f, 0.0f, 100.0f, "%.2f",
+                                             ImGuiSliderFlags_AlwaysClamp);
+                  });
+   renderProperty("Light blocking", &renderer::LightingMaterial::opacity,
+                  [](const char* label, float& value) {
+                     return ImGui::SliderFloat(label, &value, 0.0f, 1.0f);
+                  });
+   renderProperty("Receives light", &renderer::LightingMaterial::receivesLight,
+                  [](const char* label, bool& value) { return ImGui::Checkbox(label, &value); });
 }
 
 void
@@ -430,20 +488,7 @@ EditorGUI::RenderGameObjectContent()
       ImGui::EndTable();
    }
 
-   if (ImGui::CollapsingHeader("Lighting"))
-   {
-      auto& sprite = currentLevel_->GetGameObjectRef(currentlySelectedGameObject_).GetSprite();
-      auto material = sprite.GetLightingMaterial();
-      bool changed = ImGui::ColorEdit3("Emission color", &material.emissionColor.x);
-      changed |= ImGui::DragFloat("Emission strength", &material.emissionStrength, 0.1f, 0.0f,
-                                  100.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-      changed |= ImGui::SliderFloat("Light blocking", &material.opacity, 0.0f, 1.0f);
-      changed |= ImGui::Checkbox("Receives light", &material.receivesLight);
-      if (changed)
-      {
-         sprite.SetLightingMaterial(material);
-      }
-   }
+   RenderLightingControls({&currentlySelectedGameObject_, 1});
 
    if (Object::GetTypeFromID(currentlySelectedGameObject_) == ObjectType::ENEMY)
    {

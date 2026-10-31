@@ -13,6 +13,11 @@ For another level:
 4. Adjust ambient light and light intensity in the level panel, then save. The
    same settings and materials are used in game mode.
 
+Selecting multiple objects (including a named group) exposes the same **Lighting**
+controls under **Selected Objects**. Fields with different values are marked
+**mixed**. Editing a field applies that field to every selected object and preserves
+their other lighting settings. Save the level to persist these changes.
+
 Lighting is disabled for old levels unless explicitly enabled. Game objects block
 and receive light by default; gizmos, pathfinder markers, grid lines, and ImGui
 remain unlit. An emitter is visible to light rays even with light blocking set to
