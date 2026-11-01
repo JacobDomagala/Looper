@@ -14,6 +14,8 @@ struct LightingSettings
    bool enabled = false;
    float ambient = 0.15f;
    float intensity = 1.0f;
+   // Extra camera width/height captured on each side, independent of zoom.
+   float offscreenMargin = 0.5f;
 };
 
 // Plain sprites (gizmos, pathfinder nodes, etc.) are unlit by default.
@@ -36,7 +38,14 @@ SanitizeLighting(LightingSettings settings)
 {
    settings.ambient = FiniteClamp(settings.ambient, 0.0f, 1.0f, 0.15f);
    settings.intensity = FiniteClamp(settings.intensity, 0.0f, 10.0f, 1.0f);
+   settings.offscreenMargin = FiniteClamp(settings.offscreenMargin, 0.0f, 2.0f, 0.5f);
    return settings;
+}
+
+inline float
+GetLightingCoverageScale(const LightingSettings& settings)
+{
+   return 1.0f + 2.0f * SanitizeLighting(settings).offscreenMargin;
 }
 
 inline LightingMaterial

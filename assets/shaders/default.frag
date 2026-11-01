@@ -11,7 +11,7 @@ layout(set = 0, binding = 0) uniform UniformBufferObject
     mat4 projection;
     mat4 view;
     vec4 cameraPosition;
-    vec4 lighting; // enabled, ambient, intensity, unused
+    vec4 lighting; // enabled, ambient, intensity, coverage scale
     vec4 viewport; // width, height, unused, unused
 } ubo;
 
@@ -41,8 +41,13 @@ main(void)
     {
         vec3 illumination = vec3(1.0);
         if (fs_in.fReceivesLight > 0.5)
+        {
+            // The visible viewport occupies the center of the expanded lighting capture.
+            vec2 lightUV = (gl_FragCoord.xy / ubo.viewport.xy - 0.5) /
+                           max(ubo.lighting.w, 1.0) + 0.5;
             illumination = vec3(ubo.lighting.y) + ubo.lighting.z *
-                           texture(irradiance, gl_FragCoord.xy / ubo.viewport.xy).rgb;
+                           texture(irradiance, lightUV).rgb;
+        }
         outColor.rgb *= illumination + fs_in.fEmissionOpacity.rgb;
     }
 }

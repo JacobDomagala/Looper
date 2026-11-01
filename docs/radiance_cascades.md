@@ -12,6 +12,11 @@ For another level:
    whether the sprite is shaded. Backgrounds receive light without blocking it.
 4. Adjust ambient light and light intensity in the level panel, then save. The
    same settings and materials are used in game mode.
+5. **Off-screen margin** controls how far beyond the camera lighting is captured.
+   The default `0.5` adds half a view width on the left/right and half a view height
+   above/below. `1.0` adds a full view on each side; `0` limits capture to the viewport.
+   Both emitters and blockers in this margin affect visible lighting. Sources past
+   the margin are excluded. Larger margins reduce lighting detail at the same texture size.
 
 Selecting multiple objects (including a named group) exposes the same **Lighting**
 controls under **Selected Objects**. Fields with different values are marked
@@ -28,7 +33,7 @@ are independent settings.
 ## C++ API
 
 ```cpp
-level.SetLightingSettings({true, 0.15f, 1.0f});
+level.SetLightingSettings({true, 0.15f, 1.0f, 0.5f}); // Last value: off-screen margin.
 
 auto material = object.GetSprite().GetLightingMaterial();
 material.emissionColor = {1.0f, 0.35f, 0.1f};
@@ -39,7 +44,7 @@ object.GetSprite().SetLightingMaterial(material);
 ```
 
 Settings are stored in the level's optional `LIGHTING` object (`enabled`,
-`ambient`, `intensity`). Each player, enemy, or object has an optional `lighting`
+`ambient`, `intensity`, `offscreen_margin`). Each player, enemy, or object has an optional `lighting`
 object (`emission_color`, `emission_strength`, `opacity`, `receives_light`).
 Missing fields preserve defaults. Values are bounded and non-finite values are
 replaced before they reach shaders. Sprite lighting is included in rewind state.
@@ -51,6 +56,8 @@ The implementation follows the 2D interval hierarchy described in
 
 * A separate raster pass captures premultiplied emission and opacity from the
   current sprites, back to front. It excludes non-blocking, non-emissive sprites.
+  Its vertex shader expands the camera bounds by `1 + 2 * offscreen_margin`,
+  preserving camera movement, rotation, and zoom. The main scene's projection is unchanged.
 * A jump-flood nearest-seed field accelerates ray traversal through empty space.
   Near geometry, rays walk individual cells and attenuate partially transparent
   cells once per traversal.
@@ -63,16 +70,21 @@ The implementation follows the 2D interval hierarchy described in
   each coarse angular sample averages four child directions.
 * Cascade zero resolves to an angular average. The regular sprite shader applies
   `albedo * (ambient + intensity * irradiance + emission)` to receiving sprites.
+  It samples the centered viewport portion of the expanded light map using
+  `lightUV = (screenUV - 0.5) / coverageScale + 0.5`.
   UI rendering occurs afterward with its own shader.
 
-Lighting runs at half resolution, with the longest axis capped at 1024 pixels.
+The lighting texture is sized at half the viewport resolution, with the longest
+axis capped at 1024 pixels, and covers the expanded camera area. With the default
+margin, this gives roughly one lighting texel per four screen pixels before the cap.
+Changing the margin reuses the same resources; memory and dispatch sizes stay bounded.
 All lighting images and descriptor sets belong to a frame slot and application;
 they are recreated with the render pipeline and released through VMA. Explicit
 barriers synchronize capture, compute passes, and fragment sampling. Disabling
 lighting skips the capture and compute dispatches.
 
-This is screen-space emissive light transport, with no off-screen lighting,
-surface normals, temporal accumulation, or recursive diffuse bounces. Occluders
+This is camera-centered 2D emissive light transport with a finite off-screen margin,
+no surface normals, temporal accumulation, or recursive diffuse bounces. Occluders
 are 2D silhouettes, so their interiors are dark apart from ambient/emission.
 Small geometry can disappear at the reduced lighting resolution, and approximate
 distance fields and probe interpolation can leak light near thin geometry.
@@ -94,6 +106,9 @@ With `BUILD_TESTING=ON` (the default), tests cover settings persistence, legacy
 defaults, invalid values, and cascade coverage at small, odd, and large viewport
 sizes. A headless Vulkan test checks colored emission, wall occlusion, hidden
 emitters, empty scenes, frame reuse, enable/disable, and resource recreation at
-different sizes. It uses synchronization validation when the Khronos layer is
+different sizes. It also checks emitters and blockers beyond all four viewport
+edges, margin changes, camera movement/zoom, and the production sprite shader's
+mapping from the visible viewport to the expanded light map.
+It uses synchronization validation when the Khronos layer is
 installed, and skips if there is no Vulkan runtime/device. It can run on Mesa's
 software Vulkan implementation without a window.

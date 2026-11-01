@@ -123,6 +123,11 @@ RadianceCascades::CreateScenePipeline(const RenderData& renderData)
 
    auto [vertexShader, fragmentShader] =
       VulkanShader::CreateShader(Data::vk_device, "vert.spv", "radiance_scene.frag.spv");
+   const VkBool32 captureLighting = VK_TRUE;
+   const VkSpecializationMapEntry captureEntry = {0, 0, sizeof(captureLighting)};
+   const VkSpecializationInfo captureInfo = {1, &captureEntry, sizeof(captureLighting),
+                                             &captureLighting};
+   vertexShader.shaderInfo.pSpecializationInfo = &captureInfo;
    const auto stages = std::to_array({vertexShader.shaderInfo, fragmentShader.shaderInfo});
    const auto binding = Vertex::getBindingDescription();
    const auto attributes = Vertex::getAttributeDescriptions();

@@ -241,6 +241,14 @@ EditorGUI::RenderLevelMenu() // NOLINT
       bool changed = ImGui::Checkbox("Radiance cascades", &settings.enabled);
       changed |= ImGui::SliderFloat("Ambient light", &settings.ambient, 0.0f, 1.0f);
       changed |= ImGui::SliderFloat("Light intensity", &settings.intensity, 0.0f, 10.0f);
+      changed |= ImGui::SliderFloat("Off-screen margin", &settings.offscreenMargin, 0.0f, 2.0f,
+                                    "%.2f views");
+      if (ImGui::IsItemHovered())
+      {
+         ImGui::SetTooltip(
+            "Extra view width/height on each side. 0.5 adds half a view beyond each edge.\n"
+            "Larger margins reach farther but reduce lighting detail.");
+      }
       if (changed)
       {
          currentLevel_->SetLightingSettings(settings);

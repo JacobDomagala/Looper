@@ -898,7 +898,7 @@ UpdateUniformBuffer()
       tmpUBO.proj = renderData.projMat;
       const auto lighting = SanitizeLighting(renderData.lighting);
       tmpUBO.lighting = {lighting.enabled ? 1.0f : 0.0f, lighting.ambient, lighting.intensity,
-                         0.0f};
+                         GetLightingCoverageScale(lighting)};
       tmpUBO.viewport = {static_cast< float >(renderData.swapChainExtent.width),
                          static_cast< float >(renderData.swapChainExtent.height), 0.0f, 0.0f};
 

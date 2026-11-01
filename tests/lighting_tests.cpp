@@ -22,11 +22,25 @@ int
 main()
 {
    Require(!ReadLightingSettings({}).enabled, "Legacy levels must retain unlit rendering");
-   const LightingSettings settings = {true, 0.2f, 2.0f};
+   const LightingSettings settings = {true, 0.2f, 2.0f, 0.75f};
    const auto restored = ReadLightingSettings(WriteLightingSettings(settings));
    Require(restored.enabled && restored.ambient == settings.ambient
-              && restored.intensity == settings.intensity,
+              && restored.intensity == settings.intensity
+              && restored.offscreenMargin == settings.offscreenMargin,
            "Settings must round trip");
+   Require(ReadLightingSettings({}).offscreenMargin == 0.5f,
+           "Levels without an off-screen setting must receive the default margin");
+   Require(GetLightingCoverageScale({true, 0.0f, 1.0f, 0.0f}) == 1.0f
+              && GetLightingCoverageScale({}) == 2.0f && GetLightingCoverageScale(settings) == 2.5f,
+           "Coverage must add the margin to both sides of the viewport");
+   Require(ReadLightingSettings({{"offscreen_margin", -1.0f}}).offscreenMargin == 0.0f
+              && ReadLightingSettings({{"offscreen_margin", 100.0f}}).offscreenMargin == 2.0f
+              && ReadLightingSettings({{"offscreen_margin", "invalid"}}).offscreenMargin == 0.5f,
+           "Off-screen coverage must be bounded and handle malformed settings");
+   auto invalidCoverage = settings;
+   invalidCoverage.offscreenMargin = std::numeric_limits< float >::infinity();
+   Require(GetLightingCoverageScale(invalidCoverage) == 2.0f,
+           "Non-finite off-screen margins must fall back to the default");
    const LightingMaterial material = {{0.2f, 0.5f, 0.9f}, 12.0f, 0.75f, true};
    const auto restoredMaterial = ReadLightingMaterial(WriteLightingMaterial(material));
    Require(restoredMaterial.emissionColor == material.emissionColor

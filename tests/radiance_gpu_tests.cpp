@@ -1,5 +1,6 @@
 #include "renderer/command.hpp"
 #include "renderer/renderer.hpp"
+#include "renderer/shader.hpp"
 #include "renderer/texture.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -78,12 +79,200 @@ ImageBarrier(VkCommandBuffer command, VkImage image, VkImageLayout before, VkIma
 }
 
 void
+CheckVisibleReceiver(const RenderData& data, const UniformBufferObject& uniform,
+                     const std::vector< float >& irradiance, uint32_t frame)
+{
+   // Exercise the production sprite shaders as well as the compute output: an
+   // incorrect UV crop or a widened main-camera projection must fail this test.
+   const auto [width, height] = data.swapChainExtent;
+   constexpr auto format = VK_FORMAT_R16G16B16A16_SFLOAT;
+   const auto image =
+      Texture::CreateImage(width, height, 1, VK_SAMPLE_COUNT_1_BIT, format, VK_IMAGE_TILING_OPTIMAL,
+                           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+   const auto view =
+      Texture::CreateImageView(image.textureImage_, format, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+   VkAttachmentDescription attachment = {};
+   attachment.format = format;
+   attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+   attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+   attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+   attachment.finalLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+   const VkAttachmentReference reference = {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+   VkSubpassDescription subpass = {};
+   subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+   subpass.colorAttachmentCount = 1;
+   subpass.pColorAttachments = &reference;
+   const VkSubpassDependency dependency = {0,
+                                           VK_SUBPASS_EXTERNAL,
+                                           VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                                           VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                           VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                                           VK_ACCESS_TRANSFER_READ_BIT,
+                                           0};
+   VkRenderPassCreateInfo passInfo = {};
+   passInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+   passInfo.attachmentCount = 1;
+   passInfo.pAttachments = &attachment;
+   passInfo.subpassCount = 1;
+   passInfo.pSubpasses = &subpass;
+   passInfo.dependencyCount = 1;
+   passInfo.pDependencies = &dependency;
+   VkRenderPass pass = VK_NULL_HANDLE;
+   vk_check_error(vkCreateRenderPass(Data::vk_device, &passInfo, nullptr, &pass),
+                  "Create receiver render pass");
+   VkFramebufferCreateInfo framebufferInfo = {};
+   framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+   framebufferInfo.renderPass = pass;
+   framebufferInfo.attachmentCount = 1;
+   framebufferInfo.pAttachments = &view;
+   framebufferInfo.width = width;
+   framebufferInfo.height = height;
+   framebufferInfo.layers = 1;
+   VkFramebuffer framebuffer = VK_NULL_HANDLE;
+   vk_check_error(vkCreateFramebuffer(Data::vk_device, &framebufferInfo, nullptr, &framebuffer),
+                  "Create receiver framebuffer");
+   VkPipelineLayoutCreateInfo layoutInfo = {};
+   layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+   layoutInfo.setLayoutCount = 1;
+   layoutInfo.pSetLayouts = &data.descriptorSetLayout;
+   VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+   vk_check_error(vkCreatePipelineLayout(Data::vk_device, &layoutInfo, nullptr, &pipelineLayout),
+                  "Create receiver pipeline layout");
+   auto [vertex, fragment] = VulkanShader::CreateShader(Data::vk_device, "vert.spv", "frag.spv");
+   const auto stages = std::to_array({vertex.shaderInfo, fragment.shaderInfo});
+   const auto binding = Vertex::getBindingDescription();
+   const auto attributes = Vertex::getAttributeDescriptions();
+   VkPipelineVertexInputStateCreateInfo vertexInput = {};
+   vertexInput.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+   vertexInput.vertexBindingDescriptionCount = 1;
+   vertexInput.pVertexBindingDescriptions = &binding;
+   vertexInput.vertexAttributeDescriptionCount = static_cast< uint32_t >(attributes.size());
+   vertexInput.pVertexAttributeDescriptions = attributes.data();
+   VkPipelineInputAssemblyStateCreateInfo assembly = {};
+   assembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+   assembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+   const VkViewport viewport = {0, 0, static_cast< float >(width), static_cast< float >(height),
+                                0, 1};
+   const VkRect2D scissor = {{0, 0}, {width, height}};
+   VkPipelineViewportStateCreateInfo viewportState = {};
+   viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+   viewportState.viewportCount = 1;
+   viewportState.pViewports = &viewport;
+   viewportState.scissorCount = 1;
+   viewportState.pScissors = &scissor;
+   VkPipelineRasterizationStateCreateInfo raster = {};
+   raster.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+   raster.polygonMode = VK_POLYGON_MODE_FILL;
+   raster.lineWidth = 1.0f;
+   VkPipelineMultisampleStateCreateInfo samples = {};
+   samples.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+   samples.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+   VkPipelineColorBlendAttachmentState blendAttachment = {};
+   blendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT
+                                    | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+   VkPipelineColorBlendStateCreateInfo blend = {};
+   blend.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+   blend.attachmentCount = 1;
+   blend.pAttachments = &blendAttachment;
+   VkGraphicsPipelineCreateInfo pipelineInfo = {};
+   pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+   pipelineInfo.stageCount = static_cast< uint32_t >(stages.size());
+   pipelineInfo.pStages = stages.data();
+   pipelineInfo.pVertexInputState = &vertexInput;
+   pipelineInfo.pInputAssemblyState = &assembly;
+   pipelineInfo.pViewportState = &viewportState;
+   pipelineInfo.pRasterizationState = &raster;
+   pipelineInfo.pMultisampleState = &samples;
+   pipelineInfo.pColorBlendState = &blend;
+   pipelineInfo.layout = pipelineLayout;
+   pipelineInfo.renderPass = pass;
+   VkPipeline pipeline = VK_NULL_HANDLE;
+   vk_check_error(vkCreateGraphicsPipelines(Data::vk_device, VK_NULL_HANDLE, 1, &pipelineInfo,
+                                            nullptr, &pipeline),
+                  "Create receiver pipeline");
+   vertex.Destroy();
+   fragment.Destroy();
+
+   auto readback =
+      HostBuffer(static_cast< size_t >(width) * height * 8, VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+   const auto command = Command::BeginSingleTimeCommands();
+   VkRenderPassBeginInfo begin = {};
+   begin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+   begin.renderPass = pass;
+   begin.framebuffer = framebuffer;
+   begin.renderArea = scissor;
+   const VkClearValue clear = {};
+   begin.clearValueCount = 1;
+   begin.pClearValues = &clear;
+   vkCmdBeginRenderPass(command, &begin, VK_SUBPASS_CONTENTS_INLINE);
+   vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+   vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                           &data.descriptorSets.at(frame), 0, nullptr);
+   const VkDeviceSize offset = 0;
+   vkCmdBindVertexBuffers(command, 0, 1, &data.vertexBuffer[2].buffer_, &offset);
+   vkCmdBindIndexBuffer(command, data.indexBuffer[2].buffer_, 0, VK_INDEX_TYPE_UINT32);
+   vkCmdDrawIndexed(command, 6, 1, 12, 0, 0); // Draw only the white receiver.
+   vkCmdEndRenderPass(command);
+   VkBufferImageCopy copy = {};
+   copy.imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
+   copy.imageExtent = {width, height, 1};
+   vkCmdCopyImageToBuffer(command, image.textureImage_, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                          readback.buffer_, 1, &copy);
+   Command::EndSingleTimeCommands(command);
+   void* mapped = nullptr;
+   vk_check_error(vmaMapMemory(Data::vk_hAllocator, readback.allocation_, &mapped),
+                  "Read visible receiver");
+   const auto* pixels = static_cast< const uint16_t* >(mapped);
+   const auto layout = GetCascadeLayout(width, height);
+   for (const auto fraction : {glm::vec2{0.05f, 0.05f}, glm::vec2{0.95f, 0.95f},
+                               glm::vec2{0.2f, 0.5f}, glm::vec2{0.8f, 0.5f}})
+   {
+      const auto x = static_cast< uint32_t >(fraction.x * static_cast< float >(width));
+      const auto y = static_cast< uint32_t >(fraction.y * static_cast< float >(height));
+      const auto screenUV = (glm::vec2(x, y) + 0.5f) / glm::vec2(width, height);
+      const auto lightPixel =
+         ((screenUV - 0.5f) / uniform.lighting.w + 0.5f) * glm::vec2(layout.width, layout.height)
+         - 0.5f;
+      const glm::ivec2 lower = glm::floor(lightPixel);
+      const auto weight = glm::fract(lightPixel);
+      const auto sample = [&](int dx, int dy, size_t component) {
+         const auto px = static_cast< uint32_t >(
+            std::clamp(lower.x + dx, 0, static_cast< int >(layout.width) - 1));
+         const auto py = static_cast< uint32_t >(
+            std::clamp(lower.y + dy, 0, static_cast< int >(layout.height) - 1));
+         return irradiance[(static_cast< size_t >(py) * layout.width + px) * 4 + component];
+      };
+      const auto index = (static_cast< size_t >(y) * width + x) * 4;
+      for (size_t component = 0; component < 3; ++component)
+      {
+         const float expected = glm::mix(
+            glm::mix(sample(0, 0, component), sample(1, 0, component), weight.x),
+            glm::mix(sample(0, 1, component), sample(1, 1, component), weight.x), weight.y);
+         Require(std::abs(glm::unpackHalf1x16(pixels[index + component]) - expected) < 0.01f,
+                 "The sprite shader must sample the correct crop of expanded lighting");
+      }
+      Require(glm::unpackHalf1x16(pixels[index + 3]) == 1.0f,
+              "Expanding lighting must not shrink visible sprites");
+   }
+   vmaUnmapMemory(Data::vk_hAllocator, readback.allocation_);
+   readback.Destroy();
+   vkDestroyPipeline(Data::vk_device, pipeline, nullptr);
+   vkDestroyPipelineLayout(Data::vk_device, pipelineLayout, nullptr);
+   vkDestroyFramebuffer(Data::vk_device, framebuffer, nullptr);
+   vkDestroyRenderPass(Data::vk_device, pass, nullptr);
+   vkDestroyImageView(Data::vk_device, view, nullptr);
+   vmaDestroyImage(Data::vk_hAllocator, image.textureImage_, image.allocation_);
+}
+
+void
 RunScene(uint32_t width, uint32_t height)
 {
    auto storage = std::make_unique< RenderData >();
    auto& data = *storage;
    data.swapChainExtent = {width, height};
    data.lighting.enabled = true;
+   data.lighting.offscreenMargin = 0.0f;
    std::array< VkDescriptorSetLayoutBinding, 4 > bindings = {
       {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1,
         VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, nullptr},
@@ -128,9 +317,11 @@ RunScene(uint32_t width, uint32_t height)
    UniformBufferObject uniform = {};
    uniform.proj = glm::mat4(1.0f);
    uniform.view = glm::mat4(1.0f);
+   uniform.lighting = {1.0f, 0.0f, 1.0f, GetLightingCoverageScale(data.lighting)};
+   uniform.viewport = {static_cast< float >(width), static_cast< float >(height), 0.0f, 0.0f};
    auto uniformBuffer = HostBuffer(sizeof(uniform), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
    Upload(uniformBuffer, &uniform, sizeof(uniform));
-   std::array< PerInstanceBuffer, 2 > instances = {};
+   std::array< PerInstanceBuffer, 3 > instances = {};
    instances[0].model = glm::translate(glm::mat4(1.0f), {-0.6f, 0.0f, 0.0f})
                         * glm::scale(glm::mat4(1.0f), {0.2f, 0.8f, 1.0f});
    instances[0].color = glm::vec4(1.0f);
@@ -138,9 +329,12 @@ RunScene(uint32_t width, uint32_t height)
    instances[1].model = glm::scale(glm::mat4(1.0f), {0.125f, 2.0f, 1.0f});
    instances[1].color = glm::vec4(1.0f);
    instances[1].emissionOpacity = {0.0f, 0.0f, 0.0f, 1.0f};
+   instances[2].model = glm::scale(glm::mat4(1.0f), {2.0f, 2.0f, 1.0f});
+   instances[2].color = glm::vec4(1.0f);
+   instances[2].emissionOpacity = glm::vec4(0.0f); // Non-blocking white receiver.
    auto instanceBuffer = HostBuffer(sizeof(instances), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
    Upload(instanceBuffer, instances.data(), sizeof(instances));
-   std::array< Vertex, 8 > vertices = {};
+   std::array< Vertex, 12 > vertices = {};
    constexpr std::array< glm::vec2, 4 > corners = {
       {{-0.5f, -0.5f}, {0.5f, -0.5f}, {0.5f, 0.5f}, {-0.5f, 0.5f}}};
    for (uint32_t i = 0; i < vertices.size(); ++i)
@@ -148,7 +342,8 @@ RunScene(uint32_t width, uint32_t height)
       vertices[i].position_ = {corners[i % 4], 0.0f};
       vertices[i].texCoordsDraw_ = {0.5f, 0.5f, static_cast< float >(i / 4)};
    }
-   constexpr std::array< uint32_t, 12 > indices = {0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4};
+   constexpr std::array< uint32_t, 18 > indices = {0, 1, 2, 2, 3, 0,  4,  5,  6,
+                                                   6, 7, 4, 8, 9, 10, 10, 11, 8};
    data.vertexBuffer[2] = HostBuffer(sizeof(vertices), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
    data.indexBuffer[2] = HostBuffer(sizeof(indices), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
    Upload(data.vertexBuffer[2], vertices.data(), sizeof(vertices));
@@ -216,8 +411,10 @@ RunScene(uint32_t width, uint32_t height)
       vkCmdCopyImageToBuffer(cmd, output, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, readback.buffer_, 1,
                              &copy);
       ImageBarrier(cmd, output, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL,
-                   VK_ACCESS_TRANSFER_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT,
-                   VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+                   VK_ACCESS_TRANSFER_READ_BIT,
+                   VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
+                   VK_PIPELINE_STAGE_TRANSFER_BIT,
+                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
       Command::EndSingleTimeCommands(cmd);
       void* mapped = nullptr;
       vk_check_error(vmaMapMemory(Data::vk_hAllocator, readback.allocation_, &mapped),
@@ -285,8 +482,77 @@ RunScene(uint32_t width, uint32_t height)
    for (size_t i = 0; i < offscreen.size(); i += 4)
    {
       Require(offscreen[i] == 0.0f && offscreen[i + 1] == 0.0f && offscreen[i + 2] == 0.0f,
-              "Moving an emitter offscreen must not leave clamped edge light");
+              "Zero margin must retain viewport-only capture without clamped edge light");
    }
+
+   data.lighting.offscreenMargin = 0.5f;
+   uniform.lighting.w = GetLightingCoverageScale(data.lighting);
+   Upload(uniformBuffer, &uniform, sizeof(uniform));
+   const auto center =
+      (static_cast< size_t >(layout.height / 2) * layout.width + layout.width / 2) * 4;
+   for (const auto direction :
+        {glm::vec2{-1, 0}, glm::vec2{1, 0}, glm::vec2{0, -1}, glm::vec2{0, 1}})
+   {
+      const auto rotation =
+         glm::rotate(glm::mat4(1.0f), std::atan2(direction.y, direction.x), {0.0f, 0.0f, 1.0f});
+      instances[0].model = glm::translate(glm::mat4(1.0f), glm::vec3(direction * 1.35f, 0.0f))
+                           * rotation * glm::scale(glm::mat4(1.0f), {0.25f, 0.8f, 1.0f});
+      instances[1].model = glm::translate(glm::mat4(1.0f), glm::vec3(direction * 1.1f, 0.0f))
+                           * rotation * glm::scale(glm::mat4(1.0f), {0.15f, 4.0f, 1.0f});
+      instances[1].emissionOpacity.w = 1.0f;
+      Upload(instanceBuffer, instances.data(), sizeof(instances));
+      data.numMeshes[2] = 1;
+      const auto expanded = render(0);
+      Require(expanded[center] > 0.01f && expanded[center + 1] > 0.0f,
+              "A fully off-screen emitter must illuminate the visible viewport on every edge");
+      CheckVisibleReceiver(data, uniform, expanded, 0);
+      data.numMeshes[2] = 2;
+      const auto blocked = render(1);
+      Require(blocked[center] < expanded[center] * 0.15f,
+              "Off-screen walls must block off-screen emitters");
+   }
+
+   // Coverage changes must take effect without recreating resources or retaining old light.
+   data.numMeshes[2] = 1;
+   instances[0].model = glm::translate(glm::mat4(1.0f), {-3.0f, 0.0f, 0.0f})
+                        * glm::scale(glm::mat4(1.0f), {0.3f, 1.0f, 1.0f});
+   Upload(instanceBuffer, instances.data(), sizeof(instances));
+   const auto beyondMargin = render(0);
+   Require(beyondMargin[center] == 0.0f,
+           "Emitters beyond the capture margin must leave no stale light");
+   data.lighting.offscreenMargin = 2.0f;
+   uniform.lighting.w = GetLightingCoverageScale(data.lighting);
+   Upload(uniformBuffer, &uniform, sizeof(uniform));
+   const auto extended = render(0);
+   Require(extended[center] > 0.01f, "Increasing the margin must include more distant emitters");
+   CheckVisibleReceiver(data, uniform, extended, 0);
+   data.lighting.offscreenMargin = 0.0f;
+   uniform.lighting.w = GetLightingCoverageScale(data.lighting);
+   Upload(uniformBuffer, &uniform, sizeof(uniform));
+   const auto reduced = render(0);
+   Require(reduced[center] == 0.0f,
+           "Reducing the margin must remove out-of-range light immediately");
+
+   // A fixed world-space emitter crosses a moving/zooming camera's edge.
+   data.lighting.offscreenMargin = 0.5f;
+   uniform.lighting.w = GetLightingCoverageScale(data.lighting);
+   instances[0].model = glm::translate(glm::mat4(1.0f), {-0.6f, 0.0f, 0.0f})
+                        * glm::scale(glm::mat4(1.0f), {0.2f, 0.8f, 1.0f});
+   for (const float cameraX : {0.0f, 0.75f, 1.0f})
+   {
+      uniform.view = glm::translate(glm::mat4(1.0f), {-cameraX, 0.1f, 0.0f});
+      uniform.proj = glm::scale(glm::mat4(1.0f), {1.1f, -1.1f, 1.0f});
+      instances[2].model = glm::inverse(uniform.proj * uniform.view)
+                           * glm::scale(glm::mat4(1.0f), {2.0f, 2.0f, 1.0f});
+      Upload(uniformBuffer, &uniform, sizeof(uniform));
+      Upload(instanceBuffer, instances.data(), sizeof(instances));
+      const auto moved = render(1);
+      Require(moved[center] > 0.01f,
+              "Camera movement must retain light after the emitter leaves view");
+      CheckVisibleReceiver(data, uniform, moved, 1);
+   }
+   std::cout << "Off-screen emitters, blockers, coverage changes, camera movement, and visible "
+                "shading passed\n";
 
    readback.Destroy();
    vkDestroyDescriptorPool(Data::vk_device, data.descriptorPool, nullptr);

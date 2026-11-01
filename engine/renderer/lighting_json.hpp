@@ -26,6 +26,8 @@ ReadLightingSettings(const nlohmann::json& json)
    settings.enabled = ReadLightingBool(json, "enabled", settings.enabled);
    settings.ambient = ReadLightingNumber(json, "ambient", settings.ambient);
    settings.intensity = ReadLightingNumber(json, "intensity", settings.intensity);
+   settings.offscreenMargin =
+      ReadLightingNumber(json, "offscreen_margin", settings.offscreenMargin);
    return SanitizeLighting(settings);
 }
 
@@ -34,7 +36,8 @@ WriteLightingSettings(const LightingSettings& settings)
 {
    return {{"enabled", settings.enabled},
            {"ambient", settings.ambient},
-           {"intensity", settings.intensity}};
+           {"intensity", settings.intensity},
+           {"offscreen_margin", settings.offscreenMargin}};
 }
 
 inline LightingMaterial

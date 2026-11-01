@@ -3,11 +3,15 @@
 #extension GL_ARB_shader_storage_buffer_object : require
 #extension GL_ARB_gpu_shader_int64 : enable
 
+// Only the radiance capture pipeline enables this specialization constant.
+layout(constant_id = 0) const bool captureLighting = false;
+
 layout(set = 0, binding = 0) uniform UniformBufferObject
 {
    mat4 u_projectionMat;
    mat4 u_viewMat;
    vec4 u_cameraPos;
+   vec4 u_lighting; // enabled, ambient, intensity, coverage scale
 }
 ubo;
 
@@ -64,4 +68,7 @@ main(void)
    vec3 position = a_position;
 
    gl_Position = ubo.u_projectionMat * ubo.u_viewMat * modelMat * vec4(position.xyz, 1.0f);
+   // Expand capture around the same camera center, preserving its zoom and rotation.
+   if (captureLighting)
+       gl_Position.xy /= max(ubo.u_lighting.w, 1.0);
 }
