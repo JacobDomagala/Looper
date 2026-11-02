@@ -92,11 +92,35 @@ GetCascadeLayout(uint32_t viewportWidth, uint32_t viewportHeight)
    {
       const uint32_t spacing = 2u << cascade;
       layout.atlasWidth =
-         std::max(layout.atlasWidth, ((layout.width + spacing - 1u) / spacing) * spacing);
+         std::max(layout.atlasWidth, ((layout.width + spacing - 1u) / spacing + 2u) * spacing);
       layout.atlasHeight =
-         std::max(layout.atlasHeight, ((layout.height + spacing - 1u) / spacing) * spacing);
+         std::max(layout.atlasHeight, ((layout.height + spacing - 1u) / spacing + 2u) * spacing);
    }
    return layout;
+}
+
+struct LightingCapture
+{
+   glm::vec2 uvOffset = {};
+   glm::ivec2 gridOrigin = {};
+};
+
+inline LightingCapture
+GetLightingCapture(const glm::mat4& viewProjection, const CascadeLayout& layout,
+                   const LightingSettings& settings)
+{
+   // Keep static geometry on the same texel grid while translating the camera.
+   // The integer origin also anchors every cascade's probes to that world grid.
+   const auto origin = viewProjection[3];
+   if (std::abs(origin.w) < 0.000001f)
+   {
+      return {};
+   }
+   const glm::vec2 extent(layout.width, layout.height);
+   const auto pixel =
+      (glm::vec2(origin) / (origin.w * GetLightingCoverageScale(settings)) * 0.5f + 0.5f) * extent;
+   const auto snapped = glm::round(pixel);
+   return {(snapped - pixel) / extent, -glm::ivec2(snapped)};
 }
 
 } // namespace looper::renderer

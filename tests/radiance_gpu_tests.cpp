@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <vector>
 
@@ -231,9 +232,10 @@ CheckVisibleReceiver(const RenderData& data, const UniformBufferObject& uniform,
       const auto x = static_cast< uint32_t >(fraction.x * static_cast< float >(width));
       const auto y = static_cast< uint32_t >(fraction.y * static_cast< float >(height));
       const auto screenUV = (glm::vec2(x, y) + 0.5f) / glm::vec2(width, height);
-      const auto lightPixel =
-         ((screenUV - 0.5f) / uniform.lighting.w + 0.5f) * glm::vec2(layout.width, layout.height)
-         - 0.5f;
+      const auto lightPixel = ((screenUV - 0.5f) / uniform.lighting.w + 0.5f
+                               + glm::vec2(uniform.viewport.z, uniform.viewport.w))
+                                 * glm::vec2(layout.width, layout.height)
+                              - 0.5f;
       const glm::ivec2 lower = glm::floor(lightPixel);
       const auto weight = glm::fract(lightPixel);
       const auto sample = [&](int dx, int dy, size_t component) {
@@ -399,6 +401,12 @@ RunScene(uint32_t width, uint32_t height)
       static_cast< size_t >(layout.width) * layout.height * 4 * sizeof(uint16_t);
    auto readback = HostBuffer(readbackSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT);
    const auto render = [&](uint32_t frame) {
+      data.projMat = uniform.proj;
+      data.viewMat = uniform.view;
+      const auto capture = GetLightingCapture(uniform.proj * uniform.view, layout, data.lighting);
+      uniform.viewport.z = capture.uvOffset.x;
+      uniform.viewport.w = capture.uvOffset.y;
+      Upload(uniformBuffer, &uniform, sizeof(uniform));
       const auto cmd = Command::BeginSingleTimeCommands();
       data.radianceCascades.Record(cmd, data, frame);
       const auto output = data.radianceCascades.GetIrradianceImage(frame);
@@ -553,6 +561,45 @@ RunScene(uint32_t width, uint32_t height)
    }
    std::cout << "Off-screen emitters, blockers, coverage changes, camera movement, and visible "
                 "shading passed\n";
+
+   // Compare the same world-space point while only the camera moves by fractions
+   // of a lighting texel. A camera-locked capture/probe grid makes this pulse.
+   if (width < 200)
+   {
+      uniform.proj = glm::mat4(1.0f);
+      instances[0].model = glm::translate(glm::mat4(1.0f), {-0.6f, 0.0f, 0.0f})
+                           * glm::scale(glm::mat4(1.0f), {0.08f, 0.3f, 1.0f});
+      Upload(instanceBuffer, instances.data(), sizeof(instances));
+      float minimum = std::numeric_limits< float >::max();
+      float maximum = 0.0f;
+      for (uint32_t step = 0; step < 48; ++step)
+      {
+         const float cameraX = (static_cast< float >(step) - 24.0f) * uniform.lighting.w
+                               / static_cast< float >(layout.width) * 0.5f;
+         uniform.view = glm::translate(glm::mat4(1.0f), {-cameraX, -cameraX * 0.2f, 0.0f});
+         Upload(uniformBuffer, &uniform, sizeof(uniform));
+         const auto pixels = render(step % 2);
+         const auto clip = uniform.proj * uniform.view * glm::vec4(0.4f, 0.15f, 0.0f, 1.0f);
+         const auto uv = glm::vec2(clip) / clip.w / uniform.lighting.w * 0.5f + 0.5f
+                         + glm::vec2(uniform.viewport.z, uniform.viewport.w);
+         const auto texel = uv * glm::vec2(layout.width, layout.height) - 0.5f;
+         const glm::ivec2 lower = glm::floor(texel);
+         const auto weight = glm::fract(texel);
+         const auto sampleRed = [&](int dx, int dy) {
+            const auto x = static_cast< uint32_t >(lower.x + dx);
+            const auto y = static_cast< uint32_t >(lower.y + dy);
+            return pixels[(static_cast< size_t >(y) * layout.width + x) * 4];
+         };
+         const float light =
+            glm::mix(glm::mix(sampleRed(0, 0), sampleRed(1, 0), weight.x),
+                     glm::mix(sampleRed(0, 1), sampleRed(1, 1), weight.x), weight.y);
+         minimum = std::min(minimum, light);
+         maximum = std::max(maximum, light);
+      }
+      std::cout << "Camera pan brightness range: " << minimum << " - " << maximum << std::endl;
+      Require(maximum > 0.01f && maximum - minimum < maximum * 0.02f,
+              "Camera panning must not make a stationary light pulse at a fixed world position");
+   }
 
    readback.Destroy();
    vkDestroyDescriptorPool(Data::vk_device, data.descriptorPool, nullptr);

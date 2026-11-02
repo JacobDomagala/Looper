@@ -58,6 +58,8 @@ The implementation follows the 2D interval hierarchy described in
   current sprites, back to front. It excludes non-blocking, non-emissive sprites.
   Its vertex shader expands the camera bounds by `1 + 2 * offscreen_margin`,
   preserving camera movement, rotation, and zoom. The main scene's projection is unchanged.
+  Capture translation is snapped to lighting texels. A matching UV offset keeps
+  the visible light map aligned while the camera moves smoothly.
 * A jump-flood nearest-seed field accelerates ray traversal through empty space.
   Near geometry, rays walk individual cells and attenuate partially transparent
   cells once per traversal.
@@ -65,13 +67,16 @@ The implementation follows the 2D interval hierarchy described in
   successive cascade doubles probe spacing and quadruples directional resolution
   and interval length. Intervals are contiguous: `[0,4]`, `[4,20]`, `[20,84]`, etc.
   The cascade count covers the lighting viewport's diagonal.
+  Every cascade's probe grid is anchored to the world, with extra boundary probes
+  for interpolation. Camera translation therefore keeps the same probes and ray
+  hits at fixed world positions instead of sliding the sampling grid over the scene.
 * Cascades merge from far to near with `L = Lnear + Tnear * Lfar` and
   `T = Tnear * Tfar`. Spatial interpolation stays within direction tiles, and
   each coarse angular sample averages four child directions.
 * Cascade zero resolves to an angular average. The regular sprite shader applies
   `albedo * (ambient + intensity * irradiance + emission)` to receiving sprites.
   It samples the centered viewport portion of the expanded light map using
-  `lightUV = (screenUV - 0.5) / coverageScale + 0.5`.
+  `lightUV = (screenUV - 0.5) / coverageScale + 0.5 + captureUVOffset`.
   UI rendering occurs afterward with its own shader.
 
 The lighting texture is sized at half the viewport resolution, with the longest
@@ -90,6 +95,9 @@ Small geometry can disappear at the reduced lighting resolution, and approximate
 distance fields and probe interpolation can leak light near thin geometry.
 Partially transparent blocking is evaluated per crossed lighting cell, so thicker
 transparent objects attenuate more light.
+Panning is stabilized at a fixed zoom and camera rotation. Changing zoom/rotation
+still changes the sampling grid, and emitters crossing the outer capture boundary
+can change the result. There is no temporal filtering to hide those transitions.
 
 ## Build and verification
 
@@ -109,6 +117,8 @@ emitters, empty scenes, frame reuse, enable/disable, and resource recreation at
 different sizes. It also checks emitters and blockers beyond all four viewport
 edges, margin changes, camera movement/zoom, and the production sprite shader's
 mapping from the visible viewport to the expanded light map.
+Sub-texel camera-pan tests track brightness at a fixed world position across
+frame slots and probe-grid boundaries to detect light pulsing.
 It uses synchronization validation when the Khronos layer is
 installed, and skips if there is no Vulkan runtime/device. It can run on Mesa's
 software Vulkan implementation without a window.

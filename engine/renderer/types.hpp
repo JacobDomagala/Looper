@@ -76,7 +76,7 @@ struct UniformBufferObject
    alignas(16) glm::mat4 view = {};
    glm::vec4 cameraPos = {};
    glm::vec4 lighting = {}; // enabled, ambient, intensity, coverage scale
-   glm::vec4 viewport = {};
+   glm::vec4 viewport = {}; // viewport size, lighting capture UV offset
 };
 
 struct PerInstanceBuffer

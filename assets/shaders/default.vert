@@ -12,6 +12,7 @@ layout(set = 0, binding = 0) uniform UniformBufferObject
    mat4 u_viewMat;
    vec4 u_cameraPos;
    vec4 u_lighting; // enabled, ambient, intensity, coverage scale
+   vec4 u_viewport; // viewport size, lighting capture UV offset
 }
 ubo;
 
@@ -70,5 +71,6 @@ main(void)
    gl_Position = ubo.u_projectionMat * ubo.u_viewMat * modelMat * vec4(position.xyz, 1.0f);
    // Expand capture around the same camera center, preserving its zoom and rotation.
    if (captureLighting)
-       gl_Position.xy /= max(ubo.u_lighting.w, 1.0);
+       gl_Position.xy = gl_Position.xy / max(ubo.u_lighting.w, 1.0) +
+                        2.0 * ubo.u_viewport.zw * gl_Position.w;
 }

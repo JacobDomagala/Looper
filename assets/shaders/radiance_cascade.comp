@@ -13,7 +13,17 @@ layout(set = 0, binding = 3) uniform sampler2D nearestSeeds;
 vec4 traceInterval(vec2 origin, vec2 direction, float start, float end)
 {
     vec4 result = vec4(0.0, 0.0, 0.0, 1.0);
-    float distanceAlongRay = start + 0.001;
+    // Boundary probes can sit just outside the capture. Skip their empty prefix
+    // instead of discarding rays that enter the captured scene later.
+    vec2 enterExit0 = -origin / direction;
+    vec2 enterExit1 = (vec2(params.extent) - origin) / direction;
+    vec2 entry = min(enterExit0, enterExit1);
+    vec2 exit = max(enterExit0, enterExit1);
+    float enterDistance = max(entry.x, entry.y);
+    float exitDistance = min(exit.x, exit.y);
+    if (exitDistance <= max(start, enterDistance))
+        return vec4(0.0);
+    float distanceAlongRay = max(start, enterDistance) + 0.001;
     while (distanceAlongRay < end && result.a > 0.001)
     {
         vec2 position = origin + direction * distanceAlongRay;
@@ -54,8 +64,7 @@ void main()
         return;
     ivec2 tile = pixel / probes;
     int ray = tile.y * tiles + tile.x;
-    vec2 origin = min((vec2(pixel % probes) + 0.5) * float(tiles),
-                      vec2(params.extent) - 0.5);
+    vec2 origin = probeOffset(params.cascade) + vec2(pixel % probes) * float(tiles);
     float scale = exp2(2.0 * float(params.cascade));
     float intervalStart = 4.0 * (scale - 1.0) / 3.0;
     float intervalEnd = intervalStart + 4.0 * scale;

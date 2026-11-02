@@ -6,12 +6,20 @@ layout(push_constant) uniform CascadeParameters
     int cascade;
     int cascadeCount;
     int jump;
+    ivec2 gridOrigin;
 } params;
 
 ivec2 probeCount(int cascade)
 {
     int spacing = 2 << cascade;
-    return (params.extent + spacing - 1) / spacing;
+    // Extra probes bracket both boundaries as the world grid scrolls past them.
+    return (params.extent + spacing - 1) / spacing + 2;
+}
+
+vec2 probeOffset(int cascade)
+{
+    float spacing = float(2 << cascade);
+    return -mod(vec2(params.gridOrigin) + spacing * 0.5, spacing);
 }
 
 vec4 sampleCascade(sampler2D atlas, vec2 position, int direction, int cascade)
@@ -19,7 +27,7 @@ vec4 sampleCascade(sampler2D atlas, vec2 position, int direction, int cascade)
     int tiles = 2 << cascade;
     ivec2 probes = probeCount(cascade);
     ivec2 tile = ivec2(direction % tiles, direction / tiles) * probes;
-    vec2 grid = position / float(tiles) - 0.5;
+    vec2 grid = (position - probeOffset(cascade)) / float(tiles);
     ivec2 lower = ivec2(floor(grid));
     vec2 weight = fract(grid);
     ivec2 p00 = clamp(lower, ivec2(0), probes - 1);

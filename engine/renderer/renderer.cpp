@@ -899,8 +899,12 @@ UpdateUniformBuffer()
       const auto lighting = SanitizeLighting(renderData.lighting);
       tmpUBO.lighting = {lighting.enabled ? 1.0f : 0.0f, lighting.ambient, lighting.intensity,
                          GetLightingCoverageScale(lighting)};
+      const auto layout =
+         GetCascadeLayout(renderData.swapChainExtent.width, renderData.swapChainExtent.height);
+      const auto capture = GetLightingCapture(tmpUBO.proj * tmpUBO.view, layout, lighting);
       tmpUBO.viewport = {static_cast< float >(renderData.swapChainExtent.width),
-                         static_cast< float >(renderData.swapChainExtent.height), 0.0f, 0.0f};
+                         static_cast< float >(renderData.swapChainExtent.height),
+                         capture.uvOffset.x, capture.uvOffset.y};
 
       auto& ubo = renderData.uniformBuffers.at(frame);
 

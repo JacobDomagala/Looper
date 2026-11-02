@@ -12,7 +12,7 @@ layout(set = 0, binding = 0) uniform UniformBufferObject
     mat4 view;
     vec4 cameraPosition;
     vec4 lighting; // enabled, ambient, intensity, coverage scale
-    vec4 viewport; // width, height, unused, unused
+    vec4 viewport; // width, height, lighting capture UV offset
 } ubo;
 
 layout(location = 0) in VS_OUT
@@ -44,7 +44,7 @@ main(void)
         {
             // The visible viewport occupies the center of the expanded lighting capture.
             vec2 lightUV = (gl_FragCoord.xy / ubo.viewport.xy - 0.5) /
-                           max(ubo.lighting.w, 1.0) + 0.5;
+                           max(ubo.lighting.w, 1.0) + 0.5 + ubo.viewport.zw;
             illumination = vec3(ubo.lighting.y) + ubo.lighting.z *
                            texture(irradiance, lightUV).rgb;
         }

@@ -79,8 +79,8 @@ main()
       for (uint32_t cascade = 0; cascade < layout.count; ++cascade)
       {
          const auto spacing = 2u << cascade;
-         const auto columns = (layout.width + spacing - 1u) / spacing;
-         const auto rows = (layout.height + spacing - 1u) / spacing;
+         const auto columns = (layout.width + spacing - 1u) / spacing + 2u;
+         const auto rows = (layout.height + spacing - 1u) / spacing + 2u;
          Require(columns * spacing <= layout.atlasWidth && rows * spacing <= layout.atlasHeight,
                  "Every directional tile must fit its atlas, including odd extents");
          end += length;

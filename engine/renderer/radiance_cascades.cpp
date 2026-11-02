@@ -20,8 +20,10 @@ struct CascadePushConstants
    int32_t cascade;
    int32_t cascadeCount;
    int32_t jump;
+   alignas(8) glm::ivec2 gridOrigin;
 };
-static_assert(sizeof(CascadePushConstants) == 20);
+static_assert(sizeof(CascadePushConstants) == 32);
+static_assert(offsetof(CascadePushConstants, gridOrigin) == 24);
 static_assert(MAX_FRAMES_IN_FLIGHT == 2);
 
 void
@@ -444,11 +446,14 @@ RadianceCascades::Record(VkCommandBuffer commandBuffer, const RenderData& render
    }
    vkCmdEndRenderPass(commandBuffer);
 
+   const auto capture =
+      GetLightingCapture(renderData.projMat * renderData.viewMat, layout_, renderData.lighting);
    CascadePushConstants push = {
       {static_cast< int32_t >(layout_.width), static_cast< int32_t >(layout_.height)},
       0,
       static_cast< int32_t >(layout_.count),
-      0};
+      0,
+      capture.gridOrigin};
    const auto dispatch = [&](VkPipeline pipeline, VkDescriptorSet set, uint32_t width,
                              uint32_t height) {
       vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
@@ -473,8 +478,8 @@ RadianceCascades::Record(VkCommandBuffer commandBuffer, const RenderData& render
    {
       push.cascade = static_cast< int32_t >(cascade);
       const auto spacing = 2u << cascade;
-      const auto width = ((layout_.width + spacing - 1u) / spacing) * spacing;
-      const auto height = ((layout_.height + spacing - 1u) / spacing) * spacing;
+      const auto width = ((layout_.width + spacing - 1u) / spacing + 2u) * spacing;
+      const auto height = ((layout_.height + spacing - 1u) / spacing + 2u) * spacing;
       dispatch(cascadePipeline_, frame.cascadeSets[cascade % 2u], width, height);
    }
    dispatch(resolvePipeline_, frame.resolveSet, layout_.width, layout_.height);
