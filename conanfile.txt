@@ -1,7 +1,7 @@
 # Docs at https://docs.conan.io/en/latest/reference/conanfile_txt.html
 
 [requires]
-fmt/10.1.0
+fmt/11.1.4
 glfw/3.3.8
 imgui/1.89.9
 stb/cci.20230920

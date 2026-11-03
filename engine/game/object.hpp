@@ -38,7 +38,8 @@ class Object
    static std::string
    GetTypeString(ID id);
 
-   void SetType(ObjectType);
+   void
+   SetType(ObjectType newType);
 
    [[nodiscard]] ObjectType
    GetType() const;
@@ -49,7 +50,8 @@ class Object
    [[nodiscard]] ID
    GetID() const;
 
-   void SetID(ID);
+   void
+   SetID(ID id);
 
  protected:
    ObjectType type_ = ObjectType::NONE;

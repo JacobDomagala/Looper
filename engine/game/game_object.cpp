@@ -22,6 +22,12 @@ GameObject::GameObject(Application* application, const glm::vec2& position, cons
       }
    }
 
+   sprite_.SetLightingMaterial({
+      .emissionColor = glm::vec3(1.0f),
+      .emissionStrength = 0.0f,
+      .opacity = 1.0f,
+      .receivesLight = true,
+   });
    sprite_.SetSpriteTextured(position, size, sprite, renderLayer);
    currentGameObjectState_.visible_ = true;
    currentGameObjectState_.previousPosition_ = glm::vec2(position);
@@ -56,6 +62,12 @@ GameObject::Setup(Application* application, const glm::vec2& position, const glm
       }
    }
 
+   sprite_.SetLightingMaterial({
+      .emissionColor = glm::vec3(1.0f),
+      .emissionStrength = 0.0f,
+      .opacity = 1.0f,
+      .receivesLight = true,
+   });
    sprite_.SetSpriteTextured(position, size, sprite, renderLayer);
    currentGameObjectState_.visible_ = true;
    currentGameObjectState_.previousPosition_ = position;
@@ -193,7 +205,7 @@ GameObject::UpdateCollision()
       sprite_.GetTransformedRectangle(), currentGameObjectState_.nodes_, id_, hasCollision_);
 }
 
-std::vector< Tile >
+const std::vector< Tile >&
 GameObject::GetOccupiedNodes() const
 {
    return currentGameObjectState_.nodes_;

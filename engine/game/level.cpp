@@ -2,6 +2,7 @@
 #include "enemy.hpp"
 #include "game.hpp"
 #include "player.hpp"
+#include "renderer/lighting_json.hpp"
 #include "renderer/renderer.hpp"
 #include "renderer/window/window.hpp"
 #include "utils/file_manager.hpp"
@@ -20,9 +21,16 @@ namespace looper {
 void
 Level::Create(Application* context, const std::string& name, const glm::ivec2& size)
 {
+   SetLightingSettings({});
    name_ = name;
    levelSize_ = size;
 
+   background_.SetLightingMaterial({
+      .emissionColor = glm::vec3(1.0f),
+      .emissionStrength = 0.0f,
+      .opacity = 0.0f,
+      .receivesLight = true,
+   });
    background_.SetSpriteTextured(glm::vec3(static_cast< float >(levelSize_.x) / 2.0f,
                                            static_cast< float >(levelSize_.y) / 2.0f,
                                            renderer::LAYER_10),
@@ -36,14 +44,16 @@ void
 Level::Load(Application* context, const std::string& pathToLevel)
 {
    const auto json = FileManager::LoadJsonFile(pathToLevel);
+   SetLightingSettings(
+      renderer::ReadLightingSettings(json.value("LIGHTING", nlohmann::json::object())));
 
    // BACKGROUND
    {
-      const auto& background = json["BACKGROUND"];
-      const auto& backgroundTex = background["texture"];
-      const auto& size = background["size"];
+      const auto& background = json.at("BACKGROUND");
+      const auto& backgroundTex = background.at("texture");
+      const auto& size = background.at("size");
 
-      LoadPremade(backgroundTex, glm::ivec2(size[0], size[1]));
+      LoadPremade(backgroundTex, glm::ivec2(size.at(0), size.at(1)));
 
       contextPointer_ = context;
    }
@@ -58,22 +68,25 @@ Level::Load(Application* context, const std::string& pathToLevel)
    {
       SCOPED_TIMER("Loading Player");
 
-      const auto& player = json["PLAYER"];
-      const auto& position = player["position"];
-      const auto& size = player["size"];
-      const auto& texture = player["texture"];
+      const auto& player = json.at("PLAYER");
+      const auto& position = player.at("position");
+      const auto& size = player.at("size");
+      const auto& texture = player.at("texture");
       // const auto weapons = json[key]["weapons"];
-      const auto& name = player["name"];
+      const auto& name = player.at("name");
 
-      player_.Setup(context, glm::vec2{position[0], position[1]}, glm::ivec2(size[0], size[1]),
-                    texture, name);
-      player_.Rotate(player["rotation"]);
-      player_.editorGroup_ = player["editor_group"];
+      player_.Setup(context, glm::vec2{position.at(0), position.at(1)},
+                    glm::ivec2(size.at(0), size.at(1)), texture, name);
+      player_.Rotate(player.at("rotation"));
+      player_.editorGroup_ = player.at("editor_group");
+      player_.GetSprite().SetLightingMaterial(
+         renderer::ReadLightingMaterial(player.value("lighting", nlohmann::json::object()),
+                                        player_.GetSprite().GetLightingMaterial()));
    }
 
    // ENEMIES
    {
-      const auto& enemies = json["ENEMIES"];
+      const auto& enemies = json.at("ENEMIES");
       SCOPED_TIMER(fmt::format("Loading Enemies ({})", enemies.size()));
       // This is a magic number that we should figure out later
       enemies_.reserve(100);
@@ -82,25 +95,26 @@ Level::Load(Application* context, const std::string& pathToLevel)
       for (size_t i = 0; i < enemies.size(); ++i)
       {
          const auto& enemy = enemies.at(i);
-         const auto& position = enemy["position"];
-         const auto& size = enemy["size"];
-         const auto& texture = enemy["texture"];
-         const auto& name = enemy["name"];
+         const auto& position = enemy.at("position");
+         const auto& size = enemy.at("size");
+         const auto& texture = enemy.at("texture");
+         const auto& name = enemy.at("name");
 
          auto& object = enemies_.at(i);
-         object.Setup(context, glm::vec2{position[0], position[1]}, glm::ivec2(size[0], size[1]),
-                      texture, std::vector< AnimationPoint >{});
+         object.Setup(context, glm::vec2{position.at(0), position.at(1)},
+                      glm::ivec2(size.at(0), size.at(1)), texture, std::vector< AnimationPoint >{});
          object.SetName(name);
-         object.Rotate(enemy["rotation"]);
+         object.Rotate(enemy.at("rotation"));
 
          std::vector< AnimationPoint > keypointsPositions = {};
-         glm::vec2 beginPoint = glm::vec2(position[0], position[1]);
+         glm::vec2 beginPoint = glm::vec2(position.at(0), position.at(1));
 
-         for (const auto& point : enemy["animate positions"])
+         for (const auto& point : enemy.at("animate positions"))
          {
             AnimationPoint animationPoint(object.GetID());
-            animationPoint.m_end = glm::vec2(point["end position"][0], point["end position"][1]);
-            animationPoint.m_timeDuration = time::seconds(point["time duration"]);
+            animationPoint.m_end =
+               glm::vec2(point.at("end position").at(0), point.at("end position").at(1));
+            animationPoint.m_timeDuration = time::seconds(point.at("time duration"));
 
             keypointsPositions.emplace_back(animationPoint);
 
@@ -108,13 +122,16 @@ Level::Load(Application* context, const std::string& pathToLevel)
          }
 
          object.SetAnimationKeypoints(std::move(keypointsPositions));
-         object.editorGroup_ = enemy["editor_group"];
+         object.editorGroup_ = enemy.at("editor_group");
+         object.GetSprite().SetLightingMaterial(
+            renderer::ReadLightingMaterial(enemy.value("lighting", nlohmann::json::object()),
+                                           object.GetSprite().GetLightingMaterial()));
       }
    }
 
    // OBJECTS
    {
-      const auto& objects = json["OBJECTS"];
+      const auto& objects = json.at("OBJECTS");
       SCOPED_TIMER(fmt::format("Loading Objects ({})", objects.size()));
       // This is a magic number that we should figure out later
       objects_.reserve(10000);
@@ -122,20 +139,23 @@ Level::Load(Application* context, const std::string& pathToLevel)
       for (size_t i = 0; i < objects.size(); ++i)
       {
          const auto& object = objects.at(i);
-         const auto& position = object["position"];
-         const auto& size = object["size"];
-         const auto& texture = object["texture"];
-         const auto& name = object["name"];
+         const auto& position = object.at("position");
+         const auto& size = object.at("size");
+         const auto& texture = object.at("texture");
+         const auto& name = object.at("name");
 
          auto& gameObject = objects_.at(i);
-         gameObject.Setup(context, glm::vec2{position[0], position[1]},
-                          glm::ivec2(size[0], size[1]), texture, ObjectType::OBJECT,
-                          object["render_layer"]);
+         gameObject.Setup(context, glm::vec2{position.at(0), position.at(1)},
+                          glm::ivec2(size.at(0), size.at(1)), texture, ObjectType::OBJECT,
+                          object.at("render_layer"));
          objectToIdx_[gameObject.GetID()] = i;
          gameObject.SetName(name);
-         gameObject.Rotate(object["rotation"]);
-         gameObject.SetHasCollision(object["has collision"]);
-         gameObject.editorGroup_ = object["editor_group"];
+         gameObject.Rotate(object.at("rotation"));
+         gameObject.SetHasCollision(object.at("has collision"));
+         gameObject.editorGroup_ = object.at("editor_group");
+         gameObject.GetSprite().SetLightingMaterial(
+            renderer::ReadLightingMaterial(object.value("lighting", nlohmann::json::object()),
+                                           gameObject.GetSprite().GetLightingMaterial()));
       }
    }
 }
@@ -143,74 +163,119 @@ Level::Load(Application* context, const std::string& pathToLevel)
 void
 Level::Save(const std::string& pathToLevel)
 {
-   nlohmann::json json;
+   nlohmann::json json = {
+      {"BACKGROUND", nlohmann::json::object()},
+      {"PLAYER", nlohmann::json::object()},
+   };
+   json.emplace("LIGHTING", renderer::WriteLightingSettings(lighting_));
 
    // Serialize background
-   json["BACKGROUND"]["texture"] = background_.GetTextureName();
-   json["BACKGROUND"]["size"] = {background_.GetSize().x, background_.GetSize().y};
+   json.at("BACKGROUND").emplace("texture", background_.GetTextureName());
+   json.at("BACKGROUND")
+      .emplace("size", nlohmann::json{background_.GetSize().x, background_.GetSize().y});
 
    // PLAYER
-   json["PLAYER"]["name"] = player_.GetName();
-   json["PLAYER"]["position"] = {player_.GetPosition().x, player_.GetPosition().y};
-   json["PLAYER"]["rotation"] = player_.GetSprite().GetRotation();
-   json["PLAYER"]["size"] = {player_.GetSprite().GetOriginalSize().x,
-                             player_.GetSprite().GetOriginalSize().y};
-   json["PLAYER"]["texture"] = player_.GetSprite().GetTextureName();
-   json["PLAYER"]["weapons"] = player_.GetWeapons();
-   json["PLAYER"]["render_layer"] = player_.GetSprite().GetRenderInfo().layer;
-   json["PLAYER"]["editor_group"] = player_.editorGroup_;
+   json.at("PLAYER").emplace("name", player_.GetName());
+   json.at("PLAYER").emplace("position",
+                             nlohmann::json{player_.GetPosition().x, player_.GetPosition().y});
+   json.at("PLAYER").emplace("rotation", player_.GetSprite().GetRotation());
+   json.at("PLAYER").emplace("size", nlohmann::json{
+                                        player_.GetSprite().GetOriginalSize().x,
+                                        player_.GetSprite().GetOriginalSize().y,
+                                     });
+   json.at("PLAYER").emplace("texture", player_.GetSprite().GetTextureName());
+   json.at("PLAYER").emplace("weapons", player_.GetWeapons());
+   json.at("PLAYER").emplace("render_layer", player_.GetSprite().GetRenderInfo().layer);
+   json.at("PLAYER").emplace("editor_group", player_.editorGroup_);
+   json.at("PLAYER").emplace(
+      "lighting", renderer::WriteLightingMaterial(player_.GetSprite().GetLightingMaterial()));
 
 
    // ENEMIES
+   if (!enemies_.empty())
+   {
+      json.emplace("ENEMIES", nlohmann::json::array());
+   }
    for (const auto& enemy : enemies_)
    {
       nlohmann::json enemyJson;
 
-      enemyJson["name"] = enemy.GetName();
-      enemyJson["position"] = {enemy.GetPosition().x, enemy.GetPosition().y};
-      enemyJson["size"] = {enemy.GetSprite().GetOriginalSize().x,
-                           enemy.GetSprite().GetOriginalSize().y};
-      enemyJson["rotation"] = enemy.GetSprite().GetRotation();
-      enemyJson["texture"] = enemy.GetSprite().GetTextureName();
-      enemyJson["render_layer"] = enemy.GetSprite().GetRenderInfo().layer;
-      enemyJson["editor_group"] = enemy.editorGroup_;
+      enemyJson.emplace("name", enemy.GetName());
+      enemyJson.emplace("position", nlohmann::json{enemy.GetPosition().x, enemy.GetPosition().y});
+      enemyJson.emplace("size", nlohmann::json{
+                                   enemy.GetSprite().GetOriginalSize().x,
+                                   enemy.GetSprite().GetOriginalSize().y,
+                                });
+      enemyJson.emplace("rotation", enemy.GetSprite().GetRotation());
+      enemyJson.emplace("texture", enemy.GetSprite().GetTextureName());
+      enemyJson.emplace("render_layer", enemy.GetSprite().GetRenderInfo().layer);
+      enemyJson.emplace("editor_group", enemy.editorGroup_);
+      enemyJson.emplace("lighting",
+                        renderer::WriteLightingMaterial(enemy.GetSprite().GetLightingMaterial()));
 
-      enemyJson["animation type"] =
-         enemy.GetAnimationType() == Animatable::ANIMATION_TYPE::LOOP ? "Loop" : "Reversable";
+      enemyJson.emplace(
+         "animation type",
+         enemy.GetAnimationType() == Animatable::ANIMATION_TYPE::LOOP ? "Loop" : "Reversable");
 
       const auto keypoints = enemy.GetAnimationKeypoints();
+      if (!keypoints.empty())
+      {
+         enemyJson.emplace("animate positions", nlohmann::json::array());
+      }
       for (const auto& point : keypoints)
       {
          nlohmann::json animationPoint;
-         animationPoint["end position"] = {point.m_end.x, point.m_end.y};
-         animationPoint["time duration"] = point.m_timeDuration.count();
+         animationPoint.emplace("end position", nlohmann::json{point.m_end.x, point.m_end.y});
+         animationPoint.emplace("time duration", point.m_timeDuration.count());
 
-         enemyJson["animate positions"].emplace_back(animationPoint);
+         enemyJson.at("animate positions").emplace_back(animationPoint);
       }
 
-      json["ENEMIES"].emplace_back(enemyJson);
+      json.at("ENEMIES").emplace_back(enemyJson);
    }
 
    // OBJECTS
+   if (!objects_.empty())
+   {
+      json.emplace("OBJECTS", nlohmann::json::array());
+   }
    for (const auto& object : objects_)
    {
       nlohmann::json objectJson;
 
-      objectJson["name"] = object.GetName();
-      objectJson["has collision"] = object.GetHasCollision();
+      objectJson.emplace("name", object.GetName());
+      objectJson.emplace("has collision", object.GetHasCollision());
 
-      objectJson["position"] = {object.GetPosition().x, object.GetPosition().y};
-      objectJson["size"] = {object.GetSprite().GetOriginalSize().x,
-                            object.GetSprite().GetOriginalSize().y};
-      objectJson["rotation"] = object.GetSprite().GetRotation();
-      objectJson["texture"] = object.GetSprite().GetTextureName();
-      objectJson["render_layer"] = object.GetSprite().GetRenderInfo().layer;
-      objectJson["editor_group"] = object.editorGroup_;
+      objectJson.emplace("position",
+                         nlohmann::json{object.GetPosition().x, object.GetPosition().y});
+      objectJson.emplace("size", nlohmann::json{
+                                    object.GetSprite().GetOriginalSize().x,
+                                    object.GetSprite().GetOriginalSize().y,
+                                 });
+      objectJson.emplace("rotation", object.GetSprite().GetRotation());
+      objectJson.emplace("texture", object.GetSprite().GetTextureName());
+      objectJson.emplace("render_layer", object.GetSprite().GetRenderInfo().layer);
+      objectJson.emplace("editor_group", object.editorGroup_);
+      objectJson.emplace("lighting",
+                         renderer::WriteLightingMaterial(object.GetSprite().GetLightingMaterial()));
 
-      json["OBJECTS"].emplace_back(objectJson);
+      json.at("OBJECTS").emplace_back(objectJson);
    }
 
    FileManager::SaveJsonFile(pathToLevel, json);
+}
+
+const renderer::LightingSettings&
+Level::GetLightingSettings() const
+{
+   return lighting_;
+}
+
+void
+Level::SetLightingSettings(const renderer::LightingSettings& settings)
+{
+   lighting_ = renderer::SanitizeLighting(settings);
+   renderer::GetRenderData().lighting = lighting_;
 }
 
 void
@@ -340,7 +405,7 @@ Level::FreeNodes(Object::ID object, const std::vector< Tile >& nodes, bool hasCo
 {
    if (pathFinder_.IsInitialized())
    {
-      for (auto tileID : nodes)
+      for (const auto& tileID : nodes)
       {
          if (hasCollision)
          {
@@ -357,7 +422,7 @@ Level::OccupyNodes(Object::ID object, const std::vector< Tile >& nodes, bool has
 {
    if (pathFinder_.IsInitialized())
    {
-      for (auto tileID : nodes)
+      for (const auto& tileID : nodes)
       {
          if (hasCollision)
          {
@@ -374,22 +439,19 @@ Level::GetTilesFromBoundingBox(const std::array< glm::vec2, 4 >& box) const
 {
    std::set< Tile > ret;
 
-   auto insertToVec = [&ret](const std::vector< Tile >& tiles) {
-      for (const auto& tile : tiles)
-      {
-         ret.insert(tile);
-      }
+   auto const insertToVec = [&ret](const std::vector< Tile >& tiles) {
+      ret.insert(tiles.begin(), tiles.end());
    };
 
    // Standard Rect
-   insertToVec(GetTilesAlongTheLine(box[0], box[3]));
-   insertToVec(GetTilesAlongTheLine(box[3], box[2]));
-   insertToVec(GetTilesAlongTheLine(box[2], box[1]));
-   insertToVec(GetTilesAlongTheLine(box[1], box[0]));
+   insertToVec(GetTilesAlongTheLine(box.at(0), box.at(3)));
+   insertToVec(GetTilesAlongTheLine(box.at(3), box.at(2)));
+   insertToVec(GetTilesAlongTheLine(box.at(2), box.at(1)));
+   insertToVec(GetTilesAlongTheLine(box.at(1), box.at(0)));
 
    // Diagonals for inside nodes
-   insertToVec(GetTilesAlongTheLine(box[0], box[2]));
-   insertToVec(GetTilesAlongTheLine(box[1], box[3]));
+   insertToVec(GetTilesAlongTheLine(box.at(0), box.at(2)));
+   insertToVec(GetTilesAlongTheLine(box.at(1), box.at(3)));
 
    return std::vector< Tile >{ret.begin(), ret.end()};
 }
@@ -399,8 +461,8 @@ Level::GetTilesFromRectangle(const std::array< glm::vec2, 4 >& rect) const
 {
    std::vector< Tile > tiles;
 
-   auto CustomGetTileFromPosition = [](const glm::ivec2& levelSize, uint32_t tileWidth,
-                                       const glm::vec2& position) -> Tile {
+   auto const CustomGetTileFromPosition = [](const glm::ivec2& levelSize, uint32_t tileWidth,
+                                             const glm::vec2& position) -> Tile {
       const auto w =
          static_cast< int32_t >(glm::floor(position.x / static_cast< float >(tileWidth)));
       const auto h =
@@ -415,7 +477,8 @@ Level::GetTilesFromRectangle(const std::array< glm::vec2, 4 >& rect) const
       CustomGetTileFromPosition(levelSize_, tileWidth_, rect.at(0)),
       CustomGetTileFromPosition(levelSize_, tileWidth_, rect.at(1)),
       CustomGetTileFromPosition(levelSize_, tileWidth_, rect.at(2)),
-      CustomGetTileFromPosition(levelSize_, tileWidth_, rect.at(3))};
+      CustomGetTileFromPosition(levelSize_, tileWidth_, rect.at(3)),
+   };
 
    // 'y' tiles go bottom to top
    for (auto y = tileRect.at(2).second; y <= tileRect.at(0).second; ++y)
@@ -466,7 +529,7 @@ Level::GetCollidedPosition(const glm::vec2& fromPos, const glm::vec2& toPos)
 
    for (int i = 0; i < numSteps; ++i)
    {
-      auto curPos = fromPos + (stepSize * static_cast< float >(i));
+      auto const curPos = fromPos + (stepSize * static_cast< float >(i));
 
       if (!IsInLevelBoundaries(curPos) or pathFinder_.GetNodeFromPosition(curPos).occupied_)
       {
@@ -528,7 +591,7 @@ Level::GenerateTextureForCollision()
    const auto width = static_cast< size_t >(levelSize_.x) / static_cast< size_t >(tileWidth_);
    const auto height = static_cast< size_t >(levelSize_.y) / static_cast< size_t >(tileWidth_);
    const size_t numChannels = 4;
-   const auto size = static_cast< size_t >(width * height * numChannels);
+   const auto size = (width * height * numChannels);
 
    auto data = FileManager::ImageHandleType{new unsigned char[size],
                                             [](const uint8_t* ptr) { delete[] ptr; }};
@@ -539,18 +602,23 @@ Level::GenerateTextureForCollision()
       const auto offset = height - 1 - (h % height);
       for (size_t w = 0; w < width; ++w)
       {
-         const auto occupied = nodes.at(w + width * h).occupied_;
+         const auto occupied = nodes.at(w + (width * h)).occupied_;
          const auto index =
-            (w + width * offset) * numChannels; // Calculate the index for the start of this pixel
+            (w + (width * offset)) * numChannels; // Calculate the index for the start of this pixel
 
-         data[index + 0] = 255;             // R
-         data[index + 1] = !occupied * 255; // G
-         data[index + 2] = !occupied * 255; // B
-         data[index + 3] = 255;             // A
+         auto* pixel = data.get() + index;
+         pixel[0] = 255;             // R
+         pixel[1] = !occupied * 255; // G
+         pixel[2] = !occupied * 255; // B
+         pixel[3] = 255;             // A
       }
    }
 
-   collisionTextureData_ = {std::move(data), {width, height}, numChannels};
+   collisionTextureData_ = {
+      .m_bytes = std::move(data),
+      .m_size = {width, height},
+      .m_format = numChannels,
+   };
 
    // To avoid blurry edges
    renderer::TextureProperties props;
@@ -569,6 +637,12 @@ Level::LoadPremade(const std::string& fileName, const glm::ivec2& size)
    locked_ = false;
    levelSize_ = size;
 
+   background_.SetLightingMaterial({
+      .emissionColor = glm::vec3(1.0f),
+      .emissionStrength = 0.0f,
+      .opacity = 0.0f,
+      .receivesLight = true,
+   });
    background_.SetSpriteTextured(glm::vec2(static_cast< float >(levelSize_.x) / 2.0f,
                                            static_cast< float >(levelSize_.y) / 2.0f),
                                  size, fileName, 10);
@@ -585,7 +659,7 @@ Level::DeleteObject(Object::ID deletedObject)
       }
       break;
       case ObjectType::ENEMY: {
-         auto enemyIter = stl::find_if(enemies_, [deletedObject](const auto& enemy) {
+         auto const enemyIter = stl::find_if(enemies_, [deletedObject](const auto& enemy) {
             return enemy.GetID() == deletedObject;
          });
 
@@ -601,7 +675,7 @@ Level::DeleteObject(Object::ID deletedObject)
       }
       break;
       case ObjectType::OBJECT: {
-         auto objectIter = stl::find_if(objects_, [deletedObject](const auto& object) {
+         auto const objectIter = stl::find_if(objects_, [deletedObject](const auto& object) {
             return object.GetID() == deletedObject;
          });
 
@@ -644,7 +718,7 @@ Level::GetObjectRef(Object::ID objectID)
       }
       break;
       case ObjectType::ENEMY: {
-         auto enemyIt = stl::find_if(
+         auto const enemyIt = stl::find_if(
             enemies_, [objectID](const auto& enemy) { return enemy.GetID() == objectID; });
 
          utils::Assert(enemyIt != enemies_.end(),
@@ -664,7 +738,7 @@ Level::GetObjectRef(Object::ID objectID)
          for (auto& enemy : enemies_)
          {
             auto& points = enemy.GetAnimationKeypoints();
-            auto it = stl::find_if(
+            auto const it = stl::find_if(
                points, [objectID](const auto& point) { return point.GetID() == objectID; });
 
             if (it != points.end())
@@ -678,7 +752,7 @@ Level::GetObjectRef(Object::ID objectID)
 
       case ObjectType::PATHFINDER_NODE: {
          auto& nodes = pathFinder_.GetAllNodes();
-         auto it =
+         auto const it =
             stl::find_if(nodes, [objectID](const auto& node) { return node.GetID() == objectID; });
 
          if (it != nodes.end())
@@ -718,7 +792,7 @@ Level::GetGameObjectRef(Object::ID gameObjectID)
       }
       break;
       case ObjectType::ENEMY: {
-         auto enemyIt = stl::find_if(
+         auto const enemyIt = stl::find_if(
             enemies_, [gameObjectID](const auto& enemy) { return enemy.GetID() == gameObjectID; });
 
          utils::Assert(enemyIt != enemies_.end(),
@@ -836,7 +910,7 @@ Level::GetEnemies() const
 }
 
 void
-Level::SetPlayersPosition(const glm::vec2& /*position*/)
+Level::SetPlayersPosition([[maybe_unused]] const glm::vec2& position)
 {
    // m_playerPos = position;
    // m_playerPos /= m_tileSize;
@@ -853,7 +927,7 @@ Level::GetGameObjectOnLocation(const glm::vec2& screenPosition)
       const auto& node = pathFinder_.GetNodeFromPosition(globalPos);
 
       // Try luck with Tile at mouse pos
-      auto objectOnLocation =
+      auto const objectOnLocation =
          stl::find_if(node.objectsOnThisNode_, [this, screenPosition](const auto& objectID) {
             const auto& object = GetGameObjectRef(objectID);
             return object.CheckIfCollidedScreenPosion(screenPosition);
@@ -878,7 +952,7 @@ Level::GetGameObjectOnLocation(const glm::vec2& screenPosition)
             for (int32_t x = xLower; x < xUpper; ++x)
             {
                const auto& neighbour = pathFinder_.GetNodeFromTile({x, y});
-               auto objectFound = stl::find_if(
+               auto const objectFound = stl::find_if(
                   neighbour.objectsOnThisNode_, [this, screenPosition](const auto& objectID) {
                      const auto& object = GetGameObjectRef(objectID);
                      return object.CheckIfCollidedScreenPosion(screenPosition);
@@ -909,7 +983,7 @@ Level::GetGameObjectOnLocationAndLayer(const glm::vec2& screenPosition, int32_t 
       {
          const auto& node = pathFinder_.GetNodeFromPosition(globalPos);
 
-         auto objectOnLocation = stl::find_if(
+         auto const objectOnLocation = stl::find_if(
             node.objectsOnThisNode_, [this, screenPosition, renderLayer](const auto& objectID) {
                const auto& object = GetGameObjectRef(objectID);
                return object.CheckIfCollidedScreenPosion(screenPosition)
@@ -954,12 +1028,13 @@ Level::UpdateCollisionTexture()
          const auto y = tile.second;
          const auto offset = tileWidth - 1 - (y % tileWidth);
 
-         const auto index = (x + width * offset) * 4;
+         const auto index = (x + (width * offset)) * 4;
 
-         data[index + 0] = 255;                   // R
-         data[index + 1] = !node.occupied_ * 255; // G
-         data[index + 2] = !node.occupied_ * 255; // B
-         data[index + 3] = 255;                   // A
+         auto* pixel = data + index;
+         pixel[0] = 255;                   // R
+         pixel[1] = !node.occupied_ * 255; // G
+         pixel[2] = !node.occupied_ * 255; // B
+         pixel[3] = 255;                   // A
       }
 
       renderer::TextureLibrary::GetTexture(collisionTexture_)->UpdateTexture(collisionTextureData_);

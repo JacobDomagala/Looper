@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 
 #include <memory>
+#include <span>
 #include <unordered_map>
 #include <vector>
 
@@ -101,6 +102,9 @@ class EditorGUI : public InputListener
 
    void
    RenderGroupSelectModifications();
+
+   void
+   RenderLightingControls(std::span< const Object::ID > objectIDs);
 
    void
    RenderCreateNewLevelWindow();

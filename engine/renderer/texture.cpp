@@ -29,7 +29,7 @@ Texture::Texture(TextureType type, std::string_view textureName, TextureID id,
                  const TextureProperties& props)
    : id_(id), m_type(type), textureProps_(props), m_name(std::string(textureName))
 {
-   auto textureData = FileManager::LoadImageData(m_name);
+   auto const textureData = FileManager::LoadImageData(m_name);
    CreateTextureImage(textureData);
 }
 
@@ -51,8 +51,8 @@ Texture::CreateTextureImage(const FileManager::ImageData& data)
 
    image_ = CreateImage(m_width, m_height, m_mips, VK_SAMPLE_COUNT_1_BIT, m_format,
                         VK_IMAGE_TILING_OPTIMAL,
-                        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT
-                           | VK_IMAGE_USAGE_SAMPLED_BIT,
+                        VkImageUsageFlags{VK_IMAGE_USAGE_TRANSFER_SRC_BIT}
+                           | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, false);
 
    m_textureImageView =
@@ -83,9 +83,23 @@ Texture::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels,
    VkImage image = {};
    VmaAllocation allocation = {};
 
-   VkImageCreateInfo imageInfo = {};
-   imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-   imageInfo.imageType = VK_IMAGE_TYPE_2D;
+   VkImageCreateInfo imageInfo = {
+      .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+      .pNext = {},
+      .flags = {},
+      .imageType = VK_IMAGE_TYPE_2D,
+      .format = {},
+      .extent = {},
+      .mipLevels = {},
+      .arrayLayers = {},
+      .samples = numSamples,
+      .tiling = {},
+      .usage = {},
+      .sharingMode = {},
+      .queueFamilyIndexCount = {},
+      .pQueueFamilyIndices = {},
+      .initialLayout = {},
+   };
    imageInfo.extent.width = width;
    imageInfo.extent.height = height;
    imageInfo.extent.depth = 1;
@@ -95,7 +109,6 @@ Texture::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels,
    imageInfo.tiling = tiling;
    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
    imageInfo.usage = usage;
-   imageInfo.samples = numSamples;
    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
    if (cubemap)
    {
@@ -115,12 +128,16 @@ Texture::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels,
                                  &allocationInfo),
       "failed to create image!");
 
-   return {image, allocationInfo.deviceMemory, allocation};
+   return {
+      .textureImage_ = image,
+      .textureImageMemory_ = allocationInfo.deviceMemory,
+      .allocation_ = allocation,
+   };
 }
 
 VkImageView
 Texture::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
-                         uint32_t mipLevels, bool /*cubemap*/)
+                         uint32_t mipLevels, [[maybe_unused]] bool cubemap)
 {
    VkImageViewCreateInfo viewInfo = {};
    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -213,14 +230,18 @@ Texture::GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, 
                            VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
       VkImageBlit blit = {};
-      blit.srcOffsets[0] = {0, 0, 0};
-      blit.srcOffsets[1] = {mipWidth, mipHeight, 1};
+      blit.srcOffsets[0] = {.x = 0, .y = 0, .z = 0};
+      blit.srcOffsets[1] = {.x = mipWidth, .y = mipHeight, .z = 1};
       blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
       blit.srcSubresource.mipLevel = i - 1;
       blit.srcSubresource.baseArrayLayer = 0;
       blit.srcSubresource.layerCount = 1;
-      blit.dstOffsets[0] = {0, 0, 0};
-      blit.dstOffsets[1] = {mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1};
+      blit.dstOffsets[0] = {.x = 0, .y = 0, .z = 0};
+      blit.dstOffsets[1] = {
+         .x = mipWidth > 1 ? mipWidth / 2 : 1,
+         .y = mipHeight > 1 ? mipHeight / 2 : 1,
+         .z = 1,
+      };
       blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
       blit.dstSubresource.mipLevel = i;
       blit.dstSubresource.baseArrayLayer = 0;
@@ -280,15 +301,15 @@ Texture::CreateDescriptorSet(VkSampler sampler, VkImageView image_view, VkImageL
    // Update the Descriptor Set:
    {
       std::array< VkDescriptorImageInfo, 1 > desc_image = {};
-      desc_image[0].sampler = sampler;
-      desc_image[0].imageView = image_view;
-      desc_image[0].imageLayout = image_layout;
+      desc_image.at(0).sampler = sampler;
+      desc_image.at(0).imageView = image_view;
+      desc_image.at(0).imageLayout = image_layout;
       std::array< VkWriteDescriptorSet, 1 > write_desc = {};
-      write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      write_desc[0].dstSet = descriptor_set;
-      write_desc[0].descriptorCount = 1;
-      write_desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-      write_desc[0].pImageInfo = desc_image.data();
+      write_desc.at(0).sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+      write_desc.at(0).dstSet = descriptor_set;
+      write_desc.at(0).descriptorCount = 1;
+      write_desc.at(0).descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+      write_desc.at(0).pImageInfo = desc_image.data();
       vkUpdateDescriptorSets(Data::vk_device, 1, write_desc.data(), 0, nullptr);
    }
    return descriptor_set;
@@ -348,8 +369,8 @@ Texture::CopyBufferToImage(VkImage image, uint32_t texWidth, uint32_t texHeight,
    region.imageSubresource.mipLevel = 0;
    region.imageSubresource.baseArrayLayer = 0;
    region.imageSubresource.layerCount = 1;
-   region.imageOffset = {0, 0, 0};
-   region.imageExtent = {texWidth, texHeight, 1};
+   region.imageOffset = {.x = 0, .y = 0, .z = 0};
+   region.imageExtent = {.width = texWidth, .height = texHeight, .depth = 1};
 
    const auto size =
       static_cast< size_t >(texWidth) * static_cast< size_t >(texHeight) * static_cast< size_t >(4);
@@ -448,7 +469,7 @@ Texture::TransitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLa
 const Texture*
 TextureLibrary::GetTexture(TextureType type, const std::string& textureName)
 {
-   if (s_loadedTextures.find(textureName) == s_loadedTextures.end())
+   if (!s_loadedTextures.contains(textureName))
    {
       SCOPED_TIMER(fmt::format("Texture: {} not found in library. Loading it", textureName));
       LoadTexture(type, textureName);
@@ -485,7 +506,7 @@ const Texture*
 TextureLibrary::CreateTexture(TextureType type, const std::string& textureName,
                               const TextureProperties& props)
 {
-   if (s_loadedTextures.find(textureName) == s_loadedTextures.end())
+   if (!s_loadedTextures.contains(textureName))
    {
       SCOPED_TIMER(fmt::format("Creating texture {}", textureName));
       LoadTexture(type, textureName, props);
@@ -502,7 +523,7 @@ const Texture*
 TextureLibrary::CreateTexture(TextureType type, const std::string& textureName,
                               const FileManager::ImageData& data, const TextureProperties& props)
 {
-   if (s_loadedTextures.find(textureName) == s_loadedTextures.end())
+   if (!s_loadedTextures.contains(textureName))
    {
       SCOPED_TIMER(fmt::format("Creating texture {}", textureName));
       LoadTexture(type, textureName, data, props);

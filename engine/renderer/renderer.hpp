@@ -38,11 +38,12 @@ MeshDeleted(const RenderInfo& renderInfo);
 
 [[nodiscard]] RenderInfo
 MeshLoaded(const std::vector< Vertex >& vertices_in, const TextureIDs& textures_in,
-           const glm::mat4& modelMat, const glm::vec4& color);
+           const glm::mat4& modelMat, const glm::vec4& color,
+           const LightingMaterial& material = {});
 
 void
 SubmitMeshData(const uint32_t idx, const TextureIDs& ids, const glm::mat4& modelMat,
-               const glm::vec4& color);
+               const glm::vec4& color, const LightingMaterial& material = {});
 
 void
 SetupVertexBuffer(const int32_t layer);

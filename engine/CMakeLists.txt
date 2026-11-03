@@ -16,7 +16,8 @@ target_include_directories(${MODULE_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "
 
 # Load all TPLs
 find_package(Vulkan REQUIRED)
-find_package(fmt REQUIRED)
+# fmt 11.1 fixes C++20 consteval compilation with Clang 20.
+find_package(fmt 11.1.4 REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(imgui REQUIRED)
 find_package(glm REQUIRED)

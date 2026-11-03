@@ -7,6 +7,7 @@
 #include <GLFW/glfw3.h>
 
 #include <algorithm>
+#include <iterator>
 #include <optional>
 #include <set>
 
@@ -39,10 +40,8 @@ GetSupportedExtensions()
    std::vector< VkExtensionProperties > extensions(count);
    vkEnumerateInstanceExtensionProperties(nullptr, &count, extensions.data());
    std::set< std::string > results = {};
-   for (auto& extension : extensions)
-   {
-      results.insert(&extension.extensionName[0]);
-   }
+   std::ranges::transform(extensions, std::inserter(results, results.end()),
+                          [](const auto& extension) { return std::data(extension.extensionName); });
    return results;
 }
 
@@ -140,7 +139,8 @@ FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
 
    for (uint32_t index = 0; const auto& queueFamily : queueFamilies)
    {
-      if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+      constexpr auto requiredQueues = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT;
+      if ((queueFamily.queueFlags & requiredQueues) == requiredQueues)
       {
          indices_.graphicsFamily = index;
       }
@@ -216,7 +216,7 @@ CheckDeviceExtensionSupport(VkPhysicalDevice device)
 inline bool
 IsDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
-   static_cast< void >(FindQueueFamilies(device, surface));
+   const auto queueFamilies = FindQueueFamilies(device, surface);
 
    const auto extensionsSupported = CheckDeviceExtensionSupport(device);
 
@@ -236,7 +236,7 @@ IsDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface)
    vkGetPhysicalDeviceProperties(device, &physicalDeviceProperties);
    auto isDiscrete = physicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
 
-   return extensionsSupported && swapChainAdequate && isDiscrete
+   return queueFamilies.IsComplete() && extensionsSupported && swapChainAdequate && isDiscrete
           && supportedFeatures.samplerAnisotropy && supportedFeatures.multiDrawIndirect
           && supportedFeatures.wideLines;
 }

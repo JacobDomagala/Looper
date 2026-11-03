@@ -75,6 +75,8 @@ struct UniformBufferObject
    alignas(16) glm::mat4 proj = {};
    alignas(16) glm::mat4 view = {};
    glm::vec4 cameraPos = {};
+   glm::vec4 lighting = {}; // enabled, ambient, intensity, coverage scale
+   glm::vec4 viewport = {}; // viewport size, lighting capture UV offset
 };
 
 struct PerInstanceBuffer
@@ -82,7 +84,12 @@ struct PerInstanceBuffer
    alignas(16) glm::mat4 model = {};
    glm::vec4 color = {};
    glm::vec4 texSamples = {};
+   // RGB: emission. W: opacity for lit sprites, -(opacity + 1) for unlit sprites.
+   // Keep the stride at 112 bytes so MAX_NUM_SPRITES fits a 128 MiB storage buffer.
+   glm::vec4 emissionOpacity = {0.0f, 0.0f, 0.0f, -1.0f};
 };
+
+static_assert(sizeof(PerInstanceBuffer) == 112);
 
 using IndexType = uint32_t;
 

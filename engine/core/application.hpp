@@ -57,6 +57,9 @@ class Application : public InputListener
    IsGame() const;
 
    virtual void
+   PrepareRender() = 0;
+
+   virtual void
    Render(VkCommandBuffer cmdBuffer) = 0;
 
    // convert from global position (OpenGL) to screen position (in pixels)

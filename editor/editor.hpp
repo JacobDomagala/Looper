@@ -67,6 +67,9 @@ class Editor : public Application
    MouseScrollCallback(MouseScrollEvent& event) override;
 
    void
+   PrepareRender() override;
+
+   void
    Render(VkCommandBuffer cmdBuffer) override;
 
    // EDITOR SPECIFIC FUNCTIONS
@@ -187,7 +190,8 @@ class Editor : public Application
    int32_t
    GetRenderLayerToDraw() const;
 
-   void SetRenderLayerToDraw(int32_t);
+   void
+   SetRenderLayerToDraw(int32_t layer);
 
    EditorObject&
    GetEditorObjectRef(Object::ID object);

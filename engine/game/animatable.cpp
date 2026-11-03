@@ -40,13 +40,13 @@ Animatable::UpdateAnimationPoint()
    animatableCurrentState_.isReverse_ ? --animatableCurrentState_.currentAnimationPoint_
                                       : ++animatableCurrentState_.currentAnimationPoint_;
 
-   auto updateReverseAnimation = [this]() {
+   auto const updateReverseAnimation = [this] {
       animatableCurrentState_.currentAnimationBegin_ =
          animatableCurrentState_.currentAnimationPoint_->m_end;
 
       if (animatableCurrentState_.currentAnimationPoint_ != animationPoints_.begin())
       {
-         auto previousStep = std::prev(animatableCurrentState_.currentAnimationPoint_);
+         auto const previousStep = std::prev(animatableCurrentState_.currentAnimationPoint_);
          animatableCurrentState_.currentAnimationEnd_ = previousStep->m_end;
       }
       else
@@ -139,7 +139,7 @@ Animatable::CalculateNextStep(time::milliseconds updateTime) const
 glm::vec2
 Animatable::AnimateInCurrentSection(time::milliseconds updateTime)
 {
-   auto animationValue = CalculateNextStep(updateTime);
+   auto const animationValue = CalculateNextStep(updateTime);
 
    // Object position after adding animation step
    animatableCurrentState_.currentAnimationPosition_ += animationValue;
@@ -166,7 +166,7 @@ Animatable::Animate(time::milliseconds updateTime)
    animatableCurrentState_.animationFinished_ = false;
    animatableCurrentState_.totalTimeElapsed_ += updateTime;
 
-   auto currentAnimationStepSize = AnimateInCurrentSection(updateTime);
+   auto const currentAnimationStepSize = AnimateInCurrentSection(updateTime);
    if (animatableCurrentState_.currentTimeElapsed_
        < animatableCurrentState_.currentAnimationPoint_->m_timeDuration)
    {
@@ -230,11 +230,10 @@ Animatable::AddAnimationNode(const AnimationPoint& newAnimationPoint)
 void
 Animatable::UpdateAnimationNode(const AnimationPoint& updatedAnimationPoint)
 {
-   auto updatedPointIt =
-      std::find_if(animationPoints_.begin(), animationPoints_.end(),
-                   [&updatedAnimationPoint](const auto animationPoint) {
-                      return animationPoint.GetID() == updatedAnimationPoint.GetID();
-                   });
+   auto const updatedPointIt =
+      std::ranges::find_if(animationPoints_, [&updatedAnimationPoint](const auto& animationPoint) {
+         return animationPoint.GetID() == updatedAnimationPoint.GetID();
+      });
 
    if (updatedPointIt != animationPoints_.end())
    {
@@ -248,9 +247,8 @@ Animatable::UpdateAnimationNode(const AnimationPoint& updatedAnimationPoint)
 void
 Animatable::DeleteAnimationNode(Object::ID animationID)
 {
-   auto it =
-      std::find_if(animationPoints_.begin(), animationPoints_.end(),
-                   [animationID](const auto& point) { return point.GetID() == animationID; });
+   auto const it = std::ranges::find_if(
+      animationPoints_, [animationID](const auto& point) { return point.GetID() == animationID; });
    /*auto it = std::find(animationPoints_.begin(), animationPoints_.end(), pathNodeMapPosition);*/
 
    if (it != animationPoints_.end())

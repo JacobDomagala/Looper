@@ -38,6 +38,9 @@ cmake --build .
 3. Save and load levels.
 4. Switch to "game-mode" to play your custom levels in the 2D type game.
 
+## Radiance cascades
+Load `assets/levels/RadianceDemo.dgl` to try the 2D lighting system. Enable it for other levels under **Level → Lighting**, then edit each object's emission and light-blocking properties. See [the lighting guide](docs/radiance_cascades.md) for the API, implementation details, and tests.
+
 ## Contributing
 If you would like to contribute to the project, please fork the repository and submit a pull request with your proposed changes. We welcome any improvements or new features that enhance the functionality and user experience of Looper.
 

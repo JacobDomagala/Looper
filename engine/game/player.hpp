@@ -70,16 +70,16 @@ class Player : public GameObject
    {
       // speed at which the player moves
       // (any moving imparing effects should lower this value)
-      float speed_;
+      float speed_ = {};
 
       // player's current health
-      int32_t currentHP_;
+      int32_t currentHP_ = {};
 
       // player's velocity
       glm::vec2 velocity_;
 
       // direction where player is looking
-      float viewAngle_;
+      float viewAngle_ = {};
    };
 
    StateList< State > statesQueue_;

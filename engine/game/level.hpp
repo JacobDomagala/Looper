@@ -187,7 +187,14 @@ class Level
    [[nodiscard]] size_t
    GetNumOfObjects() const;
 
+   [[nodiscard]] const renderer::LightingSettings&
+   GetLightingSettings() const;
+
+   void
+   SetLightingSettings(const renderer::LightingSettings& settings);
+
  private:
+   renderer::LightingSettings lighting_;
    Application* contextPointer_ = nullptr;
    renderer::Sprite background_ = {};
    PathFinder pathFinder_ = {};

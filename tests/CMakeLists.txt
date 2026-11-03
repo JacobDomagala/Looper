@@ -1,0 +1,19 @@
+find_package(glm REQUIRED)
+find_package(nlohmann_json REQUIRED)
+
+add_executable(lighting_tests lighting_tests.cpp)
+target_compile_features(lighting_tests PRIVATE cxx_std_20)
+target_include_directories(lighting_tests PRIVATE "${PROJECT_SOURCE_DIR}/engine")
+target_link_libraries(lighting_tests PRIVATE glm::glm nlohmann_json::nlohmann_json project_warnings)
+add_test(NAME lighting_settings_and_layout COMMAND lighting_tests)
+
+add_executable(radiance_gpu_tests radiance_gpu_tests.cpp)
+target_compile_features(radiance_gpu_tests PRIVATE cxx_std_20)
+target_link_libraries(radiance_gpu_tests PRIVATE Engine)
+add_test(NAME radiance_cascades_gpu COMMAND radiance_gpu_tests)
+set_tests_properties(radiance_cascades_gpu PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 60)
+
+add_executable(file_manager_tests file_manager_tests.cpp)
+target_compile_features(file_manager_tests PRIVATE cxx_std_20)
+target_link_libraries(file_manager_tests PRIVATE Engine)
+add_test(NAME file_manager_string_view COMMAND file_manager_tests)

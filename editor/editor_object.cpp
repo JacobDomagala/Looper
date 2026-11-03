@@ -14,7 +14,7 @@ EditorObject::EditorObject(Editor* editor, const glm::vec2& positionOnMap, const
      objectID_(linkedObject),
      hasLinkedObject_(true)
 {
-   auto depth = 0.01f;
+   auto const depth = 0.01f;
 
    sprite_.SetSpriteTextured(glm::vec3{position_, depth}, size, sprite);
 }
@@ -29,9 +29,12 @@ EditorObject::CheckIfCollidedScreenPosion(const glm::vec2& screenPosition) const
 
    const auto boundingRectangle = sprite_.GetTransformedRectangle();
 
-   const auto transformed0 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[0], 0.0f, 1.0f);
-   const auto transformed1 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[1], 0.0f, 1.0f);
-   const auto transformed3 = camera.GetViewMatrix() * glm::vec4(boundingRectangle[3], 0.0f, 1.0f);
+   const auto transformed0 =
+      camera.GetViewMatrix() * glm::vec4(boundingRectangle.at(0), 0.0f, 1.0f);
+   const auto transformed1 =
+      camera.GetViewMatrix() * glm::vec4(boundingRectangle.at(1), 0.0f, 1.0f);
+   const auto transformed3 =
+      camera.GetViewMatrix() * glm::vec4(boundingRectangle.at(3), 0.0f, 1.0f);
 
    const auto minX = transformed1.x;
    const auto maxX = transformed0.x;
@@ -159,25 +162,16 @@ EditorObject::GetLinkedObjectID() const
 void
 EditorObject::DeleteLinkedObject()
 {
-   if (hasLinkedObject_)
+   if (hasLinkedObject_ && Object::GetTypeFromID(objectID_) == ObjectType::ANIMATION_POINT)
    {
-      switch (Object::GetTypeFromID(objectID_))
-      {
-         case ObjectType::ANIMATION_POINT: {
-            auto& animationPoint =
-               dynamic_cast< AnimationPoint& >(editor_->GetLevel().GetObjectRef(objectID_));
-            auto& object = editor_->GetLevel().GetObjectRef(animationPoint.m_parent);
+      const auto& animationPoint =
+         dynamic_cast< const AnimationPoint& >(editor_->GetLevel().GetObjectRef(objectID_));
+      auto& object = editor_->GetLevel().GetObjectRef(animationPoint.m_parent);
 
-            auto& enemy = dynamic_cast< Enemy& >(object);
-            enemy.DeleteAnimationNode(objectID_);
-            enemy.ResetAnimation();
-            enemy.Move(enemy.GetAnimationStartLocation() - enemy.GetPosition());
-         }
-         break;
-
-         default: {
-         }
-      }
+      auto& enemy = dynamic_cast< Enemy& >(object);
+      enemy.DeleteAnimationNode(objectID_);
+      enemy.ResetAnimation();
+      enemy.Move(enemy.GetAnimationStartLocation() - enemy.GetPosition());
    }
 }
 
@@ -188,21 +182,12 @@ EditorObject::Move(const glm::vec2& moveBy)
    position_ += moveBy;
    centeredPosition_ += moveBy;
 
-   if (hasLinkedObject_)
+   if (hasLinkedObject_ && Object::GetTypeFromID(objectID_) == ObjectType::ANIMATION_POINT)
    {
-      switch (Object::GetTypeFromID(objectID_))
-      {
-         case ObjectType::ANIMATION_POINT: {
-            auto& animationPoint =
-               dynamic_cast< AnimationPoint& >(editor_->GetLevel().GetObjectRef(objectID_));
-            animationPoint.m_end += moveBy;
-            editor_->UpdateAnimationData(animationPoint.m_parent);
-         }
-         break;
-
-         default: {
-         }
-      }
+      auto& animationPoint =
+         dynamic_cast< AnimationPoint& >(editor_->GetLevel().GetObjectRef(objectID_));
+      animationPoint.m_end += moveBy;
+      editor_->UpdateAnimationData(animationPoint.m_parent);
    }
 }
 
@@ -217,44 +202,28 @@ EditorObject::Rotate(float angle, bool cumulative)
 {
    cumulative ? sprite_.RotateCumulative(angle) : sprite_.Rotate(angle);
 
-   auto rotate = sprite_.GetRotation(renderer::RotationType::degrees);
-   if (hasLinkedObject_)
+   auto const rotate = sprite_.GetRotation(renderer::RotationType::degrees);
+   if (hasLinkedObject_ && Object::GetTypeFromID(objectID_) == ObjectType::ANIMATION_POINT)
    {
-      switch (Object::GetTypeFromID(objectID_))
-      {
-         case ObjectType::ANIMATION_POINT: {
-            auto& animationPoint =
-               dynamic_cast< AnimationPoint& >(editor_->GetLevel().GetObjectRef(objectID_));
-            animationPoint.m_rotation = rotate;
-            editor_->UpdateAnimationData(animationPoint.m_parent);
-         }
-         default: {
-         }
-      }
+      auto& animationPoint =
+         dynamic_cast< AnimationPoint& >(editor_->GetLevel().GetObjectRef(objectID_));
+      animationPoint.m_rotation = rotate;
+      editor_->UpdateAnimationData(animationPoint.m_parent);
    }
 }
 
 void
-EditorObject::Update(bool /*isReverse*/)
+EditorObject::Update([[maybe_unused]] bool isReverse)
 {
 }
 
 void
 EditorObject::Render()
 {
-   if (hasLinkedObject_)
+   if (hasLinkedObject_ && Object::GetTypeFromID(objectID_) == ObjectType::ANIMATION_POINT)
    {
-      switch (Object::GetTypeFromID(objectID_))
-      {
-         case ObjectType::ANIMATION_POINT: {
-            sprite_.SetColor({1.0f, 1.0f, 1.0f, static_cast< float >(visible_)});
-            sprite_.Render();
-         }
-         break;
-
-         default: {
-         }
-      }
+      sprite_.SetColor({1.0f, 1.0f, 1.0f, static_cast< float >(visible_)});
+      sprite_.Render();
    }
 }
 

@@ -49,7 +49,8 @@ class Timer
    static std::string
    GetCurrentTime();
 
-   static milliseconds ConvertToMs(seconds);
+   static milliseconds
+   ConvertToMs(seconds sec);
 
  private:
    // Time period between last Toggle() function call

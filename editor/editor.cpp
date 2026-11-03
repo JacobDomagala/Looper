@@ -184,7 +184,7 @@ Editor::MouseButtonCallback(MouseButtonEvent& event)
 
             selectedObjects_ = selectedObjects;
             auto& firstObject = currentLevel_->GetGameObjectRef(selectedObjects_.front());
-            auto gizmoPos = firstObject.GetCenteredPosition();
+            auto const gizmoPos = firstObject.GetCenteredPosition();
             glm::vec2 min = gizmoPos;
             glm::vec2 max = gizmoPos;
 
@@ -434,10 +434,10 @@ Editor::HandleMouseDrag(const glm::vec2& currentCursorPos, const glm::vec2& axis
          const auto maxVal = glm::vec2(glm::max(selectStartPos_.x, globalPos.x),
                                        glm::max(selectStartPos_.y, globalPos.y));
 
-         selectRect_[0] = glm::vec2{minVal.x, maxVal.y};
-         selectRect_[1] = maxVal;
-         selectRect_[2] = glm::vec2{maxVal.x, minVal.y};
-         selectRect_[3] = minVal;
+         selectRect_.at(0) = glm::vec2{minVal.x, maxVal.y};
+         selectRect_.at(1) = maxVal;
+         selectRect_.at(2) = glm::vec2{maxVal.x, minVal.y};
+         selectRect_.at(3) = minVal;
       }
    }
    else if (RMBPressedLastUpdate_)
@@ -518,7 +518,7 @@ Editor::HandleObjectSelected(Object::ID objectID, bool fromGUI)
    switch (Object::GetTypeFromID(objectID))
    {
       case ObjectType::ANIMATION_POINT: {
-         auto it = stl::find_if(animationPoints_, [objectID](const auto& point) {
+         auto const it = stl::find_if(animationPoints_, [objectID](const auto& point) {
             return point.GetLinkedObjectID() == objectID;
          });
 
@@ -617,7 +617,7 @@ Editor::SetVisibleAnimationPoints(const Animatable& animatable, bool visible)
 
    for (const auto& animationPoint : animationPoints)
    {
-      auto it = std::ranges::find_if(animationPoints_, [&animationPoint](auto& editorObject) {
+      auto const it = std::ranges::find_if(animationPoints_, [&animationPoint](auto& editorObject) {
          return editorObject.GetLinkedObjectID() == animationPoint.GetID();
       });
 
@@ -638,7 +638,7 @@ Editor::RecalculateGizmoPos()
 
    auto& firstObject = currentLevel_->GetGameObjectRef(selectedObjects_.front());
 
-   auto gizmoPos = firstObject.GetCenteredPosition();
+   auto const gizmoPos = firstObject.GetCenteredPosition();
    glm::vec2 min = gizmoPos;
    glm::vec2 max = gizmoPos;
 
@@ -689,7 +689,7 @@ Editor::UnselectGameObject(Object::ID object, bool groupSelect)
    }
    else if (groupSelect)
    {
-      auto it = stl::find(selectedObjects_, object);
+      auto const it = stl::find(selectedObjects_, object);
       if (it != selectedObjects_.end())
       {
          selectedObjects_.erase(it);
@@ -750,7 +750,7 @@ Editor::HandleEditorObjectSelected(EditorObject& newSelectedEditorObject, bool f
 EditorObject&
 Editor::GetEditorObjectRef(Object::ID object)
 {
-   auto animationPointIt = stl::find_if(animationPoints_, [object](const auto& editorObject) {
+   auto const animationPointIt = stl::find_if(animationPoints_, [object](const auto& editorObject) {
       return editorObject.GetID() == object;
    });
 
@@ -766,9 +766,10 @@ Editor::GetEditorObjectRef(Object::ID object)
 EditorObject&
 Editor::GetEditorObjectRefByLinkedID(Object::ID linkedObjID)
 {
-   auto animationPointIt = stl::find_if(animationPoints_, [linkedObjID](const auto& editorObject) {
-      return editorObject.GetLinkedObjectID() == linkedObjID;
-   });
+   auto const animationPointIt =
+      stl::find_if(animationPoints_, [linkedObjID](const auto& editorObject) {
+         return editorObject.GetLinkedObjectID() == linkedObjID;
+      });
 
    return *animationPointIt;
 }
@@ -797,9 +798,10 @@ Editor::UnselectEditorObject(Object::ID object)
 void
 Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition, bool groupSelect)
 {
-   auto newSelectedEditorObject = stl::find_if(animationPoints_, [cursorPosition](auto& object) {
-      return object.IsVisible() && object.CheckIfCollidedScreenPosion(cursorPosition);
-   });
+   auto const newSelectedEditorObject =
+      stl::find_if(animationPoints_, [cursorPosition](auto& object) {
+         return object.IsVisible() && object.CheckIfCollidedScreenPosion(cursorPosition);
+      });
 
    if (newSelectedEditorObject != animationPoints_.end())
    {
@@ -807,7 +809,7 @@ Editor::CheckIfObjectGotSelected(const glm::vec2& cursorPosition, bool groupSele
    }
    else
    {
-      auto newSelectedObject =
+      auto const newSelectedObject =
          currentLevel_->GetGameObjectOnLocationAndLayer(cursorPosition, renderLayerToDraw_);
 
       if (newSelectedObject != Object::INVALID_ID)
@@ -848,10 +850,7 @@ Editor::GetObjectsInArea(const std::array< glm::vec2, 4 >& area) const
       }
       else
       {
-         for (const auto object : objectsOnNode)
-         {
-            objectsList.insert(object);
-         }
+         objectsList.insert(objectsOnNode.begin(), objectsOnNode.end());
       }
    }
 
@@ -934,7 +933,7 @@ Editor::ActionOnObject(Editor::ACTION action, Object::ID object)
          break;
 
       case ACTION::REMOVE: {
-         auto removeEditorObject = [this](Object::ID object) {
+         auto const removeEditorObject = [this](Object::ID object) {
             UnselectEditorObject(object);
 
             auto& currentySelectedObj = GetEditorObjectRef(object);
@@ -944,7 +943,7 @@ Editor::ActionOnObject(Editor::ACTION action, Object::ID object)
             if (Object::GetTypeFromID(currentySelectedObj.GetLinkedObjectID())
                 == ObjectType::ANIMATION_POINT)
             {
-               auto animationIt =
+               auto const animationIt =
                   stl::find_if(animationPoints_, [object](const auto& animationPoint) {
                      return animationPoint.GetID() == object;
                   });
@@ -975,12 +974,10 @@ Editor::ActionOnObject(Editor::ACTION action, Object::ID object)
 }
 
 void
-Editor::Render(VkCommandBuffer cmdBuffer)
+Editor::PrepareRender()
 {
    if (levelLoaded_)
    {
-      auto& renderData = renderer::Data::renderData_[renderer::GetCurrentlyBoundType()];
-
       currentLevel_->GetSprite().Render();
 
       DrawAnimationPoints();
@@ -988,13 +985,20 @@ Editor::Render(VkCommandBuffer cmdBuffer)
       currentLevel_->RenderGameObjects();
 
       gizmo_.Render();
+   }
+}
 
-
+void
+Editor::Render(VkCommandBuffer cmdBuffer)
+{
+   if (levelLoaded_)
+   {
+      auto& renderData = renderer::GetRenderData();
       vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipeline);
 
       auto offsets = std::to_array< const VkDeviceSize >({0});
       vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipelineLayout,
-                              0, 1, &renderData.descriptorSets[renderer::Data::currentFrame_], 0,
+                              0, 1, &renderData.descriptorSets.at(renderer::Data::currentFrame_), 0,
                               nullptr);
       renderer::QuadShader::PushConstants pushConstants = {};
       pushConstants.selectedIdx = -1.0f;
@@ -1044,7 +1048,8 @@ Editor::Render(VkCommandBuffer cmdBuffer)
 
       vkCmdBindDescriptorSets(
          cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer::EditorData::linePipelineLayout_, 0,
-         1, &renderer::EditorData::lineDescriptorSets_[renderer::Data::currentFrame_], 0, nullptr);
+         1, &renderer::EditorData::lineDescriptorSets_.at(renderer::Data::currentFrame_), 0,
+         nullptr);
 
       renderer::LineShader::PushConstants linePushConstants = {};
       linePushConstants.color = glm::vec4(0.4f, 0.5f, 0.6f, static_cast< float >(drawGrid_));
@@ -1097,14 +1102,13 @@ Editor::DrawAnimationPoints()
    {
       point.Render();
 
-      if (drawLines)
+      if (drawLines
+          && (std::ranges::find(animaltionPointIDs, point.GetLinkedObjectID())
+              != animaltionPointIDs.end()))
+
       {
-         if (std::ranges::find(animaltionPointIDs, point.GetLinkedObjectID())
-             != animaltionPointIDs.end())
-         {
-            renderer::DrawDynamicLine(lineStart, point.GetPosition());
-            lineStart = point.GetCenteredPosition();
-         }
+         renderer::DrawDynamicLine(lineStart, point.GetPosition());
+         lineStart = point.GetCenteredPosition();
       }
    }
 
@@ -1114,12 +1118,12 @@ Editor::DrawAnimationPoints()
 void
 Editor::DrawBoundingBoxes()
 {
-   auto drawBoundingBox = [](const renderer::Sprite& sprite) {
+   auto const drawBoundingBox = [](const renderer::Sprite& sprite) {
       const auto rect = sprite.GetTransformedRectangle();
-      renderer::DrawDynamicLine(rect[0], rect[1]);
-      renderer::DrawDynamicLine(rect[1], rect[2]);
-      renderer::DrawDynamicLine(rect[2], rect[3]);
-      renderer::DrawDynamicLine(rect[3], rect[0]);
+      renderer::DrawDynamicLine(rect.at(0), rect.at(1));
+      renderer::DrawDynamicLine(rect.at(1), rect.at(2));
+      renderer::DrawDynamicLine(rect.at(2), rect.at(3));
+      renderer::DrawDynamicLine(rect.at(3), rect.at(0));
    };
 
    for (const auto object : selectedObjects_)
@@ -1338,8 +1342,9 @@ Editor::CopyGameObjects(const std::vector< Object::ID >& objectsToCopy)
       const auto hasCollision = object.GetHasCollision();
       const auto& textureName = object.GetSprite().GetTextureName();
       const auto rotation = object.GetSprite().GetRotation();
+      const auto lighting = object.GetSprite().GetLightingMaterial();
 
-      auto newObjectID =
+      auto const newObjectID =
          currentLevel_->AddGameObject(Object::GetTypeFromID(objectToCopy), position + offset);
 
       // Set it only once
@@ -1352,6 +1357,7 @@ Editor::CopyGameObjects(const std::vector< Object::ID >& objectsToCopy)
       newObject.SetSize(size);
       newObject.SetHasCollision(hasCollision);
       newObject.GetSprite().SetTextureFromFile(textureName);
+      newObject.GetSprite().SetLightingMaterial(lighting);
       newObject.Rotate(rotation);
 
       gui_.ObjectUpdated(newObjectID);
@@ -1374,8 +1380,8 @@ Editor::AddObject(ObjectType objectType)
 
    auto& baseObject = currentLevel_->GetObjectRef(currentSelectedGameObject_);
    auto& animatable = dynamic_cast< Animatable& >(baseObject);
-   auto& gameObject = dynamic_cast< GameObject& >(baseObject);
-   auto newNode = animatable.CreateAnimationNode(
+   const auto& gameObject = dynamic_cast< const GameObject& >(baseObject);
+   auto const newNode = animatable.CreateAnimationNode(
       currentSelectedGameObject_,
       gameObject.GetPosition() + static_cast< glm::vec2 >(gameObject.GetSize()));
 
@@ -1465,7 +1471,7 @@ Editor::Update()
       auto& objectBase = currentLevel_->GetObjectRef(currentSelectedGameObject_);
       auto& animatable = dynamic_cast< Animatable& >(objectBase);
       auto& gameObject = dynamic_cast< GameObject& >(objectBase);
-      auto moveBy = animatable.SingleAnimate(deltaTime_);
+      auto const moveBy = animatable.SingleAnimate(deltaTime_);
 
       if (glm::length(moveBy) > 0.0f)
       {
@@ -1492,10 +1498,10 @@ Editor::Update()
 
    if (mouseDrag_ and selectRect_ != std::array< glm::vec2, 4 >{})
    {
-      renderer::DrawDynamicLine(selectRect_[0], selectRect_[1]);
-      renderer::DrawDynamicLine(selectRect_[1], selectRect_[2]);
-      renderer::DrawDynamicLine(selectRect_[2], selectRect_[3]);
-      renderer::DrawDynamicLine(selectRect_[3], selectRect_[0]);
+      renderer::DrawDynamicLine(selectRect_.at(0), selectRect_.at(1));
+      renderer::DrawDynamicLine(selectRect_.at(1), selectRect_.at(2));
+      renderer::DrawDynamicLine(selectRect_.at(2), selectRect_.at(3));
+      renderer::DrawDynamicLine(selectRect_.at(3), selectRect_.at(0));
    }
 
    {
@@ -1507,15 +1513,13 @@ Editor::Update()
    renderData.viewMat = camera_.viewMatrix_;
    renderData.projMat = camera_.projectionMatrix_;
    renderData.projNoZoomMat = camera_.projectionWithoutZoom_;
-
-   renderer::UpdateData();
 }
 
 void
 Editor::UpdateAnimationData(Object::ID object)
 {
    auto& baseObject = currentLevel_->GetObjectRef(object);
-   const auto& gameObject = dynamic_cast< GameObject& >(baseObject);
+   const auto& gameObject = dynamic_cast< const GameObject& >(baseObject);
 
    auto* animatable = dynamic_cast< Animatable* >(&baseObject);
    if (animatable)

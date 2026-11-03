@@ -33,6 +33,12 @@ class Sprite
    SetColor(const glm::vec4& color);
 
    void
+   SetLightingMaterial(const LightingMaterial& material);
+
+   [[nodiscard]] const LightingMaterial&
+   GetLightingMaterial() const;
+
+   void
    SetTextureFromFile(const std::string& filePath);
 
    void
@@ -160,6 +166,8 @@ class Sprite
    {
       // color of sprite (default is white)
       glm::vec4 color_ = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+      LightingMaterial lighting = {};
 
       // sprite's position
       glm::vec2 currentPosition_ = {0.0f, 0.0f};

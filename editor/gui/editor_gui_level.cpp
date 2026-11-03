@@ -27,9 +27,11 @@ void
 EditorGUI::RenderCreateNewLevelWindow()
 {
    const auto halfSize = windowSize_ / 2.0f;
-   std::unordered_map< std::string, glm::ivec2 > sizes = {{"Small", glm::ivec2{8192, 8192}},
-                                                          {"Medium", glm::ivec2{16384, 16384}},
-                                                          {"Large", glm::ivec2{65536, 65536}}};
+   std::unordered_map< std::string, glm::ivec2 > sizes = {
+      {"Small", glm::ivec2{8192, 8192}},
+      {"Medium", glm::ivec2{16384, 16384}},
+      {"Large", glm::ivec2{65536, 65536}},
+   };
 
    static std::string name = "DummyLevelName";
    static std::string currentSize = "Small";
@@ -145,7 +147,7 @@ EditorGUI::RenderMainPanel()
          [this] {
             if (ImGui::Button("Save", ImVec2(-FLT_MIN, -FLT_MIN)))
             {
-               auto levelName =
+               auto const levelName =
                   FileManager::FileDialog(LEVELS_DIR, {{"DGame Level file", "dgl"}}, true);
                if (!levelName.empty())
                {
@@ -158,7 +160,7 @@ EditorGUI::RenderMainPanel()
          [this] {
             if (ImGui::Button("Load", ImVec2(-FLT_MIN, -FLT_MIN)))
             {
-               auto levelName =
+               auto const levelName =
                   FileManager::FileDialog(LEVELS_DIR, {{"DGame Level file", "dgl"}}, false);
                if (!levelName.empty())
                {
@@ -189,30 +191,30 @@ EditorGUI::RenderLevelMenu() // NOLINT
    ImGui::SetNextWindowSize(ImVec2(windowWidth_, levelWindowHeight_));
    ImGui::Begin("Level");
    ImGui::SetNextItemOpen(true);
-   if (ImGui::CollapsingHeader("General"))
+   if (ImGui::CollapsingHeader("General") && ImGui::BeginTable("LevelTable", 2))
+
    {
-      if (ImGui::BeginTable("LevelTable", 2))
-      {
-         CreateRow("Size", fmt::format("{:.0f}, {:.0f}", currentLevel_->GetSprite().GetSize().x,
-                                       currentLevel_->GetSprite().GetSize().y));
+      CreateRow("Size", fmt::format("{:.0f}, {:.0f}", currentLevel_->GetSprite().GetSize().x,
+                                    currentLevel_->GetSprite().GetSize().y));
 
-         CreateActionRowLabel("Render grid", [this] {
-            auto [drawGrid, gridSize] = parent_.GetGridData();
-            if (ImGui::Checkbox("##Render grid", &drawGrid))
-            {
-               parent_.SetGridData(drawGrid, gridSize);
-            }
-         });
+      CreateActionRowLabel("Render grid", [this] {
+         auto [drawGrid, gridSize] = parent_.GetGridData();
+         if (ImGui::Checkbox("##Render grid", &drawGrid))
+         {
+            parent_.SetGridData(drawGrid, gridSize);
+         }
+      });
 
-         CreateActionRowLabel("Render collision", [this] {
-            auto renderPathfinderNodes = parent_.GetRenderNodes();
-            if (ImGui::Checkbox("##Render collision", &renderPathfinderNodes))
-            {
-               parent_.RenderNodes(renderPathfinderNodes);
-            }
-         });
+      CreateActionRowLabel("Render collision", [this] {
+         auto renderPathfinderNodes = parent_.GetRenderNodes();
+         if (ImGui::Checkbox("##Render collision", &renderPathfinderNodes))
+         {
+            parent_.RenderNodes(renderPathfinderNodes);
+         }
+      });
 
-         CreateActionRowLabel("RenderLayer", [this] {
+      CreateActionRowLabel(
+         "RenderLayer", [this] {
             const auto items = std::to_array< std::string >(
                {"All", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
             const auto layer = parent_.GetRenderLayerToDraw();
@@ -231,8 +233,29 @@ EditorGUI::RenderLevelMenu() // NOLINT
             }
          });
 
-         ImGui::EndTable();
+      ImGui::EndTable();
+   }
+
+
+   if (ImGui::CollapsingHeader("Lighting"))
+   {
+      auto settings = currentLevel_->GetLightingSettings();
+      bool changed = ImGui::Checkbox("Radiance cascades", &settings.enabled);
+      changed |= ImGui::SliderFloat("Ambient light", &settings.ambient, 0.0f, 1.0f);
+      changed |= ImGui::SliderFloat("Light intensity", &settings.intensity, 0.0f, 10.0f);
+      changed |= ImGui::SliderFloat("Off-screen margin", &settings.offscreenMargin, 0.0f, 2.0f,
+                                    "%.2f views");
+      if (ImGui::IsItemHovered())
+      {
+         ImGui::SetTooltip(
+            "Extra view width/height on each side. 0.5 adds half a view beyond each edge.\n"
+            "Larger margins reach farther but reduce lighting detail.");
       }
+      if (changed)
+      {
+         currentLevel_->SetLightingSettings(settings);
+      }
+      ImGui::TextWrapped("Select an object and increase its emission strength to create a light.");
    }
 
    ImGui::SetNextItemOpen(true);
@@ -252,7 +275,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
          // The second parameter is the label previewed before opening the combo.
          if (ImGui::BeginCombo("##filterByGroup", selectedGroup.c_str()))
          {
-            auto selected =
+            auto const selected =
                std::find_if(groupNames_.begin() + 1, groupNames_.end(),
                             [](const auto& group) { return ImGui::Selectable(group.c_str()); });
             if (selected != groupNames_.end())
@@ -284,7 +307,7 @@ EditorGUI::RenderLevelMenu() // NOLINT
 
       ImGui::BeginChild("Loaded Objects", {0, 200}, true);
 
-      auto DisplayObject = [this](const auto& object) {
+      auto const DisplayObject = [this](const auto& object) {
          const auto& objectInfo = objectsInfo_.at(object.GetID());
 
          if (ImGui::Selectable(objectInfo.description.c_str(), objectInfo.selected))
@@ -364,17 +387,16 @@ EditorGUI::RenderLevelMenu() // NOLINT
                                   nullptr, ImGuiInputTextFlags_EnterReturnsTrue);
             },
             [this] {
-               if (ImGui::Button(ICON_FA_PLAY "##SearchByID"))
+               if (ImGui::Button(ICON_FA_PLAY "##SearchByID")
+                   && (currentlySelectedGameObject_ != searchID))
+
                {
-                  if (currentlySelectedGameObject_ != searchID)
+                  auto const it = objectsInfo_.find(searchID);
+                  if (it != objectsInfo_.end())
                   {
-                     auto it = objectsInfo_.find(searchID);
-                     if (it != objectsInfo_.end())
-                     {
-                        parent_.HandleObjectSelected(searchID, true);
-                        parent_.GetCamera().SetCameraAtPosition(
-                           parent_.GetLevel().GetGameObjectRef(searchID).GetPosition());
-                     }
+                     parent_.HandleObjectSelected(searchID, true);
+                     parent_.GetCamera().SetCameraAtPosition(
+                        parent_.GetLevel().GetGameObjectRef(searchID).GetPosition());
                   }
                }
             });
@@ -483,45 +505,43 @@ EditorGUI::RenderLevelMenu() // NOLINT
    }
 
    ImGui::SetNextItemOpen(true);
-   if (ImGui::CollapsingHeader("Debug"))
+   if (ImGui::CollapsingHeader("Debug") && ImGui::BeginTable("DebugTable", 2))
+
    {
-      if (ImGui::BeginTable("DebugTable", 2))
+      CreateRow("FPS", fmt::format("{}", parent_.GetFramesLastSecond()));
+      CreateRow("Frame time",
+                fmt::format("{:.2f}ms", parent_.GetFrameTime().GetMilliseconds().count()));
+      CreateRow("UI update",
+                fmt::format("{:.2f}ms", parent_.GetUpdateUITime().GetMilliseconds().count()));
+      CreateRow("Render",
+                fmt::format("{:.2f}ms", parent_.GetRenderTime().GetMilliseconds().count()));
+      CreateRow("UI Render", fmt::format("{:.2f}ms", uiRenderTime.GetMilliseconds().count()));
+      CreateRow("Number of objects", fmt::format("{}", parent_.GetLevel().GetNumOfObjects()));
+      const auto cameraPos = parent_.GetCamera().GetPosition();
+      CreateRow("Camera Position", fmt::format("{}", static_cast< glm::vec2 >(cameraPos)));
+      CreateRow("Camera Zoom", fmt::format("{:.1f}", parent_.GetCamera().GetZoomLevel()));
+
+      CreateRow("Camera Rotation", fmt::format("{:.1f}", parent_.GetCamera().GetRotation()));
+
+      const auto cursorPos = parent_.ScreenToGlobal(InputManager::GetMousePos());
+      CreateRow("Cursor Position", fmt::format("{}", cursorPos));
+
+      if (parent_.GetLevel().IsInLevelBoundaries(cursorPos))
       {
-         CreateRow("FPS", fmt::format("{}", parent_.GetFramesLastSecond()));
-         CreateRow("Frame time",
-                   fmt::format("{:.2f}ms", parent_.GetFrameTime().GetMilliseconds().count()));
-         CreateRow("UI update",
-                   fmt::format("{:.2f}ms", parent_.GetUpdateUITime().GetMilliseconds().count()));
-         CreateRow("Render",
-                   fmt::format("{:.2f}ms", parent_.GetRenderTime().GetMilliseconds().count()));
-         CreateRow("UI Render", fmt::format("{:.2f}ms", uiRenderTime.GetMilliseconds().count()));
-         CreateRow("Number of objects", fmt::format("{}", parent_.GetLevel().GetNumOfObjects()));
-         const auto cameraPos = parent_.GetCamera().GetPosition();
-         CreateRow("Camera Position", fmt::format("{}", static_cast< glm::vec2 >(cameraPos)));
-         CreateRow("Camera Zoom", fmt::format("{:.1f}", parent_.GetCamera().GetZoomLevel()));
-
-         CreateRow("Camera Rotation", fmt::format("{:.1f}", parent_.GetCamera().GetRotation()));
-
-         const auto cursorPos = parent_.ScreenToGlobal(InputManager::GetMousePos());
-         CreateRow("Cursor Position", fmt::format("{}", cursorPos));
-
-         if (parent_.GetLevel().IsInLevelBoundaries(cursorPos))
-         {
-            auto& pathfinder = parent_.GetLevel().GetPathfinder();
-            const auto& curNode = pathfinder.GetNodeFromPosition(cursorPos);
-            CreateRow("Cursor on TileID", fmt::format("{}", curNode.nodeId_));
-            CreateRow("Cursor on Coords",
-                      fmt::format("({}, {})", curNode.tile_.first, curNode.tile_.second));
-         }
-         else
-         {
-            CreateRow("Cursor on TileID", "INVALID");
-            CreateRow("Cursor on Coords", "INVALID");
-         }
-
-
-         ImGui::EndTable();
+         auto& pathfinder = parent_.GetLevel().GetPathfinder();
+         const auto& curNode = pathfinder.GetNodeFromPosition(cursorPos);
+         CreateRow("Cursor on TileID", fmt::format("{}", curNode.nodeId_));
+         CreateRow("Cursor on Coords",
+                   fmt::format("({}, {})", curNode.tile_.first, curNode.tile_.second));
       }
+      else
+      {
+         CreateRow("Cursor on TileID", "INVALID");
+         CreateRow("Cursor on Coords", "INVALID");
+      }
+
+
+      ImGui::EndTable();
    }
 
 

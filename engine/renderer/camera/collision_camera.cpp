@@ -23,9 +23,9 @@ CollisionCamera::CheckCollision(const glm::vec2& globalVec) const
 
    const auto boundingRectangle = sprite_->GetTransformedRectangle();
 
-   const auto transformed0 = viewMatrix_ * glm::vec4(boundingRectangle[0], 0.0f, 1.0f);
-   const auto transformed1 = viewMatrix_ * glm::vec4(boundingRectangle[1], 0.0f, 1.0f);
-   const auto transformed3 = viewMatrix_ * glm::vec4(boundingRectangle[3], 0.0f, 1.0f);
+   const auto transformed0 = viewMatrix_ * glm::vec4(boundingRectangle.at(0), 0.0f, 1.0f);
+   const auto transformed1 = viewMatrix_ * glm::vec4(boundingRectangle.at(1), 0.0f, 1.0f);
+   const auto transformed3 = viewMatrix_ * glm::vec4(boundingRectangle.at(3), 0.0f, 1.0f);
 
    const auto minX = transformed1.x;
    const auto maxX = transformed0.x;

@@ -112,7 +112,7 @@ Enemy::DealWithPlayer()
 }
 
 void
-Enemy::Hit(int32_t /*dmg*/)
+Enemy::Hit([[maybe_unused]] int32_t dmg)
 {
    // currentHP -= dmg;
    SetColor({1.0f, 0.0f, 0.0, 0.75f});
@@ -133,15 +133,15 @@ Enemy::Visible() const
 void
 Enemy::SetTargetShootPosition(const glm::vec2& targetPosition)
 {
-   auto playerSize = appHandle_->GetPlayer().GetSize();
+   auto const playerSize = appHandle_->GetPlayer().GetSize();
 
    std::random_device rd;
    std::mt19937 mt(rd());
    std::uniform_real_distribution< double > dist(1.0, 10.0);
 
    // compute small offset value which simulates the 'aim wiggle'
-   auto xOffset = fmod(dist(mt), playerSize.x) + (-playerSize.x / 2.0);
-   auto yOffset = fmod(dist(mt), playerSize.y) + (-playerSize.y / 2.0);
+   auto const xOffset = fmod(dist(mt), playerSize.x) + (-playerSize.x / 2.0);
+   auto const yOffset = fmod(dist(mt), playerSize.y) + (-playerSize.y / 2.0);
 
    currentState_.targetShootPosition_ = (targetPosition + glm::vec2(xOffset, yOffset));
    currentState_.combatStarted_ = true;
@@ -153,7 +153,7 @@ Enemy::Shoot()
    currentState_.timeSinceLastShot_ += timer_.GetFloatDeltaTime();
 
    if (glm::length(appHandle_->GetPlayer().GetCenteredPosition() - glm::vec2(sprite_.GetPosition()))
-       <= (300.0f))
+       <= 300.0f)
    {
       if (currentState_.timeSinceLastShot_ >= 0.3f)
       {
@@ -198,7 +198,7 @@ Enemy::MoveToPosition(const glm::vec2& targetPosition, bool exactPosition)
 
    auto* gameHandle = ConvertToGameHandle();
 
-   auto moveBy =
+   auto const moveBy =
       currentState_.movementSpeed_ * static_cast< float >(gameHandle->GetDeltaTime().count());
 
    auto& pathFinder = gameHandle->GetLevel().GetPathfinder();

@@ -104,9 +104,9 @@ EditorGUI::UpdateGroupForSelection(const std::string& groupName)
 void
 EditorGUI::DeleteGroup(const std::string& groupName)
 {
-   auto& objs = groups_.at(groupName);
+   const auto& objs = groups_.at(groupName);
 
-   for (auto obj : objs)
+   for (auto const obj : objs)
    {
       auto& objRef = parent_.GetLevel().GetGameObjectRef(obj);
       objRef.editorGroup_ = "Default";
@@ -185,12 +185,12 @@ EditorGUI::EditGroup(const std::string& oldName)
    {
       renameGroupPushed_ = false;
       const auto& objects = groups_.at(oldName);
-      for (auto obj : objects)
+      for (auto const obj : objects)
       {
          parent_.GetLevel().GetGameObjectRef(obj).editorGroup_ = newName;
       }
 
-      *(stl::find(groupNames_, oldName)) = newName;
+      *stl::find(groupNames_, oldName) = newName;
 
       groups_[newName] = groups_.at(oldName);
       groups_.erase(oldName);
@@ -329,9 +329,11 @@ EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
    for (const auto& object : objects)
    {
       objectsInfo_[object.GetID()] = {
-         fmt::format("[{}] {} ({:.2f}, {:.2f})", object.GetTypeString().c_str(),
-                     object.GetName().c_str(), object.GetPosition().x, object.GetPosition().y),
-         false};
+         .description =
+            fmt::format("[{}] {} ({:.2f}, {:.2f})", object.GetTypeString().c_str(),
+                        object.GetName().c_str(), object.GetPosition().x, object.GetPosition().y),
+         .selected = false,
+      };
 
       groups_[object.editorGroup_].emplace_back(object.GetID());
    }
@@ -340,9 +342,11 @@ EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
    for (const auto& enemy : enemies)
    {
       objectsInfo_[enemy.GetID()] = {
-         fmt::format("[{}] {} ({:.2f}, {:.2f})", enemy.GetTypeString().c_str(),
-                     enemy.GetName().c_str(), enemy.GetPosition().x, enemy.GetPosition().y),
-         false};
+         .description =
+            fmt::format("[{}] {} ({:.2f}, {:.2f})", enemy.GetTypeString().c_str(),
+                        enemy.GetName().c_str(), enemy.GetPosition().x, enemy.GetPosition().y),
+         .selected = false,
+      };
 
       groups_[enemy.editorGroup_].emplace_back(enemy.GetID());
    }
@@ -351,9 +355,11 @@ EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
    if (player.GetID() != Object::INVALID_ID)
    {
       objectsInfo_[player.GetID()] = {
-         fmt::format("[{}] {} ({:.2f}, {:.2f})", player.GetTypeString().c_str(),
-                     player.GetName().c_str(), player.GetPosition().x, player.GetPosition().y),
-         false};
+         .description =
+            fmt::format("[{}] {} ({:.2f}, {:.2f})", player.GetTypeString().c_str(),
+                        player.GetName().c_str(), player.GetPosition().x, player.GetPosition().y),
+         .selected = false,
+      };
 
       groups_[player.editorGroup_].emplace_back(player.GetID());
    }
@@ -364,13 +370,13 @@ EditorGUI::LevelLoaded(const std::shared_ptr< Level >& loadedLevel)
 void
 EditorGUI::LoadConfigFile()
 {
-   auto fileName = parent_.GetLevelFileName();
+   auto const fileName = parent_.GetLevelFileName();
 
    // Load the editor configuration file
    auto json = FileManager::LoadJsonFile(
       fmt::format("{}.editor.dgl", fileName.substr(0, fileName.size() - 4)));
 
-   groupNames_ = json["GROUPS"];
+   groupNames_ = json.at("GROUPS");
 }
 
 void
@@ -378,9 +384,9 @@ EditorGUI::SaveConfigFile() const
 {
    nlohmann::json json;
 
-   json["GROUPS"] = groupNames_;
+   json.emplace("GROUPS", groupNames_);
 
-   auto fileName = parent_.GetLevelFileName();
+   auto const fileName = parent_.GetLevelFileName();
    FileManager::SaveJsonFile(fmt::format("{}.editor.dgl", fileName.substr(0, fileName.size() - 4)),
                              json);
 }
@@ -392,9 +398,12 @@ EditorGUI::ObjectSelected(Object::ID ID, bool groupSelect)
    setScrollTo_ = ID;
 
    const auto& gameObject = parent_.GetLevel().GetGameObjectRef(ID);
-   selectedObjects_.emplace_back(SelectedObjectInfo{ID, gameObject.GetHasCollision(),
-                                                    gameObject.GetSprite().GetRenderInfo().layer,
-                                                    gameObject.editorGroup_});
+   selectedObjects_.emplace_back(SelectedObjectInfo{
+      .ID = ID,
+      .collision = gameObject.GetHasCollision(),
+      .layer = gameObject.GetSprite().GetRenderInfo().layer,
+      .group = gameObject.editorGroup_,
+   });
 
 
    RecalculateCommonProperties();
@@ -457,7 +466,7 @@ EditorGUI::ObjectUpdated(Object::ID ID)
 }
 
 void
-EditorGUI::ObjectDeleted(Object::ID /*ID*/)
+EditorGUI::ObjectDeleted([[maybe_unused]] Object::ID ID)
 {
 }
 
@@ -465,10 +474,12 @@ void
 EditorGUI::ObjectAdded(Object::ID ID)
 {
    const auto& object = static_cast< GameObject& >(parent_.GetLevel().GetObjectRef(ID));
-   objectsInfo_[ID] = {fmt::format("[{}] {} ({:.2f}, {:.2f})", object.GetTypeString().c_str(),
-                                   object.GetName().c_str(), object.GetPosition().x,
-                                   object.GetPosition().y),
-                       true};
+   objectsInfo_[ID] = {
+      .description =
+         fmt::format("[{}] {} ({:.2f}, {:.2f})", object.GetTypeString().c_str(),
+                     object.GetName().c_str(), object.GetPosition().x, object.GetPosition().y),
+      .selected = true,
+   };
 
    groups_["Default"].push_back(ID);
 }

@@ -55,7 +55,7 @@ Window::ShutDown()
 }
 
 void
-Window::SetIcon(const std::string& /*file*/)
+Window::SetIcon([[maybe_unused]] const std::string& file)
 {
    GLFWimage image;
    image.width = 16;
@@ -90,7 +90,7 @@ Window::ShowCursor(bool choice)
 }
 
 glm::vec2
-Window::GetCursorScreenPosition(const glm::mat4& /*projectionMatrix*/)
+Window::GetCursorScreenPosition([[maybe_unused]] const glm::mat4& projectionMatrix)
 {
    auto cursorPos = GetCursor();
 
