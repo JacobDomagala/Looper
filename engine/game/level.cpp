@@ -405,7 +405,7 @@ Level::FreeNodes(Object::ID object, const std::vector< Tile >& nodes, bool hasCo
 {
    if (pathFinder_.IsInitialized())
    {
-      for (auto const tileID : nodes)
+      for (const auto& tileID : nodes)
       {
          if (hasCollision)
          {
@@ -422,7 +422,7 @@ Level::OccupyNodes(Object::ID object, const std::vector< Tile >& nodes, bool has
 {
    if (pathFinder_.IsInitialized())
    {
-      for (auto const tileID : nodes)
+      for (const auto& tileID : nodes)
       {
          if (hasCollision)
          {

@@ -966,7 +966,7 @@ UpdatePerInstanceBuffer()
 {
    if (updatePerInstanceBuffer_ and not updatedObjects_.empty())
    {
-      auto& renderData = Data::renderData_.at(boundApplication_);
+      const auto& renderData = Data::renderData_.at(boundApplication_);
 
       for (uint32_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; ++frame)
       {
