@@ -63,7 +63,7 @@ Game::Init(const std::string& configFile, bool loadLevel)
 
    const auto configData = FileManager::LoadJsonFile((ASSETS_DIR / configFile).string());
 
-   window_.Init({configData["WindowSize"]["Width"], configData["WindowSize"]["Height"]},
+   window_.Init({configData.at("WindowSize").at("Width"), configData.at("WindowSize").at("Height")},
                 "WindowTitle", true);
    window_.MakeFocus();
 
@@ -362,7 +362,7 @@ Game::HandleReverseLogic()
       else
       {
          --m_frameCount;
-         auto pos = cameraPositions_.GetLastState();
+         auto const pos = cameraPositions_.GetLastState();
 
          camera_.SetCameraAtPosition(pos);
       }
@@ -397,7 +397,7 @@ Game::Render(VkCommandBuffer cmdBuffer)
    auto offsets = std::to_array< const VkDeviceSize >({0});
 
    vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderData.pipelineLayout, 0,
-                           1, &renderData.descriptorSets[renderer::Data::currentFrame_], 0,
+                           1, &renderData.descriptorSets.at(renderer::Data::currentFrame_), 0,
                            nullptr);
 
    for (int32_t layer = renderer::NUM_LAYERS - 1; layer >= 0; --layer)

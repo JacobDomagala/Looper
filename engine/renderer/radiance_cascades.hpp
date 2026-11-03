@@ -20,7 +20,7 @@ class RadianceCascades
    void
    Destroy(); // Caller must wait for the device before destroying resources.
    void
-   Record(VkCommandBuffer commandBuffer, const RenderData& renderData, uint32_t frame);
+   Record(VkCommandBuffer commandBuffer, const RenderData& renderData, uint32_t frameIndex);
    [[nodiscard]] VkDescriptorImageInfo
    GetIrradiance(uint32_t frame) const;
    // Available for debug captures/readback after Record has completed.

@@ -9,6 +9,7 @@
 
 namespace looper {
 
+namespace {
 template < auto func >
 void
 BroadcastEvent(const auto& listeners, auto& event)
@@ -23,6 +24,7 @@ BroadcastEvent(const auto& listeners, auto& event)
       }
    }
 }
+} // namespace
 
 void
 // cppcheck-suppress constParameterCallback
@@ -109,18 +111,19 @@ InputManager::Init(GLFWwindow* mainWindow)
 }
 
 void
-InputManager::RegisterForInput(GLFWwindow* window, InputListener* listener)
+InputManager::RegisterForInput(const GLFWwindow* window, InputListener* listener)
 {
    listeners_[window].push_back(listener);
 }
 
 void
-InputManager::UnregisterFromInput(GLFWwindow* window, InputListener* listener)
+InputManager::UnregisterFromInput(const GLFWwindow* window, InputListener* listener)
 {
    auto& windowListeners = listeners_.at(window);
-   auto foundListener = stl::find_if(windowListeners, [listener](const auto& registeredListener) {
-      return listener == registeredListener;
-   });
+   auto const foundListener =
+      stl::find_if(windowListeners, [listener](const auto& registeredListener) {
+         return listener == registeredListener;
+      });
    if (foundListener != windowListeners.end())
    {
       windowListeners.erase(foundListener);

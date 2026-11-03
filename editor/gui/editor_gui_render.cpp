@@ -26,7 +26,7 @@ namespace looper {
 void
 EditorGUI::UpdateBuffers()
 {
-   ImDrawData* imDrawData = ImGui::GetDrawData();
+   ImDrawData const* imDrawData = ImGui::GetDrawData();
 
    // Update buffers only if vertex or index count has been changed compared to current buffer size
    if (!imDrawData or !imDrawData->TotalVtxCount or !imDrawData->TotalIdxCount)
@@ -43,8 +43,8 @@ EditorGUI::UpdateBuffers()
    const auto currentFrame = renderer::Data::currentFrame_;
 
    // Vertex buffer
-   auto& vertexBuffer = renderer::EditorData::vertexBuffer_[currentFrame];
-   auto& vertexCount = renderer::EditorData::vertexCount_[currentFrame];
+   auto& vertexBuffer = renderer::EditorData::vertexBuffer_.at(currentFrame);
+   auto& vertexCount = renderer::EditorData::vertexCount_.at(currentFrame);
    if ((vertexBuffer.buffer_ == VK_NULL_HANDLE) || (vertexCount < imDrawData->TotalVtxCount))
    {
       if (vertexBuffer.buffer_ != VK_NULL_HANDLE)
@@ -60,8 +60,8 @@ EditorGUI::UpdateBuffers()
    }
 
    // Index buffer
-   auto& indexBuffer = renderer::EditorData::indexBuffer_[currentFrame];
-   auto& indexCount = renderer::EditorData::indexCount_[currentFrame];
+   auto& indexBuffer = renderer::EditorData::indexBuffer_.at(currentFrame);
+   auto& indexCount = renderer::EditorData::indexCount_.at(currentFrame);
    if ((indexBuffer.buffer_ == VK_NULL_HANDLE) || (indexCount < imDrawData->TotalIdxCount))
    {
       if (indexBuffer.buffer_ != VK_NULL_HANDLE)
@@ -80,9 +80,8 @@ EditorGUI::UpdateBuffers()
    auto* vtxDst = static_cast< ImDrawVert* >(vertexBuffer.mappedMemory_);
    auto* idxDst = static_cast< ImDrawIdx* >(indexBuffer.mappedMemory_);
 
-   for (int n = 0; n < imDrawData->CmdListsCount; n++)
+   for (const ImDrawList* cmd_list : imDrawData->CmdLists)
    {
-      const ImDrawList* cmd_list = imDrawData->CmdLists[n];
       memcpy(vtxDst, cmd_list->VtxBuffer.Data,
              static_cast< size_t >(cmd_list->VtxBuffer.Size) * sizeof(ImDrawVert));
       memcpy(idxDst, cmd_list->IdxBuffer.Data,
@@ -101,7 +100,7 @@ EditorGUI::Render(VkCommandBuffer commandBuffer)
 {
    const time::ScopedTimer guiRender(&uiRenderTime);
 
-   ImDrawData* imDrawData = ImGui::GetDrawData();
+   ImDrawData const* imDrawData = ImGui::GetDrawData();
    int32_t vertexOffset = 0;
    uint32_t indexOffset = 0;
 
@@ -127,17 +126,16 @@ EditorGUI::Render(VkCommandBuffer commandBuffer)
 
    std::array< VkDeviceSize, 1 > offsets = {0};
    vkCmdBindVertexBuffers(commandBuffer, 0, 1,
-                          &renderer::EditorData::vertexBuffer_[currentFrame].buffer_,
+                          &renderer::EditorData::vertexBuffer_.at(currentFrame).buffer_,
                           offsets.data());
-   vkCmdBindIndexBuffer(commandBuffer, renderer::EditorData::indexBuffer_[currentFrame].buffer_, 0,
-                        VK_INDEX_TYPE_UINT16);
+   vkCmdBindIndexBuffer(commandBuffer, renderer::EditorData::indexBuffer_.at(currentFrame).buffer_,
+                        0, VK_INDEX_TYPE_UINT16);
 
-   for (int32_t i = 0; i < imDrawData->CmdListsCount; i++)
+   for (const ImDrawList* cmd_list : imDrawData->CmdLists)
    {
-      const ImDrawList* cmd_list = imDrawData->CmdLists[i];
-      for (int32_t j = 0; j < cmd_list->CmdBuffer.Size; j++)
+      for (const ImDrawCmd& command : cmd_list->CmdBuffer)
       {
-         const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[j];
+         const ImDrawCmd* pcmd = &command;
          VkRect2D scissorRect;
          scissorRect.offset.x = static_cast< int32_t >(glm::max(pcmd->ClipRect.x, 0.0f));
          scissorRect.offset.y = static_cast< int32_t >(glm::max(pcmd->ClipRect.y, 0.0f));
@@ -168,7 +166,7 @@ EditorGUI::Render(VkCommandBuffer commandBuffer)
 void
 EditorGUI::PrepareResources()
 {
-   auto& io = ImGui::GetIO();
+   auto const& io = ImGui::GetIO();
 
    const auto fontFilename = (FONTS_DIR / "Roboto-Medium.ttf").string();
 
@@ -338,8 +336,9 @@ EditorGUI::PreparePipeline()
    // Enable blending
    VkPipelineColorBlendAttachmentState blendAttachmentState{};
    blendAttachmentState.blendEnable = VK_TRUE;
-   blendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT
-                                         | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+   blendAttachmentState.colorWriteMask = VkColorComponentFlags{VK_COLOR_COMPONENT_R_BIT}
+                                         | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT
+                                         | VK_COLOR_COMPONENT_A_BIT;
    blendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
    blendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
    blendAttachmentState.colorBlendOp = VK_BLEND_OP_ADD;
@@ -367,15 +366,23 @@ EditorGUI::PreparePipeline()
    pipelineViewportStateCreateInfo.scissorCount = 1;
    pipelineViewportStateCreateInfo.flags = 0;
 
-   VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo{};
-   pipelineMultisampleStateCreateInfo.sType =
-      VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-   pipelineMultisampleStateCreateInfo.rasterizationSamples = renderer::Data::msaaSamples;
-   pipelineMultisampleStateCreateInfo.flags = 0;
+   VkPipelineMultisampleStateCreateInfo const pipelineMultisampleStateCreateInfo = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+      .pNext = {},
+      .flags = 0,
+      .rasterizationSamples = renderer::Data::msaaSamples,
+      .sampleShadingEnable = {},
+      .minSampleShading = {},
+      .pSampleMask = {},
+      .alphaToCoverageEnable = {},
+      .alphaToOneEnable = {},
+   };
 
 
-   std::vector< VkDynamicState > dynamicStateEnables = {VK_DYNAMIC_STATE_VIEWPORT,
-                                                        VK_DYNAMIC_STATE_SCISSOR};
+   std::vector< VkDynamicState > dynamicStateEnables = {
+      VK_DYNAMIC_STATE_VIEWPORT,
+      VK_DYNAMIC_STATE_SCISSOR,
+   };
 
    VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo{};
    pipelineDynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
@@ -386,8 +393,10 @@ EditorGUI::PreparePipeline()
 
    auto [vertexInfo, fragmentInfo] =
       renderer::VulkanShader::CreateShader(renderer::Data::vk_device, "ui.vert.spv", "ui.frag.spv");
-   std::array< VkPipelineShaderStageCreateInfo, 2 > shaderStages = {vertexInfo.shaderInfo,
-                                                                    fragmentInfo.shaderInfo};
+   std::array< VkPipelineShaderStageCreateInfo, 2 > shaderStages = {
+      vertexInfo.shaderInfo,
+      fragmentInfo.shaderInfo,
+   };
 
    VkGraphicsPipelineCreateInfo pipelineCreateInfo{};
    pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;

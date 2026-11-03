@@ -49,14 +49,15 @@ TypeToString(ObjectType type)
    return typeStr;
 }
 
-// NOLINTNEXTLINE 
+// NOLINTNEXTLINE
 std::unordered_map< std::string, ObjectType > typesMap = {
    {"Enemy", ObjectType::ENEMY},
    {"Player", ObjectType::PLAYER},
    {"Object", ObjectType::OBJECT},
    {"Animation Point", ObjectType::ANIMATION_POINT},
    {"Editor Object", ObjectType::EDITOR_OBJECT},
-   {"Pathfinder Node", ObjectType::PATHFINDER_NODE}};
+   {"Pathfinder Node", ObjectType::PATHFINDER_NODE},
+};
 
 } // namespace
 
@@ -77,7 +78,7 @@ Object::Setup(ObjectType type)
    type_ = type;
 
    // First 32 bits are for ids, the other are for type storage
-   auto type_val = static_cast< ID >(type) << TYPE_NUM_BITS;
+   auto const type_val = static_cast< ID >(type) << TYPE_NUM_BITS;
    id_ = type_val + currentID_;
 
    ++currentID_;

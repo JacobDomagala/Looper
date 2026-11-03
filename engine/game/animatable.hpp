@@ -49,7 +49,8 @@ class Animatable
    Animatable() = default;
    explicit Animatable(ANIMATION_TYPE type);
 
-   void SetAnimationType(ANIMATION_TYPE);
+   void
+   SetAnimationType(ANIMATION_TYPE type);
 
    [[nodiscard]] ANIMATION_TYPE
    GetAnimationType() const;
@@ -130,7 +131,7 @@ class Animatable
 
    struct State
    {
-      std::vector< AnimationPoint >::iterator currentAnimationPoint_;
+      std::vector< AnimationPoint >::iterator currentAnimationPoint_ = {};
       glm::vec2 currentAnimationBegin_;
       glm::vec2 currentAnimationEnd_;
       glm::vec2 currentAnimationPosition_;

@@ -15,8 +15,8 @@ Player::Player(Application* game, const glm::vec3& position, const glm::ivec2& s
 
    currentState_.currentHP_ = maxHP_;
    // currentGameObjectState_.position_ = position;
-   weapons_[0] = std::make_unique< SniperRifle >();
-   weapons_[1] = std::make_unique< Glock >();
+   weapons_.at(0) = std::make_unique< SniperRifle >();
+   weapons_.at(1) = std::make_unique< Glock >();
 
    // NOLINTNEXTLINE
    currentWeapon_ = weapons_.at(0).get();
@@ -40,15 +40,16 @@ Player::Setup(Application* game, const glm::vec2& position, const glm::ivec2& si
 
    currentState_.currentHP_ = maxHP_;
    // currentGameObjectState_.position_ = position;
-   weapons_[0] = std::make_unique< SniperRifle >();
-   weapons_[1] = std::make_unique< Glock >();
+   weapons_.at(0) = std::make_unique< SniperRifle >();
+   weapons_.at(1) = std::make_unique< Glock >();
 
    // NOLINTNEXTLINE
    currentWeapon_ = weapons_.at(0).get();
 }
 
 bool
-Player::CheckCollision(const glm::vec2& bulletPosition, Enemy const* /* enemy*/, bool enemyShooting)
+Player::CheckCollision(const glm::vec2& bulletPosition, [[maybe_unused]] Enemy const* enemy,
+                       bool enemyShooting)
 {
    // if the bullet is inside collision zone then player got hit
    if (glm::length(bulletPosition - glm::vec2(sprite_.GetPosition()))

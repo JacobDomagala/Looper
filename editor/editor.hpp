@@ -190,7 +190,8 @@ class Editor : public Application
    int32_t
    GetRenderLayerToDraw() const;
 
-   void SetRenderLayerToDraw(int32_t);
+   void
+   SetRenderLayerToDraw(int32_t layer);
 
    EditorObject&
    GetEditorObjectRef(Object::ID object);

@@ -7,7 +7,7 @@
 #include <fstream>
 #include <stb_image.h>
 
-#if defined(_WIN32)
+#ifdef _WIN32
 #define NOMINMAX
 #include <Windows.h>
 #endif //  WIN
@@ -23,7 +23,7 @@ FileManager::ReadBinaryFile(const std::filesystem::path& path)
 std::vector< char >
 FileManager::ReadBinaryFile(std::string_view fileName)
 {
-   std::ifstream fileHandle(fileName.data(), std::ios::binary);
+   std::ifstream fileHandle(std::string{fileName}, std::ios::binary);
 
    utils::Assert(fileHandle.is_open(),
                  fmt::format("FileManager::ReadBinaryFile -> {} can't be opened!", fileName));
@@ -40,7 +40,7 @@ FileManager::ReadBinaryFile(std::string_view fileName)
 }
 
 std::string
-FileManager::ReadFile(const std::string& fileName, FileType /*type*/)
+FileManager::ReadFile(const std::string& fileName, [[maybe_unused]] FileType type)
 {
    std::ifstream fileHandle = {};
    fileHandle.open(fileName.c_str(), std::ifstream::in);
@@ -79,7 +79,7 @@ FileManager::LoadImageData(std::string_view fileName)
       Logger::Fatal("FileManager::LoadImage -> {} can't be opened!", pathToImage);
    }
 
-   return {std::move(textureData), {w, h}, n};
+   return {.m_bytes = std::move(textureData), .m_size = {w, h}, .m_format = n};
 }
 
 nlohmann::json
@@ -119,7 +119,7 @@ FileManager::FileDialog(const std::filesystem::path& defaultPath,
 {
    constexpr auto FILE_DIALOG_MAX_BUFFER = 16384;
 
-#if defined(_WIN32)
+#ifdef _WIN32
    //////////////////////////////////////////////
    ///////     Generate file filter       ///////
    //////////////////////////////////////////////

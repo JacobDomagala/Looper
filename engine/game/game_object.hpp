@@ -106,7 +106,7 @@ class GameObject : public Object
    [[nodiscard]] bool
    GetHasCollision() const;
 
-   [[nodiscard]] std::vector< Tile >
+   [[nodiscard]] const std::vector< Tile >&
    GetOccupiedNodes() const;
 
    std::string editorGroup_ = "Default";
@@ -130,7 +130,7 @@ class GameObject : public Object
       glm::vec2 previousPosition_ = {};
 
       // should this object be visible
-      bool visible_;
+      bool visible_ = false;
 
       // matrices for transforming object
       glm::mat4 translateMatrix_;

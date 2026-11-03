@@ -16,7 +16,7 @@ WorkQueue::RunWorkUnits()
 {
    Workers tmpQueue;
 
-   for (auto& unit : queue_)
+   for (auto const& unit : queue_)
    {
       if (unit.first())
       {

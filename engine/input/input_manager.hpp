@@ -17,10 +17,10 @@ class InputManager
 {
  public:
    static void
-   RegisterForInput(GLFWwindow* window, InputListener* listener);
+   RegisterForInput(const GLFWwindow* window, InputListener* listener);
 
    static void
-   UnregisterFromInput(GLFWwindow* window, InputListener* listener);
+   UnregisterFromInput(const GLFWwindow* window, InputListener* listener);
 
    // @brief Polling function to check if key is currenty pressed
    // @param action Key in which user is interested
@@ -68,7 +68,8 @@ class InputManager
 
  private:
    // NOLINTBEGIN
-   static inline std::unordered_map < GLFWwindow*, std::vector< InputListener* >> listeners_ = {};
+   static inline std::unordered_map< const GLFWwindow*, std::vector< InputListener* > > listeners_ =
+      {};
 
    // in future handle input from multiple windows?
    static inline GLFWwindow* windowHandle_ = nullptr;

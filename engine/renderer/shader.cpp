@@ -38,19 +38,28 @@ VulkanShader::CreateShader(VkDevice device, std::string_view vertex, std::string
    auto* fragShaderModule =
       CreateShaderModule(device, FileManager::ReadBinaryFile(SHADERS_DIR / fragment));
 
-   VkPipelineShaderStageCreateInfo vertShaderStageInfo = {};
-   vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-   vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-   vertShaderStageInfo.module = vertShaderModule;
-   vertShaderStageInfo.pName = "main";
+   VkPipelineShaderStageCreateInfo const vertShaderStageInfo = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+      .pNext = {},
+      .flags = {},
+      .stage = VK_SHADER_STAGE_VERTEX_BIT,
+      .module = vertShaderModule,
+      .pName = "main",
+      .pSpecializationInfo = {},
+   };
 
-   VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
-   fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-   fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-   fragShaderStageInfo.module = fragShaderModule;
-   fragShaderStageInfo.pName = "main";
+   VkPipelineShaderStageCreateInfo const fragShaderStageInfo = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+      .pNext = {},
+      .flags = {},
+      .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+      .module = fragShaderModule,
+      .pName = "main",
+      .pSpecializationInfo = {},
+   };
 
-   return {{device, vertShaderStageInfo}, {device, fragShaderStageInfo}};
+   return {{.device = device, .shaderInfo = vertShaderStageInfo},
+           {.device = device, .shaderInfo = fragShaderStageInfo}};
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -62,12 +71,12 @@ QuadShader::CreateDescriptorPool()
    auto& renderData = Data::renderData_.at(GetCurrentlyBoundType());
 
    std::array< VkDescriptorPoolSize, 3 > poolSizes{};
-   poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-   poolSizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
-   poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-   poolSizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT * (MAX_NUM_TEXTURES + 1);
-   poolSizes[2].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-   poolSizes[2].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+   poolSizes.at(0).type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+   poolSizes.at(0).descriptorCount = MAX_FRAMES_IN_FLIGHT;
+   poolSizes.at(1).type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+   poolSizes.at(1).descriptorCount = MAX_FRAMES_IN_FLIGHT * (MAX_NUM_TEXTURES + 1);
+   poolSizes.at(2).type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+   poolSizes.at(2).descriptorCount = MAX_FRAMES_IN_FLIGHT;
 
    VkDescriptorPoolCreateInfo poolInfo = {};
    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -162,15 +171,14 @@ QuadShader::UpdateDescriptorSets()
    std::vector< VkDescriptorImageInfo > descriptorImageInfos(viewAndSamplers.size(),
                                                              VkDescriptorImageInfo{});
 
-   std::transform(descriptorImageInfos.begin(), descriptorImageInfos.end(), viewAndSamplers.begin(),
-                  descriptorImageInfos.begin(),
-                  [](auto& descriptoInfo, const auto& viewAndSampler) {
-                     descriptoInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                     descriptoInfo.imageView = viewAndSampler.first;
-                     descriptoInfo.sampler = viewAndSampler.second;
+   std::ranges::transform(descriptorImageInfos, viewAndSamplers, descriptorImageInfos.begin(),
+                          [](auto& descriptoInfo, const auto& viewAndSampler) {
+                             descriptoInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                             descriptoInfo.imageView = viewAndSampler.first;
+                             descriptoInfo.sampler = viewAndSampler.second;
 
-                     return descriptoInfo;
-                  });
+                             return descriptoInfo;
+                          });
 
    for (uint32_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; frame++)
    {
@@ -190,36 +198,36 @@ QuadShader::UpdateDescriptorSets()
       const auto irradianceInfo = renderData.radianceCascades.GetIrradiance(frame);
       std::array< VkWriteDescriptorSet, 4 > descriptorWrites = {};
 
-      descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      descriptorWrites[0].dstSet = renderData.descriptorSets.at(frame);
-      descriptorWrites[0].dstBinding = 0;
-      descriptorWrites[0].dstArrayElement = 0;
-      descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-      descriptorWrites[0].descriptorCount = 1;
-      descriptorWrites[0].pBufferInfo = &bufferInfo;
+      descriptorWrites.at(0).sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+      descriptorWrites.at(0).dstSet = renderData.descriptorSets.at(frame);
+      descriptorWrites.at(0).dstBinding = 0;
+      descriptorWrites.at(0).dstArrayElement = 0;
+      descriptorWrites.at(0).descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+      descriptorWrites.at(0).descriptorCount = 1;
+      descriptorWrites.at(0).pBufferInfo = &bufferInfo;
 
-      descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      descriptorWrites[1].dstSet = renderData.descriptorSets.at(frame);
-      descriptorWrites[1].dstBinding = 1;
-      descriptorWrites[1].dstArrayElement = 0;
-      descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-      descriptorWrites[1].descriptorCount = 1;
-      descriptorWrites[1].pBufferInfo = &instanceBufferInfo;
+      descriptorWrites.at(1).sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+      descriptorWrites.at(1).dstSet = renderData.descriptorSets.at(frame);
+      descriptorWrites.at(1).dstBinding = 1;
+      descriptorWrites.at(1).dstArrayElement = 0;
+      descriptorWrites.at(1).descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+      descriptorWrites.at(1).descriptorCount = 1;
+      descriptorWrites.at(1).pBufferInfo = &instanceBufferInfo;
 
-      descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      descriptorWrites[2].dstSet = renderData.descriptorSets.at(frame);
-      descriptorWrites[2].dstBinding = 2;
-      descriptorWrites[2].dstArrayElement = 0;
-      descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-      descriptorWrites[2].descriptorCount = static_cast< uint32_t >(viewAndSamplers.size());
-      descriptorWrites[2].pImageInfo = descriptorImageInfos.data();
+      descriptorWrites.at(2).sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+      descriptorWrites.at(2).dstSet = renderData.descriptorSets.at(frame);
+      descriptorWrites.at(2).dstBinding = 2;
+      descriptorWrites.at(2).dstArrayElement = 0;
+      descriptorWrites.at(2).descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+      descriptorWrites.at(2).descriptorCount = static_cast< uint32_t >(viewAndSamplers.size());
+      descriptorWrites.at(2).pImageInfo = descriptorImageInfos.data();
 
-      descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      descriptorWrites[3].dstSet = renderData.descriptorSets.at(frame);
-      descriptorWrites[3].dstBinding = 3;
-      descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-      descriptorWrites[3].descriptorCount = 1;
-      descriptorWrites[3].pImageInfo = &irradianceInfo;
+      descriptorWrites.at(3).sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+      descriptorWrites.at(3).dstSet = renderData.descriptorSets.at(frame);
+      descriptorWrites.at(3).dstBinding = 3;
+      descriptorWrites.at(3).descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+      descriptorWrites.at(3).descriptorCount = 1;
+      descriptorWrites.at(3).pImageInfo = &irradianceInfo;
 
       vkUpdateDescriptorSets(Data::vk_device, static_cast< uint32_t >(descriptorWrites.size()),
                              descriptorWrites.data(), 0, nullptr);
@@ -233,10 +241,10 @@ QuadShader::UpdateDescriptorSets()
 void
 LineShader::CreateDescriptorPool()
 {
-   auto& renderData = Data::renderData_.at(GetCurrentlyBoundType());
+   const auto& renderData = Data::renderData_.at(GetCurrentlyBoundType());
    std::array< VkDescriptorPoolSize, 1 > poolSizes{};
-   poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-   poolSizes[0].descriptorCount = static_cast< uint32_t >(renderData.swapChainImages.size());
+   poolSizes.at(0).type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+   poolSizes.at(0).descriptorCount = static_cast< uint32_t >(renderData.swapChainImages.size());
 
    VkDescriptorPoolCreateInfo poolInfo = {};
    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -293,19 +301,19 @@ LineShader::CreateDescriptorSets()
    for (size_t i = 0; i < size; i++)
    {
       VkDescriptorBufferInfo bufferInfo{};
-      bufferInfo.buffer = renderData.uniformBuffers[i].buffer_;
+      bufferInfo.buffer = renderData.uniformBuffers.at(i).buffer_;
       bufferInfo.offset = 0;
       bufferInfo.range = sizeof(UniformBufferObject);
 
       std::array< VkWriteDescriptorSet, 1 > descriptorWrites = {};
 
-      descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      descriptorWrites[0].dstSet = EditorData::lineDescriptorSets_[i];
-      descriptorWrites[0].dstBinding = 0;
-      descriptorWrites[0].dstArrayElement = 0;
-      descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-      descriptorWrites[0].descriptorCount = 1;
-      descriptorWrites[0].pBufferInfo = &bufferInfo;
+      descriptorWrites.at(0).sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+      descriptorWrites.at(0).dstSet = EditorData::lineDescriptorSets_.at(i);
+      descriptorWrites.at(0).dstBinding = 0;
+      descriptorWrites.at(0).dstArrayElement = 0;
+      descriptorWrites.at(0).descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+      descriptorWrites.at(0).descriptorCount = 1;
+      descriptorWrites.at(0).pBufferInfo = &bufferInfo;
 
       vkUpdateDescriptorSets(Data::vk_device, static_cast< uint32_t >(descriptorWrites.size()),
                              descriptorWrites.data(), 0, nullptr);

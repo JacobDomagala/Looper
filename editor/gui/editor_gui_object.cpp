@@ -23,6 +23,7 @@
 
 namespace looper {
 
+namespace {
 std::unordered_map< renderer::TextureID, VkDescriptorSet > textureDescriptors = {};
 
 VkDescriptorSet
@@ -48,6 +49,7 @@ GetDescriptor(renderer::TextureID id, VkDescriptorPool descriptorPool,
 
    return descriptor;
 }
+} // namespace
 
 void
 EditorGUI::RenderSelectedObjectsMenu()
@@ -102,74 +104,73 @@ EditorGUI::RenderGroupSelectModifications()
    }
 
    ImGui::SetNextItemOpen(true);
-   if (ImGui::CollapsingHeader("Group Action"))
+   if (ImGui::CollapsingHeader("Group Action") && ImGui::BeginTable("ObjectsTable", 3))
+
    {
-      if (ImGui::BeginTable("ObjectsTable", 3))
-      {
-         const auto totalWidth = ImGui::GetContentRegionAvail().x;
+      const auto totalWidth = ImGui::GetContentRegionAvail().x;
 
-         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthStretch, 0.55f * totalWidth);
-         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch, 0.35f * totalWidth);
-         ImGui::TableSetupColumn("Button", ImGuiTableColumnFlags_WidthStretch, 0.10f * totalWidth);
+      ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthStretch, 0.55f * totalWidth);
+      ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch, 0.35f * totalWidth);
+      ImGui::TableSetupColumn("Button", ImGuiTableColumnFlags_WidthStretch, 0.10f * totalWidth);
 
-         CreateActionRowLabel(
-            "Group",
-            [this] {
-               FillWidth();
-               if (ImGui::BeginCombo("##GroupGroup",
-                                     fmt::format("{}", commonGroup_.second).c_str()))
+      CreateActionRowLabel(
+         "Group",
+         [this] {
+            FillWidth();
+            if (ImGui::BeginCombo("##GroupGroup", fmt::format("{}", commonGroup_.second).c_str()))
+            {
+               // First one is "Create New"
+               ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+               if (ImGui::Selectable(groupNames_.front().c_str()))
                {
-                  // First one is "Create New"
-                  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
-                  if (ImGui::Selectable(groupNames_.front().c_str()))
-                  {
-                     newGroupPushed_ = true;
-                  }
-                  ImGui::PopStyleColor();
-
-                  auto group =
-                     std::find_if(groupNames_.begin() + 1, groupNames_.end(),
-                                  [](const auto& name) { return ImGui::Selectable(name.c_str()); });
-                  if (group != groupNames_.end())
-                  {
-                     UpdateGroupForSelection(*group);
-                  }
-
-                  ImGui::EndCombo();
+                  newGroupPushed_ = true;
                }
-            },
-            [this] {
-               if (not commonGroup_.first)
-               {
-                  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.0f, 0.5f, 0.0f, 1.0f});
-                  ImGui::Button(ICON_FA_CIRCLE_EXCLAMATION "##GroupNotCommon");
-                  if (ImGui::IsItemHovered())
-                  {
-                     ImGui::SetTooltip("Not all selcted Objects are part of the same group!");
-                  }
-                  ImGui::PopStyleColor(1);
-               }
-            });
+               ImGui::PopStyleColor();
 
-         CreateActionRowLabel(
-            "RenderLayer",
-            [this] {
-               const auto items =
-                  std::to_array< std::string >({"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
-               FillWidth();
-               if (ImGui::BeginCombo(
-                      "##GroupSetLayer",
-                      (commonRenderLayer_.first ? fmt::format("{}", commonRenderLayer_.second) : "")
-                         .c_str()))
+               auto const group =
+                  std::find_if(groupNames_.begin() + 1, groupNames_.end(),
+                               [](const auto& name) { return ImGui::Selectable(name.c_str()); });
+               if (group != groupNames_.end())
                {
-                  for (const auto& item : items)
+                  UpdateGroupForSelection(*group);
+               }
+
+               ImGui::EndCombo();
+            }
+         },
+         [this] {
+            if (not commonGroup_.first)
+            {
+               ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.0f, 0.5f, 0.0f, 1.0f});
+               ImGui::Button(ICON_FA_CIRCLE_EXCLAMATION "##GroupNotCommon");
+               if (ImGui::IsItemHovered())
+               {
+                  ImGui::SetTooltip("Not all selcted Objects are part of the same group!");
+               }
+               ImGui::PopStyleColor(1);
+            }
+         });
+
+      CreateActionRowLabel(
+         "RenderLayer",
+         [this] {
+            const auto items =
+               std::to_array< std::string >({"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
+            FillWidth();
+            if (ImGui::BeginCombo(
+                   "##GroupSetLayer",
+                   (commonRenderLayer_.first ? fmt::format("{}", commonRenderLayer_.second) : "")
+                      .c_str()))
+            {
+               for (const auto& item : items)
+               {
+                  if (ImGui::Selectable(item.c_str()))
                   {
-                     if (ImGui::Selectable(item.c_str()))
-                     {
-                        parent_.AddToWorkQueue([item, this] {
+                     parent_.AddToWorkQueue(
+                        [item, this] {
                            const auto newLayer = std::stoi(item);
                            const auto& gameObjects = parent_.GetSelectedObjects();
-                           for (auto object : gameObjects)
+                           for (auto const object : gameObjects)
                            {
                               parent_.GetLevel()
                                  .GetGameObjectRef(object)
@@ -184,63 +185,63 @@ EditorGUI::RenderGroupSelectModifications()
 
                            commonRenderLayer_ = {true, newLayer};
                         });
-                     }
                   }
-                  ImGui::EndCombo();
                }
-            },
-            [this] {
-               if (not commonRenderLayer_.first)
+               ImGui::EndCombo();
+            }
+         },
+         [this] {
+            if (not commonRenderLayer_.first)
+            {
+               ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.0f, 0.5f, 0.0f, 1.0f});
+               ImGui::Button(ICON_FA_CIRCLE_EXCLAMATION "##LayerNotCommon");
+               if (ImGui::IsItemHovered())
                {
-                  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.0f, 0.5f, 0.0f, 1.0f});
-                  ImGui::Button(ICON_FA_CIRCLE_EXCLAMATION "##LayerNotCommon");
-                  if (ImGui::IsItemHovered())
+                  ImGui::SetTooltip("Not all selcted Objects have the same layer set!");
+               }
+               ImGui::PopStyleColor(1);
+            }
+         });
+      CreateActionRowLabel(
+         "Has Collision",
+         [this] {
+            FillWidth();
+            if (ImGui::Checkbox("##GroupHasCollision", &commonCollision_.second))
+            {
+               parent_.AddToWorkQueue([this] {
+                  const auto& gameObjects = parent_.GetSelectedObjects();
+                  for (auto const object : gameObjects)
                   {
-                     ImGui::SetTooltip("Not all selcted Objects have the same layer set!");
+                     parent_.GetLevel().GetGameObjectRef(object).SetHasCollision(
+                        commonCollision_.second);
                   }
-                  ImGui::PopStyleColor(1);
-               }
-            });
-         CreateActionRowLabel(
-            "Has Collision",
-            [this] {
-               FillWidth();
-               if (ImGui::Checkbox("##GroupHasCollision", &commonCollision_.second))
-               {
-                  parent_.AddToWorkQueue([this] {
-                     const auto& gameObjects = parent_.GetSelectedObjects();
-                     for (auto object : gameObjects)
-                     {
-                        parent_.GetLevel().GetGameObjectRef(object).SetHasCollision(
-                           commonCollision_.second);
-                     }
 
-                     for (auto& object : selectedObjects_)
-                     {
-                        object.collision = commonCollision_.second;
-                     }
-                     commonCollision_.first = true;
-
-                     parent_.GetLevel().UpdateCollisionTexture();
-                  });
-               }
-            },
-            [this] {
-               if (not commonCollision_.first)
-               {
-                  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.0f, 0.5f, 0.0f, 1.0f});
-                  ImGui::Button(ICON_FA_CIRCLE_EXCLAMATION "##CollisionNotCommon");
-                  if (ImGui::IsItemHovered())
+                  for (auto& object : selectedObjects_)
                   {
-                     ImGui::SetTooltip("Not all selected Objects have the same collision set!");
+                     object.collision = commonCollision_.second;
                   }
-                  ImGui::PopStyleColor(1);
-               }
-            });
+                  commonCollision_.first = true;
 
-         ImGui::EndTable();
-      }
+                  parent_.GetLevel().UpdateCollisionTexture();
+               });
+            }
+         },
+         [this] {
+            if (not commonCollision_.first)
+            {
+               ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.0f, 0.5f, 0.0f, 1.0f});
+               ImGui::Button(ICON_FA_CIRCLE_EXCLAMATION "##CollisionNotCommon");
+               if (ImGui::IsItemHovered())
+               {
+                  ImGui::SetTooltip("Not all selected Objects have the same collision set!");
+               }
+               ImGui::PopStyleColor(1);
+            }
+         });
+
+      ImGui::EndTable();
    }
+
 
    RenderLightingControls(parent_.GetSelectedObjects());
 }
@@ -313,7 +314,7 @@ EditorGUI::RenderGameObjectContent()
    {
       auto& gameObject = currentLevel_->GetGameObjectRef(currentlySelectedGameObject_);
 
-      DrawWidget("Name", [this, &gameObject]() {
+      DrawWidget("Name", [this, &gameObject] {
          auto name = gameObject.GetName();
          const auto nameLength = 20;
          name.resize(nameLength);
@@ -367,9 +368,9 @@ EditorGUI::RenderGameObjectContent()
                         const auto newLayer = std::stoi(item);
                         gameObject.GetSprite().ChangeRenderLayer(newLayer);
 
-                        auto obj = stl::find_if(selectedObjects_,
-                                                [curID = currentlySelectedGameObject_](
-                                                   const auto& obj) { return obj.ID == curID; });
+                        auto const obj = stl::find_if(
+                           selectedObjects_, [curID = currentlySelectedGameObject_](
+                                                const auto& obj) { return obj.ID == curID; });
                         obj->layer = newLayer;
                         RecalculateCommonProperties();
                      });
@@ -385,7 +386,7 @@ EditorGUI::RenderGameObjectContent()
             if (ImGui::Checkbox("##Has Collision", &collision))
             {
                gameObject.SetHasCollision(collision);
-               auto obj =
+               auto const obj =
                   stl::find_if(selectedObjects_, [curID = currentlySelectedGameObject_](
                                                     const auto& obj) { return obj.ID == curID; });
                obj->collision = collision;
@@ -405,12 +406,12 @@ EditorGUI::RenderGameObjectContent()
    {
       auto& gameObject = currentLevel_->GetGameObjectRef(currentlySelectedGameObject_);
 
-      DrawWidget("Position", [&gameObject]() {
+      DrawWidget("Position", [&gameObject] {
          auto objectPosition = gameObject.GetSprite().GetPosition();
          ImGui::InputFloat2("##Position", &objectPosition.x);
       });
 
-      DrawWidget("Size", [this, &gameObject]() {
+      DrawWidget("Size", [this, &gameObject] {
          auto sprite_size = gameObject.GetSprite().GetSize();
          if (ImGui::InputFloat2("##Size", &sprite_size.x))
          {
@@ -419,7 +420,7 @@ EditorGUI::RenderGameObjectContent()
          }
       });
 
-      DrawWidget("Rotate", [&gameObject]() {
+      DrawWidget("Rotate", [&gameObject] {
          auto rotation = gameObject.GetSprite().GetRotation(renderer::RotationType::degrees);
          if (ImGui::InputFloat("##Rotate", &rotation,
                                glm::degrees(renderer::Sprite::ROTATION_RANGE.first),
@@ -439,7 +440,7 @@ EditorGUI::RenderGameObjectContent()
 
       const auto sectionSize = ImGui::GetContentRegionAvail();
       const auto currentPos = ImGui::GetCursorScreenPos();
-      ImGui::SetCursorScreenPos(ImVec2(currentPos.x + sectionSize.x / 4.0f, currentPos.y));
+      ImGui::SetCursorScreenPos(ImVec2(currentPos.x + (sectionSize.x / 4.0f), currentPos.y));
       ImGui::Image(
          static_cast< ImTextureID >(GetDescriptor(gameObject.GetSprite().GetTexture()->GetID(),
                                                   renderer::EditorData::descriptorPool_,
@@ -464,7 +465,7 @@ EditorGUI::RenderGameObjectContent()
 
          CreateActionRowLabel(
             "File",
-            [&gameObject]() {
+            [&gameObject] {
                const auto& sprite = gameObject.GetSprite();
 
                FillWidth();
@@ -474,7 +475,7 @@ EditorGUI::RenderGameObjectContent()
             [&sprite] {
                if (ImGui::Button(ICON_FA_PENCIL "##ChangeTextureButton"))
                {
-                  auto textureName = FileManager::FileDialog(
+                  auto const textureName = FileManager::FileDialog(
                      IMAGES_DIR, {{"PNG texture", "png"}, {"JPEG texture", "jpg"}}, false);
                   if (!textureName.empty())
                   {
@@ -501,7 +502,7 @@ EditorGUI::RenderGameObjectContent()
       ImGui::SetNextItemOpen(true);
       if (ImGui::CollapsingHeader("Animation"))
       {
-         DrawWidget("Type", [&animatable]() {
+         DrawWidget("Type", [&animatable] {
             if (ImGui::RadioButton("Loop", animatable.GetAnimationType()
                                               == Animatable::ANIMATION_TYPE::LOOP))
             {
@@ -549,7 +550,7 @@ EditorGUI::RenderGameObjectContent()
          ImGui::BeginChild("Animation Points", {0, 100}, true);
          if (ImGui::BeginTable("AnimationPointTable", 2))
          {
-            auto contentWidth = ImGui::GetContentRegionAvail().x;
+            auto const contentWidth = ImGui::GetContentRegionAvail().x;
             ImGui::TableSetupColumn("Column 1", ImGuiTableColumnFlags_WidthStretch,
                                     contentWidth * 0.95f);
             ImGui::TableSetupColumn("Column 2", ImGuiTableColumnFlags_WidthStretch,
@@ -557,7 +558,7 @@ EditorGUI::RenderGameObjectContent()
 
             for (uint32_t i = 0; i < animationPoints.size(); ++i) // NOLINT
             {
-               const auto& node = animationPoints[i];
+               const auto& node = animationPoints.at(i);
                const auto label = fmt::format("[{}] Time={}s", i, node.m_timeDuration.count());
 
                ImGui::TableNextRow();
@@ -613,7 +614,7 @@ EditorGUI::RenderGameObjectContent()
                   ImGui::EndTable();
                }
 
-               DrawWidget(fmt::format("Duration (sec)", node.m_end.x, node.m_end.y), [&node]() {
+               DrawWidget(fmt::format("Duration (sec)", node.m_end.x, node.m_end.y), [&node] {
                   auto seconds = static_cast< int32_t >(node.m_timeDuration.count());
                   if (ImGui::SliderInt("##distance", &seconds, 0, 10))
                   {

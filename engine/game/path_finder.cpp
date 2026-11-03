@@ -47,25 +47,25 @@ PathFinder::Initialize(Level* level)
 
          if (y > 0)
          {
-            connectedTo.push_back(x + (y - 1) * w);
+            connectedTo.push_back(x + ((y - 1) * w));
          }
 
          if (y < h - 1)
          {
-            connectedTo.push_back(x + (y + 1) * w);
+            connectedTo.push_back(x + ((y + 1) * w));
          }
 
          if (x > 0)
          {
-            connectedTo.push_back((x - 1) + y * w);
+            connectedTo.push_back((x - 1) + (y * w));
          }
 
          if (x < w - 1)
          {
-            connectedTo.push_back((x + 1) + y * w);
+            connectedTo.push_back((x + 1) + (y * w));
          }
 
-         nodes_.emplace_back(glm::ivec2{x, y}, glm::vec2(x * grad, y * grad) + offset, x + y * w,
+         nodes_.emplace_back(glm::ivec2{x, y}, glm::vec2(x * grad, y * grad) + offset, x + (y * w),
                              connectedTo);
       }
    }
@@ -93,7 +93,7 @@ PathFinder::GetNodeIDFromPosition(const glm::vec2& position)
       return INVALID_NODE;
    }
 
-   auto nodeFound = GetNodeFromTile(levelHandle_->GetTileFromPosition(position));
+   auto const nodeFound = GetNodeFromTile(levelHandle_->GetTileFromPosition(position));
 
    return nodeFound.nodeId_;
 }
@@ -122,14 +122,14 @@ Node&
 PathFinder::GetNodeFromTile(const Tile& tile)
 {
    return nodes_.at(static_cast< uint32_t >(tile.first)
-                    + static_cast< uint32_t >(tile.second) * levelHandle_->GetTileSize());
+                    + (static_cast< uint32_t >(tile.second) * levelHandle_->GetTileSize()));
 }
 
 std::vector< NodeID >
 PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
 {
    auto& nodeStart = GetNodeFromPosition(source);
-   auto& nodeEnd = GetNodeFromPosition(destination);
+   auto const& nodeEnd = GetNodeFromPosition(destination);
 
    // Reset Navigation Graph - default all node states
    stl::for_each(nodes_, [](auto& node) {
@@ -180,7 +180,7 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
 
 
       // Check each of this node's neighbours...
-      for (auto nodeNeighbourID : nodeCurrent->connectedNodes_)
+      for (auto const nodeNeighbourID : nodeCurrent->connectedNodes_)
       {
          auto& nodeNeighbour = GetNodeFromID(nodeNeighbourID);
 
@@ -219,7 +219,7 @@ PathFinder::GetPath(const glm::vec2& source, const glm::vec2& destination)
    std::vector< NodeID > nodePath;
 
    // Assume we found the path
-   auto* currentNode = &nodeEnd;
+   auto const* currentNode = &nodeEnd;
    while (*currentNode != nodeStart)
    {
       nodePath.push_back(currentNode->nodeId_);
@@ -256,7 +256,7 @@ PathFinder::SetObjectOffNode(const Tile& nodeCoords, Object::ID objectID)
    if (nodeCoords != INVALID_TILE)
    {
       auto& nodeAtTile = GetNodeFromTile(nodeCoords);
-      auto objectFound = stl::find(nodeAtTile.objectsOnThisNode_, objectID);
+      auto const objectFound = stl::find(nodeAtTile.objectsOnThisNode_, objectID);
 
       if (objectFound != nodeAtTile.objectsOnThisNode_.end())
       {
@@ -285,7 +285,7 @@ PathFinder::SetNodeFreed(const Tile& nodeCoords, Object::ID objectID)
    {
       auto& nodeAtTile = GetNodeFromTile(nodeCoords);
 
-      auto objectFound = stl::find(nodeAtTile.objectsOccupyingThisNode_, objectID);
+      auto const objectFound = stl::find(nodeAtTile.objectsOccupyingThisNode_, objectID);
 
       if (objectFound == nodeAtTile.objectsOccupyingThisNode_.end())
       {

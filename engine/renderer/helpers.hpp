@@ -7,6 +7,7 @@
 #include <GLFW/glfw3.h>
 
 #include <algorithm>
+#include <iterator>
 #include <optional>
 #include <set>
 
@@ -39,10 +40,8 @@ GetSupportedExtensions()
    std::vector< VkExtensionProperties > extensions(count);
    vkEnumerateInstanceExtensionProperties(nullptr, &count, extensions.data());
    std::set< std::string > results = {};
-   for (auto& extension : extensions)
-   {
-      results.insert(&extension.extensionName[0]);
-   }
+   std::ranges::transform(extensions, std::inserter(results, results.end()),
+                          [](const auto& extension) { return std::data(extension.extensionName); });
    return results;
 }
 

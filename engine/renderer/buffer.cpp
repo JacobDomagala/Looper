@@ -9,6 +9,7 @@
 #include <fmt/format.h>
 
 namespace looper::renderer {
+namespace {
 bool
 IsMapped(VmaAllocation alloc)
 {
@@ -26,7 +27,7 @@ FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 
    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
    {
-      if ((typeFilter & (1 << i))
+      if ((typeFilter & (1u << i))
           // NOLINTNEXTLINE
           && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
       {
@@ -37,6 +38,7 @@ FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
    utils::Assert(false, "failed to find suitable memory type!");
    return 1;
 }
+} // namespace
 
 void
 Buffer::Map()
@@ -108,13 +110,14 @@ Buffer::CopyDataToImageWithStaging(VkImage image, const void* data, const size_t
 }
 
 void
-Buffer::SetupDescriptor(VkDeviceSize /*size*/, VkDeviceSize offset)
+Buffer::SetupDescriptor([[maybe_unused]] VkDeviceSize size, VkDeviceSize offset)
 {
    descriptor_.offset = offset;
    descriptor_.buffer = buffer_;
    descriptor_.range = bufferSize_;
 }
 
+namespace {
 void
 AllocateMemory(VkMemoryRequirements memReq, VkDeviceMemory& bufferMemory,
                VkMemoryPropertyFlags properties)
@@ -127,6 +130,7 @@ AllocateMemory(VkMemoryRequirements memReq, VkDeviceMemory& bufferMemory,
    vk_check_error(vkAllocateMemory(Data::vk_device, &allocInfo, nullptr, &bufferMemory),
                   "failed to allocate buffer memory!");
 }
+} // namespace
 
 void
 Buffer::AllocateImageMemory(VkImage image, VkDeviceMemory& bufferMemory,

@@ -78,18 +78,33 @@ Sprite::SetSpriteTextured(const glm::vec2& position, const glm::vec2& size,
 
    */
    vertices_ = std::vector< renderer::Vertex >{
-      {glm::vec3{-0.5f, 0.5f, LAYERS.at(renderLayer)}, glm::vec3{0.0f, 0.0f, 1.0f}},
-      {glm::vec3{0.5f, 0.5f, LAYERS.at(renderLayer)}, glm::vec3{1.0f, 0.0f, 1.0f}},
-      {glm::vec3(0.5f, -0.5f, LAYERS.at(renderLayer)), glm::vec3{1.0f, 1.0f, 1.0f}},
-      {glm::vec3{-0.5f, -0.5f, LAYERS.at(renderLayer)}, glm::vec3{0.0f, 1.0f, 1.0f}}};
+      {
+         .position_ = glm::vec3{-0.5f, 0.5f, LAYERS.at(renderLayer)},
+         .texCoordsDraw_ = glm::vec3{0.0f, 0.0f, 1.0f},
+      },
+      {
+         .position_ = glm::vec3{0.5f, 0.5f, LAYERS.at(renderLayer)},
+         .texCoordsDraw_ = glm::vec3{1.0f, 0.0f, 1.0f},
+      },
+      {
+         .position_ = glm::vec3(0.5f, -0.5f, LAYERS.at(renderLayer)),
+         .texCoordsDraw_ = glm::vec3{1.0f, 1.0f, 1.0f},
+      },
+      {
+         .position_ = glm::vec3{-0.5f, -0.5f, LAYERS.at(renderLayer)},
+         .texCoordsDraw_ = glm::vec3{0.0f, 1.0f, 1.0f},
+      },
+   };
 
    const auto transformMat = ComputeModelMat();
    ComputeBoundingBox();
 
-   textures_ = {TextureLibrary::GetTexture(fileName)->GetID(),
-                TextureLibrary::GetTexture("white.png")->GetID(),
-                TextureLibrary::GetTexture(fileName)->GetID(),
-                TextureLibrary::GetTexture(fileName)->GetID()};
+   textures_ = {
+      TextureLibrary::GetTexture(fileName)->GetID(),
+      TextureLibrary::GetTexture("white.png")->GetID(),
+      TextureLibrary::GetTexture(fileName)->GetID(),
+      TextureLibrary::GetTexture(fileName)->GetID(),
+   };
 
 
    renderInfo_ =
@@ -225,7 +240,7 @@ Sprite::SetColor(const glm::vec4& color)
 void
 Sprite::SetTextureFromFile(const std::string& filePath)
 {
-   textures_[0] = renderer::TextureLibrary::GetTexture(filePath)->GetID();
+   textures_.at(0) = renderer::TextureLibrary::GetTexture(filePath)->GetID();
    changed_ = true;
 }
 
@@ -254,19 +269,19 @@ Sprite::SetTextureID(TextureType type, TextureID newID)
    switch (type)
    {
       case TextureType::DIFFUSE_MAP: {
-         textures_[0] = newID;
+         textures_.at(0) = newID;
       }
       break;
       case TextureType::MASK_MAP: {
-         textures_[1] = newID;
+         textures_.at(1) = newID;
       }
       break;
       case TextureType::NORMAL_MAP: {
-         textures_[2] = newID;
+         textures_.at(2) = newID;
       }
       break;
       case TextureType::SPECULAR_MAP: {
-         textures_[3] = newID;
+         textures_.at(3) = newID;
       }
       break;
       default: {
@@ -355,10 +370,10 @@ Sprite::ComputeBoundingBox()
       * glm::rotate(glm::mat4(1.0f), currentState_.angle_, {0.0f, 0.0f, 1.0f})
       * glm::scale(glm::mat4(1.0f), {size_, 1.0f});
 
-   boundingBox_.at(1) = transformMat * glm::vec4(vertices_[0].position_, 1.0f);
-   boundingBox_.at(2) = transformMat * glm::vec4(vertices_[3].position_, 1.0f);
-   boundingBox_.at(0) = transformMat * glm::vec4(vertices_[1].position_, 1.0f);
-   boundingBox_.at(3) = transformMat * glm::vec4(vertices_[2].position_, 1.0f);
+   boundingBox_.at(1) = transformMat * glm::vec4(vertices_.at(0).position_, 1.0f);
+   boundingBox_.at(2) = transformMat * glm::vec4(vertices_.at(3).position_, 1.0f);
+   boundingBox_.at(0) = transformMat * glm::vec4(vertices_.at(1).position_, 1.0f);
+   boundingBox_.at(3) = transformMat * glm::vec4(vertices_.at(2).position_, 1.0f);
 }
 
 const std::array< glm::vec2, 4 >&

@@ -108,13 +108,14 @@ Gizmo::AdjustSize()
 
    gizmoUp_.SetInitialPosition(
       gizmoCenter_.GetPosition()
-      + glm::vec2{0.0f, gizmoCenter_.GetSize().y / 2.0f + gizmoUp_.GetSize().x / 1.85f});
+      + glm::vec2{0.0f, (gizmoCenter_.GetSize().y / 2.0f) + (gizmoUp_.GetSize().x / 1.85f)});
 
 
    gizmoSide_.SetInitialPosition(
       gizmoCenter_.GetPosition()
       + glm::vec2{
-         glm::vec2(gizmoCenter_.GetSize().x / 2.0f + gizmoSide_.GetSize().x / 1.85f, 0.0f)});
+         glm::vec2((gizmoCenter_.GetSize().x / 2.0f) + (gizmoSide_.GetSize().x / 1.85f), 0.0f),
+      });
 }
 
 void
@@ -123,8 +124,8 @@ Gizmo::CheckHovered(const glm::vec3& cameraPos, const glm::vec2& globalPosition)
    bool gizmoTouched = false;
    selectedPart_ = GizmoPart::none;
 
-   auto checkGizmo = [this, &gizmoTouched, cameraPos,
-                      globalPosition](auto& gizmo, const glm::vec2& defaultSize, GizmoPart part) {
+   auto const checkGizmo = [this, &gizmoTouched, cameraPos, globalPosition](
+                              auto& gizmo, const glm::vec2& defaultSize, GizmoPart part) {
       if (not gizmoTouched and gizmo.CheckIfCollidedScreenPosion(cameraPos, globalPosition))
       {
          gizmo.SetSize(defaultSize * 1.1f);

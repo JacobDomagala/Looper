@@ -62,7 +62,7 @@ Application::GlobalToScreen(const glm::vec2& globalPos) const
       GetProjection() * GetViewMatrix() * glm::vec4(globalPos, 0.0f, 1.0f);
 
    // convert to <0, 1>
-   auto returnPos = (projectedPosition + glm::vec2(1.0f, 1.0f)) / 2.0f;
+   auto const returnPos = (projectedPosition + glm::vec2(1.0f, 1.0f)) / 2.0f;
 
    return returnPos * GetWindowSize();
 }

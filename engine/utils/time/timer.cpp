@@ -64,7 +64,7 @@ Timer::ResetTotalTime()
 void
 Timer::ToggleTimer()
 {
-   auto currentTimeStamp = std::chrono::steady_clock::now();
+   auto const currentTimeStamp = std::chrono::steady_clock::now();
    m_deltaTime = std::chrono::duration_cast< microseconds >(currentTimeStamp - m_timeStamp);
    m_timeStamp = currentTimeStamp;
    m_totalTime += std::chrono::duration_cast< milliseconds >(m_deltaTime);

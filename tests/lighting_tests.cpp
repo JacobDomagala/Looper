@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <limits>
+#include <stdexcept>
 
 using namespace looper::renderer;
 
@@ -12,17 +13,22 @@ Require(bool condition, const char* message)
 {
    if (!condition)
    {
-      std::cerr << message << '\n';
-      std::exit(EXIT_FAILURE);
+      throw std::runtime_error(message);
    }
 }
 } // namespace
 
 int
 main()
+try
 {
    Require(!ReadLightingSettings({}).enabled, "Legacy levels must retain unlit rendering");
-   const LightingSettings settings = {true, 0.2f, 2.0f, 0.75f};
+   const LightingSettings settings = {
+      .enabled = true,
+      .ambient = 0.2f,
+      .intensity = 2.0f,
+      .offscreenMargin = 0.75f,
+   };
    const auto restored = ReadLightingSettings(WriteLightingSettings(settings));
    Require(restored.enabled && restored.ambient == settings.ambient
               && restored.intensity == settings.intensity
@@ -30,7 +36,9 @@ main()
            "Settings must round trip");
    Require(ReadLightingSettings({}).offscreenMargin == 0.5f,
            "Levels without an off-screen setting must receive the default margin");
-   Require(GetLightingCoverageScale({true, 0.0f, 1.0f, 0.0f}) == 1.0f
+   Require(GetLightingCoverageScale(
+              {.enabled = true, .ambient = 0.0f, .intensity = 1.0f, .offscreenMargin = 0.0f})
+                 == 1.0f
               && GetLightingCoverageScale({}) == 2.0f && GetLightingCoverageScale(settings) == 2.5f,
            "Coverage must add the margin to both sides of the viewport");
    Require(ReadLightingSettings({{"offscreen_margin", -1.0f}}).offscreenMargin == 0.0f
@@ -41,7 +49,12 @@ main()
    invalidCoverage.offscreenMargin = std::numeric_limits< float >::infinity();
    Require(GetLightingCoverageScale(invalidCoverage) == 2.0f,
            "Non-finite off-screen margins must fall back to the default");
-   const LightingMaterial material = {{0.2f, 0.5f, 0.9f}, 12.0f, 0.75f, true};
+   const LightingMaterial material = {
+      .emissionColor = {0.2f, 0.5f, 0.9f},
+      .emissionStrength = 12.0f,
+      .opacity = 0.75f,
+      .receivesLight = true,
+   };
    const auto restoredMaterial = ReadLightingMaterial(WriteLightingMaterial(material));
    Require(restoredMaterial.emissionColor == material.emissionColor
               && restoredMaterial.emissionStrength == material.emissionStrength
@@ -66,9 +79,15 @@ main()
               && malformed.emissionColor.z == 0.0f && malformed.opacity == material.opacity,
            "Malformed optional fields must be handled safely");
 
-   for (const auto extent :
-        {glm::uvec2{0, 0}, glm::uvec2{1, 1}, glm::uvec2{3, 29}, glm::uvec2{1919, 1079},
-         glm::uvec2{1920, 1080}, glm::uvec2{7680, 4320}, glm::uvec2{16384, 1}})
+   for (const auto extent : {
+           glm::uvec2{0, 0},
+           glm::uvec2{1, 1},
+           glm::uvec2{3, 29},
+           glm::uvec2{1919, 1079},
+           glm::uvec2{1920, 1080},
+           glm::uvec2{7680, 4320},
+           glm::uvec2{16384, 1},
+        })
    {
       const auto layout = GetCascadeLayout(extent.x, extent.y);
       Require(layout.width > 0 && layout.height > 0 && layout.width <= 1024
@@ -79,8 +98,8 @@ main()
       for (uint32_t cascade = 0; cascade < layout.count; ++cascade)
       {
          const auto spacing = 2u << cascade;
-         const auto columns = (layout.width + spacing - 1u) / spacing + 2u;
-         const auto rows = (layout.height + spacing - 1u) / spacing + 2u;
+         const auto columns = ((layout.width + spacing - 1u) / spacing) + 2u;
+         const auto rows = ((layout.height + spacing - 1u) / spacing) + 2u;
          Require(columns * spacing <= layout.atlasWidth && rows * spacing <= layout.atlasHeight,
                  "Every directional tile must fit its atlas, including odd extents");
          end += length;
@@ -91,4 +110,14 @@ main()
          "Contiguous cascade intervals must cover the viewport diagonal");
    }
    std::cout << "Lighting settings, persistence, and cascade layout passed\n";
+}
+catch (const std::exception& error)
+{
+   std::cerr << error.what() << '\n';
+   return EXIT_FAILURE;
+}
+catch (...)
+{
+   std::cerr << "Unexpected exception\n";
+   return EXIT_FAILURE;
 }
